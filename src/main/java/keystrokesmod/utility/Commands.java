@@ -231,10 +231,6 @@ public class Commands {
             print("Debug " + (Raven.debugger ? "enabled" : "disabled") + ".", 1);
          } else if (cm.startsWith("profiles") || cm.startsWith("p")) {
             if (!hasArgs) {
-               print(invSyn, 1);
-               return;
-            }
-            if (args.length == 1) {
                print("&aAvailable profiles:", 1);
                if (Raven.profileManager.profiles.isEmpty()) {
                   print("None", 0);
