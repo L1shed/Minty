@@ -406,5 +406,180 @@ public class RenderUtils {
       mc.entityRenderer.enableLightmap();
    }
 
+   public static void f(final int n) { // credit to the creator of raven b4
+      GL11.glColor4f((float)(n >> 16 & 0xFF) / 255.0f, (float)(n >> 8 & 0xFF) / 255.0f, (float)(n & 0xFF) / 255.0f, (float)(n >> 24 & 0xFF) / 255.0f);
+   }
 
+   public static void drawRoundedGradientOutlinedRectangle(float n, float n2, float n3, float n4, final float n5, final int n6, final int n7, final int n8) { // credit to the creator of raven b4
+      n *= 2.0;
+      n2 *= 2.0;
+      n3 *= 2.0;
+      n4 *= 2.0;
+      GL11.glPushAttrib(1);
+      GL11.glScaled(0.5, 0.5, 0.5);
+      GL11.glEnable(3042);
+      GL11.glDisable(3553);
+      GL11.glEnable(2848);
+      GL11.glBegin(9);
+      f(n6);
+      for (int i = 0; i <= 90; i += 3) {
+         final double n9 = (double)(i * 0.017453292f);
+         GL11.glVertex2d((double)(n + n5) + Math.sin(n9) * n5 * -1.0, (double)(n2 + n5) + Math.cos(n9) * n5 * -1.0);
+      }
+      for (int j = 90; j <= 180; j += 3) {
+         final double n10 = (double)(j * 0.017453292f);
+         GL11.glVertex2d((double)(n + n5) + Math.sin(n10) * n5 * -1.0, (double)(n4 - n5) + Math.cos(n10) * n5 * -1.0);
+      }
+      for (int k = 0; k <= 90; k += 3) {
+         final double n11 = (double)(k * 0.017453292f);
+         GL11.glVertex2d((double)(n3 - n5) + Math.sin(n11) * n5, (double)(n4 - n5) + Math.cos(n11) * n5);
+      }
+      for (int l = 90; l <= 180; l += 3) {
+         final double n12 = (double)(l * 0.017453292f);
+         GL11.glVertex2d((double)(n3 - n5) + Math.sin(n12) * n5, (double)(n2 + n5) + Math.cos(n12) * n5);
+      }
+      GL11.glEnd();
+      GL11.glPushMatrix();
+      GL11.glShadeModel(7425);
+      GL11.glLineWidth(2.0f);
+      GL11.glBegin(2);
+      if (n7 != 0L) {
+         f(n7);
+      }
+      for (int n13 = 0; n13 <= 90; n13 += 3) {
+         final double n14 = (double)(n13 * 0.017453292f);
+         GL11.glVertex2d((double)(n + n5) + Math.sin(n14) * n5 * -1.0, (double)(n2 + n5) + Math.cos(n14) * n5 * -1.0);
+      }
+      for (int n15 = 90; n15 <= 180; n15 += 3) {
+         final double n16 = (double)(n15 * 0.017453292f);
+         GL11.glVertex2d((double)(n + n5) + Math.sin(n16) * n5 * -1.0, (double)(n4 - n5) + Math.cos(n16) * n5 * -1.0);
+      }
+      if (n8 != 0) {
+         f(n8);
+      }
+      for (int n17 = 0; n17 <= 90; n17 += 3) {
+         final double n18 = (double)(n17 * 0.017453292f);
+         GL11.glVertex2d((double)(n3 - n5) + Math.sin(n18) * n5, (double)(n4 - n5) + Math.cos(n18) * n5);
+      }
+      for (int n19 = 90; n19 <= 180; n19 += 3) {
+         final double n20 = (double)(n19 * 0.017453292f);
+         GL11.glVertex2d((double)(n3 - n5) + Math.sin(n20) * n5, (double)(n2 + n5) + Math.cos(n20) * n5);
+      }
+      GL11.glEnd();
+      GL11.glPopMatrix();
+      GL11.glEnable(3553);
+      GL11.glDisable(3042);
+      GL11.glDisable(2848);
+      GL11.glEnable(3553);
+      GL11.glScaled(2.0, 2.0, 2.0);
+      GL11.glPopAttrib();
+      GL11.glLineWidth(1.0f);
+      GL11.glShadeModel(7424);
+      GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f);
+   }
+
+   public static void drawRoundedRectangle(float n, float n2, float n3, float n4, final float n5, final int n6) {
+      n *= 2.0;
+      n2 *= 2.0;
+      n3 *= 2.0;
+      n4 *= 2.0;
+      GL11.glPushAttrib(0);
+      GL11.glScaled(0.5, 0.5, 0.5);
+      GL11.glEnable(3042);
+      GL11.glDisable(3553);
+      GL11.glEnable(2848);
+      GL11.glBegin(9);
+      f(n6);
+      for (int i = 0; i <= 90; i += 3) {
+         final double n7 = (double)(i * 0.017453292f);
+         GL11.glVertex2d((double)(n + n5) + Math.sin(n7) * n5 * -1.0, (double)(n2 + n5) + Math.cos(n7) * n5 * -1.0);
+      }
+      for (int j = 90; j <= 180; j += 3) {
+         final double n8 = (double)(j * 0.017453292f);
+         GL11.glVertex2d((double)(n + n5) + Math.sin(n8) * n5 * -1.0, (double)(n4 - n5) + Math.cos(n8) * n5 * -1.0);
+      }
+      for (int k = 0; k <= 90; k += 3) {
+         final double n9 = (double)(k * 0.017453292f);
+         GL11.glVertex2d((double)(n3 - n5) + Math.sin(n9) * n5, (double)(n4 - n5) + Math.cos(n9) * n5);
+      }
+      for (int l = 90; l <= 180; l += 3) {
+         final double n10 = (double)(l * 0.017453292f);
+         GL11.glVertex2d((double)(n3 - n5) + Math.sin(n10) * n5, (double)(n2 + n5) + Math.cos(n10) * n5);
+      }
+      GL11.glEnd();
+      GL11.glEnable(3553);
+      GL11.glDisable(3042);
+      GL11.glDisable(2848);
+      GL11.glEnable(3553);
+      GL11.glScaled(2.0, 2.0, 2.0);
+      GL11.glPopAttrib();
+      GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f);
+   }
+
+   public static void drawRoundedGradientRectangle(float n, float n2, float n3, float n4, final float n5, final int n6, final int n7, final int n8, final int n9) {
+      GL11.glEnable(3042);
+      GL11.glDisable(3553);
+      GL11.glBlendFunc(770, 771);
+      GL11.glEnable(2848);
+      GL11.glShadeModel(7425);
+      GL11.glPushAttrib(0);
+      GL11.glScaled(0.5, 0.5, 0.5);
+      n *= 2.0;
+      n2 *= 2.0;
+      n3 *= 2.0;
+      n4 *= 2.0;
+      GL11.glEnable(3042);
+      GL11.glDisable(3553);
+      f(n6);
+      GL11.glEnable(2848);
+      GL11.glShadeModel(7425);
+      GL11.glBegin(9);
+      for (int i = 0; i <= 90; i += 3) {
+         final double n10 = (double)(i * 0.017453292f);
+         GL11.glVertex2d((double)(n + n5) + Math.sin(n10) * n5 * -1.0, (double)(n2 + n5) + Math.cos(n10) * n5 * -1.0);
+      }
+      f(n7);
+      for (int j = 90; j <= 180; j += 3) {
+         final double n11 = (double)(j * 0.017453292f);
+         GL11.glVertex2d((double)(n + n5) + Math.sin(n11) * n5 * -1.0, (double)(n4 - n5) + Math.cos(n11) * n5 * -1.0);
+      }
+      f(n8);
+      for (int k = 0; k <= 90; k += 3) {
+         final double n12 = (double)(k * 0.017453292f);
+         GL11.glVertex2d((double)(n3 - n5) + Math.sin(n12) * n5, (double)(n4 - n5) + Math.cos(n12) * n5);
+      }
+      f(n9);
+      for (int l = 90; l <= 180; l += 3) {
+         final double n13 = (double)(l * 0.017453292f);
+         GL11.glVertex2d((double)(n3 - n5) + Math.sin(n13) * n5, (double)(n2 + n5) + Math.cos(n13) * n5);
+      }
+      GL11.glEnd();
+      GL11.glEnable(3553);
+      GL11.glDisable(3042);
+      GL11.glDisable(2848);
+      GL11.glDisable(3042);
+      GL11.glEnable(3553);
+      GL11.glScaled(2.0, 2.0, 2.0);
+      GL11.glPopAttrib();
+      GL11.glEnable(3553);
+      GL11.glDisable(3042);
+      GL11.glDisable(2848);
+      GL11.glShadeModel(7424);
+   }
+
+   public static int setAlpha(int rgb, double alpha) {
+      if (alpha < 0 || alpha > 1) {
+         alpha = 0.5;
+      }
+
+      int red = (rgb >> 16) & 0xFF;
+      int green = (rgb >> 8) & 0xFF;
+      int blue = rgb & 0xFF;
+
+      int alphaInt = (int) (alpha * 255);
+
+      int rgba = (alphaInt << 24) | (red << 16) | (green << 8) | blue;
+
+      return rgba;
+   }
 }

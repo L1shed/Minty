@@ -1,14 +1,247 @@
 package keystrokesmod.module.impl.combat;
 
+import keystrokesmod.event.PreMotionEvent;
+import keystrokesmod.event.PreUpdateEvent;
+import keystrokesmod.event.ReceivePacketEvent;
 import keystrokesmod.module.Module;
+import keystrokesmod.module.impl.world.AntiBot;
+import keystrokesmod.module.setting.impl.ButtonSetting;
+import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.utility.RandomUtils;
+import keystrokesmod.utility.Utils;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.network.play.server.S2FPacketSetSlot;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import org.lwjgl.input.Mouse;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class KillAura extends Module {
     public static EntityLivingBase target;
+    private SliderSetting aps;
+    private SliderSetting randomization;
+    private SliderSetting autoBlockMode;
+    private SliderSetting fov;
+    private SliderSetting attackRange;
+    private SliderSetting swingRange;
+    private SliderSetting blockRange;
+    private SliderSetting rotationMode;
+    private SliderSetting sortMode;
+    private SliderSetting switchDelay;
+    private SliderSetting targets;
+    private ButtonSetting targetInvis;
+    private ButtonSetting disableInInventory;
+    private ButtonSetting disableWhileBlocking;
+    private ButtonSetting disableWhileMining;
+    private ButtonSetting fixSlotReset;
+    private ButtonSetting hitThroughBlocks;
+    private ButtonSetting requireMouseDown;
+    private ButtonSetting weaponOnly;
+    private String[] autoBlockModes = new String[]{"Manual", "Vanilla", "Fake"};
+    private String[] rotationModes = new String[]{"None", "Silent", "Lock"};
+    private String[] sortModes = new String[]{"Health", "HurtTime", "Distance", "Yaw"};
+    private List<EntityLivingBase> availableTargets = new ArrayList<>();
+    private AtomicBoolean block = new AtomicBoolean();
+    private long lastSwitched = System.currentTimeMillis();
+    private long lastAttacked = System.currentTimeMillis();
+    private boolean switchTargets;
+    private byte entityIndex;
+    private boolean swing;
+
 
     public KillAura() {
         super("KillAura", category.combat);
+        this.registerSetting(aps = new SliderSetting("APS", 16.0, 1.0, 25.0, 0.5));
+        this.registerSetting(randomization = new SliderSetting("Randomization", 0, 0, 5, 0.15));
+        this.registerSetting(autoBlockMode = new SliderSetting("Autoblock", autoBlockModes, 0));
+        this.registerSetting(fov = new SliderSetting("FOV", 360.0, 30.0, 360.0, 4.0));
+        this.registerSetting(attackRange = new SliderSetting("Range (attack)", 3.0, 3.0, 6.0, 0.05));
+        this.registerSetting(swingRange = new SliderSetting("Range (swing)", 3.3, 3.0, 8.0, 0.05));
+        this.registerSetting(blockRange = new SliderSetting("Range (block)", 6.0, 3.0, 12.0, 0.05));
+        this.registerSetting(rotationMode = new SliderSetting("Rotation mode", rotationModes, 0));
+        this.registerSetting(sortMode = new SliderSetting("Sort mode", sortModes, 0.0));
+        this.registerSetting(switchDelay = new SliderSetting("Switch delay (ms)", 200.0, 50.0, 1000.0, 25.0));
+        this.registerSetting(targets = new SliderSetting("Targets", 3.0, 1.0, 10.0, 1.0));
+        this.registerSetting(targetInvis = new ButtonSetting("Target invis", true));
+        this.registerSetting(disableInInventory = new ButtonSetting("Disable in inventory", true));
+        this.registerSetting(disableWhileBlocking = new ButtonSetting("Disable while blocking", false));
+        this.registerSetting(disableWhileMining = new ButtonSetting("Disable while mining", false));
+        this.registerSetting(fixSlotReset = new ButtonSetting("Fix slot reset", false));
+        this.registerSetting(hitThroughBlocks = new ButtonSetting("Hit through blocks", true));
+        this.registerSetting(requireMouseDown = new ButtonSetting("Require mouse down", false));
+        this.registerSetting(weaponOnly = new ButtonSetting("Weapon only", false));
     }
 
+    public void onDisable() {
+        resetVariables();
+    }
 
+    @SubscribeEvent
+    public void onPreUpdate(PreUpdateEvent e) {
+        if (!basicCondition()) {
+            resetVariables();
+            return;
+        }
+        setTarget();
+
+        // block range code here
+
+        if (settingCondition()) {
+            if (swing) {
+                mc.thePlayer.swingItem();
+            }
+            if (target == null) {
+                return;
+            }
+            if (mc.thePlayer.isBlocking() && disableWhileBlocking.isToggled()) {
+                return;
+            }
+            if (Math.abs(System.currentTimeMillis() - lastAttacked) > 1000 / aps.getInput() + RandomUtils.getRandom(randomization.getInput())) {
+                switchTargets = true;
+                mc.playerController.attackEntity(mc.thePlayer, target);
+                lastAttacked = System.currentTimeMillis();
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public void onPreMotion(PreMotionEvent e) {
+        if (!basicCondition() || !settingCondition()) {
+            resetVariables();
+            return;
+        }
+        if (target != null && rotationMode.getInput() == 1) {
+            // set rotations here
+        }
+    }
+
+    @SubscribeEvent
+    public void onReceivePacket(ReceivePacketEvent e) {
+        if (!basicCondition() || !fixSlotReset.isToggled()) {
+            return;
+        }
+        if (Utils.holdingSword() && mc.thePlayer.isBlocking()) {
+            if (e.getPacket() instanceof S2FPacketSetSlot) {
+                if (mc.thePlayer.inventory.currentItem == ((S2FPacketSetSlot) e.getPacket()).func_149173_d() - 36 && mc.currentScreen == null) {
+                    if (((S2FPacketSetSlot) e.getPacket()).func_149174_e() == null || (((S2FPacketSetSlot) e.getPacket()).func_149174_e().getItem() != mc.thePlayer.getHeldItem().getItem())) {
+                        return;
+                    }
+                    e.setCanceled(true);
+                }
+            }
+        }
+    }
+
+    @Override
+    public String getInfo() {
+        return rotationModes[(int) rotationMode.getInput()];
+    }
+
+    private void resetVariables() {
+        target = null;
+        availableTargets.clear();
+        block.set(false);
+        swing = false;
+    }
+
+    private void setTarget()
+    {
+        availableTargets.clear();
+        block.set(false);
+        swing = false;
+        for (Entity entity : mc.theWorld.loadedEntityList) {
+            if (availableTargets.size() > targets.getInput()) {
+                continue;
+            }
+            if (entity == null) {
+                continue;
+            }
+            if (entity == mc.thePlayer) {
+                continue;
+            }
+            if (!(entity instanceof EntityLivingBase)) {
+                continue;
+            }
+            /*if (!(entity instanceof EntityPlayer) && !(entity instanceof EntityIronGolem) && !(entity instanceof EntitySilverfish)) {
+                continue;
+            }*/
+            if (!entity.isEntityAlive() || entity.ticksExisted < 10) {
+                continue;
+            }
+            if ((entity instanceof EntityPlayer && AntiBot.isBot(entity)) || Utils.isTeamMate(entity)) {
+                continue;
+            }
+            if (entity.isInvisible() && !targetInvis.isToggled()) {
+                continue;
+            }
+            if (!mc.thePlayer.canEntityBeSeen(entity) && !hitThroughBlocks.isToggled()) {
+                continue;
+            }
+            double distance = mc.thePlayer.getDistanceToEntity(entity); // need a more accurate distance check as this can ghost on hypixel
+            if (distance <= blockRange.getInput()) {
+                block.set(true);
+            }
+            if (distance <= swingRange.getInput()) {
+                swing = true;
+            }
+            if (distance > attackRange.getInput()) {
+                continue;
+            }
+            // fov check here
+            availableTargets.add((EntityLivingBase) entity);
+        }
+        if (Math.abs(System.currentTimeMillis() - lastSwitched) > switchDelay.getInput() && switchTargets) {
+            switchTargets = false;
+            if (entityIndex < availableTargets.size() - 1) {
+                entityIndex++;
+            } else {
+                entityIndex = 0;
+            }
+            lastSwitched = System.currentTimeMillis();
+        }
+        if (!availableTargets.isEmpty()) {
+            if (entityIndex > availableTargets.size() - 1) {
+                entityIndex = 0;
+            }
+            target = availableTargets.get(entityIndex);
+        }
+        else {
+            target = null;
+        }
+    }
+
+    private boolean basicCondition() {
+        if (!Utils.nullCheck()) {
+            return false;
+        }
+        if (mc.thePlayer.isDead) {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean settingCondition() {
+        if (!Mouse.isButtonDown(0) && requireMouseDown.isToggled()) {
+            return false;
+        }
+        else if (!Utils.holdingWeapon() && weaponOnly.isToggled()) {
+            return false;
+        }
+        else if (isMining() && disableWhileMining.isToggled()) {
+            return false;
+        }
+        else if (mc.currentScreen != null && disableInInventory.isToggled()) {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean isMining() {
+        return Mouse.isButtonDown(0) && mc.objectMouseOver != null && mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK;
+    }
 }

@@ -1,6 +1,7 @@
 package keystrokesmod.utility;
 
 import keystrokesmod.module.impl.client.Settings;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
@@ -33,6 +34,21 @@ public enum Theme {
     public static Color convert(Color color, Color color2, double n) {
         double n2 = 1.0 - n;
         return new Color((int)(color.getRed() * n + color2.getRed() * n2), (int)(color.getGreen() * n + color2.getGreen() * n2), (int)(color.getBlue() * n + color2.getBlue() * n2));
+    }
+
+    public static int[] getGradients(int index) {
+        Theme[] values = values();
+        if (values != null && index >= 0 && index < values.length && values[index] != null) {
+            Color firstGradient = values[index].firstGradient;
+            Color secondGradient = values[index].secondGradient;
+            if (firstGradient != null && secondGradient != null) {
+                return new int[]{firstGradient.getRGB(), secondGradient.getRGB()};
+            }
+            else {
+                return new int[]{Utils.getChroma(2, (long) 0), Utils.getChroma(2, (long) 0)};
+            }
+        }
+        return new int[]{0, 0};
     }
 
     public static String[] themes = new String[]{"Rainbow", "Cherry", "Cotton candy", "Flower", "Grayscale", "Royal"};

@@ -3,6 +3,7 @@ package keystrokesmod.mixins.impl.entity;
 import com.mojang.authlib.GameProfile;
 import keystrokesmod.event.PostMotionEvent;
 import keystrokesmod.event.PreMotionEvent;
+import keystrokesmod.event.PreUpdateEvent;
 import keystrokesmod.module.impl.movement.NoSlow;
 import keystrokesmod.utility.RotationUtils;
 import net.minecraft.client.Minecraft;
@@ -97,9 +98,9 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
             RotationUtils.prevRenderPitch = RotationUtils.renderPitch;
             RotationUtils.prevRenderYaw = RotationUtils.renderYaw;
 
-            super.onUpdate();
+            net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new PreUpdateEvent());
 
-            // maybe add an onUpdate event here?
+            super.onUpdate();
 
             if (this.isRiding()) {
                 this.sendQueue.addToSendQueue(new C03PacketPlayer.C05PacketPlayerLook(this.rotationYaw, this.rotationPitch, this.onGround));

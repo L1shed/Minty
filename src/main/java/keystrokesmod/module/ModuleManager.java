@@ -85,6 +85,7 @@ public class ModuleManager {
       this.addModule(hud = new HUD());
       this.addModule(new Xray());
       this.addModule(new BridgeInfo());
+      this.addModule(new TargetHUD());
       this.addModule(new DuelsStats());
       this.addModule(new MurderMystery());
       this.addModule(new SumoFences());
@@ -96,7 +97,6 @@ public class ModuleManager {
       this.addModule(new Fun.Spin());
       this.addModule(new FakeChat());
       this.addModule(nameHider = new NameHider());
-      //this.addModule(new TargetHUD());
       this.addModule(new WaterBucket());
       this.addModule(commandLine = new CommandLine());
       this.addModule(new Manager());
@@ -138,7 +138,7 @@ public class ModuleManager {
       if (HUD.alphabeticalSort.isToggled()) {
          Collections.sort(organizedModules, Comparator.comparing(Module::getName));
       } else {
-         Collections.sort(organizedModules, (o1, o2) -> Utils.mc.fontRendererObj.getStringWidth(o2.getName()) - Utils.mc.fontRendererObj.getStringWidth(o1.getName()));
+         Collections.sort(organizedModules, (o1, o2) -> Utils.mc.fontRendererObj.getStringWidth(o2.getName() + (HUD.showInfo.isToggled() ? " " + o2.getInfo() : "")) - Utils.mc.fontRendererObj.getStringWidth(o1.getName() + (HUD.showInfo.isToggled() ? " " + o2.getInfo() : "")));
       }
    }
 }

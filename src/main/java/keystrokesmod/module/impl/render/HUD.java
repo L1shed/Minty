@@ -24,8 +24,8 @@ public class HUD extends Module {
    private ButtonSetting editPosition;
    public static ButtonSetting dropShadow;
    public static ButtonSetting alphabeticalSort;
-   public static ButtonSetting alignRight;
-   public static ButtonSetting lowercase;
+   private ButtonSetting alignRight;
+   private ButtonSetting lowercase;
    public static ButtonSetting showInfo;
    public static int hudX = 5;
    public static int hudY = 70;
@@ -48,7 +48,7 @@ public class HUD extends Module {
    }
 
    public void guiButtonToggled(ButtonSetting b) {
-      if (b == alphabeticalSort) {
+      if (b == alphabeticalSort || b == showInfo) {
          ModuleManager.sort();
       }
    }
@@ -72,11 +72,11 @@ public class HUD extends Module {
                continue;
             }
             String moduleName = module.getName();
+            if (showInfo.isToggled()) {
+               moduleName += " §7" + module.getInfo();
+            }
             if (lowercase.isToggled()) {
                moduleName = moduleName.toLowerCase();
-            }
-            if (showInfo.isToggled()) {
-               moduleName += module.getInfo();
             }
             int e = Theme.getGradient((int) theme.getInput(), n2);
             n2 -= 12;

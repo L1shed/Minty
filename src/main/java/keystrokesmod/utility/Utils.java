@@ -44,8 +44,8 @@ public class Utils {
       }
    }
 
-   public static float getCompleteHealth(final EntityPlayer entityPlayer) {
-      return entityPlayer.getHealth() + entityPlayer.getAbsorptionAmount();
+   public static float getCompleteHealth(EntityLivingBase entity) {
+      return entity.getHealth() + entity.getAbsorptionAmount();
    }
 
    public static String r(String txt) {
@@ -82,6 +82,30 @@ public class Utils {
 
    public static float n() {
       return ae(mc.thePlayer.rotationYaw, mc.thePlayer.movementInput.moveForward, mc.thePlayer.movementInput.moveStrafe);
+   }
+
+   public static int merge(final int n, final int n2) {
+      return (n & 0xFFFFFF) | n2 << 24;
+   }
+
+   public static int clamp(final int n) {
+      if (n > 255) {
+         return 255;
+      }
+      if (n < 4) {
+         return 4;
+      }
+      return n;
+   }
+
+   public static boolean isTeamMate(Entity entity) {
+      try {
+         Entity teamMate = entity;
+         if (mc.thePlayer.isOnSameTeam((EntityLivingBase) entity) || mc.thePlayer.getDisplayName().getUnformattedText().startsWith(teamMate.getDisplayName().getUnformattedText().substring(0, 2))) {
+            return true;
+         }
+      } catch (Exception e) {}
+      return false;
    }
 
    public static void setMotion(final double n) {
@@ -362,5 +386,12 @@ public class Utils {
       }
       final Item getItem = mc.thePlayer.getHeldItem().getItem();
       return getItem instanceof ItemSword || (Settings.weaponAxe.isToggled() && getItem instanceof ItemAxe) || (Settings.weaponRod.isToggled() && getItem instanceof ItemFishingRod) || (Settings.weaponStick.isToggled() && getItem == Items.stick);
+   }
+
+   public static boolean holdingSword() {
+      if (mc.thePlayer.getHeldItem() == null) {
+         return false;
+      }
+      return mc.thePlayer.getHeldItem().getItem() instanceof ItemSword;
    }
 }

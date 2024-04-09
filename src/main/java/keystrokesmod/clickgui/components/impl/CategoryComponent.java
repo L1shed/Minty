@@ -1,8 +1,6 @@
 package keystrokesmod.clickgui.components.impl;
 
 import java.awt.Color;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -10,6 +8,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import keystrokesmod.clickgui.components.Component;
 import keystrokesmod.Raven;
 import keystrokesmod.module.Module;
+import keystrokesmod.module.impl.client.Gui;
+import keystrokesmod.utility.RenderUtils;
+import keystrokesmod.utility.Utils;
 import keystrokesmod.utility.profile.Manager;
 import keystrokesmod.utility.profile.Profile;
 import net.minecraft.client.gui.FontRenderer;
@@ -29,7 +30,7 @@ public class CategoryComponent {
    public boolean n4m = false;
    public String pvp;
    public boolean pin = false;
-   private boolean sorted;
+   public boolean hovering = false;
 
    public CategoryComponent(Module.category category) {
       this.categoryName = category;
@@ -101,18 +102,18 @@ public class CategoryComponent {
 
    public void rf(FontRenderer renderer) {
       this.k = 92;
+      int h = 0;
+
       if (!this.modules.isEmpty() && this.categoryOpened) {
-         int h = 0;
-
          Component c;
-         for(Iterator var3 = this.modules.iterator(); var3.hasNext(); h += c.gh()) {
-            c = (Component)var3.next();
+         for (Iterator var3 = this.modules.iterator(); var3.hasNext(); h += c.gh()) {
+            c = (Component) var3.next();
          }
-
-         net.minecraft.client.gui.Gui.drawRect(this.x - 2, this.y, this.x + this.k + 2, this.y + this.bh + h + 4, (new Color(0, 0, 0, 110)).getRGB());
       }
 
-      ButtonComponent.d((float)(this.x - 2), (float)this.y, (float)(this.x + this.k + 2), (float)(this.y + this.bh + 3), -1);
+      RenderUtils.drawRoundedGradientOutlinedRectangle(this.x - 2, this.y, this.x + this.k + 2, this.y + this.bh + h + 4, 8, Gui.translucentBackground.isToggled() ? new Color(0, 0, 0, 110).getRGB() : new Color(0, 0, 0, 250).getRGB(),
+                 ((categoryOpened || hovering) && Gui.rainBowOutlines.isToggled()) ? RenderUtils.setAlpha(Utils.getChroma(2, 0), 0.5) : new Color(81, 99, 149).getRGB(), ((categoryOpened || hovering) && Gui.rainBowOutlines.isToggled()) ? RenderUtils.setAlpha(Utils.getChroma(2, 700), 0.5) : new Color(97, 67, 133).getRGB());
+
       renderer.drawString(this.n4m ? this.pvp : this.categoryName.name(), (float)(this.x + 2), (float)(this.y + 4), new Color(220, 220, 220).getRGB(), false);
       if (!this.n4m) {
          GL11.glPushMatrix();
@@ -158,7 +159,12 @@ public class CategoryComponent {
          this.x(x - this.xx);
          this.y(y - this.yy);
       }
-
+      if (overCategory(x, y)) {
+         hovering = true;
+      }
+      else {
+         hovering = false;
+      }
    }
 
    public boolean i(int x, int y) {
@@ -167,6 +173,10 @@ public class CategoryComponent {
 
    public boolean d(int x, int y) {
       return x >= this.x + 77 && x <= this.x + this.k - 6 && (float)y >= (float)this.y + 2.0F && y <= this.y + this.bh + 1;
+   }
+
+   public boolean overCategory(int x, int y) {
+      return x >= this.x - 2 && x <= this.x + this.k + 2 && (float)y >= (float)this.y + 2.0F && y <= this.y + this.bh + 1;
    }
 
    public boolean v(int x, int y) {

@@ -11,6 +11,7 @@ import keystrokesmod.utility.Timer;
 import keystrokesmod.utility.Utils;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -22,6 +23,8 @@ public class TargetHUD extends Module {
     private SliderSetting theme;
     private ButtonSetting renderEsp;
     private ButtonSetting showStatus;
+    private Timer fadeTimer;
+    private EntityLivingBase target;
     public TargetHUD() {
         super("TargetHUD", category.render);
         this.registerSetting(description = new DescriptionSetting("Only works with KillAura."));
@@ -33,9 +36,23 @@ public class TargetHUD extends Module {
     @SubscribeEvent
     public void onRenderTick(TickEvent.RenderTickEvent ev) {
         if (ev.phase == TickEvent.Phase.END && Utils.nullCheck()) {
-            if (mc.currentScreen == null) {
-
+            if (mc.currentScreen != null) {
+                return;
             }
+            if (KillAura.target != null) {
+                target = KillAura.target;
+            }
+            if (KillAura.target == null && target != null) {
+                (fadeTimer = new Timer(500)).start();
+            }
+            if (target == null) {
+                return;
+            }
+            String playerInfo = target.getDisplayName().getFormattedText();
+            double health = Utils.getCompleteHealth(target) /  target.getMaxHealth();
+            String color = health < 0.3D ? "c" : (health < 0.5D ? "6" : (health < 0.7D ? "e" : "a"));
+            playerInfo += " §" + color + Math.round(Utils.getCompleteHealth(target) * 10.0) / 10;
+            drawTargetHUD(fadeTimer, playerInfo, health);
         }
     }
 
@@ -45,11 +62,11 @@ public class TargetHUD extends Module {
             return;
         }
         if (KillAura.target != null) {
-            //RenderUtils.renderEntity(KillAura.target, 2, 0.0, 0.0, ab.b.e(0.0), false);
+            RenderUtils.renderEntity(KillAura.target, 2, 0.0, 0.0, Theme.getGradient((int) theme.getInput(), 0), false);
         }
     }
 
-    /*private void drawTargetHUD(Timer cd, String string, double n) {
+    private void drawTargetHUD(Timer cd, String string, double n) {
         if (showStatus.isToggled()) {
             string = string + " " + ((n <= Utils.getCompleteHealth(mc.thePlayer) / mc.thePlayer.getMaxHealth()) ? "§aW" : "§cL");
         }
@@ -62,25 +79,29 @@ public class TargetHUD extends Module {
         final int n7 = n5 - n2;
         final int n8 = n4 + n3;
         final int n9 = n5 + (mc.fontRendererObj.FONT_HEIGHT + 5) - 6 + n2;
-        final int n10 = (cd == null) ? 255 : (255 - cd.a(0, 255, 1));
+        final int n10 = (cd == null) ? 255 : (255 - cd.getValueInt(0, 255, 1));
         if (n10 > 0) {
             final int n11 = (n10 > 110) ? 110 : n10;
             final int n12 = (n10 > 210) ? 210 : n10;
-            final int[] array = (int[])ab.b.d();
-            go.c((float)n6, (float)n7, (float)n8, (float)(n9 + 13), 10.0f, cz.k(Color.black.getRGB(), n11), cz.k(array[0], n10), cz.k(array[1], n10));
+            final int[] array = Theme.getGradients((int) theme.getInput());
+            RenderUtils.drawRoundedGradientOutlinedRectangle((float)n6, (float)n7, (float)n8, (float)(n9 + 13), 10.0f, Utils.merge(Color.black.getRGB(), n11), Utils.merge(array[0], n10), Utils.merge(array[1], n10)); // outline
             final int n13 = n6 + 6;
             final int n14 = n8 - 6;
             final int n15 = n9;
-            go.j((float)n13, (float)n15, (float)n14, (float)(n15 + 5), 4.0f, cz.k(Color.black.getRGB(), n11));
-            final int k = cz.k(array[0], n12);
-            final int n16 = (n > 0.15) ? cz.k(array[1], n12) : k;
-            go.h((float)n13, (float)n15, (float)(int)(n14 + (n13 - n14) * (1.0 - ((n < 0.05) ? 0.05 : n))), (float)(n15 + 5), 4.0f, k, k, n16, n16);
+            RenderUtils.drawRoundedRectangle((float)n13, (float)n15, (float)n14, (float)(n15 + 5), 4.0f, Utils.merge(Color.black.getRGB(), n11)); // background
+            final int k = Utils.merge(array[0], n12);
+            final int n16 = (n > 0.15) ? Utils.merge(array[1], n12) : k;
+            RenderUtils.drawRoundedGradientRectangle((float)n13, (float)n15, (float)(int)(n14 + (n13 - n14) * (1.0 - ((n < 0.05) ? 0.05 : n))), (float)(n15 + 5), 4.0f, k, k, n16, n16); // health bar
             GlStateManager.pushMatrix();
             GlStateManager.enableBlend();
             GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
-            mc.fontRendererObj.drawString(string, (float)n4, (float)n5, (cj.b.c & 0xFFFFFF) | cz.c(n10 + 15) << 24, true);
+            mc.fontRendererObj.drawString(string, (float)n4, (float)n5, (new Color(220, 220, 220, 255).getRGB() & 0xFFFFFF) | Utils.clamp(n10 + 15) << 24, true);
             GlStateManager.disableBlend();
             GlStateManager.popMatrix();
         }
-    }*/
+        else {
+            fadeTimer = null;
+            target = null;
+        }
+    }
 }
