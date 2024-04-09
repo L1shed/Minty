@@ -250,13 +250,10 @@ public class Commands {
                   print("&cInvalid name.", 1);
                   return;
                }
-               for (Profile profile : Raven.profileManager.profiles) {
-                  if (profile.getName().equals(name)) {
-                     Raven.profileManager.saveProfile(profile);
-                     print("&aSaved profile:", 1);
-                     print(name, 0);
-                  }
-               }
+               Raven.profileManager.saveProfile(new Profile(name, 0));
+               print("&aSaved profile:", 1);
+               print(name, 0);
+               Raven.profileManager.loadProfiles();
             }
             else if (args[1].equals("load") || args[1].equals("l")) {
                if (args.length != 3) {
@@ -285,6 +282,7 @@ public class Commands {
                      Raven.profileManager.deleteProfile(profile.getName());
                      print("&aRemoved profile:", 1);
                      print(name, 0);
+                     Raven.profileManager.loadProfiles();
                      return;
                   }
                }

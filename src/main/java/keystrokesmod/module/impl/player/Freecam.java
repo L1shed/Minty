@@ -2,12 +2,17 @@ package keystrokesmod.module.impl.player;
 
 import java.awt.Color;
 
+import keystrokesmod.event.SendPacketEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.RenderUtils;
 import keystrokesmod.utility.Utils;
 import net.minecraft.client.entity.EntityOtherPlayerMP;
+import net.minecraft.network.play.client.C02PacketUseEntity;
+import net.minecraft.network.play.client.C07PacketPlayerDigging;
+import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -15,7 +20,11 @@ import org.lwjgl.input.Keyboard;
 
 public class Freecam extends Module {
    public static SliderSetting speed;
-   public static ButtonSetting disableOnDamage;
+   private ButtonSetting disableOnDamage;
+   private ButtonSetting showArm;
+   private ButtonSetting allowDigging;
+   private ButtonSetting allowInteracting;
+   private ButtonSetting allowPlacing;
    public static EntityOtherPlayerMP freeEntity = null;
    private int[] lcc = new int[]{Integer.MAX_VALUE, 0};
    private float[] sAng = new float[]{0.0F, 0.0F};
@@ -24,6 +33,10 @@ public class Freecam extends Module {
       super("Freecam", Module.category.player, 0);
       this.registerSetting(speed = new SliderSetting("Speed", 2.5D, 0.5D, 10.0D, 0.5D));
       this.registerSetting(disableOnDamage = new ButtonSetting("Disable on damage", true));
+      this.registerSetting(allowDigging = new ButtonSetting("Allow digging", false));
+      this.registerSetting(allowInteracting = new ButtonSetting("Allow interacting", false));
+      this.registerSetting(allowPlacing = new ButtonSetting("Allow placing", false));
+      this.registerSetting(showArm = new ButtonSetting("Show arm", false));
    }
 
    public void onEnable() {
@@ -144,7 +157,9 @@ public class Freecam extends Module {
    @SubscribeEvent
    public void re(RenderWorldLastEvent e) {
       if (Utils.nullCheck()) {
-         mc.thePlayer.renderArmPitch = mc.thePlayer.prevRenderArmPitch = 700.0F;
+         if (!showArm.isToggled()) {
+            mc.thePlayer.renderArmPitch = mc.thePlayer.prevRenderArmPitch = 700.0F;
+         }
          RenderUtils.renderEntity(mc.thePlayer, 1, 0.0D, 0.0D, Color.green.getRGB(), false);
          RenderUtils.renderEntity(mc.thePlayer, 2, 0.0D, 0.0D, Color.green.getRGB(), false);
       }
@@ -153,9 +168,38 @@ public class Freecam extends Module {
 
    @SubscribeEvent
    public void m(MouseEvent e) {
-      if (Utils.nullCheck() && e.button != -1) {
+      if (!Utils.nullCheck()) {
+         return;
+      }
+      if ((e.button == 0 && !allowDigging.isToggled() || e.button == 1 && !allowPlacing.isToggled()) && mc.objectMouseOver != null && mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
          e.setCanceled(true);
       }
+      if (!allowInteracting.isToggled()) {
+         if ((e.button == 1 || e.button == 0) && mc.objectMouseOver != null && mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.ENTITY) {
+            e.setCanceled(true);
+         }
+      }
+   }
 
+   @SubscribeEvent
+   public void onSendPacket(SendPacketEvent e) {
+      if (!Utils.nullCheck()) {
+         return;
+      }
+      if (!allowDigging.isToggled()) {
+         if (e.getPacket() instanceof C07PacketPlayerDigging) {
+            e.setCanceled(true);
+         }
+      }
+      if (!allowPlacing.isToggled()) {
+         if (e.getPacket() instanceof C08PacketPlayerBlockPlacement) {
+            e.setCanceled(true);
+         }
+      }
+      if (!allowInteracting.isToggled()) {
+         if (e.getPacket() instanceof C02PacketUseEntity) {
+            e.setCanceled(true);
+         }
+      }
    }
 }
