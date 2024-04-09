@@ -19,7 +19,7 @@ public class DebugInfoRenderer extends net.minecraft.client.gui.Gui {
       if (Raven.debugger && ev.phase == Phase.END && Utils.nullCheck()) {
          if (mc.currentScreen == null) {
             ScaledResolution res = new ScaledResolution(mc);
-            double bps = Utils.gbps((Entity)(Freecam.en == null ? mc.thePlayer : Freecam.en), 2);
+            double bps = Utils.gbps((Entity)(Freecam.freeEntity == null ? mc.thePlayer : Freecam.freeEntity), 2);
             int rgb;
             if (bps < 10.0D) {
                rgb = Color.green.getRGB();

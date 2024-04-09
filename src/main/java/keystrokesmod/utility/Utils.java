@@ -36,6 +36,31 @@ public class Utils {
    private static final Random rand = new Random();
    public static final Minecraft mc = Minecraft.getMinecraft();
    public static HashSet<String> friends = new HashSet<>();
+   public static HashSet<String> enemies = new HashSet<>();
+
+   public static boolean addEnemy(String name) {
+      if (enemies.add(name.toLowerCase())) {
+         Utils.sendMessage("&7Added &cenemy&7: &b" + name);
+         return true;
+      }
+      return false;
+   }
+
+   public static boolean removeFriend(String name) {
+      if (friends.remove(name.toLowerCase())) {
+         Utils.sendMessage("&7Removed &afriend&7: &b" + name);
+         return true;
+      }
+      return false;
+   }
+
+   public static boolean addFriend(String name) {
+      if (friends.add(name.toLowerCase())) {
+         Utils.sendMessage("&7Added &afriend&7: &b" + name);
+         return true;
+      }
+      return false;
+   }
 
    public static void sendMessage(String txt) {
       if (nullCheck()) {
@@ -46,6 +71,19 @@ public class Utils {
 
    public static float getCompleteHealth(EntityLivingBase entity) {
       return entity.getHealth() + entity.getAbsorptionAmount();
+   }
+
+   public static String getHealthStr(EntityLivingBase entity) {
+      float completeHealth = getCompleteHealth(entity);
+      return getColorForHealth(completeHealth / entity.getMaxHealth(), completeHealth);
+   }
+
+   public static boolean isEnemy(EntityPlayer entityPlayer) {
+      return !enemies.isEmpty() && enemies.contains(entityPlayer.getName().toLowerCase());
+   }
+
+   public static String getColorForHealth(double n, double n2) {
+      return ((n < 0.3) ? "§c" : ((n < 0.5) ? "§6" : ((n < 0.7) ? "§e" : "§a"))) + rnd(n2, 1);
    }
 
    public static String r(String txt) {
@@ -84,11 +122,11 @@ public class Utils {
       return ae(mc.thePlayer.rotationYaw, mc.thePlayer.movementInput.moveForward, mc.thePlayer.movementInput.moveStrafe);
    }
 
-   public static int merge(final int n, final int n2) {
+   public static int merge(int n, int n2) {
       return (n & 0xFFFFFF) | n2 << 24;
    }
 
-   public static int clamp(final int n) {
+   public static int clamp(int n) {
       if (n > 255) {
          return 255;
       }
@@ -108,13 +146,13 @@ public class Utils {
       return false;
    }
 
-   public static void setMotion(final double n) {
+   public static void setMotion(double n) {
       if (n == 0.0) {
          mc.thePlayer.motionZ = 0.0;
          mc.thePlayer.motionX = 0.0;
          return;
       }
-      final float n3 = n();
+      float n3 = n();
       mc.thePlayer.motionX = -Math.sin(n3) * n;
       mc.thePlayer.motionZ = Math.cos(n3) * n;
    }
@@ -255,7 +293,7 @@ public class Utils {
       return yw;
    }
 
-   public static float ae(float n, final float n2, final float n3) {
+   public static float ae(float n, float n2, float n3) {
       float n4 = 1.0f;
       if (n2 < 0.0f) {
          n += 180.0f;
@@ -384,7 +422,7 @@ public class Utils {
       if (mc.thePlayer.getHeldItem() == null) {
          return false;
       }
-      final Item getItem = mc.thePlayer.getHeldItem().getItem();
+      Item getItem = mc.thePlayer.getHeldItem().getItem();
       return getItem instanceof ItemSword || (Settings.weaponAxe.isToggled() && getItem instanceof ItemAxe) || (Settings.weaponRod.isToggled() && getItem instanceof ItemFishingRod) || (Settings.weaponStick.isToggled() && getItem == Items.stick);
    }
 

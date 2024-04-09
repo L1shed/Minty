@@ -21,7 +21,6 @@ apply plugin: 'net.minecraftforge.gradle.forge'
 apply plugin: 'org.spongepowered.mixin'
 apply plugin: 'java'
 
-version = "1.0"
 group = "keystrokesmod"
 archivesBaseName = "raven-bS"
 

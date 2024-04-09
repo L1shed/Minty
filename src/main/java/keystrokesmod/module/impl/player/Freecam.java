@@ -14,41 +14,40 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.input.Keyboard;
 
 public class Freecam extends Module {
-   public static SliderSetting a;
-   public static ButtonSetting b;
-   private final double toRad = 0.017453292519943295D;
-   public static EntityOtherPlayerMP en = null;
+   public static SliderSetting speed;
+   public static ButtonSetting disableOnDamage;
+   public static EntityOtherPlayerMP freeEntity = null;
    private int[] lcc = new int[]{Integer.MAX_VALUE, 0};
    private float[] sAng = new float[]{0.0F, 0.0F};
 
    public Freecam() {
       super("Freecam", Module.category.player, 0);
-      this.registerSetting(a = new SliderSetting("Speed", 2.5D, 0.5D, 10.0D, 0.5D));
-      this.registerSetting(b = new ButtonSetting("Disable on damage", true));
+      this.registerSetting(speed = new SliderSetting("Speed", 2.5D, 0.5D, 10.0D, 0.5D));
+      this.registerSetting(disableOnDamage = new ButtonSetting("Disable on damage", true));
    }
 
    public void onEnable() {
       if (!mc.thePlayer.onGround) {
          this.disable();
       } else {
-         en = new EntityOtherPlayerMP(mc.theWorld, mc.thePlayer.getGameProfile());
-         en.copyLocationAndAnglesFrom(mc.thePlayer);
-         this.sAng[0] = en.rotationYawHead = mc.thePlayer.rotationYawHead;
+         freeEntity = new EntityOtherPlayerMP(mc.theWorld, mc.thePlayer.getGameProfile());
+         freeEntity.copyLocationAndAnglesFrom(mc.thePlayer);
+         this.sAng[0] = freeEntity.rotationYawHead = mc.thePlayer.rotationYawHead;
          this.sAng[1] = mc.thePlayer.rotationPitch;
-         en.setVelocity(0.0D, 0.0D, 0.0D);
-         en.setInvisible(true);
-         mc.theWorld.addEntityToWorld(-8008, en);
-         mc.setRenderViewEntity(en);
+         freeEntity.setVelocity(0.0D, 0.0D, 0.0D);
+         freeEntity.setInvisible(true);
+         mc.theWorld.addEntityToWorld(-8008, freeEntity);
+         mc.setRenderViewEntity(freeEntity);
       }
    }
 
    public void onDisable() {
-      if (en != null) {
+      if (freeEntity != null) {
          mc.setRenderViewEntity(mc.thePlayer);
          mc.thePlayer.rotationYaw = mc.thePlayer.rotationYawHead = this.sAng[0];
          mc.thePlayer.rotationPitch = this.sAng[1];
-         mc.theWorld.removeEntity(en);
-         en = null;
+         mc.theWorld.removeEntity(freeEntity);
+         freeEntity = null;
       }
 
       this.lcc = new int[]{Integer.MAX_VALUE, 0};
@@ -67,78 +66,78 @@ public class Freecam extends Module {
    }
 
    public void onUpdate() {
-      if (b.isToggled() && mc.thePlayer.hurtTime != 0) {
+      if (disableOnDamage.isToggled() && mc.thePlayer.hurtTime != 0) {
          this.disable();
       } else {
          mc.thePlayer.setSprinting(false);
          mc.thePlayer.moveForward = 0.0F;
          mc.thePlayer.moveStrafing = 0.0F;
-         en.rotationYaw = en.rotationYawHead = mc.thePlayer.rotationYaw;
-         en.rotationPitch = mc.thePlayer.rotationPitch;
-         double s = 0.215D * a.getInput();
+         freeEntity.rotationYaw = freeEntity.rotationYawHead = mc.thePlayer.rotationYaw;
+         freeEntity.rotationPitch = mc.thePlayer.rotationPitch;
+         double s = 0.215D * speed.getInput();
          EntityOtherPlayerMP var10000;
          double rad;
          double dx;
          double dz;
          if (Keyboard.isKeyDown(mc.gameSettings.keyBindForward.getKeyCode())) {
-            rad = (double)en.rotationYawHead * 0.017453292519943295D;
+            rad = (double) freeEntity.rotationYawHead * 0.017453292519943295D;
             dx = -1.0D * Math.sin(rad) * s;
             dz = Math.cos(rad) * s;
-            var10000 = en;
+            var10000 = freeEntity;
             var10000.posX += dx;
-            var10000 = en;
+            var10000 = freeEntity;
             var10000.posZ += dz;
          }
 
          if (Keyboard.isKeyDown(mc.gameSettings.keyBindBack.getKeyCode())) {
-            rad = (double)en.rotationYawHead * 0.017453292519943295D;
+            rad = (double) freeEntity.rotationYawHead * 0.017453292519943295D;
             dx = -1.0D * Math.sin(rad) * s;
             dz = Math.cos(rad) * s;
-            var10000 = en;
+            var10000 = freeEntity;
             var10000.posX -= dx;
-            var10000 = en;
+            var10000 = freeEntity;
             var10000.posZ -= dz;
          }
 
          if (Keyboard.isKeyDown(mc.gameSettings.keyBindLeft.getKeyCode())) {
-            rad = (double)(en.rotationYawHead - 90.0F) * 0.017453292519943295D;
+            rad = (double)(freeEntity.rotationYawHead - 90.0F) * 0.017453292519943295D;
             dx = -1.0D * Math.sin(rad) * s;
             dz = Math.cos(rad) * s;
-            var10000 = en;
+            var10000 = freeEntity;
             var10000.posX += dx;
-            var10000 = en;
+            var10000 = freeEntity;
             var10000.posZ += dz;
          }
 
          if (Keyboard.isKeyDown(mc.gameSettings.keyBindRight.getKeyCode())) {
-            rad = (double)(en.rotationYawHead + 90.0F) * 0.017453292519943295D;
+            rad = (double)(freeEntity.rotationYawHead + 90.0F) * 0.017453292519943295D;
             dx = -1.0D * Math.sin(rad) * s;
             dz = Math.cos(rad) * s;
-            var10000 = en;
+            var10000 = freeEntity;
             var10000.posX += dx;
-            var10000 = en;
+            var10000 = freeEntity;
             var10000.posZ += dz;
          }
 
          if (Keyboard.isKeyDown(mc.gameSettings.keyBindJump.getKeyCode())) {
-            var10000 = en;
+            var10000 = freeEntity;
             var10000.posY += 0.93D * s;
          }
 
          if (Keyboard.isKeyDown(mc.gameSettings.keyBindSneak.getKeyCode())) {
-            var10000 = en;
+            var10000 = freeEntity;
             var10000.posY -= 0.93D * s;
          }
 
          mc.thePlayer.setSneaking(false);
-         if (this.lcc[0] != Integer.MAX_VALUE && (this.lcc[0] != en.chunkCoordX || this.lcc[1] != en.chunkCoordZ)) {
-            int x = en.chunkCoordX;
-            int z = en.chunkCoordZ;
+         if (this.lcc[0] != Integer.MAX_VALUE && (this.lcc[0] != freeEntity.chunkCoordX || this.lcc[1] != freeEntity.chunkCoordZ)) {
+            int x = freeEntity.chunkCoordX;
+            int z = freeEntity.chunkCoordZ;
             mc.theWorld.markBlockRangeForRenderUpdate(x * 16, 0, z * 16, x * 16 + 15, 256, z * 16 + 15);
          }
 
-         this.lcc[0] = en.chunkCoordX;
-         this.lcc[1] = en.chunkCoordZ;
+         this.lcc[0] = freeEntity.chunkCoordX;
+         this.lcc[1] = freeEntity.chunkCoordZ;
       }
    }
 

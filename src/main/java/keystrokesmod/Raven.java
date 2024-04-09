@@ -23,7 +23,7 @@ import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
 
 @Mod(
-   modid = "keystrokesmod",
+   modid = "keystrokes",
    name = "KeystrokesMod",
    version = "KMV5",
    acceptedMinecraftVersions = "[1.8.9]"

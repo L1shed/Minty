@@ -202,6 +202,7 @@ public class ProfileManager {
                     Profile profile = new Profile(profileName, keybind);
                     profiles.add(profile);
                 } catch (Exception e) {
+                    Utils.sendMessage("&cFailed to load profiles.");
                     e.printStackTrace();
                 }
             }
@@ -211,6 +212,7 @@ public class ProfileManager {
                     categoryComponent.reloadModules();
                 }
             }
+            Utils.sendMessage("&b" + Raven.profileManager.getProfileFiles().size() + " &7profiles loaded.");
         }
     }
 

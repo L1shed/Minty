@@ -93,6 +93,7 @@ public class ModuleManager {
       this.addModule(killAura = new KillAura());
       this.addModule(new Fun.FlameTrail());
       this.addModule(new Fun.SlyPort());
+      this.addModule(new ItemESP());
       this.addModule(new MobESP());
       this.addModule(new Fun.Spin());
       this.addModule(new FakeChat());

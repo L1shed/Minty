@@ -10,6 +10,7 @@ import keystrokesmod.module.Module;
 import keystrokesmod.module.impl.minigames.DuelsStats;
 import keystrokesmod.module.impl.other.FakeChat;
 import keystrokesmod.module.impl.other.NameHider;
+import keystrokesmod.utility.profile.Profile;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import org.lwjgl.opengl.GL11;
@@ -60,6 +61,11 @@ public class Commands {
 
             if (args.length != 2) {
                print(invSyn, 1);
+               return;
+            }
+
+            if (args[1].equals("reset")) {
+               print("&aNick reset.", 1);
                return;
             }
 
@@ -151,7 +157,7 @@ public class Commands {
                 String name = module.getName().toLowerCase().replace(" ", "");
                 if (name.equals(args[1].toLowerCase())) {
                    module.setVisibility(false);
-                   print(module.getName() + " is now hidden in HUD", 1);
+                   print("&a" + module.getName() + " is now hidden in HUD", 1);
                 }
              }
          } else if (cm.startsWith("show")) {
@@ -169,12 +175,125 @@ public class Commands {
                String name = module.getName().toLowerCase().replace(" ", "");
                if (name.equals(args[1].toLowerCase())) {
                   module.setVisibility(true);
-                  print(module.getName() + " is now visible in HUD", 1);
+                  print("&a" + module.getName() + " is now visible in HUD", 1);
                }
+            }
+         } else if (cm.startsWith("friend") || cm.startsWith("f")) {
+            if (!hasArgs) {
+               print(invSyn, 1);
+               return;
+            }
+
+            if (args.length != 2) {
+               print(invSyn, 1);
+               return;
+            }
+
+            if (args[1].equals("clear")) {
+               Utils.friends.clear();
+               print("&aFriends cleared.", 1);
+               return;
+            }
+
+            boolean added = Utils.addFriend(args[1]);
+            if (!added) {
+               print("&aAdded friend: " + args[1], 1);
+            }
+            else {
+               print("&aRemoved friend: " + args[1], 1);
+            }
+         } else if (cm.startsWith("enemy") || cm.startsWith("e")) {
+            if (!hasArgs) {
+               print(invSyn, 1);
+               return;
+            }
+
+            if (args.length != 2) {
+               print(invSyn, 1);
+               return;
+            }
+
+            if (args[1].equals("clear")) {
+               Utils.enemies.clear();
+               print("&aEnemies cleared.", 1);
+               return;
+            }
+
+            boolean added = Utils.addEnemy(args[1]);
+            if (!added) {
+               print("&aRemoved enemy: " + args[1], 1);
+            }
+            else {
+
             }
          } else if (cm.startsWith("Debug".toLowerCase())) {
             Raven.debugger = !Raven.debugger;
             print("Debug " + (Raven.debugger ? "enabled" : "disabled") + ".", 1);
+         } else if (cm.startsWith("profiles") || cm.startsWith("p")) {
+            if (!hasArgs) {
+               print(invSyn, 1);
+               return;
+            }
+            if (args.length == 1) {
+               print("&aAvailable profiles:", 1);
+               if (Raven.profileManager.profiles.isEmpty()) {
+                  print("None", 0);
+                  return;
+               }
+               for (int i = 0; i < Raven.profileManager.profiles.size(); ++i) {
+                  print(i + 1 + ". " + Raven.profileManager.profiles.get(i).getName(), 0);
+               }
+            }
+            else if (args[1].equals("save") || args[1].equals("s")) {
+               if (args.length != 3) {
+                  print(invSyn, 1);
+                  return;
+               }
+               String name = args[2];
+               if (name.length() < 2 || name.length() > 10 || !name.chars().allMatch(Character::isLetterOrDigit)) {
+                  print("&cInvalid name.", 1);
+                  return;
+               }
+               for (Profile profile : Raven.profileManager.profiles) {
+                  if (profile.getName().equals(name)) {
+                     Raven.profileManager.saveProfile(profile);
+                     print("&aSaved profile:", 1);
+                     print(name, 0);
+                  }
+               }
+            }
+            else if (args[1].equals("load") || args[1].equals("l")) {
+               if (args.length != 3) {
+                  print(invSyn, 1);
+                  return;
+               }
+               String name = args[2];
+               for (Profile profile : Raven.profileManager.profiles) {
+                  if (profile.getName().equals(name)) {
+                     Raven.profileManager.loadProfile(profile.getName());
+                     print("&aLoaded profile:", 1);
+                     print(name, 0);
+                     return;
+                  }
+               }
+               print("&cInvalid profile.", 1);
+            }
+            else if (args[1].equals("remove") || args[1].equals("r")) {
+               if (args.length != 3) {
+                  print(invSyn, 1);
+                  return;
+               }
+               String name = args[2];
+               for (Profile profile : Raven.profileManager.profiles) {
+                  if (profile.getName().equals(name)) {
+                     Raven.profileManager.deleteProfile(profile.getName());
+                     print("&aRemoved profile:", 1);
+                     print(name, 0);
+                     return;
+                  }
+               }
+               print("&cInvalid profile.", 1);
+            }
          } else if (!cm.startsWith("help") && !cm.startsWith("?")) {
             if (cm.startsWith("shoutout")) {
                print("&eCelebrities:", 1);
@@ -188,11 +307,16 @@ public class Commands {
          } else {
             print("&eAvailable commands:", 1);
             print("1 setkey [key]", 0);
-            print("2 duels [player]", 0);
-            print("3 nick [name]", 0);
-            print("4 ping", 0);
-            print("5 hide [module]", 0);
-            print("6 show [module]", 0);
+            print("2 friend/enemy [name/clear]", 0);
+            print("3 duels [player]", 0);
+            print("4 nick [name/reset]", 0);
+            print("5 ping", 0);
+            print("6 hide/show [module]", 0);
+            print("&eProfiles:", 0);
+            print("1 profiles", 0);
+            print("2 profiles save [profile]", 0);
+            print("3 profiles load [profile]", 0);
+            print("4 profiles remove [profile]", 0);
             print("&eModule-specific:", 0);
             print("1 cname [name]", 0);
             print("2 " + FakeChat.command + " [msg]", 0);

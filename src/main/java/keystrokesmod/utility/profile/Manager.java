@@ -8,12 +8,26 @@ import keystrokesmod.utility.Utils;
 import java.awt.*;
 
 public class Manager extends Module {
-    private ButtonSetting loadProfiles, openFolder;
+    private ButtonSetting loadProfiles, openFolder, createProfile;
     public Manager() {
         super("Manager", category.profiles);
+        this.registerSetting(createProfile = new ButtonSetting("Create profile", () -> {
+            if (Utils.nullCheck() && Raven.profileManager != null) {
+                String name = "profile-";
+                for (int i = 1; i <= 100; i++) {
+                    if (Raven.profileManager.getProfile(name + i) != null) {
+                        continue;
+                    }
+                    name += i;
+                    Raven.profileManager.saveProfile(new Profile(name, 0));
+                    Utils.sendMessage("&7Created profile: &b" + name);
+                    Raven.profileManager.loadProfiles();
+                    break;
+                }
+            }
+        }));
         this.registerSetting(loadProfiles = new ButtonSetting("Load profiles", () -> {
             if (Utils.nullCheck() && Raven.profileManager != null) {
-                Utils.sendMessage("&b" + Raven.profileManager.getProfileFiles().size() + " &7profiles loaded.");
                 Raven.profileManager.loadProfiles();
             }
         }));

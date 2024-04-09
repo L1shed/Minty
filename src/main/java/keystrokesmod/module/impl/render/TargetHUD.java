@@ -42,16 +42,12 @@ public class TargetHUD extends Module {
             if (KillAura.target != null) {
                 target = KillAura.target;
             }
-            if (KillAura.target == null && target != null) {
-                (fadeTimer = new Timer(500)).start();
-            }
-            if (target == null) {
+            else {
                 return;
             }
             String playerInfo = target.getDisplayName().getFormattedText();
             double health = Utils.getCompleteHealth(target) /  target.getMaxHealth();
-            String color = health < 0.3D ? "c" : (health < 0.5D ? "6" : (health < 0.7D ? "e" : "a"));
-            playerInfo += " §" + color + Math.round(Utils.getCompleteHealth(target) * 10.0) / 10;
+            playerInfo += " " + Utils.getHealthStr(target);
             drawTargetHUD(fadeTimer, playerInfo, health);
         }
     }
@@ -98,10 +94,6 @@ public class TargetHUD extends Module {
             mc.fontRendererObj.drawString(string, (float)n4, (float)n5, (new Color(220, 220, 220, 255).getRGB() & 0xFFFFFF) | Utils.clamp(n10 + 15) << 24, true);
             GlStateManager.disableBlend();
             GlStateManager.popMatrix();
-        }
-        else {
-            fadeTimer = null;
-            target = null;
         }
     }
 }

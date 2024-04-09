@@ -7,10 +7,10 @@ import keystrokesmod.module.impl.minigames.DuelsStats;
 
 public class NameHider extends Module {
    public static DescriptionSetting a;
-   public static String n = new String("raven");
+   public static String n = "raven";
 
    public NameHider() {
-      super("Name Hider", Module.category.other, 0);
+      super("Name Hider", Module.category.other);
       this.registerSetting(a = new DescriptionSetting(Utils.uf("command") + ": cname [name]"));
    }
 

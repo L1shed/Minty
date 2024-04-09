@@ -2,7 +2,6 @@ package keystrokesmod.module.impl.render;
 
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
-import keystrokesmod.utility.Utils;
 
 public class AntiShuffle extends Module {
    public static DescriptionSetting a;
@@ -10,10 +9,10 @@ public class AntiShuffle extends Module {
 
    public AntiShuffle() {
       super("AntiShuffle", Module.category.render, 0);
-      this.registerSetting(a = new DescriptionSetting(Utils.uf("remove") + " &k"));
+      this.registerSetting(a = new DescriptionSetting("Removes obfuscation (" + c + "hey" + "§" + "r)."));
    }
 
-   public static String getUnformattedTextForChat(String s) {
+   public static String removeObfuscation(String s) {
       return s.replace(c, "");
    }
 }

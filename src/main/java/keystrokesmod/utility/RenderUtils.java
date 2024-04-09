@@ -165,7 +165,10 @@ public class RenderUtils {
    }
 
    public static void drawBoundingBox(AxisAlignedBB abb, float r, float g, float b) {
-      float a = 0.25F;
+      drawBoundingBox(abb, r, g, b, 0.25f);
+   }
+
+   public static void drawBoundingBox(AxisAlignedBB abb, float r, float g, float b, float a) {
       Tessellator ts = Tessellator.getInstance();
       WorldRenderer vb = ts.getWorldRenderer();
       vb.begin(7, DefaultVertexFormats.POSITION_COLOR);
