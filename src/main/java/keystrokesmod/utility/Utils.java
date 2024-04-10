@@ -7,10 +7,12 @@ import java.util.*;
 
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.client.Settings;
+import keystrokesmod.module.impl.minigames.DuelsStats;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.module.impl.combat.AutoClicker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
+import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -21,15 +23,14 @@ import net.minecraft.item.ItemFishingRod;
 import net.minecraft.item.ItemSword;
 import net.minecraft.network.play.client.C03PacketPlayer.C05PacketPlayerLook;
 import net.minecraft.potion.Potion;
-import net.minecraft.scoreboard.Score;
-import net.minecraft.scoreboard.ScoreObjective;
-import net.minecraft.scoreboard.ScorePlayerTeam;
-import net.minecraft.scoreboard.Scoreboard;
+import net.minecraft.scoreboard.*;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.lwjgl.input.Mouse;
 
 public class Utils {
@@ -37,6 +38,7 @@ public class Utils {
    public static final Minecraft mc = Minecraft.getMinecraft();
    public static HashSet<String> friends = new HashSet<>();
    public static HashSet<String> enemies = new HashSet<>();
+   public static final Logger log = LogManager.getLogger();
 
    public static boolean addEnemy(String name) {
       if (enemies.add(name.toLowerCase())) {
@@ -44,6 +46,22 @@ public class Utils {
          return true;
       }
       return false;
+   }
+
+   public static String getServerName() {
+      return DuelsStats.nick.isEmpty() ? mc.thePlayer.getName() : DuelsStats.nick;
+   }
+
+   public static List<NetworkPlayerInfo> getTablist() {
+      final ArrayList<NetworkPlayerInfo> list = new ArrayList<>(mc.getNetHandler().getPlayerInfoMap());
+      removeDuplicates((ArrayList) list);
+      list.remove(mc.getNetHandler().getPlayerInfo(mc.thePlayer.getUniqueID()));
+      return list;
+   }
+   public static void removeDuplicates(final ArrayList list) {
+      final HashSet set = new HashSet(list);
+      list.clear();
+      list.addAll(set);
    }
 
    public static boolean removeFriend(String name) {
@@ -64,8 +82,14 @@ public class Utils {
 
    public static void sendMessage(String txt) {
       if (nullCheck()) {
-         String m = r("&7[&dR&7]&r " + txt);
+         String m = formatColor("&7[&dR&7]&r " + txt);
          mc.thePlayer.addChatMessage(new ChatComponentText(m));
+      }
+   }
+
+   public static void sendRawMessage(String txt) {
+      if (nullCheck()) {
+         mc.thePlayer.addChatMessage(new ChatComponentText(formatColor(txt)));
       }
    }
 
@@ -86,7 +110,7 @@ public class Utils {
       return ((n < 0.3) ? "§c" : ((n < 0.5) ? "§6" : ((n < 0.7) ? "§e" : "§a"))) + rnd(n2, 1);
    }
 
-   public static String r(String txt) {
+   public static String formatColor(String txt) {
       return txt.replaceAll("&", "§");
    }
 
@@ -162,6 +186,79 @@ public class Utils {
          getTimer().timerSpeed = 1.0F;
       } catch (NullPointerException var1) {
       }
+   }
+
+   public static int getBedwarsStatus() {
+      int i = -1;
+      final Scoreboard scoreboard = mc.theWorld.getScoreboard();
+      if (scoreboard == null) {
+         return -1;
+      }
+      final ScoreObjective objective = scoreboard.getObjectiveInDisplaySlot(1);
+      if (objective == null || !stripString(objective.getDisplayName()).contains("BED WARS")) {
+         return -1;
+      }
+      for (String line : getSidebarLines()) {
+         line = stripString(line);
+         String[] parts = line.split("  ");
+         if (parts.length > 1) {
+            if (parts[1].startsWith("L")) {
+               return 0;
+            }
+         }
+         else if (line.equals("Waiting...") || line.startsWith("Starting in")) {
+            return 1;
+         }
+         else if (line.startsWith("R Red:") || line.startsWith("B Blue:")) {
+            return 2;
+         }
+         i++;
+      }
+      return -1;
+   }
+
+   public static String stripString(final String s) {
+      final char[] nonValidatedString = StringUtils.stripControlCodes(s).toCharArray();
+      final StringBuilder validated = new StringBuilder();
+      for (final char c : nonValidatedString) {
+         if (c < '' && c > '') {
+            validated.append(c);
+         }
+      }
+      return validated.toString();
+   }
+
+   public static List<String> getSidebarLines() {
+      final List<String> lines = new ArrayList<String>();
+      if (mc.theWorld == null) {
+         return lines;
+      }
+      final Scoreboard scoreboard = mc.theWorld.getScoreboard();
+      if (scoreboard == null) {
+         return lines;
+      }
+      final ScoreObjective objective = scoreboard.getObjectiveInDisplaySlot(1);
+      if (objective == null) {
+         return lines;
+      }
+      Collection<Score> scores = scoreboard.getSortedScores(objective);
+      final List<Score> list = new ArrayList<Score>();
+      for (final Score input : scores) {
+         if (input != null && input.getPlayerName() != null && !input.getPlayerName().startsWith("#")) {
+            list.add(input);
+         }
+      }
+      if (list.size() > 15) {
+         scores = new ArrayList<>(Lists.newArrayList(Iterables.skip(list, list.size() - 15)));
+      }
+      else {
+         scores = list;
+      }
+      for (final Score score : scores) {
+         final ScorePlayerTeam team = scoreboard.getPlayersTeam(score.getPlayerName());
+         lines.add(ScorePlayerTeam.formatPlayerName((Team)team, score.getPlayerName()));
+      }
+      return lines;
    }
 
    public static Random rand() {
@@ -342,17 +439,18 @@ public class Utils {
       }
    }
 
-   public static String str(String s) {
-      char[] n = StringUtils.stripControlCodes(s).toCharArray();
-      StringBuilder v = new StringBuilder();
-
-      for (char c : n) {
-         if (c < 127 && c > 20) {
-            v.append(c);
+   public static String stripColor(final String s) {
+      if (s.isEmpty()) {
+         return s;
+      }
+      final char[] array = StringUtils.stripControlCodes(s).toCharArray();
+      final StringBuilder sb = new StringBuilder();
+      for (final char c : array) {
+         if (c < '\u007f' && c > '\u0014') {
+            sb.append(c);
          }
       }
-
-      return v.toString();
+      return sb.toString();
    }
 
    public static List<String> gsl() {

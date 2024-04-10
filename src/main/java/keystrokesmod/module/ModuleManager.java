@@ -2,15 +2,12 @@ package keystrokesmod.module;
 
 import keystrokesmod.clickgui.components.impl.ModuleComponent;
 import keystrokesmod.module.impl.client.Settings;
+import keystrokesmod.module.impl.minigames.*;
 import keystrokesmod.utility.Utils;
 import keystrokesmod.module.impl.client.CommandLine;
 import keystrokesmod.module.impl.client.Gui;
 import keystrokesmod.module.impl.combat.*;
 import keystrokesmod.module.impl.fun.Fun;
-import keystrokesmod.module.impl.minigames.BridgeInfo;
-import keystrokesmod.module.impl.minigames.DuelsStats;
-import keystrokesmod.module.impl.minigames.MurderMystery;
-import keystrokesmod.module.impl.minigames.SumoFences;
 import keystrokesmod.module.impl.movement.*;
 import keystrokesmod.module.impl.other.FakeChat;
 import keystrokesmod.module.impl.other.NameHider;
@@ -100,7 +97,11 @@ public class ModuleManager {
       this.addModule(nameHider = new NameHider());
       this.addModule(new WaterBucket());
       this.addModule(commandLine = new CommandLine());
+      this.addModule(new BedWars());
+      this.addModule(new FastMine());
+      this.addModule(new JumpReset());
       this.addModule(new Manager());
+      this.addModule(new AutoWho());
       this.addModule(new Gui());
       antiBot.enable();
       Collections.sort(this.modules, Comparator.comparing(Module::getName));
@@ -139,7 +140,7 @@ public class ModuleManager {
       if (HUD.alphabeticalSort.isToggled()) {
          Collections.sort(organizedModules, Comparator.comparing(Module::getName));
       } else {
-         Collections.sort(organizedModules, (o1, o2) -> Utils.mc.fontRendererObj.getStringWidth(o2.getName() + (HUD.showInfo.isToggled() ? " " + o2.getInfo() : "")) - Utils.mc.fontRendererObj.getStringWidth(o1.getName() + (HUD.showInfo.isToggled() ? " " + o2.getInfo() : "")));
+         Collections.sort(organizedModules, (o1, o2) -> Utils.mc.fontRendererObj.getStringWidth(o2.getName() + (HUD.showInfo.isToggled() ? " " + o2.getInfo() : "")) - Utils.mc.fontRendererObj.getStringWidth(o1.getName() + (HUD.showInfo.isToggled() ? " " + o1.getInfo() : "")));
       }
    }
 }

@@ -120,7 +120,7 @@ public class MurderMystery extends Module {
 
          while(var2.hasNext()) {
             String l = (String)var2.next();
-            String s = Utils.str(l);
+            String s = Utils.stripColor(l);
             if (s.contains(this.c3)) {
                return true;
             }

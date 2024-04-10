@@ -31,6 +31,6 @@ public class FakeChat extends Module {
    }
 
    private void sm(String txt) {
-      mc.thePlayer.addChatMessage(new ChatComponentText(Utils.r(txt)));
+      mc.thePlayer.addChatMessage(new ChatComponentText(Utils.formatColor(txt)));
    }
 }

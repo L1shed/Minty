@@ -1,6 +1,7 @@
 package keystrokesmod.utility;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.PlayerControllerMP;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.common.MinecraftForge;
@@ -17,6 +18,8 @@ public class Reflection {
     public static Field leftClickCounter;
     public static Field jumpTicks;
     public static Field rightClickDelayTimerField;
+    public static Field curBlockDamageMP;
+    public static Field blockHitDelay;
     public static void getFields() {
        try {
           button = MouseEvent.class.getDeclaredField("button");
@@ -41,6 +44,16 @@ public class Reflection {
 
         if (rightClickDelayTimerField != null) {
             rightClickDelayTimerField.setAccessible(true);
+        }
+
+        curBlockDamageMP = ReflectionHelper.findField(PlayerControllerMP.class, "field_78770_f", "curBlockDamageMP");
+        if (curBlockDamageMP != null) {
+            curBlockDamageMP.setAccessible(true);
+        }
+
+        blockHitDelay = ReflectionHelper.findField(PlayerControllerMP.class, "field_78781_i", "blockHitDelay");
+        if (blockHitDelay != null) {
+            blockHitDelay.setAccessible(true);
         }
     }
 

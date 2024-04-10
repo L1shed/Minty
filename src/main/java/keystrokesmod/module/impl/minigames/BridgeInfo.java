@@ -130,7 +130,7 @@ public class BridgeInfo extends Module {
    @SubscribeEvent
    public void o(ClientChatReceivedEvent c) {
       if (Utils.nullCheck()) {
-         String s = Utils.str(c.message.getUnformattedText());
+         String s = Utils.stripColor(c.message.getUnformattedText());
          if (s.startsWith(" ")) {
             if (s.contains(this.qt)) {
                this.q = true;

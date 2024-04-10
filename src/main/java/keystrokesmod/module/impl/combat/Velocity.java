@@ -9,11 +9,11 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.input.Keyboard;
 
 public class Velocity extends Module {
-   public static SliderSetting a;
-   public static SliderSetting b;
-   public static SliderSetting c;
-   public static ButtonSetting d;
-   public static ButtonSetting e;
+   private SliderSetting a;
+   private SliderSetting b;
+   private SliderSetting c;
+   private ButtonSetting d;
+   private ButtonSetting e;
 
    public Velocity() {
       super("Velocity", Module.category.combat, 0);
@@ -25,7 +25,7 @@ public class Velocity extends Module {
    }
 
    @SubscribeEvent
-   public void c(LivingUpdateEvent ev) {
+   public void onLivingUpdate(LivingUpdateEvent ev) {
       if (Utils.nullCheck() && mc.thePlayer.maxHurtTime > 0 && mc.thePlayer.hurtTime == mc.thePlayer.maxHurtTime) {
          if (d.isToggled() && (mc.objectMouseOver == null || mc.objectMouseOver.entityHit == null)) {
             return;

@@ -10,7 +10,7 @@ public class Ping {
    @SubscribeEvent
    public void onChatMessageRecieved(ClientChatReceivedEvent event) {
       if (e && Utils.nullCheck()) {
-         if (Utils.str(event.message.getUnformattedText()).startsWith("Unknown")) {
+         if (Utils.stripColor(event.message.getUnformattedText()).startsWith("Unknown")) {
             event.setCanceled(true);
             e = false;
             this.getPing();

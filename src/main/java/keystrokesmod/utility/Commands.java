@@ -7,6 +7,7 @@ import java.util.List;
 
 import keystrokesmod.Raven;
 import keystrokesmod.module.Module;
+import keystrokesmod.module.impl.client.Settings;
 import keystrokesmod.module.impl.minigames.DuelsStats;
 import keystrokesmod.module.impl.other.FakeChat;
 import keystrokesmod.module.impl.other.NameHider;
@@ -69,9 +70,9 @@ public class Commands {
                return;
             }
 
-            DuelsStats.nk = args[1];
+            DuelsStats.nick = args[1];
             print("&aNick has been set to:", 1);
-            print("\"" + DuelsStats.nk + "\"", 0);
+            print("\"" + DuelsStats.nick + "\"", 0);
          } else if (cm.startsWith("cname")) {
             if (!hasArgs) {
                print(invSyn, 1);
@@ -266,6 +267,9 @@ public class Commands {
                      Raven.profileManager.loadProfile(profile.getName());
                      print("&aLoaded profile:", 1);
                      print(name, 0);
+                     if (Settings.sendMessage.isToggled()) {
+                        Utils.sendMessage("&7Enabled profile: &b" + name);
+                     }
                      return;
                   }
                }

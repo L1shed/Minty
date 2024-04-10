@@ -104,7 +104,7 @@ public class SumoFences extends Module {
       if (Utils.isHypixel()) {
 
          for (String l : Utils.gsl()) {
-            String s = Utils.str(l);
+            String s = Utils.stripColor(l);
             if (s.startsWith("Map:")) {
                if (this.m.contains(s.substring(5))) {
                   return true;

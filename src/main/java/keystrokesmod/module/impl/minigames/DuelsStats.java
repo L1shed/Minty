@@ -19,7 +19,7 @@ public class DuelsStats extends Module {
    public static SliderSetting mode;
    public static ButtonSetting a;
    public static ButtonSetting threatLevel;
-   public static String nk = "";
+   public static String nick = "";
    private String ign = "";
    private String en = "";
    private static final String[] thr_lvl;
@@ -53,7 +53,7 @@ public class DuelsStats extends Module {
 
          for (EntityPlayer p : pl) {
             String n = p.getName();
-            if (!n.equals(this.ign) && !n.equals(nk) && !this.q.contains(n) && p.getDisplayName().getUnformattedText().contains("§k")) {
+            if (!n.equals(this.ign) && !n.equals(nick) && !this.q.contains(n) && p.getDisplayName().getUnformattedText().contains("§k")) {
                this.ef(n);
                break;
             }
@@ -65,13 +65,13 @@ public class DuelsStats extends Module {
    @SubscribeEvent
    public void onMessageReceived(ClientChatReceivedEvent c) {
       if (Utils.nullCheck() && this.id()) {
-         String s = Utils.str(c.message.getUnformattedText());
+         String s = Utils.stripColor(c.message.getUnformattedText());
          if (s.contains(" ")) {
             String[] sp = s.split(" ");
             String n;
             if (sp.length == 4 && sp[1].equals("has") && sp[2].equals("joined") && sp[3].equals("(2/2)!")) {
                n = sp[0];
-               if (!n.equals(this.ign) && !n.equals(nk) && this.en.isEmpty()) {
+               if (!n.equals(this.ign) && !n.equals(nick) && this.en.isEmpty()) {
                   this.q.remove(n);
                   this.ef(n);
                }

@@ -1,14 +1,17 @@
 package keystrokesmod.mixins.impl.entity;
 
 import com.google.common.collect.Maps;
+import keystrokesmod.event.JumpEvent;
 import keystrokesmod.module.impl.client.Settings;
 import keystrokesmod.utility.RotationUtils;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
+import net.minecraftforge.common.ForgeHooks;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
@@ -21,21 +24,24 @@ public abstract class MixinEntityLivingBase extends Entity {
         super(worldIn);
     }
 
-    @Shadow
     private final Map<Integer, PotionEffect> activePotionsMap = Maps.<Integer, PotionEffect>newHashMap();
+
+    @Shadow
+    public PotionEffect getActivePotionEffect(Potion potionIn) {
+        return (PotionEffect)this.activePotionsMap.get(Integer.valueOf(potionIn.id));
+    }
+
+    @Shadow
+    public boolean isPotionActive(Potion potionIn) {
+        return this.activePotionsMap.containsKey(Integer.valueOf(potionIn.id));
+    }
 
     @Shadow
     public float rotationYawHead;
 
-    /**
-     * The Render yaw offset.
-     */
     @Shadow
     public float renderYawOffset;
 
-    /**
-     * The Swing progress.
-     */
     @Shadow
     public float swingProgress;
 
@@ -73,5 +79,34 @@ public abstract class MixinEntityLivingBase extends Entity {
         }
 
         return p_1101462;
+    }
+
+    @Shadow
+    protected float getJumpUpwardsMotion() {
+        return 0.42F;
+    }
+
+    @Overwrite
+    protected void jump() {
+        JumpEvent jumpEvent = new JumpEvent(this.getJumpUpwardsMotion(), this.rotationYaw);
+        net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(jumpEvent);
+        if (jumpEvent.isCanceled()) {
+            return;
+        }
+
+        this.motionY = jumpEvent.getMotionY();
+
+        if (this.isPotionActive(Potion.jump)) {
+            this.motionY += (double)((float)(this.getActivePotionEffect(Potion.jump).getAmplifier() + 1) * 0.1F);
+        }
+
+        if (this.isSprinting()) {
+            float f = jumpEvent.getYaw() * 0.017453292F;
+            this.motionX -= (double)(MathHelper.sin(f) * 0.2F);
+            this.motionZ += (double)(MathHelper.cos(f) * 0.2F);
+        }
+
+        this.isAirBorne = true;
+        ForgeHooks.onLivingJump(((EntityLivingBase) (Object) this));
     }
 }
