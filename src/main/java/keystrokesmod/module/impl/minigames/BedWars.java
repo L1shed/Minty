@@ -17,7 +17,11 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class BedWars extends Module {
-    private ButtonSetting whitelistOwnBed, enderPearl, obsidian, diamondArmor, shouldPing;
+    private ButtonSetting whitelistOwnBed;
+    private ButtonSetting diamondArmor;
+    private ButtonSetting enderPearl;
+    private ButtonSetting obsidian;
+    private ButtonSetting shouldPing;
     private double spawnX, spawnZ; // bed whitelist (for bedaura maybe)?
     private final List<String> armoredPlayer = new ArrayList<>();
     private final Map<String, String> lastHeldMap = new ConcurrentHashMap<>();

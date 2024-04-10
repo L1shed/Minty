@@ -29,10 +29,6 @@ public class BlockUtils {
         return (block.getMaterial().isToolNotRequired() || (itemStack != null && itemStack.canHarvestBlock(block))) ? (g(itemStack, block, b) / getBlockHardness / 30.0f) : (g(itemStack, block, b) / getBlockHardness / 100.0f);
     }
 
-    public static boolean f(final BlockPos blockPos, final BlockPos blockPos2) {
-        return blockPos == blockPos2 || (blockPos.getX() == blockPos2.getX() && blockPos.getY() == blockPos2.getY() && blockPos.getZ() == blockPos2.getZ());
-    }
-
     public static float g(final ItemStack itemStack, final Block block, final boolean b) {
         float n = (itemStack == null) ? 1.0f : itemStack.getItem().getStrVsBlock(itemStack, block);
         if (n > 1.0f) {

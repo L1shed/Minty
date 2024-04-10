@@ -84,6 +84,7 @@ public class ModuleManager {
       this.addModule(new BridgeInfo());
       this.addModule(new TargetHUD());
       this.addModule(new DuelsStats());
+      this.addModule(new BedESP());
       this.addModule(new MurderMystery());
       this.addModule(new SumoFences());
       this.addModule(new Fun.ExtraBobbing());

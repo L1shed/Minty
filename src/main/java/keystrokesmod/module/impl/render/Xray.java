@@ -58,7 +58,6 @@ public class Xray extends Module {
          this.t.purge();
          this.t = null;
       }
-
    }
 
    private TimerTask t() {
@@ -94,7 +93,6 @@ public class Xray extends Module {
             this.drawBox(p);
          }
       }
-
    }
 
    private void drawBox(BlockPos p) {
