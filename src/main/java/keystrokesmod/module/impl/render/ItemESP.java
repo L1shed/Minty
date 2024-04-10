@@ -23,7 +23,7 @@ public class ItemESP extends Module { // entirely skidded from raven b4 source l
     private ButtonSetting renderIron, renderGold;
 
     public ItemESP() {
-        super("ResourceESP", category.render);
+        super("ItemESP", category.render);
         this.registerSetting(renderIron = new ButtonSetting("Render iron", true));
         this.registerSetting(renderGold = new ButtonSetting("Render gold", true));
     }
