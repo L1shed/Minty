@@ -25,6 +25,7 @@ public class BedWars extends Module {
     private double spawnX, spawnZ; // bed whitelist (for bedaura maybe)?
     private final List<String> armoredPlayer = new ArrayList<>();
     private final Map<String, String> lastHeldMap = new ConcurrentHashMap<>();
+
     public BedWars() {
         super("Bed Wars", category.minigames);
         this.registerSetting(whitelistOwnBed = new ButtonSetting("Whitelist own bed", true));
@@ -51,9 +52,6 @@ public class BedWars extends Module {
     }
 
     public void onUpdate() {
-        if (!Utils.nullCheck()) {
-            return;
-        }
         if (Utils.getBedwarsStatus() == 2) {
             if (diamondArmor.isToggled() || enderPearl.isToggled() || obsidian.isToggled()) {
                 for (EntityPlayer p : mc.theWorld.playerEntities) {

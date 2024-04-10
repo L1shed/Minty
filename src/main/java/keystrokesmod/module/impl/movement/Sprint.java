@@ -7,14 +7,14 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.PlayerTickEvent;
 
 public class Sprint extends Module {
-   public Sprint() {
-      super("Sprint", Module.category.movement, 0);
-   }
+    public Sprint() {
+        super("Sprint", Module.category.movement, 0);
+    }
 
-   @SubscribeEvent
-   public void p(PlayerTickEvent e) {
-      if (Utils.nullCheck() && mc.inGameHasFocus) {
-         KeyBinding.setKeyBindState(mc.gameSettings.keyBindSprint.getKeyCode(), true);
-      }
-   }
+    @SubscribeEvent
+    public void p(PlayerTickEvent e) {
+        if (Utils.nullCheck() && mc.inGameHasFocus) {
+            KeyBinding.setKeyBindState(mc.gameSettings.keyBindSprint.getKeyCode(), true);
+        }
+    }
 }

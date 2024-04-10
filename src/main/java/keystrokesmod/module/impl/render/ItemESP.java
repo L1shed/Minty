@@ -37,7 +37,7 @@ public class ItemESP extends Module { // entirely skidded from raven b4 source l
                 if (entity.ticksExisted < 3) {
                     continue;
                 }
-                EntityItem entityItem = (EntityItem)entity;
+                EntityItem entityItem = (EntityItem) entity;
                 if (entityItem.getEntityItem().stackSize == 0) {
                     continue;
                 }
@@ -57,8 +57,7 @@ public class ItemESP extends Module { // entirely skidded from raven b4 source l
                     }
                     list.add(entityItem);
                     hashMap.put(getItem, list);
-                }
-                else {
+                } else {
                     n2 = n + stackSize;
                 }
                 hashMap2.put(a, n2);
@@ -72,16 +71,13 @@ public class ItemESP extends Module { // entirely skidded from raven b4 source l
                 int n3;
                 if (item == Items.iron_ingot && renderIron.isToggled()) {
                     n3 = (n4 = -1);
-                }
-                else if (item == Items.gold_ingot && renderGold.isToggled()) {
+                } else if (item == Items.gold_ingot && renderGold.isToggled()) {
                     n4 = -331703;
                     n3 = -152;
-                }
-                else if (item == Items.diamond) {
+                } else if (item == Items.diamond) {
                     n4 = -10362113;
                     n3 = -7667713;
-                }
-                else {
+                } else {
                     if (item != Items.emerald) {
                         continue;
                     }
@@ -121,14 +117,11 @@ public class ItemESP extends Module { // entirely skidded from raven b4 source l
         double c = c(n, n2, n3);
         if (item == Items.iron_ingot) {
             c += 0.155;
-        }
-        else if (item == Items.gold_ingot) {
+        } else if (item == Items.gold_ingot) {
             c += 0.255;
-        }
-        else if (item == Items.diamond) {
+        } else if (item == Items.diamond) {
             c += 0.355;
-        }
-        else if (item == Items.emerald) {
+        } else if (item == Items.emerald) {
             c += 0.455;
         }
         return c;
@@ -148,7 +141,7 @@ public class ItemESP extends Module { // entirely skidded from raven b4 source l
         float n8 = (n >> 16 & 0xFF) / 255.0f;
         float n9 = (n >> 8 & 0xFF) / 255.0f;
         float n10 = (n & 0xFF) / 255.0f;
-        float min = Math.min(Math.max(0.2f, (float)(0.009999999776482582 * n7)), 0.4f);
+        float min = Math.min(Math.max(0.2f, (float) (0.009999999776482582 * n7)), 0.4f);
         RenderUtils.drawBoundingBox(new AxisAlignedBB(n4 - min, n5, n6 - min, n4 + min, n5 + min * 2.0f, n6 + min), n8, n9, n10, 0.35f);
         GL11.glEnable(3553);
         GL11.glEnable(2929);
@@ -156,10 +149,10 @@ public class ItemESP extends Module { // entirely skidded from raven b4 source l
         GL11.glDisable(3042);
         GL11.glPopMatrix();
         GlStateManager.pushMatrix();
-        GlStateManager.translate((float)n4, (float)n5 + 0.3, (float)n6);
+        GlStateManager.translate((float) n4, (float) n5 + 0.3, (float) n6);
         GlStateManager.rotate(-mc.getRenderManager().playerViewY, 0.0f, 1.0f, 0.0f);
         GlStateManager.rotate(mc.getRenderManager().playerViewX, 1.0f, 0.0f, 0.0f);
-        float min2 = Math.min(Math.max(0.02266667f, (float)(0.001500000013038516 * n7)), 0.07f);
+        float min2 = Math.min(Math.max(0.02266667f, (float) (0.001500000013038516 * n7)), 0.07f);
         GlStateManager.scale(-min2, -min2, -min2);
         GlStateManager.depthMask(false);
         GlStateManager.disableDepth();

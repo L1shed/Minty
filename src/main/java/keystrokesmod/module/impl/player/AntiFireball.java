@@ -23,6 +23,7 @@ public class AntiFireball extends Module {
     private ButtonSetting silentSwing;
     private EntityFireball fireball;
     private HashSet<Entity> fireballs = new HashSet<>();
+
     public AntiFireball() {
         super("AntiFireball", category.player);
         this.registerSetting(fov = new SliderSetting("FOV", 360.0, 30.0, 360.0, 4.0));
@@ -67,11 +68,11 @@ public class AntiFireball extends Module {
             if (mc.thePlayer.getDistanceSqToEntity(entity) > range.getInput() * range.getInput()) {
                 continue;
             }
-            final float n = (float)fov.getInput();
+            final float n = (float) fov.getInput();
             if (n != 360.0f && !Utils.inFovEntity(n, entity)) {
                 continue;
             }
-            return (EntityFireball)entity;
+            return (EntityFireball) entity;
         }
         return null;
     }
@@ -83,8 +84,7 @@ public class AntiFireball extends Module {
         }
         if (e.entity == mc.thePlayer) {
             this.fireballs.clear();
-        }
-        else if (e.entity instanceof EntityFireball && mc.thePlayer.getDistanceSqToEntity(e.entity) > 16.0) {
+        } else if (e.entity instanceof EntityFireball && mc.thePlayer.getDistanceSqToEntity(e.entity) > 16.0) {
             this.fireballs.add(e.entity);
         }
     }

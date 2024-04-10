@@ -20,13 +20,14 @@ public class Reflection {
     public static Field rightClickDelayTimerField;
     public static Field curBlockDamageMP;
     public static Field blockHitDelay;
+
     public static void getFields() {
-       try {
-          button = MouseEvent.class.getDeclaredField("button");
-          buttonstate = MouseEvent.class.getDeclaredField("buttonstate");
-          buttons = Mouse.class.getDeclaredField("buttons");
-       } catch (Exception var2) {
-       }
+        try {
+            button = MouseEvent.class.getDeclaredField("button");
+            buttonstate = MouseEvent.class.getDeclaredField("buttonstate");
+            buttons = Mouse.class.getDeclaredField("buttons");
+        } catch (Exception var2) {
+        }
 
         leftClickCounter = ReflectionHelper.findField(Minecraft.class, "field_71429_W", "leftClickCounter");
 
@@ -58,21 +59,21 @@ public class Reflection {
     }
 
     public static void setButton(int t, boolean s) {
-       if (button != null && buttonstate != null && buttons != null) {
-          MouseEvent m = new MouseEvent();
+        if (button != null && buttonstate != null && buttons != null) {
+            MouseEvent m = new MouseEvent();
 
-          try {
-             button.setAccessible(true);
-             button.set(m, t);
-             buttonstate.setAccessible(true);
-             buttonstate.set(m, s);
-             MinecraftForge.EVENT_BUS.post(m);
-             buttons.setAccessible(true);
-             ByteBuffer bf = (ByteBuffer) buttons.get(null);
-             buttons.setAccessible(false);
-             bf.put(t, (byte)(s ? 1 : 0));
-          } catch (IllegalAccessException var4) {
-          }
-       }
+            try {
+                button.setAccessible(true);
+                button.set(m, t);
+                buttonstate.setAccessible(true);
+                buttonstate.set(m, s);
+                MinecraftForge.EVENT_BUS.post(m);
+                buttons.setAccessible(true);
+                ByteBuffer bf = (ByteBuffer) buttons.get(null);
+                buttons.setAccessible(false);
+                bf.put(t, (byte) (s ? 1 : 0));
+            } catch (IllegalAccessException var4) {
+            }
+        }
     }
 }

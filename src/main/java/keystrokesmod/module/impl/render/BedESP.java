@@ -31,6 +31,7 @@ public class BedESP extends Module {
     private BlockPos[] bed = null;
     private List<BlockPos[]> beds = new ArrayList<>();
     private long lastCheck = 0;
+
     public BedESP() {
         super("BedESP", category.render);
         this.registerSetting(theme = new SliderSetting("Theme", Theme.themes, 0));
@@ -40,17 +41,13 @@ public class BedESP extends Module {
     }
 
     public void onUpdate() {
-        if (!Utils.nullCheck()) {
-            beds.clear();
-            return;
-        }
         if (System.currentTimeMillis() - lastCheck < rate.getInput() * 1000) {
             return;
         }
         lastCheck = System.currentTimeMillis();
         int i;
         priorityLoop:
-        for (int n = i = (int)range.getInput(); i >= -n; --i) {
+        for (int n = i = (int) range.getInput(); i >= -n; --i) {
             for (int j = -n; j <= n; ++j) {
                 for (int k = -n; k <= n; ++k) {
                     final BlockPos blockPos = new BlockPos(mc.thePlayer.posX + j, mc.thePlayer.posY + i, mc.thePlayer.posZ + k);
@@ -60,16 +57,15 @@ public class BedESP extends Module {
                             if (this.bed != null && BlockUtils.isSamePos(blockPos, this.bed[0])) {
                                 return;
                             }
-                            this.bed = new BlockPos[] { blockPos, blockPos.offset((EnumFacing)getBlockState.getValue((IProperty)BlockBed.FACING)) };
+                            this.bed = new BlockPos[]{blockPos, blockPos.offset((EnumFacing) getBlockState.getValue((IProperty) BlockBed.FACING))};
                             return;
-                        }
-                        else {
+                        } else {
                             for (int l = 0; l < this.beds.size(); ++l) {
-                                if (BlockUtils.isSamePos(blockPos, ((BlockPos[])this.beds.get(l))[0])) {
+                                if (BlockUtils.isSamePos(blockPos, ((BlockPos[]) this.beds.get(l))[0])) {
                                     continue priorityLoop;
                                 }
                             }
-                            this.beds.add(new BlockPos[] { blockPos, blockPos.offset((EnumFacing)getBlockState.getValue((IProperty)BlockBed.FACING)) });
+                            this.beds.add(new BlockPos[]{blockPos, blockPos.offset((EnumFacing) getBlockState.getValue((IProperty) BlockBed.FACING))});
                         }
                     }
                 }
@@ -131,20 +127,17 @@ public class BedESP extends Module {
         final float n5 = (e >> 16 & 0xFF) / 255.0f;
         final float n6 = (e >> 8 & 0xFF) / 255.0f;
         final float n7 = (e & 0xFF) / 255.0f;
-        GL11.glColor4d((double)n5, (double)n6, (double)n7, (double)n4);
+        GL11.glColor4d((double) n5, (double) n6, (double) n7, (double) n4);
         AxisAlignedBB axisAlignedBB;
         if (array[0].getX() != array[1].getX()) {
             if (array[0].getX() > array[1].getX()) {
                 axisAlignedBB = new AxisAlignedBB(n - 1.0, n2, n3, n + 1.0, n2 + 1.0, n3 + 1.0);
-            }
-            else {
+            } else {
                 axisAlignedBB = new AxisAlignedBB(n, n2, n3, n + 2.0, n2 + 1.0, n3 + 1.0);
             }
-        }
-        else if (array[0].getZ() > array[1].getZ()) {
+        } else if (array[0].getZ() > array[1].getZ()) {
             axisAlignedBB = new AxisAlignedBB(n, n2, n3 - 1.0, n + 1.0, n2 + 1.0, n3 + 1.0);
-        }
-        else {
+        } else {
             axisAlignedBB = new AxisAlignedBB(n, n2, n3, n + 1.0, n2 + 1.0, n3 + 2.0);
         }
         RenderUtils.drawBoundingBox(axisAlignedBB, n5, n6, n7);

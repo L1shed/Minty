@@ -11,7 +11,9 @@ import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.Utils;
 import net.minecraft.client.Minecraft;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -50,8 +52,7 @@ public class ProfileManager {
         try (FileWriter fileWriter = new FileWriter(new File(directory, profile.getName() + ".json"))) {
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
             gson.toJson(jsonObject, fileWriter);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             failedMessage("save", profile.getName());
             e.printStackTrace();
         }
@@ -72,8 +73,7 @@ public class ProfileManager {
         for (Setting setting : module.getSettings()) {
             if (setting instanceof ButtonSetting && !((ButtonSetting) setting).isMethodButton) {
                 moduleInformation.addProperty(setting.getName(), ((ButtonSetting) setting).isToggled());
-            }
-            else if (setting instanceof SliderSetting) {
+            } else if (setting instanceof SliderSetting) {
                 moduleInformation.addProperty(setting.getName(), ((SliderSetting) setting).getInput());
             }
         }
@@ -121,8 +121,7 @@ public class ProfileManager {
                             boolean enabled = moduleInformation.get("enabled").getAsBoolean();
                             if (enabled) {
                                 module.enable();
-                            }
-                            else {
+                            } else {
                                 module.disable();
                             }
                         }
@@ -153,8 +152,7 @@ public class ProfileManager {
 
                     Raven.currentProfile = getProfile(name);
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }

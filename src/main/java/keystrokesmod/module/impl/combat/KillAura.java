@@ -160,8 +160,7 @@ public class KillAura extends Module {
         swing = false;
     }
 
-    private void setTarget()
-    {
+    private void setTarget() {
         availableTargets.clear();
         block.set(false);
         swing = false;
@@ -203,7 +202,10 @@ public class KillAura extends Module {
             if (distance > attackRange.getInput()) {
                 continue;
             }
-            // fov check here
+            final float n = (float) fov.getInput();
+            if (n != 360.0f && !Utils.inFovEntity(n, entity)) {
+                continue;
+            }
             availableTargets.add((EntityLivingBase) entity);
         }
         if (Math.abs(System.currentTimeMillis() - lastSwitched) > switchDelay.getInput() && switchTargets) {
@@ -220,8 +222,7 @@ public class KillAura extends Module {
                 entityIndex = 0;
             }
             target = availableTargets.get(entityIndex);
-        }
-        else {
+        } else {
             target = null;
         }
     }
@@ -239,14 +240,11 @@ public class KillAura extends Module {
     private boolean settingCondition() {
         if (!Mouse.isButtonDown(0) && requireMouseDown.isToggled()) {
             return false;
-        }
-        else if (!Utils.holdingWeapon() && weaponOnly.isToggled()) {
+        } else if (!Utils.holdingWeapon() && weaponOnly.isToggled()) {
             return false;
-        }
-        else if (isMining() && disableWhileMining.isToggled()) {
+        } else if (isMining() && disableWhileMining.isToggled()) {
             return false;
-        }
-        else if (mc.currentScreen != null && disableInInventory.isToggled()) {
+        } else if (mc.currentScreen != null && disableInInventory.isToggled()) {
             return false;
         }
         return true;

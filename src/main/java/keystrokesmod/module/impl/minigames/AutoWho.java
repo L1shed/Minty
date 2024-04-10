@@ -15,6 +15,7 @@ public class AutoWho extends Module {
     private ButtonSetting artifical;
     private ButtonSetting hideMessage;
     private ButtonSetting removeBots;
+
     public AutoWho() {
         super("AutoWho", category.minigames);
         this.registerSetting(description = new DescriptionSetting("Automatically execute /who."));
@@ -35,8 +36,7 @@ public class AutoWho extends Module {
         }
         if (r.startsWith(Utils.getServerName() + " has joined (")) {
             this.artificial();
-        }
-        else if (hideMessage.isToggled() && r.startsWith("ONLINE: ")) {
+        } else if (hideMessage.isToggled() && r.startsWith("ONLINE: ")) {
             e.setCanceled(true);
             Utils.log.info("[CHAT] " + r);
         }
@@ -51,8 +51,7 @@ public class AutoWho extends Module {
                 }
                 if (hideMessage.isToggled()) {
                     online = online + networkPlayerInfo.getGameProfile().getName() + ", ";
-                }
-                else {
+                } else {
                     online = online + ScorePlayerTeam.formatPlayerName(networkPlayerInfo.getPlayerTeam(), networkPlayerInfo.getGameProfile().getName()) + "�" + "7, ";
                 }
             }
@@ -61,8 +60,7 @@ public class AutoWho extends Module {
                 return;
             }
             Utils.sendRawMessage(online + mc.thePlayer.getDisplayName().getFormattedText());
-        }
-        else {
+        } else {
             mc.thePlayer.sendChatMessage("/who");
         }
     }

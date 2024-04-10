@@ -4,21 +4,22 @@ import com.google.gson.JsonObject;
 import keystrokesmod.module.setting.Setting;
 
 public class DescriptionSetting extends Setting {
-   private String desc;
+    private String desc;
 
-   public DescriptionSetting(String t) {
-      super(t);
-      this.desc = t;
-   }
+    public DescriptionSetting(String t) {
+        super(t);
+        this.desc = t;
+    }
 
-   public String getDesc() {
-      return this.desc;
-   }
+    public String getDesc() {
+        return this.desc;
+    }
 
-   public void setDesc(String t) {
-      this.desc = t;
-   }
+    public void setDesc(String t) {
+        this.desc = t;
+    }
 
-   @Override
-   public void loadProfile(JsonObject data) {}
+    @Override
+    public void loadProfile(JsonObject data) {
+    }
 }

@@ -23,84 +23,84 @@ import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
 
 @Mod(
-   modid = "keystrokes",
-   name = "KeystrokesMod",
-   version = "KMV5",
-   acceptedMinecraftVersions = "[1.8.9]"
+        modid = "keystrokes",
+        name = "KeystrokesMod",
+        version = "KMV5",
+        acceptedMinecraftVersions = "[1.8.9]"
 )
 public class Raven {
-   public static boolean debugger = false;
-   public static Minecraft mc = Minecraft.getMinecraft();
-   private static KeySrokeRenderer keySrokeRenderer;
-   private static boolean isKeyStrokeConfigGuiToggled;
-   private static final ScheduledExecutorService ex = Executors.newScheduledThreadPool(2);
-   public static ModuleManager moduleManager;
-   public static ClickGui clickGui;
-   public static ProfileManager profileManager;
-   public static Profile currentProfile;
+    public static boolean debugger = false;
+    public static Minecraft mc = Minecraft.getMinecraft();
+    private static KeySrokeRenderer keySrokeRenderer;
+    private static boolean isKeyStrokeConfigGuiToggled;
+    private static final ScheduledExecutorService ex = Executors.newScheduledThreadPool(2);
+    public static ModuleManager moduleManager;
+    public static ClickGui clickGui;
+    public static ProfileManager profileManager;
+    public static Profile currentProfile;
 
-   public Raven() {
-      moduleManager = new ModuleManager();
-   }
+    public Raven() {
+        moduleManager = new ModuleManager();
+    }
 
-   @EventHandler
-   public void init(FMLInitializationEvent e) {
-      Runtime.getRuntime().addShutdownHook(new Thread(ex::shutdown));
-      ClientCommandHandler.instance.registerCommand(new keystrokeCommand());
-      FMLCommonHandler.instance().bus().register(this);
-      FMLCommonHandler.instance().bus().register(new DebugInfoRenderer());
-      FMLCommonHandler.instance().bus().register(new CPSCalculator());
-      FMLCommonHandler.instance().bus().register(new KeySrokeRenderer());
-      FMLCommonHandler.instance().bus().register(new Ping());
-      moduleManager.register();
-      keySrokeRenderer = new KeySrokeRenderer();
-      clickGui = new ClickGui();
-      profileManager = new ProfileManager();
-      Reflection.getFields();
-      profileManager.loadProfiles();
-      profileManager.loadProfile("default");
-   }
+    @EventHandler
+    public void init(FMLInitializationEvent e) {
+        Runtime.getRuntime().addShutdownHook(new Thread(ex::shutdown));
+        ClientCommandHandler.instance.registerCommand(new keystrokeCommand());
+        FMLCommonHandler.instance().bus().register(this);
+        FMLCommonHandler.instance().bus().register(new DebugInfoRenderer());
+        FMLCommonHandler.instance().bus().register(new CPSCalculator());
+        FMLCommonHandler.instance().bus().register(new KeySrokeRenderer());
+        FMLCommonHandler.instance().bus().register(new Ping());
+        moduleManager.register();
+        keySrokeRenderer = new KeySrokeRenderer();
+        clickGui = new ClickGui();
+        profileManager = new ProfileManager();
+        Reflection.getFields();
+        profileManager.loadProfiles();
+        profileManager.loadProfile("default");
+    }
 
-   @SubscribeEvent
-   public void onTick(ClientTickEvent e) {
-      if (e.phase == Phase.END) {
-         if (Utils.nullCheck()) {
-            for (Module module : getModuleManager().getModules()) {
-               if (mc.currentScreen == null && module.canBeEnabled) {
-                  module.keybind();
-               } else if (mc.currentScreen instanceof ClickGui) {
-                  module.guiUpdate();
-               }
+    @SubscribeEvent
+    public void onTick(ClientTickEvent e) {
+        if (e.phase == Phase.END) {
+            if (Utils.nullCheck()) {
+                for (Module module : getModuleManager().getModules()) {
+                    if (mc.currentScreen == null && module.canBeEnabled) {
+                        module.keybind();
+                    } else if (mc.currentScreen instanceof ClickGui) {
+                        module.guiUpdate();
+                    }
 
-               if (module.isEnabled()) {
-                  module.onUpdate();
-               }
+                    if (module.isEnabled()) {
+                        module.onUpdate();
+                    }
+                }
+                for (Profile profile : Raven.profileManager.profiles) {
+                    profile.getModule().keybind();
+                }
             }
-            for (Profile profile : Raven.profileManager.profiles) {
-               profile.getModule().keybind();
+
+            if (isKeyStrokeConfigGuiToggled) {
+                isKeyStrokeConfigGuiToggled = false;
+                mc.displayGuiScreen(new KeyStrokeConfigGui());
             }
-         }
+        }
+    }
 
-         if (isKeyStrokeConfigGuiToggled) {
-            isKeyStrokeConfigGuiToggled = false;
-            mc.displayGuiScreen(new KeyStrokeConfigGui());
-         }
-      }
-   }
+    public static ModuleManager getModuleManager() {
+        return moduleManager;
+    }
 
-   public static ModuleManager getModuleManager() {
-      return moduleManager;
-   }
+    public static ScheduledExecutorService getExecutor() {
+        return ex;
+    }
 
-   public static ScheduledExecutorService getExecutor() {
-      return ex;
-   }
+    public static KeySrokeRenderer getKeyStrokeRenderer() {
+        return keySrokeRenderer;
+    }
 
-   public static KeySrokeRenderer getKeyStrokeRenderer() {
-      return keySrokeRenderer;
-   }
-
-   public static void toggleKeyStrokeConfigGui() {
-      isKeyStrokeConfigGuiToggled = true;
-   }
+    public static void toggleKeyStrokeConfigGui() {
+        isKeyStrokeConfigGuiToggled = true;
+    }
 }

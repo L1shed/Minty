@@ -13,6 +13,7 @@ import net.minecraft.util.BlockPos;
 
 public class BlockUtils {
     public static final Minecraft mc = Minecraft.getMinecraft();
+
     public static boolean isInteractable(final Block block) {
         return block instanceof BlockContainer || block == Blocks.crafting_table;
     }

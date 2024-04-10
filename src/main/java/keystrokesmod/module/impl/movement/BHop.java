@@ -1,32 +1,72 @@
 package keystrokesmod.module.impl.movement;
 
 import keystrokesmod.module.Module;
-import keystrokesmod.module.ModuleManager;
+import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.Utils;
-import net.minecraft.client.settings.KeyBinding;
+import org.lwjgl.input.Keyboard;
 
 public class BHop extends Module {
-   public static SliderSetting a;
-   private final double bspd = 0.0025D;
+    private SliderSetting mode;
+    public static SliderSetting speed;
+    private ButtonSetting waterDisable;
+    private ButtonSetting sneakDisable;
+    private ButtonSetting stopMotion;
+    private String[] modes = new String[]{"Strafe", "Ground"};
 
-   public BHop() {
-      super("Bhop", Module.category.movement, 0);
-      this.registerSetting(a = new SliderSetting("Speed", 2.0D, 1.0D, 15.0D, 0.2D));
-   }
+    public BHop() {
+        super("Bhop", Module.category.movement);
+        this.registerSetting(mode = new SliderSetting("Mode", modes, 0));
+        this.registerSetting(speed = new SliderSetting("Speed", 2.0, 0.5, 8.0, 0.1));
+        this.registerSetting(waterDisable = new ButtonSetting("Disable in water", true));
+        this.registerSetting(sneakDisable = new ButtonSetting("Disable while sneaking", true));
+        this.registerSetting(stopMotion = new ButtonSetting("Stop motion", false));
+    }
 
-   public void onUpdate() {
-      if (!ModuleManager.fly.isEnabled() && Utils.isStrafing() && !mc.thePlayer.isInWater()) {
-         KeyBinding.setKeyBindState(mc.gameSettings.keyBindJump.getKeyCode(), false);
-         mc.thePlayer.noClip = true;
-         if (mc.thePlayer.onGround) {
-            mc.thePlayer.jump();
-         }
+    @Override
+    public String getInfo() {
+        return modes[(int) mode.getInput()];
+    }
 
-         mc.thePlayer.setSprinting(true);
-         double spd = 0.0025D * a.getInput();
-         double m = (double)((float)(Math.sqrt(mc.thePlayer.motionX * mc.thePlayer.motionX + mc.thePlayer.motionZ * mc.thePlayer.motionZ) + spd));
-         Utils.ss2(m);
-      }
-   }
+    public void onUpdate() {
+        if ((mc.thePlayer.isInWater() && waterDisable.isToggled()) || (mc.thePlayer.isSneaking() && sneakDisable.isToggled())) {
+            return;
+        }
+        switch ((int) mode.getInput()) {
+            case 0:
+                if (Utils.isStrafing()) {
+                    if (mc.thePlayer.onGround) {
+                        mc.thePlayer.jump();
+                    }
+                    mc.thePlayer.setSprinting(true);
+                    Utils.setMotion(Utils.getHorizontalSpeed() + 0.005 * speed.getInput());
+                    break;
+                }
+                break;
+            case 1:
+                if (!Keyboard.isKeyDown(mc.gameSettings.keyBindJump.getKeyCode()) && Utils.isStrafing() && mc.currentScreen != null) {
+                    if (!mc.thePlayer.onGround) {
+                        break;
+                    }
+                    mc.thePlayer.jump();
+                    mc.thePlayer.setSprinting(true);
+                    double horizontalSpeed = Utils.getHorizontalSpeed();
+                    double additionalSpeed = 0.4847 * ((speed.getInput() - 1.0) / 3.0 + 1.0);
+                    if (horizontalSpeed < additionalSpeed) {
+                        horizontalSpeed = additionalSpeed;
+                    }
+                    Utils.setMotion(horizontalSpeed);
+                }
+                break;
+        }
+    }
+
+    public void onDisable() {
+        if (stopMotion.isToggled()) {
+            final double motionX = 0.0;
+            mc.thePlayer.motionZ = motionX;
+            mc.thePlayer.motionY = motionX;
+            mc.thePlayer.motionX = motionX;
+        }
+    }
 }

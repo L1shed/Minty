@@ -12,6 +12,7 @@ public class JumpReset extends Module {
     private SliderSetting chance;
     private SliderSetting motion;
     private boolean jump;
+
     public JumpReset() {
         super("Jump Reset", category.combat);
         this.registerSetting(chance = new SliderSetting("Chance", 80, 0, 100, 1));

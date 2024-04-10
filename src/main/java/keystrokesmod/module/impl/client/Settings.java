@@ -19,6 +19,7 @@ public class Settings extends Module {
     public static SliderSetting timeMultiplier;
     private DescriptionSetting profiles;
     public static ButtonSetting sendMessage;
+
     public Settings() {
         super("Settings", category.client, 0);
         this.registerSetting(general = new DescriptionSetting("General"));

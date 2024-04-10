@@ -22,8 +22,7 @@ import java.util.List;
 import java.util.Random;
 
 @Mixin(Entity.class)
-public abstract class MixinEntity
-{
+public abstract class MixinEntity {
     @Shadow
     public boolean noClip;
 

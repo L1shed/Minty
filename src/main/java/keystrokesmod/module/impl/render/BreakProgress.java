@@ -20,6 +20,7 @@ public class BreakProgress extends Module {
     private float progress;
     private BlockPos block;
     private String progressStr;
+
     public BreakProgress() {
         super("BreakProgress", category.render);
         this.registerSetting(mode = new SliderSetting("Mode", modes, 0));
@@ -36,13 +37,13 @@ public class BreakProgress extends Module {
         final double n2 = this.block.getY() + 0.5 - mc.getRenderManager().viewerPosY;
         final double n3 = this.block.getZ() + 0.5 - mc.getRenderManager().viewerPosZ;
         GlStateManager.pushMatrix();
-        GlStateManager.translate((float)n, (float)n2, (float)n3);
+        GlStateManager.translate((float) n, (float) n2, (float) n3);
         GlStateManager.rotate(-mc.getRenderManager().playerViewY, 0.0f, 1.0f, 0.0f);
         GlStateManager.rotate(mc.getRenderManager().playerViewX, 1.0f, 0.0f, 0.0f);
         GlStateManager.scale(-0.02266667f, -0.02266667f, -0.02266667f);
         GlStateManager.depthMask(false);
         GlStateManager.disableDepth();
-        mc.fontRendererObj.drawString(this.progressStr, (float)(-mc.fontRendererObj.getStringWidth(this.progressStr) / 2), -3.0f, -1, true);
+        mc.fontRendererObj.drawString(this.progressStr, (float) (-mc.fontRendererObj.getStringWidth(this.progressStr) / 2), -3.0f, -1, true);
         GlStateManager.enableDepth();
         GlStateManager.depthMask(true);
         GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f);
@@ -52,15 +53,15 @@ public class BreakProgress extends Module {
     private void setProgress() {
         switch ((int) mode.getInput()) {
             case 0: {
-                this.progressStr = (int)(100.0 * (this.progress / 1.0)) + "%";
+                this.progressStr = (int) (100.0 * (this.progress / 1.0)) + "%";
                 break;
             }
             case 1: {
-                this.progressStr = Utils.rnd((double)((1.0f - this.progress) / BlockUtils.getBlockHardness(mc.theWorld.getBlockState(this.block).getBlock(), mc.thePlayer.getHeldItem(), false)) / 20.0, 1) + "s";
+                this.progressStr = Utils.rnd((double) ((1.0f - this.progress) / BlockUtils.getBlockHardness(mc.theWorld.getBlockState(this.block).getBlock(), mc.thePlayer.getHeldItem(), false)) / 20.0, 1) + "s";
                 break;
             }
             case 2: {
-                this.progressStr = String.valueOf(Utils.rnd((double)this.progress, 2));
+                this.progressStr = String.valueOf(Utils.rnd((double) this.progress, 2));
                 break;
             }
         }
@@ -89,8 +90,8 @@ public class BreakProgress extends Module {
             }
             this.block = mc.objectMouseOver.getBlockPos();
             this.setProgress();
+        } catch (IllegalAccessException ex) {
         }
-        catch (IllegalAccessException ex) {}
     }
 
     public void onDisable() {

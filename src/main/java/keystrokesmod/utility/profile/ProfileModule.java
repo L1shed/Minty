@@ -10,6 +10,7 @@ import keystrokesmod.utility.Utils;
 public class ProfileModule extends Module {
     private ButtonSetting saveProfile, removeProfile;
     private Profile profile;
+
     public ProfileModule(Profile profile, String name, int bind) {
         super(name, category.profiles, bind);
         this.profile = profile;

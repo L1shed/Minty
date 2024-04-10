@@ -9,6 +9,7 @@ import java.awt.*;
 
 public class Manager extends Module {
     private ButtonSetting loadProfiles, openFolder, createProfile;
+
     public Manager() {
         super("Manager", category.profiles);
         this.registerSetting(createProfile = new ButtonSetting("Create profile", () -> {

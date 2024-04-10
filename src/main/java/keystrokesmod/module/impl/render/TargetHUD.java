@@ -25,6 +25,7 @@ public class TargetHUD extends Module {
     private ButtonSetting showStatus;
     private Timer fadeTimer;
     private EntityLivingBase target;
+
     public TargetHUD() {
         super("TargetHUD", category.render);
         this.registerSetting(description = new DescriptionSetting("Only works with KillAura."));
@@ -41,12 +42,11 @@ public class TargetHUD extends Module {
             }
             if (KillAura.target != null) {
                 target = KillAura.target;
-            }
-            else {
+            } else {
                 return;
             }
             String playerInfo = target.getDisplayName().getFormattedText();
-            double health = Utils.getCompleteHealth(target) /  target.getMaxHealth();
+            double health = Utils.getCompleteHealth(target) / target.getMaxHealth();
             playerInfo += " " + Utils.getHealthStr(target);
             drawTargetHUD(fadeTimer, playerInfo, health);
         }
@@ -80,18 +80,18 @@ public class TargetHUD extends Module {
             final int n11 = (n10 > 110) ? 110 : n10;
             final int n12 = (n10 > 210) ? 210 : n10;
             final int[] array = Theme.getGradients((int) theme.getInput());
-            RenderUtils.drawRoundedGradientOutlinedRectangle((float)n6, (float)n7, (float)n8, (float)(n9 + 13), 10.0f, Utils.merge(Color.black.getRGB(), n11), Utils.merge(array[0], n10), Utils.merge(array[1], n10)); // outline
+            RenderUtils.drawRoundedGradientOutlinedRectangle((float) n6, (float) n7, (float) n8, (float) (n9 + 13), 10.0f, Utils.merge(Color.black.getRGB(), n11), Utils.merge(array[0], n10), Utils.merge(array[1], n10)); // outline
             final int n13 = n6 + 6;
             final int n14 = n8 - 6;
             final int n15 = n9;
-            RenderUtils.drawRoundedRectangle((float)n13, (float)n15, (float)n14, (float)(n15 + 5), 4.0f, Utils.merge(Color.black.getRGB(), n11)); // background
+            RenderUtils.drawRoundedRectangle((float) n13, (float) n15, (float) n14, (float) (n15 + 5), 4.0f, Utils.merge(Color.black.getRGB(), n11)); // background
             final int k = Utils.merge(array[0], n12);
             final int n16 = (n > 0.15) ? Utils.merge(array[1], n12) : k;
-            RenderUtils.drawRoundedGradientRectangle((float)n13, (float)n15, (float)(int)(n14 + (n13 - n14) * (1.0 - ((n < 0.05) ? 0.05 : n))), (float)(n15 + 5), 4.0f, k, k, n16, n16); // health bar
+            RenderUtils.drawRoundedGradientRectangle((float) n13, (float) n15, (float) (int) (n14 + (n13 - n14) * (1.0 - ((n < 0.05) ? 0.05 : n))), (float) (n15 + 5), 4.0f, k, k, n16, n16); // health bar
             GlStateManager.pushMatrix();
             GlStateManager.enableBlend();
             GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
-            mc.fontRendererObj.drawString(string, (float)n4, (float)n5, (new Color(220, 220, 220, 255).getRGB() & 0xFFFFFF) | Utils.clamp(n10 + 15) << 24, true);
+            mc.fontRendererObj.drawString(string, (float) n4, (float) n5, (new Color(220, 220, 220, 255).getRGB() & 0xFFFFFF) | Utils.clamp(n10 + 15) << 24, true);
             GlStateManager.disableBlend();
             GlStateManager.popMatrix();
         }

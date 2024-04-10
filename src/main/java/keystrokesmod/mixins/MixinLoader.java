@@ -10,10 +10,8 @@ import org.spongepowered.asm.mixin.Mixins;
 import java.util.Map;
 
 @IFMLLoadingPlugin.MCVersion("1.8.9")
-public class MixinLoader implements IFMLLoadingPlugin
-{
-    public MixinLoader()
-    {
+public class MixinLoader implements IFMLLoadingPlugin {
+    public MixinLoader() {
         MixinBootstrap.init();
         Mixins.addConfiguration("mixins.raven.json");
         MixinEnvironment.getDefaultEnvironment().setSide(MixinEnvironment.Side.CLIENT);
@@ -21,35 +19,30 @@ public class MixinLoader implements IFMLLoadingPlugin
 
     @NotNull
     @Override
-    public String[] getASMTransformerClass()
-    {
+    public String[] getASMTransformerClass() {
         return new String[0];
     }
 
     @Nullable
     @Override
-    public String getModContainerClass()
-    {
+    public String getModContainerClass() {
         return null;
     }
 
     @Nullable
     @Override
-    public String getSetupClass()
-    {
+    public String getSetupClass() {
         return null;
     }
 
     @Override
-    public void injectData(Map<String, Object> data)
-    {
+    public void injectData(Map<String, Object> data) {
 
     }
 
     @Nullable
     @Override
-    public String getAccessTransformerClass()
-    {
+    public String getAccessTransformerClass() {
         return null;
     }
 }

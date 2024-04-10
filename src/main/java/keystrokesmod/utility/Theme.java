@@ -1,7 +1,6 @@
 package keystrokesmod.utility;
 
 import keystrokesmod.module.impl.client.Settings;
-import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
@@ -24,8 +23,7 @@ public enum Theme {
     public static int getGradient(int index, double delay) {
         if (index > 0) {
             return convert(values()[index].firstGradient, values()[index].secondGradient, (Math.sin(System.currentTimeMillis() / 1.0E8 * Settings.timeMultiplier.getInput() * 400000.0 + delay * 0.550000011920929) + 1.0) * 0.5).getRGB();
-        }
-        else if (index == 0) {
+        } else if (index == 0) {
             return Utils.getChroma(2, (long) delay);
         }
         return -1;
@@ -33,7 +31,7 @@ public enum Theme {
 
     public static Color convert(Color color, Color color2, double n) {
         double n2 = 1.0 - n;
-        return new Color((int)(color.getRed() * n + color2.getRed() * n2), (int)(color.getGreen() * n + color2.getGreen() * n2), (int)(color.getBlue() * n + color2.getBlue() * n2));
+        return new Color((int) (color.getRed() * n + color2.getRed() * n2), (int) (color.getGreen() * n + color2.getGreen() * n2), (int) (color.getBlue() * n + color2.getBlue() * n2));
     }
 
     public static int[] getGradients(int index) {
@@ -43,8 +41,7 @@ public enum Theme {
             Color secondGradient = values[index].secondGradient;
             if (firstGradient != null && secondGradient != null) {
                 return new int[]{firstGradient.getRGB(), secondGradient.getRGB()};
-            }
-            else {
+            } else {
                 return new int[]{Utils.getChroma(2, (long) 0), Utils.getChroma(2, (long) 0)};
             }
         }

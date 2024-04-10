@@ -23,8 +23,7 @@ import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin(EntityPlayer.class)
 public abstract class MixinEntityPlayer extends EntityLivingBase {
-    public MixinEntityPlayer(World p_i1594_1_)
-    {
+    public MixinEntityPlayer(World p_i1594_1_) {
         super(p_i1594_1_);
     }
 
@@ -56,11 +55,11 @@ public abstract class MixinEntityPlayer extends EntityLivingBase {
     public void attackTargetEntityWithCurrentItem(Entity p_attackTargetEntityWithCurrentItem_1_) {
         if (ForgeHooks.onPlayerAttackTarget(((EntityPlayer) (Object) this), p_attackTargetEntityWithCurrentItem_1_)) {
             if (p_attackTargetEntityWithCurrentItem_1_.canAttackWithItem() && !p_attackTargetEntityWithCurrentItem_1_.hitByEntity(this)) {
-                float f = (float)this.getEntityAttribute(SharedMonsterAttributes.attackDamage).getAttributeValue();
+                float f = (float) this.getEntityAttribute(SharedMonsterAttributes.attackDamage).getAttributeValue();
                 int i = 0;
                 float f1 = 0.0F;
                 if (p_attackTargetEntityWithCurrentItem_1_ instanceof EntityLivingBase) {
-                    f1 = EnchantmentHelper.func_152377_a(this.getHeldItem(), ((EntityLivingBase)p_attackTargetEntityWithCurrentItem_1_).getCreatureAttribute());
+                    f1 = EnchantmentHelper.func_152377_a(this.getHeldItem(), ((EntityLivingBase) p_attackTargetEntityWithCurrentItem_1_).getCreatureAttribute());
                 } else {
                     f1 = EnchantmentHelper.func_152377_a(this.getHeldItem(), EnumCreatureAttribute.UNDEFINED);
                 }
@@ -90,7 +89,7 @@ public abstract class MixinEntityPlayer extends EntityLivingBase {
                     boolean flag2 = p_attackTargetEntityWithCurrentItem_1_.attackEntityFrom(DamageSource.causePlayerDamage(((EntityPlayer) (Object) this)), f);
                     if (flag2) {
                         if (i > 0) {
-                            p_attackTargetEntityWithCurrentItem_1_.addVelocity((double)(-MathHelper.sin(this.rotationYaw * 3.1415927F / 180.0F) * (float)i * 0.5F), 0.1, (double)(MathHelper.cos(this.rotationYaw * 3.1415927F / 180.0F) * (float)i * 0.5F));
+                            p_attackTargetEntityWithCurrentItem_1_.addVelocity((double) (-MathHelper.sin(this.rotationYaw * 3.1415927F / 180.0F) * (float) i * 0.5F), 0.1, (double) (MathHelper.cos(this.rotationYaw * 3.1415927F / 180.0F) * (float) i * 0.5F));
                             if (ModuleManager.keepSprint != null && ModuleManager.keepSprint.isEnabled()) {
                                 KeepSprint.keepSprint(p_attackTargetEntityWithCurrentItem_1_);
                             } else {
@@ -101,7 +100,7 @@ public abstract class MixinEntityPlayer extends EntityLivingBase {
                         }
 
                         if (p_attackTargetEntityWithCurrentItem_1_ instanceof EntityPlayerMP && p_attackTargetEntityWithCurrentItem_1_.velocityChanged) {
-                            ((EntityPlayerMP)p_attackTargetEntityWithCurrentItem_1_).playerNetServerHandler.sendPacket(new S12PacketEntityVelocity(p_attackTargetEntityWithCurrentItem_1_));
+                            ((EntityPlayerMP) p_attackTargetEntityWithCurrentItem_1_).playerNetServerHandler.sendPacket(new S12PacketEntityVelocity(p_attackTargetEntityWithCurrentItem_1_));
                             p_attackTargetEntityWithCurrentItem_1_.velocityChanged = false;
                             p_attackTargetEntityWithCurrentItem_1_.motionX = d0;
                             p_attackTargetEntityWithCurrentItem_1_.motionY = d1;
@@ -122,21 +121,21 @@ public abstract class MixinEntityPlayer extends EntityLivingBase {
 
                         this.setLastAttacker(p_attackTargetEntityWithCurrentItem_1_);
                         if (p_attackTargetEntityWithCurrentItem_1_ instanceof EntityLivingBase) {
-                            EnchantmentHelper.applyThornEnchantments((EntityLivingBase)p_attackTargetEntityWithCurrentItem_1_, this);
+                            EnchantmentHelper.applyThornEnchantments((EntityLivingBase) p_attackTargetEntityWithCurrentItem_1_, this);
                         }
 
                         EnchantmentHelper.applyArthropodEnchantments(this, p_attackTargetEntityWithCurrentItem_1_);
                         ItemStack itemstack = this.getCurrentEquippedItem();
                         Entity entity = p_attackTargetEntityWithCurrentItem_1_;
                         if (p_attackTargetEntityWithCurrentItem_1_ instanceof EntityDragonPart) {
-                            IEntityMultiPart ientitymultipart = ((EntityDragonPart)p_attackTargetEntityWithCurrentItem_1_).entityDragonObj;
+                            IEntityMultiPart ientitymultipart = ((EntityDragonPart) p_attackTargetEntityWithCurrentItem_1_).entityDragonObj;
                             if (ientitymultipart instanceof EntityLivingBase) {
-                                entity = (EntityLivingBase)ientitymultipart;
+                                entity = (EntityLivingBase) ientitymultipart;
                             }
                         }
 
                         if (itemstack != null && entity instanceof EntityLivingBase) {
-                            itemstack.hitEntity((EntityLivingBase)entity, ((EntityPlayer) (Object) this));
+                            itemstack.hitEntity((EntityLivingBase) entity, ((EntityPlayer) (Object) this));
                             if (itemstack.stackSize <= 0) {
                                 this.destroyCurrentEquippedItem();
                             }

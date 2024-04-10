@@ -33,13 +33,12 @@ public class FastMine extends Module {
             try {
                 if (a == 0.0) {
                     Reflection.blockHitDelay.set(mc.playerController, 0);
-                }
-                else if (Reflection.blockHitDelay.getInt(mc.playerController) > a) {
+                } else if (Reflection.blockHitDelay.getInt(mc.playerController) > a) {
                     Reflection.blockHitDelay.set(mc.playerController, a);
                 }
+            } catch (IllegalAccessException ex) {
+            } catch (IndexOutOfBoundsException ex2) {
             }
-            catch (IllegalAccessException ex) {}
-            catch (IndexOutOfBoundsException ex2) {}
         }
         final double c = multiplier.getInput();
         if (c > 1.0) {
@@ -67,7 +66,7 @@ public class FastMine extends Module {
                             float n3 = -1.0f;
                             if (float1 < 1.0f) {
                                 if (mc.objectMouseOver != null && float1 > this.lastCurBlockDamageMP) {
-                                    n3 = (float)(this.lastCurBlockDamageMP + BlockUtils.getBlockHardness(mc.theWorld.getBlockState(mc.objectMouseOver.getBlockPos()).getBlock(), mc.thePlayer.inventory.getStackInSlot(mc.thePlayer.inventory.currentItem), false) * (c - 0.2152857 * (c - 1.0)));
+                                    n3 = (float) (this.lastCurBlockDamageMP + BlockUtils.getBlockHardness(mc.theWorld.getBlockState(mc.objectMouseOver.getBlockPos()).getBlock(), mc.thePlayer.inventory.getStackInSlot(mc.thePlayer.inventory.currentItem), false) * (c - 0.2152857 * (c - 1.0)));
                                 }
                                 if (n3 != -1.0f && float1 > 0.0f) {
                                     Reflection.curBlockDamageMP.set(mc.playerController, n3);
@@ -77,10 +76,9 @@ public class FastMine extends Module {
                             break;
                         }
                     }
+                } catch (IllegalAccessException | IndexOutOfBoundsException ex3) {
                 }
-                catch (IllegalAccessException | IndexOutOfBoundsException ex3) {}
-            }
-            else if (mode.getInput() == 2) {
+            } else if (mode.getInput() == 2) {
                 this.lastCurBlockDamageMP = 0.0f;
             }
         }
