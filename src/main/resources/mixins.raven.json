@@ -10,7 +10,8 @@
     "render.MixinLayerCape",
     "render.MixinModelBiped",
     "entity.MixinEntityLivingBase",
-    "network.MixinNetworkManager"
+    "network.MixinNetworkManager",
+    "entity.MixinEntityPlayer"
   ],
   "client": [
   ]
