@@ -81,18 +81,19 @@ public class BedESP extends Module {
     public void onEntityJoin(EntityJoinWorldEvent e) {
         if (e.entity == mc.thePlayer) {
             this.beds.clear();
+            this.bed = null;
         }
     }
 
     @SubscribeEvent
     public void onRenderWorld(RenderWorldLastEvent e) {
         if (Utils.nullCheck()) {
-            if (firstBed.isToggled() && bed != null) {
+            if (firstBed.isToggled() && this.bed != null) {
                 if (!(mc.theWorld.getBlockState(bed[0]).getBlock() instanceof BlockBed)) {
-                    bed = null;
+                    this.bed = null;
                     return;
                 }
-                renderBed(bed);
+                renderBed(this.bed);
                 return;
             }
             if (this.beds.isEmpty()) {
