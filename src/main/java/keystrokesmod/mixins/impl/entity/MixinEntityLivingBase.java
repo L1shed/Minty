@@ -4,6 +4,7 @@ import com.google.common.collect.Maps;
 import keystrokesmod.event.JumpEvent;
 import keystrokesmod.module.impl.client.Settings;
 import keystrokesmod.utility.RotationUtils;
+import keystrokesmod.utility.Utils;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;

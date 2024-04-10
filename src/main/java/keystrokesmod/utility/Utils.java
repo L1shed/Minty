@@ -80,11 +80,40 @@ public class Utils {
       return false;
    }
 
+   public static int randomize(final int n, final int n2) {
+      return rand.nextInt(n2 - n + 1) + n;
+   }
+
+   public static boolean inFovEntity(final float n, final Entity entity) {
+      return inFov(n, entity.posX, entity.posZ);
+   }
+
+   public static boolean inFov(float n, final double n2, final double n3) {
+      n *= 0.5;
+      final double wrapAngleTo180_double = MathHelper.wrapAngleTo180_double((double)((mc.thePlayer.rotationYaw - RotationUtils.angle(n2, n3)) % 360.0f));
+      if (wrapAngleTo180_double > 0.0) {
+         if (wrapAngleTo180_double < n) {
+            return true;
+         }
+      }
+      else if (wrapAngleTo180_double > -n) {
+         return true;
+      }
+      return false;
+   }
+
    public static void sendMessage(String txt) {
       if (nullCheck()) {
          String m = formatColor("&7[&dR&7]&r " + txt);
          mc.thePlayer.addChatMessage(new ChatComponentText(m));
       }
+   }
+
+   public static void attackEntity(Entity e, boolean clientSwing) {
+      if (clientSwing) {
+         mc.thePlayer.swingItem();
+      }
+      mc.playerController.attackEntity(mc.thePlayer, e);
    }
 
    public static void sendRawMessage(String txt) {

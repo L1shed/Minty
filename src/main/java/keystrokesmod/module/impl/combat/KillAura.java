@@ -8,6 +8,7 @@ import keystrokesmod.module.impl.world.AntiBot;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.RandomUtils;
+import keystrokesmod.utility.RotationUtils;
 import keystrokesmod.utility.Utils;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -103,7 +104,7 @@ public class KillAura extends Module {
             }
             if (Math.abs(System.currentTimeMillis() - lastAttacked) > 1000 / aps.getInput() + RandomUtils.getRandom(randomization.getInput())) {
                 switchTargets = true;
-                mc.playerController.attackEntity(mc.thePlayer, target);
+                Utils.attackEntity(target, !swing);
                 lastAttacked = System.currentTimeMillis();
             }
         }
@@ -115,8 +116,18 @@ public class KillAura extends Module {
             resetVariables();
             return;
         }
-        if (target != null && rotationMode.getInput() == 1) {
-            // set rotations here
+        if (target != null && rotationMode.getInput() > 0) {
+            float[] rotations = RotationUtils.getRotations(target, e.getYaw(), e.getPitch());
+            switch ((int) rotationMode.getInput()) {
+                case 1:
+                    e.setYaw(rotations[0]);
+                    e.setPitch(rotations[1]);
+                    break;
+                case 2:
+                    mc.thePlayer.rotationYaw = rotations[0];
+                    mc.thePlayer.rotationPitch = rotations[1];
+                    break;
+            }
         }
     }
 
