@@ -177,9 +177,9 @@ public class KillAura extends Module {
             if (!(entity instanceof EntityLivingBase)) {
                 continue;
             }
-            /*if (!(entity instanceof EntityPlayer) && !(entity instanceof EntityIronGolem) && !(entity instanceof EntitySilverfish)) {
+            if (!(entity instanceof EntityPlayer)) {
                 continue;
-            }*/
+            }
             if (!entity.isEntityAlive() || entity.ticksExisted < 10) {
                 continue;
             }

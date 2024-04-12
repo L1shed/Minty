@@ -79,6 +79,7 @@ public class ModuleManager {
         this.addModule(new Tracers());
         this.addModule(hud = new HUD());
         this.addModule(new BreakProgress());
+        this.addModule(new WTap());
         this.addModule(new Xray());
         this.addModule(new BridgeInfo());
         this.addModule(new TargetHUD());

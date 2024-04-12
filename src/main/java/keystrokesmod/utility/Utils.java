@@ -2,6 +2,7 @@ package keystrokesmod.utility;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.client.Settings;
 import keystrokesmod.module.impl.combat.AutoClicker;
@@ -449,6 +450,14 @@ public class Utils {
         if (ModuleManager.autoClicker.isEnabled()) {
             return AutoClicker.leftClick.isToggled() && Mouse.isButtonDown(0);
         } else return CPSCalculator.f() > 1 && System.currentTimeMillis() - CPSCalculator.LL < 300L;
+    }
+
+    public static long getDifference(long n, long n2) {
+        return Math.abs(n2 - n);
+    }
+
+    public static void sendModuleMessage(Module module, String s) {
+        sendRawMessage("&3" + module.getInfo() + "&7: &r" + s);
     }
 
     public static int getChroma(long speed, long... delay) {
