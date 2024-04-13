@@ -8,6 +8,7 @@ import keystrokesmod.module.impl.fun.Fun;
 import keystrokesmod.module.impl.minigames.*;
 import keystrokesmod.module.impl.movement.*;
 import keystrokesmod.module.impl.other.FakeChat;
+import keystrokesmod.module.impl.other.LatencyAlerts;
 import keystrokesmod.module.impl.other.NameHider;
 import keystrokesmod.module.impl.player.*;
 import keystrokesmod.module.impl.render.*;
@@ -60,6 +61,7 @@ public class ModuleManager {
         this.addModule(keepSprint = new KeepSprint());
         this.addModule(noSlow = new NoSlow());
         this.addModule(new Speed());
+        this.addModule(new LatencyAlerts());
         this.addModule(new Sprint());
         this.addModule(new StopMotion());
         this.addModule(timer = new Timer());

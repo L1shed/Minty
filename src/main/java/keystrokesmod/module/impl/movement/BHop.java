@@ -44,7 +44,7 @@ public class BHop extends Module {
                 }
                 break;
             case 1:
-                if (!Keyboard.isKeyDown(mc.gameSettings.keyBindJump.getKeyCode()) && Utils.isStrafing() && mc.currentScreen != null) {
+                if (!Keyboard.isKeyDown(mc.gameSettings.keyBindJump.getKeyCode()) && Utils.isStrafing() && mc.currentScreen == null) {
                     if (!mc.thePlayer.onGround) {
                         break;
                     }
@@ -63,10 +63,9 @@ public class BHop extends Module {
 
     public void onDisable() {
         if (stopMotion.isToggled()) {
-            final double motionX = 0.0;
-            mc.thePlayer.motionZ = motionX;
-            mc.thePlayer.motionY = motionX;
-            mc.thePlayer.motionX = motionX;
+            mc.thePlayer.motionZ = 0;
+            mc.thePlayer.motionY = 0;
+            mc.thePlayer.motionX = 0;
         }
     }
 }
