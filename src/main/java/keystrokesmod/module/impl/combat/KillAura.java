@@ -192,6 +192,10 @@ public class KillAura extends Module {
             if (!mc.thePlayer.canEntityBeSeen(entity) && !hitThroughBlocks.isToggled()) {
                 continue;
             }
+            final float n = (float) fov.getInput();
+            if (n != 360.0f && !Utils.inFovEntity(n, entity)) {
+                continue;
+            }
             double distance = mc.thePlayer.getDistanceToEntity(entity); // need a more accurate distance check as this can ghost on hypixel
             if (distance <= blockRange.getInput()) {
                 block.set(true);
@@ -200,10 +204,6 @@ public class KillAura extends Module {
                 swing = true;
             }
             if (distance > attackRange.getInput()) {
-                continue;
-            }
-            final float n = (float) fov.getInput();
-            if (n != 360.0f && !Utils.inFovEntity(n, entity)) {
                 continue;
             }
             availableTargets.add((EntityLivingBase) entity);

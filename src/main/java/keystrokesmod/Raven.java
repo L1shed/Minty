@@ -77,7 +77,9 @@ public class Raven {
                     }
                 }
                 for (Profile profile : Raven.profileManager.profiles) {
-                    profile.getModule().keybind();
+                    if (mc.currentScreen == null) {
+                        profile.getModule().keybind();
+                    }
                 }
             }
 

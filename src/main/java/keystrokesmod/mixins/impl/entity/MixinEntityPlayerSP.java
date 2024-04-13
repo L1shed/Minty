@@ -4,6 +4,8 @@ import com.mojang.authlib.GameProfile;
 import keystrokesmod.event.PostMotionEvent;
 import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.event.PreUpdateEvent;
+import keystrokesmod.module.ModuleManager;
+import keystrokesmod.module.impl.combat.WTap;
 import keystrokesmod.module.impl.movement.NoSlow;
 import keystrokesmod.utility.RotationUtils;
 import net.minecraft.client.Minecraft;
@@ -275,7 +277,13 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
         }
 
         if (!this.isSprinting() && this.movementInput.moveForward >= f && flag3 && !this.isUsingItem() && !this.isPotionActive(Potion.blindness) && this.mc.gameSettings.keyBindSprint.isKeyDown()) {
-            this.setSprinting(true);
+            if (ModuleManager.wTap.isEnabled() && WTap.stopSprint) {
+                this.setSprinting(false);
+                WTap.stopSprint = false;
+            }
+            else {
+                this.setSprinting(true);
+            }
         }
 
         if (this.isSprinting() && (this.movementInput.moveForward < f || this.isCollidedHorizontally || !flag3)) {

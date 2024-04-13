@@ -20,9 +20,9 @@ import java.util.Iterator;
 import java.util.List;
 
 public class MurderMystery extends Module {
-    public static ButtonSetting a;
-    public static ButtonSetting b;
-    public static ButtonSetting c;
+    private ButtonSetting a;
+    private ButtonSetting b;
+    private ButtonSetting c;
     private static final List<EntityPlayer> mur = new ArrayList();
     private static final List<EntityPlayer> det = new ArrayList();
     private final String c1 = "MURDER";

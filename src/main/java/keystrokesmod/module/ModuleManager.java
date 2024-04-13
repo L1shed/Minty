@@ -36,6 +36,7 @@ public class ModuleManager {
     public static Module hud;
     public static Module timer;
     public static Module fly;
+    public static Module wTap;
     public static Module noFall;
     public static Module playerESP;
     public static Module safeWalk;
@@ -79,7 +80,7 @@ public class ModuleManager {
         this.addModule(new Tracers());
         this.addModule(hud = new HUD());
         this.addModule(new BreakProgress());
-        this.addModule(new WTap());
+        this.addModule(wTap = new WTap());
         this.addModule(new Xray());
         this.addModule(new BridgeInfo());
         this.addModule(new TargetHUD());
