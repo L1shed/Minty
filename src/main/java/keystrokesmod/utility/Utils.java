@@ -22,10 +22,7 @@ import net.minecraft.item.ItemSword;
 import net.minecraft.network.play.client.C03PacketPlayer.C05PacketPlayerLook;
 import net.minecraft.potion.Potion;
 import net.minecraft.scoreboard.*;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.MathHelper;
-import net.minecraft.util.StringUtils;
+import net.minecraft.util.*;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -458,6 +455,60 @@ public class Utils {
 
     public static void sendModuleMessage(Module module, String s) {
         sendRawMessage("&3" + module.getInfo() + "&7: &r" + s);
+    }
+
+    public static EntityLivingBase raytrace(final int n) {
+        Entity entity = null;
+        MovingObjectPosition rayTrace = mc.thePlayer.rayTrace((double)n, 1.0f);
+        final Vec3 getPositionEyes = mc.thePlayer.getPositionEyes(1.0f);
+        final float rotationYaw = mc.thePlayer.rotationYaw;
+        final float rotationPitch = mc.thePlayer.rotationPitch;
+        final float cos = MathHelper.cos(-rotationYaw * 0.017453292f - 3.1415927f);
+        final float sin = MathHelper.sin(-rotationYaw * 0.017453292f - 3.1415927f);
+        final float n2 = -MathHelper.cos(-rotationPitch * 0.017453292f);
+        final Vec3 vec3 = new Vec3((double)(sin * n2), (double)MathHelper.sin(-rotationPitch * 0.017453292f), (double)(cos * n2));
+        final Vec3 addVector = getPositionEyes.addVector(vec3.xCoord * (double)n, vec3.yCoord * (double)n, vec3.zCoord * (double)n);
+        Vec3 vec4 = null;
+        final List getEntitiesWithinAABBExcludingEntity = mc.theWorld.getEntitiesWithinAABBExcludingEntity(mc.getRenderViewEntity(), mc.getRenderViewEntity().getEntityBoundingBox().addCoord(vec3.xCoord * (double)n, vec3.yCoord * (double)n, vec3.zCoord * (double)n).expand(1.0, 1.0, 1.0));
+        double n3 = (double)n;
+        for (int i = 0; i < getEntitiesWithinAABBExcludingEntity.size(); ++i) {
+            final Entity entity2 = (Entity)getEntitiesWithinAABBExcludingEntity.get(i);
+            if (entity2.canBeCollidedWith()) {
+                final float getCollisionBorderSize = entity2.getCollisionBorderSize();
+                final AxisAlignedBB expand = entity2.getEntityBoundingBox().expand((double)getCollisionBorderSize, (double)getCollisionBorderSize, (double)getCollisionBorderSize);
+                final MovingObjectPosition calculateIntercept = expand.calculateIntercept(getPositionEyes, addVector);
+                if (expand.isVecInside(getPositionEyes)) {
+                    if (0.0 < n3 || n3 == 0.0) {
+                        entity = entity2;
+                        vec4 = ((calculateIntercept == null) ? getPositionEyes : calculateIntercept.hitVec);
+                        n3 = 0.0;
+                    }
+                }
+                else if (calculateIntercept != null) {
+                    final double distanceTo = getPositionEyes.distanceTo(calculateIntercept.hitVec);
+                    if (distanceTo < n3 || n3 == 0.0) {
+                        if (entity2 == mc.getRenderViewEntity().ridingEntity && !entity2.canRiderInteract()) {
+                            if (n3 == 0.0) {
+                                entity = entity2;
+                                vec4 = calculateIntercept.hitVec;
+                            }
+                        }
+                        else {
+                            entity = entity2;
+                            vec4 = calculateIntercept.hitVec;
+                            n3 = distanceTo;
+                        }
+                    }
+                }
+            }
+        }
+        if (entity != null && (n3 < n || rayTrace == null)) {
+            rayTrace = new MovingObjectPosition(entity, vec4);
+        }
+        if (rayTrace != null && rayTrace.typeOfHit == MovingObjectPosition.MovingObjectType.ENTITY && rayTrace.entityHit instanceof EntityLivingBase) {
+            return (EntityLivingBase)rayTrace.entityHit;
+        }
+        return null;
     }
 
     public static int getChroma(long speed, long... delay) {

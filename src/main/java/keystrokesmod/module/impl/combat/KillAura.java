@@ -3,6 +3,7 @@ package keystrokesmod.module.impl.combat;
 import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.event.PreUpdateEvent;
 import keystrokesmod.event.ReceivePacketEvent;
+import keystrokesmod.event.SendPacketEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.impl.world.AntiBot;
 import keystrokesmod.module.setting.impl.ButtonSetting;
@@ -10,9 +11,12 @@ import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.RandomUtils;
 import keystrokesmod.utility.RotationUtils;
 import keystrokesmod.utility.Utils;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.network.play.client.C02PacketUseEntity;
+import net.minecraft.network.play.client.C0APacketAnimation;
 import net.minecraft.network.play.server.S2FPacketSetSlot;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -41,6 +45,7 @@ public class KillAura extends Module {
     private ButtonSetting disableWhileMining;
     private ButtonSetting fixSlotReset;
     private ButtonSetting hitThroughBlocks;
+    private ButtonSetting ignoreTeammates;
     private ButtonSetting requireMouseDown;
     private ButtonSetting weaponOnly;
     private String[] autoBlockModes = new String[]{"Manual", "Vanilla", "Fake"};
@@ -74,6 +79,7 @@ public class KillAura extends Module {
         this.registerSetting(disableWhileMining = new ButtonSetting("Disable while mining", false));
         this.registerSetting(fixSlotReset = new ButtonSetting("Fix slot reset", false));
         this.registerSetting(hitThroughBlocks = new ButtonSetting("Hit through blocks", true));
+        this.registerSetting(ignoreTeammates = new ButtonSetting("Ignore teammates", true));
         this.registerSetting(requireMouseDown = new ButtonSetting("Require mouse down", false));
         this.registerSetting(weaponOnly = new ButtonSetting("Weapon only", false));
     }
@@ -93,6 +99,7 @@ public class KillAura extends Module {
         // block range code here
 
         if (settingCondition()) {
+            KeyBinding.setKeyBindState(mc.gameSettings.keyBindUseItem.getKeyCode(), false);
             if (swing) {
                 mc.thePlayer.swingItem();
             }
@@ -174,16 +181,16 @@ public class KillAura extends Module {
             if (entity == mc.thePlayer) {
                 continue;
             }
-            if (!(entity instanceof EntityLivingBase)) {
+            if (!(entity instanceof EntityPlayer)) {
                 continue;
             }
-            if (!(entity instanceof EntityPlayer)) {
+            if (Utils.isFriended((EntityPlayer) entity)) {
                 continue;
             }
             if (!entity.isEntityAlive() || entity.ticksExisted < 10) {
                 continue;
             }
-            if ((entity instanceof EntityPlayer && AntiBot.isBot(entity)) || Utils.isTeamMate(entity)) {
+            if (AntiBot.isBot(entity) || (Utils.isTeamMate(entity) && ignoreTeammates.isToggled())) {
                 continue;
             }
             if (entity.isInvisible() && !targetInvis.isToggled()) {

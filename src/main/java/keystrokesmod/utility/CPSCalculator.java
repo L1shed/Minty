@@ -1,8 +1,11 @@
 package keystrokesmod.utility;
 
 import keystrokesmod.Raven;
+import keystrokesmod.module.impl.client.Settings;
 import keystrokesmod.module.impl.world.AntiBot;
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -10,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CPSCalculator {
+    private static Minecraft mc = Minecraft.getMinecraft();
     private static List<Long> a = new ArrayList();
     private static List<Long> b = new ArrayList();
     public static long LL = 0L;
@@ -20,8 +24,8 @@ public class CPSCalculator {
         if (d.buttonstate) {
             if (d.button == 0) {
                 aL();
-                if (Raven.debugger && Raven.mc.objectMouseOver != null) {
-                    Entity en = Raven.mc.objectMouseOver.entityHit;
+                if (Raven.debugger && mc.objectMouseOver != null) {
+                    Entity en = mc.objectMouseOver.entityHit;
                     if (en == null) {
                         return;
                     }
@@ -36,7 +40,12 @@ public class CPSCalculator {
             } else if (d.button == 1) {
                 aR();
             }
-
+            else if (d.button == 2 && Settings.middleClickFriends.isToggled()) {
+                EntityLivingBase g = Utils.raytrace(30);
+                if (!AntiBot.isBot(g) && !Utils.addFriend(g.getName())) {
+                    Utils.removeFriend(g.getName());
+                }
+            }
         }
     }
 

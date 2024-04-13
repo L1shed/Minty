@@ -85,7 +85,6 @@ public class Module {
             ModuleManager.sort();
         }
 
-        MinecraftForge.EVENT_BUS.register(this);
         FMLCommonHandler.instance().bus().register(this);
         this.onEnable();
     }
@@ -96,7 +95,6 @@ public class Module {
         }
         this.setEnabled(false);
         ModuleManager.organizedModules.remove(this);
-        MinecraftForge.EVENT_BUS.unregister(this);
         FMLCommonHandler.instance().bus().unregister(this);
         this.onDisable();
     }

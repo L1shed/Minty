@@ -3,6 +3,7 @@ package keystrokesmod.utility;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
@@ -14,7 +15,7 @@ import net.minecraft.util.BlockPos;
 public class BlockUtils {
     public static final Minecraft mc = Minecraft.getMinecraft();
 
-    public static boolean isInteractable(final Block block) {
+    public static boolean canInteract(final Block block) {
         return block instanceof BlockContainer || block == Blocks.crafting_table;
     }
 
@@ -27,10 +28,10 @@ public class BlockUtils {
         if (getBlockHardness < 0.0f) {
             return 0.0f;
         }
-        return (block.getMaterial().isToolNotRequired() || (itemStack != null && itemStack.canHarvestBlock(block))) ? (g(itemStack, block, b) / getBlockHardness / 30.0f) : (g(itemStack, block, b) / getBlockHardness / 100.0f);
+        return (block.getMaterial().isToolNotRequired() || (itemStack != null && itemStack.canHarvestBlock(block))) ? (getToolDigEfficiency(itemStack, block, b) / getBlockHardness / 30.0f) : (getToolDigEfficiency(itemStack, block, b) / getBlockHardness / 100.0f);
     }
 
-    public static float g(final ItemStack itemStack, final Block block, final boolean b) {
+    public static float getToolDigEfficiency(final ItemStack itemStack, final Block block, final boolean b) {
         float n = (itemStack == null) ? 1.0f : itemStack.getItem().getStrVsBlock(itemStack, block);
         if (n > 1.0f) {
             final int getEnchantmentLevel = EnchantmentHelper.getEnchantmentLevel(Enchantment.efficiency.effectId, itemStack);
@@ -72,5 +73,13 @@ public class BlockUtils {
             }
         }
         return n;
+    }
+
+    public static Block getBlock(BlockPos blockPos) {
+        return getBlockState(blockPos).getBlock();
+    }
+
+    public static IBlockState getBlockState(BlockPos blockPos) {
+        return mc.theWorld.getBlockState(blockPos);
     }
 }

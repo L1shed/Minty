@@ -7,12 +7,10 @@ import keystrokesmod.module.impl.combat.*;
 import keystrokesmod.module.impl.fun.Fun;
 import keystrokesmod.module.impl.minigames.*;
 import keystrokesmod.module.impl.movement.*;
-import keystrokesmod.module.impl.other.FakeChat;
-import keystrokesmod.module.impl.other.LatencyAlerts;
-import keystrokesmod.module.impl.other.NameHider;
+import keystrokesmod.module.impl.other.*;
 import keystrokesmod.module.impl.player.*;
 import keystrokesmod.module.impl.render.*;
-import keystrokesmod.module.impl.world.AntiBot;
+import keystrokesmod.module.impl.world.*;
 import keystrokesmod.utility.Utils;
 import keystrokesmod.utility.profile.Manager;
 
@@ -82,6 +80,7 @@ public class ModuleManager {
         this.addModule(playerESP = new PlayerESP());
         this.addModule(new Tracers());
         this.addModule(hud = new HUD());
+        this.addModule(new Anticheat());
         this.addModule(new BreakProgress());
         this.addModule(wTap = new WTap());
         this.addModule(new Xray());

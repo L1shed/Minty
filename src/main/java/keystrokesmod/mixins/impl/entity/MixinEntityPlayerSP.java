@@ -2,6 +2,7 @@ package keystrokesmod.mixins.impl.entity;
 
 import com.mojang.authlib.GameProfile;
 import keystrokesmod.event.PostMotionEvent;
+import keystrokesmod.event.PostUpdateEvent;
 import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.event.PreUpdateEvent;
 import keystrokesmod.module.ModuleManager;
@@ -110,6 +111,8 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
             } else {
                 this.onUpdateWalkingPlayer();
             }
+
+            net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new PostUpdateEvent());
         }
 
     }

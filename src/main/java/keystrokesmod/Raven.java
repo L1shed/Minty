@@ -38,6 +38,7 @@ public class Raven {
     public static ClickGui clickGui;
     public static ProfileManager profileManager;
     public static Profile currentProfile;
+    public static BadPacketsHandler badPacketsHandler;
 
     public Raven() {
         moduleManager = new ModuleManager();
@@ -52,6 +53,7 @@ public class Raven {
         FMLCommonHandler.instance().bus().register(new CPSCalculator());
         FMLCommonHandler.instance().bus().register(new KeySrokeRenderer());
         FMLCommonHandler.instance().bus().register(new Ping());
+        FMLCommonHandler.instance().bus().register(badPacketsHandler = new BadPacketsHandler());
         moduleManager.register();
         keySrokeRenderer = new KeySrokeRenderer();
         clickGui = new ClickGui();
