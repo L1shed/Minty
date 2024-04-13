@@ -42,4 +42,8 @@ public class LatencyAlerts extends Module {
         lastPacket = 0;
         lastAlert = 0;
     }
+
+    public void onEnable() {
+        lastPacket = System.currentTimeMillis();
+    }
 }
