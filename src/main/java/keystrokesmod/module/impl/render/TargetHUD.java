@@ -46,7 +46,7 @@ public class TargetHUD extends Module {
                 return;
             }
             String playerInfo = target.getDisplayName().getFormattedText();
-            double health = Utils.getCompleteHealth(target) / target.getMaxHealth();
+            double health = (target.getHealth() / target.getMaxHealth()) + target.getAbsorptionAmount();
             playerInfo += " " + Utils.getHealthStr(target);
             drawTargetHUD(fadeTimer, playerInfo, health);
         }

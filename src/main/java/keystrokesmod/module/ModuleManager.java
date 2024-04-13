@@ -71,6 +71,7 @@ public class ModuleManager {
         this.addModule(new Freecam());
         this.addModule(noFall = new NoFall());
         this.addModule(safeWalk = new SafeWalk());
+        this.addModule(new AntiKnockback());
         this.addModule(antiBot = new AntiBot());
         this.addModule(antiShuffle = new AntiShuffle());
         this.addModule(new Chams());
