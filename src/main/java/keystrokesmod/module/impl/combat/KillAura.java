@@ -8,17 +8,22 @@ import keystrokesmod.module.Module;
 import keystrokesmod.module.impl.world.AntiBot;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.utility.BlockUtils;
 import keystrokesmod.utility.RandomUtils;
 import keystrokesmod.utility.RotationUtils;
 import keystrokesmod.utility.Utils;
+import net.minecraft.block.Block;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.network.play.client.C02PacketUseEntity;
 import net.minecraft.network.play.client.C0APacketAnimation;
 import net.minecraft.network.play.server.S2FPacketSetSlot;
+import net.minecraft.util.BlockPos;
 import net.minecraft.util.MovingObjectPosition;
+import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.input.Mouse;
 
@@ -99,14 +104,13 @@ public class KillAura extends Module {
         // block range code here
 
         if (settingCondition()) {
-            KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
+            if (mc.thePlayer.isBlocking() && disableWhileBlocking.isToggled()) {
+                return;
+            }
             if (swing) {
                 mc.thePlayer.swingItem();
             }
             if (target == null) {
-                return;
-            }
-            if (mc.thePlayer.isBlocking() && disableWhileBlocking.isToggled()) {
                 return;
             }
             if (Math.abs(System.currentTimeMillis() - lastAttacked) > 1000 / aps.getInput() + RandomUtils.getRandom(randomization.getInput())) {
@@ -152,6 +156,27 @@ public class KillAura extends Module {
                     e.setCanceled(true);
                 }
             }
+        }
+    }
+
+    @SubscribeEvent
+    public void onMouse(final MouseEvent mouseEvent) {
+        if (mouseEvent.button == 0) {
+            if (target != null || swing) {
+                mouseEvent.setCanceled(true);
+            }
+        }
+        else if (mouseEvent.button == 1 && (autoBlockMode.getInput() >= 1) && Utils.holdingSword()) {
+            if (target == null && mc.objectMouseOver != null) {
+                if (mc.objectMouseOver.entityHit != null && AntiBot.isBot(mc.objectMouseOver.entityHit)) {
+                    return;
+                }
+                final BlockPos getBlockPos = mc.objectMouseOver.getBlockPos();
+                if (getBlockPos != null && (BlockUtils.check(getBlockPos, Blocks.chest) || BlockUtils.check(getBlockPos, Blocks.ender_chest))) {
+                    return;
+                }
+            }
+            mouseEvent.setCanceled(true);
         }
     }
 

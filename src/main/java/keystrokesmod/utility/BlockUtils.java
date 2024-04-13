@@ -82,4 +82,8 @@ public class BlockUtils {
     public static IBlockState getBlockState(BlockPos blockPos) {
         return mc.theWorld.getBlockState(blockPos);
     }
+
+    public static boolean check(final BlockPos blockPos, final Block block) {
+        return getBlock(blockPos) == block;
+    }
 }
