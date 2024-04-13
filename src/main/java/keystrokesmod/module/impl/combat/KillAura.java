@@ -99,7 +99,7 @@ public class KillAura extends Module {
         // block range code here
 
         if (settingCondition()) {
-            KeyBinding.setKeyBindState(mc.gameSettings.keyBindUseItem.getKeyCode(), false);
+            KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
             if (swing) {
                 mc.thePlayer.swingItem();
             }
