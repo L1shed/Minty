@@ -106,7 +106,7 @@ public class BedWars extends Module {
                     spawnPos = mc.thePlayer.getPosition();
                     check = false;
                 }
-                nearSpawn = mc.thePlayer.posX > spawnPos.getX() + 20 || mc.thePlayer.posZ < spawnPos.getX() - 20 || mc.thePlayer.posX > spawnPos.getZ() + 20 || mc.thePlayer.posZ < spawnPos.getZ() - 20;
+                nearSpawn = mc.thePlayer.posX > spawnPos.getX() + 20 || mc.thePlayer.posX < spawnPos.getX() - 20 || mc.thePlayer.posZ > spawnPos.getZ() + 20 || mc.thePlayer.posZ < spawnPos.getZ() - 20;
             }
             else {
                 nearSpawn = false;

@@ -105,8 +105,9 @@ public class AntiBot extends Module {
                 continue;
             }
             if (networkPlayerInfo.getResponseTime() > 1) {
-                tab.add(networkPlayerInfo.getGameProfile().getName());
+                continue;
             }
+            tab.add(networkPlayerInfo.getGameProfile().getName());
         }
         return tab;
     }
