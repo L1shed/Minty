@@ -1,6 +1,7 @@
 package keystrokesmod.module.impl.combat;
 
 import keystrokesmod.module.Module;
+import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.movement.LongJump;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
@@ -27,31 +28,32 @@ public class Velocity extends Module {
 
     @SubscribeEvent
     public void onLivingUpdate(LivingUpdateEvent ev) {
-        if (Utils.nullCheck() && mc.thePlayer.maxHurtTime > 0 && mc.thePlayer.hurtTime == mc.thePlayer.maxHurtTime && !LongJump.stopModules) {
+        if (Utils.nullCheck() && !LongJump.stopModules) {
+            if (ModuleManager.antiKnockback.isEnabled()) {
+                return;
+            }
+            if (mc.thePlayer.maxHurtTime <= 0 || mc.thePlayer.hurtTime != mc.thePlayer.maxHurtTime) {
+                return;
+            }
             if (onlyWhileTargeting.isToggled() && (mc.objectMouseOver == null || mc.objectMouseOver.entityHit == null)) {
                 return;
             }
-
             if (disableS.isToggled() && Keyboard.isKeyDown(mc.gameSettings.keyBindBack.getKeyCode())) {
                 return;
             }
-
             if (chance.getInput() != 100) {
                 double ch = Math.random();
                 if (ch >= chance.getInput() / 100.0D) {
                     return;
                 }
             }
-
             if (horizontal.getInput() != 100.0D) {
                 mc.thePlayer.motionX *= horizontal.getInput() / 100.0D;
                 mc.thePlayer.motionZ *= horizontal.getInput() / 100.0D;
             }
-
             if (vertical.getInput() != 100.0D) {
                 mc.thePlayer.motionY *= vertical.getInput() / 100.0D;
             }
         }
-
     }
 }

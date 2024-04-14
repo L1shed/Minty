@@ -43,6 +43,7 @@ public class ModuleManager {
     public static Module reduce;
     public static Module safeWalk;
     public static Module keepSprint;
+    public static Module antiKnockback;
 
     public void register() {
         this.addModule(autoClicker = new AutoClicker());
@@ -78,7 +79,7 @@ public class ModuleManager {
         this.addModule(noFall = new NoFall());
         this.addModule(safeWalk = new SafeWalk());
         this.addModule(reduce = new Reduce());
-        this.addModule(new AntiKnockback());
+        this.addModule(antiKnockback = new AntiKnockback());
         this.addModule(antiBot = new AntiBot());
         this.addModule(antiShuffle = new AntiShuffle());
         this.addModule(new Chams());
