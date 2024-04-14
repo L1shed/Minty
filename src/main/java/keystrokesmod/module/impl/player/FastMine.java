@@ -1,6 +1,7 @@
 package keystrokesmod.module.impl.player;
 
 import keystrokesmod.module.Module;
+import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.BlockUtils;
 import keystrokesmod.utility.Reflection;
@@ -10,14 +11,16 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.input.Mouse;
 
 public class FastMine extends Module {
+    private DescriptionSetting description;
     private SliderSetting delay;
-    private SliderSetting multiplier;
+    public SliderSetting multiplier;
     private SliderSetting mode;
     private float lastCurBlockDamageMP;
     private String[] modes = new String[]{"Pre", "Post", "Increment"};
 
     public FastMine() {
         super("FastMine", category.player);
+        this.registerSetting(description = new DescriptionSetting("Default is 5 delay & 1x speed."));
         this.registerSetting(delay = new SliderSetting("Break delay ticks", 5.0, 0.0, 5.0, 1.0));
         this.registerSetting(multiplier = new SliderSetting("Break speed multiplier", 1.0, 1.0, 2.0, 0.02));
         this.registerSetting(mode = new SliderSetting("Mode", modes, 0));

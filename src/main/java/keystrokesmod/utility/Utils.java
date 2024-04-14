@@ -8,17 +8,18 @@ import keystrokesmod.module.impl.client.Settings;
 import keystrokesmod.module.impl.combat.AutoClicker;
 import keystrokesmod.module.impl.minigames.DuelsStats;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.network.NetworkPlayerInfo;
+import net.minecraft.enchantment.Enchantment;
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.init.Items;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemAxe;
-import net.minecraft.item.ItemFishingRod;
-import net.minecraft.item.ItemSword;
+import net.minecraft.item.*;
 import net.minecraft.network.play.client.C03PacketPlayer.C05PacketPlayerLook;
 import net.minecraft.potion.Potion;
 import net.minecraft.scoreboard.*;
@@ -84,18 +85,22 @@ public class Utils {
         return rand.nextInt(n2 - n + 1) + n;
     }
 
-    public static boolean inFovEntity(final float n, final Entity entity) {
-        return inFov(n, entity.posX, entity.posZ);
+    public static boolean inFov(float fov, BlockPos blockPos) {
+        return inFov(fov, blockPos.getX(), blockPos.getZ());
     }
 
-    public static boolean inFov(float n, final double n2, final double n3) {
-        n *= 0.5;
-        final double wrapAngleTo180_double = MathHelper.wrapAngleTo180_double((double) ((mc.thePlayer.rotationYaw - RotationUtils.angle(n2, n3)) % 360.0f));
+    public static boolean inFov(float fov, Entity entity) {
+        return inFov(fov, entity.posX, entity.posZ);
+    }
+
+    public static boolean inFov(float fov, final double n2, final double n3) {
+        fov *= 0.5;
+        final double wrapAngleTo180_double = MathHelper.wrapAngleTo180_double((mc.thePlayer.rotationYaw - RotationUtils.angle(n2, n3)) % 360.0f);
         if (wrapAngleTo180_double > 0.0) {
-            if (wrapAngleTo180_double < n) {
+            if (wrapAngleTo180_double < fov) {
                 return true;
             }
-        } else if (wrapAngleTo180_double > -n) {
+        } else if (wrapAngleTo180_double > -fov) {
             return true;
         }
         return false;
@@ -128,6 +133,33 @@ public class Utils {
     public static String getHealthStr(EntityLivingBase entity) {
         float completeHealth = getCompleteHealth(entity);
         return getColorForHealth(completeHealth / entity.getMaxHealth(), completeHealth);
+    }
+
+    public static int getTool(Block block) {
+        float n = 1.0f;
+        int n2 = -1;
+        for (int i = 0; i < InventoryPlayer.getHotbarSize(); ++i) {
+            final ItemStack getStackInSlot = mc.thePlayer.inventory.getStackInSlot(i);
+            if (getStackInSlot != null) {
+                final float a = getEfficiency(getStackInSlot, block);
+                if (a > n) {
+                    n = a;
+                    n2 = i;
+                }
+            }
+        }
+        return n2;
+    }
+
+    public static float getEfficiency(final ItemStack itemStack, final Block block) {
+        float getStrVsBlock = itemStack.getStrVsBlock(block);
+        if (getStrVsBlock > 1.0f) {
+            final int getEnchantmentLevel = EnchantmentHelper.getEnchantmentLevel(Enchantment.efficiency.effectId, itemStack);
+            if (getEnchantmentLevel > 0) {
+                getStrVsBlock += getEnchantmentLevel * getEnchantmentLevel + 1;
+            }
+        }
+        return getStrVsBlock;
     }
 
     public static boolean isEnemy(EntityPlayer entityPlayer) {

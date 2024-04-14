@@ -1,5 +1,6 @@
 package keystrokesmod.utility;
 
+import keystrokesmod.module.ModuleManager;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
@@ -68,7 +69,7 @@ public class BlockUtils {
             if (mc.thePlayer.isInsideOfMaterial(Material.water) && !EnchantmentHelper.getAquaAffinityModifier(mc.thePlayer)) {
                 n /= 5.0f;
             }
-            if (!mc.thePlayer.onGround) {
+            if (!mc.thePlayer.onGround && (ModuleManager.bedAura == null || !ModuleManager.bedAura.isEnabled() || !ModuleManager.bedAura.groundSpoof.isToggled() || ModuleManager.bedAura.currentBlock == null)) {
                 n /= 5.0f;
             }
         }

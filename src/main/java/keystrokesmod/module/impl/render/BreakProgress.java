@@ -1,6 +1,7 @@
 package keystrokesmod.module.impl.render;
 
 import keystrokesmod.module.Module;
+import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.BlockUtils;
@@ -24,8 +25,8 @@ public class BreakProgress extends Module {
     public BreakProgress() {
         super("BreakProgress", category.render);
         this.registerSetting(mode = new SliderSetting("Mode", modes, 0));
-        this.registerSetting(manual = new ButtonSetting("Show manual", false));
-        this.registerSetting(bedAura = new ButtonSetting("Show BedAura", false));
+        this.registerSetting(manual = new ButtonSetting("Show manual", true));
+        this.registerSetting(bedAura = new ButtonSetting("Show BedAura", true));
     }
 
     @SubscribeEvent
@@ -72,12 +73,12 @@ public class BreakProgress extends Module {
             this.resetVariables();
             return;
         }
-        /*if (bedAura.isToggled() && cy.t != 0.0f && cy.j != null) {
-            this.d = Math.min(1.0f, cy.t);
-            this.f = cy.j;
-            this.a();
+        if (ModuleManager.bedAura != null && ModuleManager.bedAura.isEnabled() && ModuleManager.bedAura.breakProgress != 0.0f && ModuleManager.bedAura.currentBlock != null) {
+            this.progress = Math.min(1.0f, ModuleManager.bedAura.breakProgress);
+            this.block = ModuleManager.bedAura.currentBlock;
+            this.setProgress();
             return;
-        }*/
+        }
         if (!manual.isToggled() || mc.objectMouseOver == null || mc.objectMouseOver.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) {
             this.resetVariables();
             return;

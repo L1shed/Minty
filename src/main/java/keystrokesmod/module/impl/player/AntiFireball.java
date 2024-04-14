@@ -69,7 +69,7 @@ public class AntiFireball extends Module {
                 continue;
             }
             final float n = (float) fov.getInput();
-            if (n != 360.0f && !Utils.inFovEntity(n, entity)) {
+            if (n != 360.0f && !Utils.inFov(n, entity)) {
                 continue;
             }
             return (EntityFireball) entity;

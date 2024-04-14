@@ -24,6 +24,8 @@ public class ModuleManager {
     public static List<Module> organizedModules = new ArrayList<>();
     public static Module nameHider;
     public static Module fastPlace;
+    public static BedAura bedAura;
+    public static FastMine fastMine;
     public static Module antiShuffle;
     public static Module commandLine;
     public static Module antiBot;
@@ -38,6 +40,7 @@ public class ModuleManager {
     public static Module wTap;
     public static Module noFall;
     public static Module playerESP;
+    public static Module reduce;
     public static Module safeWalk;
     public static Module keepSprint;
 
@@ -57,6 +60,7 @@ public class ModuleManager {
         this.addModule(fly = new Fly());
         this.addModule(new InvMove());
         this.addModule(keepSprint = new KeepSprint());
+        this.addModule(bedAura = new BedAura());
         this.addModule(noSlow = new NoSlow());
         this.addModule(new Speed());
         this.addModule(new LatencyAlerts());
@@ -66,11 +70,11 @@ public class ModuleManager {
         this.addModule(new VClip());
         this.addModule(new AutoJump());
         this.addModule(new AutoPlace());
-        this.addModule(new BedAura());
         this.addModule(fastPlace = new FastPlace());
         this.addModule(new Freecam());
         this.addModule(noFall = new NoFall());
         this.addModule(safeWalk = new SafeWalk());
+        this.addModule(reduce = new Reduce());
         this.addModule(new AntiKnockback());
         this.addModule(antiBot = new AntiBot());
         this.addModule(antiShuffle = new AntiShuffle());
@@ -103,7 +107,7 @@ public class ModuleManager {
         this.addModule(new WaterBucket());
         this.addModule(commandLine = new CommandLine());
         this.addModule(new BedWars());
-        this.addModule(new FastMine());
+        this.addModule(fastMine = new FastMine());
         this.addModule(new JumpReset());
         this.addModule(new Manager());
         this.addModule(new AutoWho());

@@ -5,22 +5,29 @@ import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.player.Freecam;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.utility.Utils;
+import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.UUID;
 
 public class AntiBot extends Module {
     private static final HashMap<EntityPlayer, Long> entities = new HashMap();
     private static ButtonSetting entitySpawnDelay;
     private static SliderSetting delay;
+    private static ButtonSetting tablist;
 
     public AntiBot() {
         super("AntiBot", Module.category.world, 0);
         this.registerSetting(entitySpawnDelay = new ButtonSetting("Entity spawn delay", false));
         this.registerSetting(delay = new SliderSetting("Delay", 7.0, 0.5, 15.0, 0.5));
+        this.registerSetting(tablist = new ButtonSetting("Tab list", false));
     }
 
     @SubscribeEvent
@@ -60,6 +67,9 @@ public class AntiBot extends Module {
         if (entityPlayer.getName().isEmpty()) {
             return true;
         }
+        if (!getTablist().contains(entityPlayer.getUniqueID()) && tablist.isToggled()) {
+            return true;
+        }
         if (entityPlayer.getHealth() != 20.0f && entityPlayer.getName().startsWith("§c")) {
             return true;
         }
@@ -86,5 +96,18 @@ public class AntiBot extends Module {
             }
         }
         return false;
+    }
+
+    private static List<UUID> getTablist() {
+        List<UUID> tab = new ArrayList<>();
+        for (NetworkPlayerInfo networkPlayerInfo : Utils.getTablist()) {
+            if (networkPlayerInfo == null) {
+                continue;
+            }
+            if (networkPlayerInfo.getResponseTime() > 1) {
+                tab.add(networkPlayerInfo.getGameProfile().getId());
+            }
+        }
+        return tab;
     }
 }

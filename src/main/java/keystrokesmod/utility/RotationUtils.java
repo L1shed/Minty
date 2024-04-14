@@ -4,7 +4,9 @@ import keystrokesmod.module.impl.client.Settings;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.util.BlockPos;
 import net.minecraft.util.MathHelper;
+import net.minecraft.util.Vec3;
 
 public class RotationUtils {
     public static final Minecraft mc = Minecraft.getMinecraft();
@@ -20,6 +22,18 @@ public class RotationUtils {
         }
     }
 
+    public static float[] getRotations(BlockPos blockPos, final float n, final float n2) {
+        final float[] array = getRotations(blockPos);
+        return fixRotation(array[0], array[1], n, n2);
+    }
+
+    public static float[] getRotations(final BlockPos blockPos) {
+        final double n = blockPos.getX() + 0.45 - mc.thePlayer.posX;
+        final double n2 = blockPos.getY() + 0.45 - (mc.thePlayer.posY + mc.thePlayer.getEyeHeight());
+        final double n3 = blockPos.getZ() + 0.45 - mc.thePlayer.posZ;
+        return new float[] { mc.thePlayer.rotationYaw + MathHelper.wrapAngleTo180_float((float)(Math.atan2(n3, n) * 57.295780181884766) - 90.0f - mc.thePlayer.rotationYaw), m(mc.thePlayer.rotationPitch + MathHelper.wrapAngleTo180_float((float)(-(Math.atan2(n2, MathHelper.sqrt_double(n * n + n3 * n3)) * 57.295780181884766)) - mc.thePlayer.rotationPitch)) };
+    }
+
     public static float interpolateValue(float tickDelta, float old, float newFloat) {
         return old + (newFloat - old) * tickDelta;
     }
@@ -29,7 +43,19 @@ public class RotationUtils {
         if (array == null) {
             return null;
         }
-        return d(array[0], array[1], n, n2);
+        return fixRotation(array[0], array[1], n, n2);
+    }
+
+    public static boolean inRange(final BlockPos blockPos, final double n) {
+        final float[] array = (float[])RotationUtils.getRotations(blockPos);
+        final Vec3 getPositionEyes = mc.thePlayer.getPositionEyes(1.0f);
+        final float n2 = -array[0] * 0.017453292f;
+        final float n3 = -array[1] * 0.017453292f;
+        final float cos = MathHelper.cos(n2 - 3.1415927f);
+        final float sin = MathHelper.sin(n2 - 3.1415927f);
+        final float n4 = -MathHelper.cos(n3);
+        final Vec3 vec3 = new Vec3((double)(sin * n4), (double)MathHelper.sin(n3), (double)(cos * n4));
+        return BlockUtils.getBlock(blockPos).getCollisionBoundingBox(mc.theWorld, blockPos, BlockUtils.getBlockState(blockPos)).calculateIntercept(getPositionEyes, getPositionEyes.addVector(vec3.xCoord * n, vec3.yCoord * n, vec3.zCoord * n)) != null;
     }
 
     public static float[] getRotations(final Entity entity) {
@@ -52,7 +78,7 @@ public class RotationUtils {
         return MathHelper.clamp_float(n, -90.0f, 90.0f);
     }
 
-    public static float[] d(float n, float n2, final float n3, final float n4) {
+    public static float[] fixRotation(float n, float n2, final float n3, final float n4) {
         float n5 = n - n3;
         final float abs = Math.abs(n5);
         final float n7 = n2 - n4;

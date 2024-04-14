@@ -3,8 +3,8 @@ package keystrokesmod.module.impl.combat;
 import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.event.PreUpdateEvent;
 import keystrokesmod.event.ReceivePacketEvent;
-import keystrokesmod.event.SendPacketEvent;
 import keystrokesmod.module.Module;
+import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.world.AntiBot;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
@@ -12,14 +12,10 @@ import keystrokesmod.utility.BlockUtils;
 import keystrokesmod.utility.RandomUtils;
 import keystrokesmod.utility.RotationUtils;
 import keystrokesmod.utility.Utils;
-import net.minecraft.block.Block;
-import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
-import net.minecraft.network.play.client.C02PacketUseEntity;
-import net.minecraft.network.play.client.C0APacketAnimation;
 import net.minecraft.network.play.server.S2FPacketSetSlot;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.MovingObjectPosition;
@@ -104,6 +100,9 @@ public class KillAura extends Module {
         // block range code here
 
         if (settingCondition()) {
+            if ((ModuleManager.bedAura != null && ModuleManager.bedAura.isEnabled() && !ModuleManager.bedAura.allowKillAura.isToggled() && ModuleManager.bedAura.currentBlock != null)) {
+                return;
+            }
             if (mc.thePlayer.isBlocking() && disableWhileBlocking.isToggled()) {
                 return;
             }
@@ -225,7 +224,7 @@ public class KillAura extends Module {
                 continue;
             }
             final float n = (float) fov.getInput();
-            if (n != 360.0f && !Utils.inFovEntity(n, entity)) {
+            if (n != 360.0f && !Utils.inFov(n, entity)) {
                 continue;
             }
             double distance = mc.thePlayer.getDistanceToEntity(entity); // need a more accurate distance check as this can ghost on hypixel
@@ -272,11 +271,14 @@ public class KillAura extends Module {
     private boolean settingCondition() {
         if (!Mouse.isButtonDown(0) && requireMouseDown.isToggled()) {
             return false;
-        } else if (!Utils.holdingWeapon() && weaponOnly.isToggled()) {
+        }
+        else if (!Utils.holdingWeapon() && weaponOnly.isToggled()) {
             return false;
-        } else if (isMining() && disableWhileMining.isToggled()) {
+        }
+        else if (isMining() && disableWhileMining.isToggled()) {
             return false;
-        } else if (mc.currentScreen != null && disableInInventory.isToggled()) {
+        }
+        else if (mc.currentScreen != null && disableInInventory.isToggled()) {
             return false;
         }
         return true;

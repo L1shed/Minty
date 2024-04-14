@@ -1,6 +1,7 @@
 package keystrokesmod.mixins.impl.entity;
 
 import keystrokesmod.module.ModuleManager;
+import keystrokesmod.module.impl.combat.Reduce;
 import keystrokesmod.module.impl.movement.KeepSprint;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.*;
@@ -90,9 +91,13 @@ public abstract class MixinEntityPlayer extends EntityLivingBase {
                     if (flag2) {
                         if (i > 0) {
                             p_attackTargetEntityWithCurrentItem_1_.addVelocity((double) (-MathHelper.sin(this.rotationYaw * 3.1415927F / 180.0F) * (float) i * 0.5F), 0.1, (double) (MathHelper.cos(this.rotationYaw * 3.1415927F / 180.0F) * (float) i * 0.5F));
-                            if (ModuleManager.keepSprint != null && ModuleManager.keepSprint.isEnabled()) {
+                            if (ModuleManager.reduce != null && ModuleManager.reduce.isEnabled()) {
+                                Reduce.reduce(p_attackTargetEntityWithCurrentItem_1_);
+                            }
+                            else if (ModuleManager.keepSprint != null && ModuleManager.keepSprint.isEnabled()) {
                                 KeepSprint.keepSprint(p_attackTargetEntityWithCurrentItem_1_);
-                            } else {
+                            }
+                            else {
                                 this.motionX *= 0.6D;
                                 this.motionZ *= 0.6D;
                                 this.setSprinting(false);
