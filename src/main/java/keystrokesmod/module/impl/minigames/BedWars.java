@@ -8,6 +8,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemEnderPearl;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.BlockPos;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -17,12 +18,14 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class BedWars extends Module {
-    private ButtonSetting whitelistOwnBed;
+    public static ButtonSetting whitelistOwnBed;
     private ButtonSetting diamondArmor;
     private ButtonSetting enderPearl;
     private ButtonSetting obsidian;
     private ButtonSetting shouldPing;
-    private double spawnX, spawnZ; // bed whitelist (for bedaura maybe)?
+    private BlockPos spawnPos;
+    private boolean check;
+    public static boolean nearSpawn;
     private final List<String> armoredPlayer = new ArrayList<>();
     private final Map<String, String> lastHeldMap = new ConcurrentHashMap<>();
 
@@ -38,6 +41,12 @@ public class BedWars extends Module {
     public void onEnable() {
         armoredPlayer.clear();
         lastHeldMap.clear();
+        check = true;
+        nearSpawn = false;
+    }
+
+    public void onDisable() {
+        nearSpawn = false;
     }
 
     @SubscribeEvent
@@ -48,6 +57,9 @@ public class BedWars extends Module {
         if (e.entity == mc.thePlayer) {
             armoredPlayer.clear();
             lastHeldMap.clear();
+            if (whitelistOwnBed.isToggled() && !mc.isSingleplayer()) {
+                check = true;
+            }
         }
     }
 
@@ -88,6 +100,16 @@ public class BedWars extends Module {
                         }
                     }
                 }
+            }
+            if (whitelistOwnBed.isToggled()) {
+                if (check) {
+                    spawnPos = mc.thePlayer.getPosition();
+                    check = false;
+                }
+                nearSpawn = mc.thePlayer.posX > spawnPos.getX() + 20 || mc.thePlayer.posZ < spawnPos.getX() - 20 || mc.thePlayer.posX > spawnPos.getZ() + 20 || mc.thePlayer.posZ < spawnPos.getZ() - 20;
+            }
+            else {
+                nearSpawn = false;
             }
         }
     }

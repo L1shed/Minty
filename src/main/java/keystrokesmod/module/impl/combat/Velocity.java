@@ -1,6 +1,7 @@
 package keystrokesmod.module.impl.combat;
 
 import keystrokesmod.module.Module;
+import keystrokesmod.module.impl.movement.LongJump;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.Utils;
@@ -26,7 +27,7 @@ public class Velocity extends Module {
 
     @SubscribeEvent
     public void onLivingUpdate(LivingUpdateEvent ev) {
-        if (Utils.nullCheck() && mc.thePlayer.maxHurtTime > 0 && mc.thePlayer.hurtTime == mc.thePlayer.maxHurtTime) {
+        if (Utils.nullCheck() && mc.thePlayer.maxHurtTime > 0 && mc.thePlayer.hurtTime == mc.thePlayer.maxHurtTime && !LongJump.stopModules) {
             if (onlyWhileTargeting.isToggled() && (mc.objectMouseOver == null || mc.objectMouseOver.entityHit == null)) {
                 return;
             }
@@ -35,7 +36,7 @@ public class Velocity extends Module {
                 return;
             }
 
-            if (chance.getInput() != 100.0D) {
+            if (chance.getInput() != 100) {
                 double ch = Math.random();
                 if (ch >= chance.getInput() / 100.0D) {
                     return;

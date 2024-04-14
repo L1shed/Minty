@@ -3,7 +3,7 @@ package keystrokesmod.module.impl.player;
 import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.event.PreUpdateEvent;
 import keystrokesmod.module.Module;
-import keystrokesmod.module.ModuleManager;
+import keystrokesmod.module.impl.minigames.BedWars;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
@@ -41,15 +41,14 @@ public class BedAura extends Module {
     private String[] modes = new String[]{"Legit", "Instant", "Swap"};
     private BlockPos[] bedPos;
     public float breakProgress;
-    private int currentSlot;
-    private int lastSlot;
+    private int currentSlot = -1;
+    private int lastSlot = -1;
     private boolean rotate;
     public BlockPos currentBlock;
     private int outlineColor = new Color(226, 65, 65).getRGB();
 
     public BedAura() {
         super("BedAura", category.player, 0);
-        this.registerSetting(description = new DescriptionSetting("Compatible with FastMine."));
         this.registerSetting(mode = new SliderSetting("Break mode", modes, 0));
         this.registerSetting(fov = new SliderSetting("FOV", 360.0, 30.0, 360.0, 4.0));
         this.registerSetting(range = new SliderSetting("Range", 4.5, 1.0, 8.0, 0.5));
@@ -74,6 +73,9 @@ public class BedAura extends Module {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onPreUpdate(PreUpdateEvent e) {
         if (!Utils.nullCheck()) {
+            return;
+        }
+        if (BedWars.whitelistOwnBed.isToggled() && BedWars.nearSpawn) {
             return;
         }
         if (!mc.thePlayer.capabilities.allowEdit || mc.thePlayer.isSpectator()) {
@@ -102,7 +104,7 @@ public class BedAura extends Module {
 
     @SubscribeEvent
     public void onPreMotion(PreMotionEvent e) {
-        if (rotate && currentBlock != null) {
+        if ((rotate || breakProgress >= 1) && currentBlock != null) {
             float[] rotations = RotationUtils.getRotations(currentBlock, e.getYaw(), e.getPitch());
             e.setYaw(rotations[0]);
             e.setPitch(rotations[1]);
@@ -222,7 +224,6 @@ public class BedAura extends Module {
                 startBreak(blockPos);
             }
             else if (breakProgress >= 1) {
-                rotate = true;
                 if (mode.getInput() == 2) {
                     setPacketSlot(Utils.getTool(block));
                 }
@@ -239,15 +240,6 @@ public class BedAura extends Module {
                 }
             }
             breakProgress += BlockUtils.getBlockHardness(block, (mode.getInput() == 2 && Utils.getTool(block) != -1) ? mc.thePlayer.inventory.getStackInSlot(Utils.getTool(block)) : mc.thePlayer.getHeldItem(), false);
-            if (ModuleManager.fastMine != null && ModuleManager.fastMine.isEnabled()) {
-                final double c = ModuleManager.fastMine.multiplier.getInput();
-                if (c != 1.0) {
-                    final double n = 1.0 - (2.0 - c);
-                    if (breakProgress < n) {
-                        breakProgress = (float) n;
-                    }
-                }
-            }
         }
         else if (mode.getInput() == 1) {
             rotate = true;

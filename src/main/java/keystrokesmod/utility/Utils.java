@@ -81,6 +81,10 @@ public class Utils {
         return false;
     }
 
+    public static boolean isWholeNumber(double num) {
+        return num == Math.floor(num);
+    }
+
     public static int randomize(final int n, final int n2) {
         return rand.nextInt(n2 - n + 1) + n;
     }
@@ -132,7 +136,7 @@ public class Utils {
 
     public static String getHealthStr(EntityLivingBase entity) {
         float completeHealth = getCompleteHealth(entity);
-        return getColorForHealth(completeHealth / entity.getMaxHealth(), completeHealth);
+        return getColorForHealth(entity.getHealth() / entity.getMaxHealth(), completeHealth);
     }
 
     public static int getTool(Block block) {
@@ -167,7 +171,8 @@ public class Utils {
     }
 
     public static String getColorForHealth(double n, double n2) {
-        return ((n < 0.3) ? "§c" : ((n < 0.5) ? "§6" : ((n < 0.7) ? "§e" : "§a"))) + rnd(n2, 1);
+        double health = rnd(n2, 1);
+        return ((n < 0.3) ? "§c" : ((n < 0.5) ? "§6" : ((n < 0.7) ? "§e" : "§a"))) + (isWholeNumber(health) ? (int) health + "": health);
     }
 
     public static String formatColor(String txt) {
@@ -231,7 +236,7 @@ public class Utils {
         return false;
     }
 
-    public static void setMotion(double n) {
+    public static void setSpeed(double n) {
         if (n == 0.0) {
             mc.thePlayer.motionZ = 0.0;
             mc.thePlayer.motionX = 0.0;

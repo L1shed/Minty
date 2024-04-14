@@ -2,6 +2,7 @@ package keystrokesmod.module.impl.combat;
 
 import keystrokesmod.event.ReceivePacketEvent;
 import keystrokesmod.module.Module;
+import keystrokesmod.module.impl.movement.LongJump;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.Utils;
@@ -22,7 +23,7 @@ public class AntiKnockback extends Module {
 
     @SubscribeEvent
     public void onReceivePacket(ReceivePacketEvent e) {
-        if (!Utils.nullCheck()) {
+        if (!Utils.nullCheck() || LongJump.stopModules) {
             return;
         }
         if (e.getPacket() instanceof S12PacketEntityVelocity) {
@@ -52,16 +53,16 @@ public class AntiKnockback extends Module {
                 return;
             }
             if (horizontal.getInput() == 0 && vertical.getInput() > 0) {
-                mc.thePlayer.motionY = ((S27PacketExplosion) e.getPacket()).func_149144_d() * vertical.getInput()/100;
+                mc.thePlayer.motionY += ((S27PacketExplosion) e.getPacket()).func_149144_d() * vertical.getInput()/100;
             }
             else if (horizontal.getInput() > 0 && vertical.getInput() == 0) {
-                mc.thePlayer.motionX = ((S27PacketExplosion) e.getPacket()).func_149149_c() * horizontal.getInput()/100;
-                mc.thePlayer.motionZ = ((S27PacketExplosion) e.getPacket()).func_149147_e() * horizontal.getInput()/100;
+                mc.thePlayer.motionX += ((S27PacketExplosion) e.getPacket()).func_149149_c() * horizontal.getInput()/100;
+                mc.thePlayer.motionZ += ((S27PacketExplosion) e.getPacket()).func_149147_e() * horizontal.getInput()/100;
             }
             else {
-                mc.thePlayer.motionX = ((S27PacketExplosion) e.getPacket()).func_149149_c() * horizontal.getInput()/100;
-                mc.thePlayer.motionY = ((S27PacketExplosion) e.getPacket()).func_149144_d() * vertical.getInput()/100;
-                mc.thePlayer.motionZ = ((S27PacketExplosion) e.getPacket()).func_149147_e() * horizontal.getInput()/100;
+                mc.thePlayer.motionX += ((S27PacketExplosion) e.getPacket()).func_149149_c() * horizontal.getInput()/100;
+                mc.thePlayer.motionY += ((S27PacketExplosion) e.getPacket()).func_149144_d() * vertical.getInput()/100;
+                mc.thePlayer.motionZ += ((S27PacketExplosion) e.getPacket()).func_149147_e() * horizontal.getInput()/100;
             }
             e.setCanceled(true);
         }

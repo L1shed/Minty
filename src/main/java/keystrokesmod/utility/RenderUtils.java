@@ -1,7 +1,9 @@
 package keystrokesmod.utility;
 
+import keystrokesmod.module.impl.player.Freecam;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.renderer.Tessellator;
@@ -53,6 +55,39 @@ public class RenderUtils {
         GL11.glDepthMask(true);
         GL11.glDisable(3042);
         GL11.glPopMatrix();
+    }
+
+    public static void renderBPS(final boolean b, final boolean b2) {
+        final ScaledResolution scaledResolution = new ScaledResolution(mc);
+        String s = "";
+        int n = -1;
+        if (b) {
+            final double t = Utils.gbps((Freecam.freeEntity == null) ? mc.thePlayer : Freecam.freeEntity, 2);
+            if (t < 10.0) {
+                n = Color.green.getRGB();
+            }
+            else if (t < 30.0) {
+                n = Color.yellow.getRGB();
+            }
+            else if (t < 60.0) {
+                n = Color.orange.getRGB();
+            }
+            else if (t < 160.0) {
+                n = Color.red.getRGB();
+            }
+            else {
+                n = Color.black.getRGB();
+            }
+            s = s + t + "bps";
+        }
+        if (b2) {
+            final double h = Utils.getHorizontalSpeed();
+            if (!s.isEmpty()) {
+                s += " ";
+            }
+            s += Utils.rnd(h, 3);
+        }
+        mc.fontRendererObj.drawString(s, (float)(scaledResolution.getScaledWidth() / 2 - mc.fontRendererObj.getStringWidth(s) / 2), (float)(scaledResolution.getScaledHeight() / 2 + 15), n, false);
     }
 
     public static void renderEntity(Entity e, int type, double expand, double shift, int color, boolean damage) {

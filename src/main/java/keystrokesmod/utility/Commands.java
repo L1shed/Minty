@@ -170,7 +170,7 @@ public class Commands {
 
                 switch (args[1]) {
                     case "fly":
-                        Fly.speed.setValueRaw(value);
+                        Fly.horizontalSpeed.setValueRaw(value);
                         break;
                     case "bhop":
                         BHop.speed.setValueRaw(value);

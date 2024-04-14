@@ -39,7 +39,7 @@ public class BHop extends Module {
                         mc.thePlayer.jump();
                     }
                     mc.thePlayer.setSprinting(true);
-                    Utils.setMotion(Utils.getHorizontalSpeed() + 0.005 * speed.getInput());
+                    Utils.setSpeed(Utils.getHorizontalSpeed() + 0.005 * speed.getInput());
                     break;
                 }
                 break;
@@ -55,7 +55,7 @@ public class BHop extends Module {
                     if (horizontalSpeed < additionalSpeed) {
                         horizontalSpeed = additionalSpeed;
                     }
-                    Utils.setMotion(horizontalSpeed);
+                    Utils.setSpeed(horizontalSpeed);
                 }
                 break;
         }

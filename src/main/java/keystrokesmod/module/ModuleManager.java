@@ -46,7 +46,9 @@ public class ModuleManager {
 
     public void register() {
         this.addModule(autoClicker = new AutoClicker());
+        this.addModule(new LongJump());
         this.addModule(new AimAssist());
+        this.addModule(new Blink());
         this.addModule(new BurstClicker());
         this.addModule(new ClickAssist());
         this.addModule(new DelayRemover());
@@ -57,6 +59,7 @@ public class ModuleManager {
         this.addModule(new Velocity());
         this.addModule(new BHop());
         this.addModule(new Boost());
+        this.addModule(new AutoTool());
         this.addModule(fly = new Fly());
         this.addModule(new InvMove());
         this.addModule(keepSprint = new KeepSprint());

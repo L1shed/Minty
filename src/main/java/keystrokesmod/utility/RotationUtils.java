@@ -47,14 +47,14 @@ public class RotationUtils {
     }
 
     public static boolean inRange(final BlockPos blockPos, final double n) {
-        final float[] array = (float[])RotationUtils.getRotations(blockPos);
+        final float[] array = RotationUtils.getRotations(blockPos);
         final Vec3 getPositionEyes = mc.thePlayer.getPositionEyes(1.0f);
         final float n2 = -array[0] * 0.017453292f;
         final float n3 = -array[1] * 0.017453292f;
         final float cos = MathHelper.cos(n2 - 3.1415927f);
         final float sin = MathHelper.sin(n2 - 3.1415927f);
         final float n4 = -MathHelper.cos(n3);
-        final Vec3 vec3 = new Vec3((double)(sin * n4), (double)MathHelper.sin(n3), (double)(cos * n4));
+        final Vec3 vec3 = new Vec3(sin * n4, MathHelper.sin(n3), (double)(cos * n4));
         return BlockUtils.getBlock(blockPos).getCollisionBoundingBox(mc.theWorld, blockPos, BlockUtils.getBlockState(blockPos)).calculateIntercept(getPositionEyes, getPositionEyes.addVector(vec3.xCoord * n, vec3.yCoord * n, vec3.zCoord * n)) != null;
     }
 

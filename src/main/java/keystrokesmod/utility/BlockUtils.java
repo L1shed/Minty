@@ -84,6 +84,17 @@ public class BlockUtils {
         return mc.theWorld.getBlockState(blockPos);
     }
 
+    public static boolean isBlockUnderNoCollisions() {
+        for (int offset = 0; offset < mc.thePlayer.posY + mc.thePlayer.getEyeHeight(); offset += 2) {
+            BlockPos blockPos = new BlockPos(mc.thePlayer.posX, offset, mc.thePlayer.posZ);
+
+            if (mc.theWorld.getBlockState(blockPos).getBlock() != Blocks.air) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static boolean check(final BlockPos blockPos, final Block block) {
         return getBlock(blockPos) == block;
     }

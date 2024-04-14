@@ -12,7 +12,7 @@ public class NoFall extends Module {
     private String[] modes = new String[]{"Spoof", "Extra"};
 
     public NoFall() {
-        super("NoFall", Module.category.player, 0);
+        super("NoFall", category.player);
         this.registerSetting(mode = new SliderSetting("Mode", modes, 0));
         this.registerSetting(minFallDistance = new SliderSetting("Minimum fall distance", 3.0, 0.0, 8.0, 0.1));
     }
@@ -24,10 +24,13 @@ public class NoFall extends Module {
                 case 0:
                     e.setOnGround(true);
                     break;
-                case 1:
-                    mc.thePlayer.sendQueue.addToSendQueue(new C03PacketPlayer(true));
-                    break;
             }
+        }
+    }
+
+    public void onUpdate() {
+        if (mode.getInput() == 1 && (double)mc.thePlayer.fallDistance > minFallDistance.getInput()) {
+            mc.thePlayer.sendQueue.addToSendQueue(new C03PacketPlayer(true));
         }
     }
 

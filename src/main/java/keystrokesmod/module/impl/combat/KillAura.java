@@ -95,7 +95,6 @@ public class KillAura extends Module {
             resetVariables();
             return;
         }
-        setTarget();
 
         // block range code here
 
@@ -106,13 +105,14 @@ public class KillAura extends Module {
             if (mc.thePlayer.isBlocking() && disableWhileBlocking.isToggled()) {
                 return;
             }
-            if (swing) {
+            boolean canAttack = Math.abs(System.currentTimeMillis() - lastAttacked) > 1000 / aps.getInput() + RandomUtils.getRandom(randomization.getInput());
+            if (swing && canAttack) {
                 mc.thePlayer.swingItem();
             }
             if (target == null) {
                 return;
             }
-            if (Math.abs(System.currentTimeMillis() - lastAttacked) > 1000 / aps.getInput() + RandomUtils.getRandom(randomization.getInput())) {
+            if (canAttack) {
                 switchTargets = true;
                 Utils.attackEntity(target, !swing);
                 lastAttacked = System.currentTimeMillis();
@@ -126,6 +126,7 @@ public class KillAura extends Module {
             resetVariables();
             return;
         }
+        setTarget();
         if (target != null && rotationMode.getInput() > 0) {
             float[] rotations = RotationUtils.getRotations(target, e.getYaw(), e.getPitch());
             switch ((int) rotationMode.getInput()) {

@@ -41,18 +41,14 @@ public class HitBox extends Module {
 
     @SubscribeEvent
     public void m(MouseEvent e) {
-        if (Utils.nullCheck() && !ModuleManager.reach.isEnabled()) {
-            if (e.button != 0 || !e.buttonstate || !Utils.nullCheck() || multiplier.getInput() == 1.0 || mc.thePlayer.isBlocking() || mc.currentScreen != null) {
-                return;
-            }
-            if (mc.objectMouseOver == null || mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.ENTITY) {
+        if (Utils.nullCheck()) {
+            if (e.button != 0 || !e.buttonstate || !Utils.nullCheck() || multiplier.getInput() == 1 || mc.thePlayer.isBlocking() || mc.currentScreen != null) {
                 return;
             }
             if (weaponOnly.isToggled() && !Utils.holdingWeapon()) {
                 return;
             }
             EntityLivingBase c = getEntity(1.0F);
-            ;
             if (c == null) {
                 return;
             }
@@ -79,7 +75,7 @@ public class HitBox extends Module {
     }
 
     public static double getExpand(Entity en) {
-        return ModuleManager.hitBox.isEnabled() && !AntiBot.isBot(en) ? multiplier.getInput() : 1.0D;
+        return multiplier.getInput();
     }
 
     public static EntityLivingBase getEntity(float partialTicks) {

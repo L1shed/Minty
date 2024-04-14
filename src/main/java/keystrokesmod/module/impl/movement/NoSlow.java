@@ -60,7 +60,7 @@ public class NoSlow extends Module {
     public void onPostMotion(PostMotionEvent e) {
         if (postPlace) {
             if (mc.thePlayer.ticksExisted % 3 == 0) {
-                mc.thePlayer.sendQueue.addToSendQueue(new C08PacketPlayerBlockPlacement());
+                mc.thePlayer.sendQueue.addToSendQueue(new C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()));
             }
             postPlace = false;
         }

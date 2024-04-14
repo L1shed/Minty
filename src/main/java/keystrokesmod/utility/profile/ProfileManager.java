@@ -153,6 +153,7 @@ public class ProfileManager {
                     Raven.currentProfile = getProfile(name);
                 }
             } catch (Exception e) {
+                failedMessage("load", name);
                 e.printStackTrace();
             }
         }
@@ -238,6 +239,6 @@ public class ProfileManager {
     }
 
     public void failedMessage(String reason, String name) {
-        Utils.sendMessage("&cFailed to " + reason + " +: &b" + name);
+        Utils.sendMessage("&cFailed to " + reason + " : &b" + name);
     }
 }

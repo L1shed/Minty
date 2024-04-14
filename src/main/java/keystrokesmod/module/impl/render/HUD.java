@@ -29,6 +29,8 @@ public class HUD extends Module {
     public static ButtonSetting showInfo;
     public static int hudX = 5;
     public static int hudY = 70;
+    private boolean isAlphabeticalSort;
+    private boolean canShowInfo;
 
     public HUD() {
         super("HUD", Module.category.render);
@@ -57,6 +59,14 @@ public class HUD extends Module {
     public void onRenderTick(RenderTickEvent ev) {
         if (ev.phase != TickEvent.Phase.END || !Utils.nullCheck()) {
             return;
+        }
+        if (isAlphabeticalSort != alphabeticalSort.isToggled()) {
+            isAlphabeticalSort = alphabeticalSort.isToggled();
+            ModuleManager.sort();
+        }
+        if (canShowInfo != showInfo.isToggled()) {
+            canShowInfo = showInfo.isToggled();
+            ModuleManager.sort();
         }
         if (mc.currentScreen != null || mc.gameSettings.showDebugInfo) {
             return;

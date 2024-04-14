@@ -67,7 +67,7 @@ public class AntiBot extends Module {
         if (entityPlayer.getName().isEmpty()) {
             return true;
         }
-        if (!getTablist().contains(entityPlayer.getUniqueID()) && tablist.isToggled()) {
+        if (!getTablist().contains(entityPlayer.getName()) && tablist.isToggled()) {
             return true;
         }
         if (entityPlayer.getHealth() != 20.0f && entityPlayer.getName().startsWith("§c")) {
@@ -98,14 +98,14 @@ public class AntiBot extends Module {
         return false;
     }
 
-    private static List<UUID> getTablist() {
-        List<UUID> tab = new ArrayList<>();
+    private static List<String> getTablist() {
+        List<String> tab = new ArrayList<>();
         for (NetworkPlayerInfo networkPlayerInfo : Utils.getTablist()) {
             if (networkPlayerInfo == null) {
                 continue;
             }
             if (networkPlayerInfo.getResponseTime() > 1) {
-                tab.add(networkPlayerInfo.getGameProfile().getId());
+                tab.add(networkPlayerInfo.getGameProfile().getName());
             }
         }
         return tab;
