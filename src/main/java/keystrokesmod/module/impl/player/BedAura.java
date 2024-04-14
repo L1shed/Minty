@@ -75,7 +75,7 @@ public class BedAura extends Module {
         if (!Utils.nullCheck()) {
             return;
         }
-        if (BedWars.whitelistOwnBed.isToggled() && BedWars.nearSpawn) {
+        if (BedWars.whitelistOwnBed.isToggled() && !BedWars.outsideSpawn) {
             return;
         }
         if (!mc.thePlayer.capabilities.allowEdit || mc.thePlayer.isSpectator()) {

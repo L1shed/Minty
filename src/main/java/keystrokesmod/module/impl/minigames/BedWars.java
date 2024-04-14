@@ -25,7 +25,7 @@ public class BedWars extends Module {
     private ButtonSetting shouldPing;
     private BlockPos spawnPos;
     private boolean check;
-    public static boolean nearSpawn;
+    public static boolean outsideSpawn;
     private final List<String> armoredPlayer = new ArrayList<>();
     private final Map<String, String> lastHeldMap = new ConcurrentHashMap<>();
 
@@ -42,11 +42,11 @@ public class BedWars extends Module {
         armoredPlayer.clear();
         lastHeldMap.clear();
         check = true;
-        nearSpawn = false;
+        outsideSpawn = false;
     }
 
     public void onDisable() {
-        nearSpawn = false;
+        outsideSpawn = false;
     }
 
     @SubscribeEvent
@@ -106,10 +106,10 @@ public class BedWars extends Module {
                     spawnPos = mc.thePlayer.getPosition();
                     check = false;
                 }
-                nearSpawn = mc.thePlayer.posX > spawnPos.getX() + 20 || mc.thePlayer.posX < spawnPos.getX() - 20 || mc.thePlayer.posZ > spawnPos.getZ() + 20 || mc.thePlayer.posZ < spawnPos.getZ() - 20;
+                outsideSpawn = mc.thePlayer.posX > spawnPos.getX() + 20 || mc.thePlayer.posX < spawnPos.getX() - 20 || mc.thePlayer.posZ > spawnPos.getZ() + 20 || mc.thePlayer.posZ < spawnPos.getZ() - 20;
             }
             else {
-                nearSpawn = false;
+                outsideSpawn = false;
             }
         }
     }
