@@ -31,13 +31,13 @@ public class FastMine extends Module {
         if (e.phase != TickEvent.Phase.END || !mc.inGameHasFocus || !Utils.nullCheck()) {
             return;
         }
-        final double a = delay.getInput();
-        if (a < 5.0) {
+        final int delay = (int) this.delay.getInput();
+        if (delay < 5.0) {
             try {
-                if (a == 0.0) {
+                if (delay == 0.0) {
                     Reflection.blockHitDelay.set(mc.playerController, 0);
-                } else if (Reflection.blockHitDelay.getInt(mc.playerController) > a) {
-                    Reflection.blockHitDelay.set(mc.playerController, a);
+                } else if (Reflection.blockHitDelay.getInt(mc.playerController) > delay) {
+                    Reflection.blockHitDelay.set(mc.playerController, delay);
                 }
             } catch (IllegalAccessException ex) {
             } catch (IndexOutOfBoundsException ex2) {
