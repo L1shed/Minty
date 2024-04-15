@@ -1,4 +1,4 @@
-# Raven bS(kid)
+# Raven bS
 
 Raven B4, but for those who can't afford it.
 
