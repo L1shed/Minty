@@ -91,7 +91,7 @@ public class BedWars extends Module {
                         if (itemType != null) {
                             lastHeldMap.put(name, itemType);
                             double distance = Math.round(mc.thePlayer.getDistanceToEntity(p));
-                            handleAlert(itemType, p.getDisplayName().getFormattedText(), String.valueOf(distance));
+                            handleAlert(itemType, p.getDisplayName().getFormattedText(), Utils.isWholeNumber(distance) ? (int) distance + "" : String.valueOf(distance));
                         }
                     } else if (lastHeldMap.containsKey(name)) {
                         String itemType = lastHeldMap.get(name);

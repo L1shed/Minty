@@ -3,6 +3,7 @@ package keystrokesmod.module.impl.player;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.setting.impl.ButtonSetting;
+import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.Utils;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.item.ItemBlock;
@@ -13,11 +14,14 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.input.Keyboard;
 
 public class SafeWalk extends Module {
+    private SliderSetting shiftDelay;
     public static ButtonSetting shift, blocksOnly, pitchCheck, disableOnForward;
-    private static boolean isSneaking = false;
+    private boolean isSneaking;
+    private long b = 0L;
 
     public SafeWalk() {
         super("SafeWalk", Module.category.player, 0);
+        this.registerSetting(shiftDelay = new SliderSetting("Delay until next shift", 0.0, 0.0, 800.0, 10.0));
         this.registerSetting(blocksOnly = new ButtonSetting("Blocks only", true));
         this.registerSetting(disableOnForward = new ButtonSetting("Disable on forward", false));
         this.registerSetting(pitchCheck = new ButtonSetting("Pitch check", false));
@@ -71,8 +75,35 @@ public class SafeWalk extends Module {
         }
     }
 
-    private void setSneakState(boolean sh) {
-        KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), sh);
+    private void setSneakState(boolean down) {
+        KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), down);
+
+        if (this.isSneaking) {
+            if (down) {
+                return;
+            }
+        }
+        else if (!down) {
+            return;
+        }
+        if (down) {
+            final long n = (long) shiftDelay.getInput();
+            if (n != 0L) {
+                if (Utils.getDifference(this.b, System.currentTimeMillis()) < n) {
+                    return;
+                }
+                this.b = System.currentTimeMillis();
+            }
+        }
+        else {
+            if (Keyboard.isKeyDown(mc.gameSettings.keyBindSneak.getKeyCode())) {
+                return;
+            }
+            this.b = System.currentTimeMillis();
+        }
+        final int getKeyCode = mc.gameSettings.keyBindSneak.getKeyCode();
+        this.isSneaking = down;
+        KeyBinding.setKeyBindState(getKeyCode, down);
     }
 
     public static boolean canSafeWalk() {

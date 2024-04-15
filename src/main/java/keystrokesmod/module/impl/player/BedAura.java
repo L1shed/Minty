@@ -5,7 +5,6 @@ import keystrokesmod.event.PreUpdateEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.impl.minigames.BedWars;
 import keystrokesmod.module.setting.impl.ButtonSetting;
-import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.BlockUtils;
 import keystrokesmod.utility.RenderUtils;
@@ -28,7 +27,6 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import java.awt.*;
 
 public class BedAura extends Module {
-    private DescriptionSetting description;
     private SliderSetting range;
     private SliderSetting mode;
     private SliderSetting fov;
