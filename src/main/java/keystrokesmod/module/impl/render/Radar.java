@@ -2,6 +2,7 @@ package keystrokesmod.module.impl.render;
 
 import keystrokesmod.clickgui.ClickGui;
 import keystrokesmod.module.Module;
+import keystrokesmod.module.impl.world.AntiBot;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.utility.RenderUtils;
 import keystrokesmod.utility.Utils;
@@ -56,6 +57,9 @@ public class Radar extends Module {
 
         for (EntityPlayer en : mc.theWorld.playerEntities) {
             if (en == mc.thePlayer) {
+                continue;
+            }
+            if (AntiBot.isBot(en)) {
                 continue;
             }
             double dist_sq = mc.thePlayer.getDistanceSqToEntity(en);
