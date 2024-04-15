@@ -25,7 +25,7 @@ public class BedWars extends Module {
     private ButtonSetting shouldPing;
     private BlockPos spawnPos;
     private boolean check;
-    public static boolean outsideSpawn;
+    public static boolean outsideSpawn = true;
     private final List<String> armoredPlayer = new ArrayList<>();
     private final Map<String, String> lastHeldMap = new ConcurrentHashMap<>();
 
@@ -42,11 +42,11 @@ public class BedWars extends Module {
         armoredPlayer.clear();
         lastHeldMap.clear();
         check = true;
-        outsideSpawn = false;
+        outsideSpawn = true;
     }
 
     public void onDisable() {
-        outsideSpawn = false;
+        outsideSpawn = true;
     }
 
     @SubscribeEvent
@@ -109,7 +109,7 @@ public class BedWars extends Module {
                 outsideSpawn = mc.thePlayer.posX > spawnPos.getX() + 20 || mc.thePlayer.posX < spawnPos.getX() - 20 || mc.thePlayer.posZ > spawnPos.getZ() + 20 || mc.thePlayer.posZ < spawnPos.getZ() - 20;
             }
             else {
-                outsideSpawn = false;
+                outsideSpawn = true;
             }
         }
     }
