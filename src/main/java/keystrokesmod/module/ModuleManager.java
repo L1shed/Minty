@@ -54,11 +54,13 @@ public class ModuleManager {
         this.addModule(new ClickAssist());
         this.addModule(new DelayRemover());
         this.addModule(hitBox = new HitBox());
+        this.addModule(new Radar());
         this.addModule(new Settings());
         this.addModule(reach = new Reach());
         this.addModule(new RodAimbot());
         this.addModule(new Velocity());
         this.addModule(new BHop());
+        this.addModule(new InvManager());
         this.addModule(new Boost());
         this.addModule(new AutoTool());
         this.addModule(fly = new Fly());

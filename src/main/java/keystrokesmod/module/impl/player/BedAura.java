@@ -65,7 +65,7 @@ public class BedAura extends Module {
 
     @Override
     public void onDisable() {
-        resetVariables();
+        reset();
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -82,12 +82,13 @@ public class BedAura extends Module {
         if (bedPos == null) {
             bedPos = getBedPos();
             if (bedPos == null) {
+                reset();
                 return;
             }
         }
         else {
             if (!(BlockUtils.getBlock(bedPos[0]) instanceof BlockBed) || (currentBlock != null && replaceable(currentBlock))) {
-                resetVariables();
+                reset();
                 return;
             }
         }
@@ -140,7 +141,7 @@ public class BedAura extends Module {
                     final IBlockState getBlockState = mc.theWorld.getBlockState(blockPos);
                     if (getBlockState.getBlock() == Blocks.bed && getBlockState.getValue((IProperty) BlockBed.PART) == BlockBed.EnumPartType.FOOT) {
                         float fov = (float) this.fov.getInput();
-                        if (fov != 360 && !Utils.inFov(n, blockPos)) {
+                        if (fov != 360 && !Utils.inFov(fov, blockPos)) {
                             continue priority;
                         }
                         return new BlockPos[]{blockPos, blockPos.offset((EnumFacing) getBlockState.getValue((IProperty) BlockBed.FACING))};
@@ -151,7 +152,7 @@ public class BedAura extends Module {
         return null;
     }
 
-    private void resetVariables() {
+    private void reset() {
         if (currentBlock != null) {
             abortBreak(currentBlock);
         }
@@ -202,12 +203,17 @@ public class BedAura extends Module {
     }
 
     private void breakBlock(BlockPos blockPos) {
+        float fov = (float) this.fov.getInput();
+        if (fov != 360 && !Utils.inFov(fov, blockPos)) {
+            return;
+        }
+
         if (!RotationUtils.inRange(blockPos, range.getInput())) {
             return;
         }
 
         if (replaceable(currentBlock == null ? blockPos : currentBlock)) {
-            resetVariables();
+            reset();
             return;
         }
 
@@ -229,7 +235,7 @@ public class BedAura extends Module {
                 swing();
                 stopBreak(blockPos);
                 mc.playerController.onPlayerDestroyBlock(blockPos, EnumFacing.UP);
-                resetVariables();
+                reset();
                 return;
             }
             else {
