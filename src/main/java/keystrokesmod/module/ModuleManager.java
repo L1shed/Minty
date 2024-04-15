@@ -44,6 +44,7 @@ public class ModuleManager {
     public static Module safeWalk;
     public static Module keepSprint;
     public static Module antiKnockback;
+    public static Module bedwars;
 
     public void register() {
         this.addModule(autoClicker = new AutoClicker());
@@ -112,7 +113,7 @@ public class ModuleManager {
         this.addModule(nameHider = new NameHider());
         this.addModule(new WaterBucket());
         this.addModule(commandLine = new CommandLine());
-        this.addModule(new BedWars());
+        this.addModule(bedwars = new BedWars());
         this.addModule(fastMine = new FastMine());
         this.addModule(new JumpReset());
         this.addModule(new Manager());
