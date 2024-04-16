@@ -266,6 +266,8 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
             }
         }
 
+        boolean stopSprint = NoSlow.getSlowed() != 1;
+
         this.pushOutOfBlocks(this.posX - (double) this.width * 0.35, this.getEntityBoundingBox().minY + 0.5, this.posZ + (double) this.width * 0.35);
         this.pushOutOfBlocks(this.posX - (double) this.width * 0.35, this.getEntityBoundingBox().minY + 0.5, this.posZ - (double) this.width * 0.35);
         this.pushOutOfBlocks(this.posX + (double) this.width * 0.35, this.getEntityBoundingBox().minY + 0.5, this.posZ - (double) this.width * 0.35);
@@ -290,7 +292,9 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
         }
 
         if (this.isSprinting() && (this.movementInput.moveForward < f || this.isCollidedHorizontally || !flag3)) {
-            this.setSprinting(false);
+            if (!this.isUsingItem() || stopSprint) { // modified checks
+                this.setSprinting(false);
+            }
         }
 
         if (this.capabilities.allowFlying) {
