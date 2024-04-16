@@ -230,10 +230,10 @@ public class KillAura extends Module {
             if (entity == mc.thePlayer) {
                 continue;
             }
-            if (!(entity instanceof EntityLivingBase)) {
+            if (!(entity instanceof EntityPlayer)) {
                 continue;
             }
-            /*if (Utils.isFriended((EntityPlayer) entity)) {
+            if (Utils.isFriended((EntityPlayer) entity)) {
                 continue;
             }
             if (!entity.isEntityAlive() || entity.ticksExisted < 10) {
@@ -241,7 +241,7 @@ public class KillAura extends Module {
             }
             if (AntiBot.isBot(entity) || (Utils.isTeamMate(entity) && ignoreTeammates.isToggled())) {
                 continue;
-            }*/
+            }
             if (entity.isInvisible() && !targetInvis.isToggled()) {
                 continue;
             }
