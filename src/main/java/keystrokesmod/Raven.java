@@ -59,6 +59,7 @@ public class Raven {
         clickGui = new ClickGui();
         profileManager = new ProfileManager();
         Reflection.getFields();
+        Reflection.getMethods();
         profileManager.loadProfiles();
         profileManager.loadProfile("default");
     }

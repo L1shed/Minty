@@ -12,9 +12,6 @@ import net.minecraft.item.ItemBlock;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.RenderTickEvent;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
 public class BurstClicker extends Module {
     public static DescriptionSetting artificialDragClicking;
     public static SliderSetting clicks;
@@ -23,7 +20,6 @@ public class BurstClicker extends Module {
     public static ButtonSetting placeWhenBlock;
     private boolean l_c = false;
     private boolean l_r = false;
-    private Method rightClickMouse = null;
 
     public BurstClicker() {
         super("BurstClicker", Module.category.combat, 0);
@@ -32,20 +28,6 @@ public class BurstClicker extends Module {
         this.registerSetting(delay = new SliderSetting("Delay (ms)", 5.0D, 1.0D, 40.0D, 1.0D));
         this.registerSetting(delayRandomizer = new ButtonSetting("Delay randomizer", true));
         this.registerSetting(placeWhenBlock = new ButtonSetting("Place when block", false));
-
-        try {
-            this.rightClickMouse = mc.getClass().getDeclaredMethod("func_147121_ag");
-        } catch (NoSuchMethodException var4) {
-            try {
-                this.rightClickMouse = mc.getClass().getDeclaredMethod("rightClickMouse");
-            } catch (NoSuchMethodException var3) {
-            }
-        }
-
-        if (this.rightClickMouse != null) {
-            this.rightClickMouse.setAccessible(true);
-        }
-
     }
 
     public void onEnable() {
@@ -106,10 +88,7 @@ public class BurstClicker extends Module {
     private void c(boolean st) {
         boolean r = placeWhenBlock.isToggled() && mc.thePlayer.getHeldItem() != null && mc.thePlayer.getHeldItem().getItem() instanceof ItemBlock;
         if (r) {
-            try {
-                this.rightClickMouse.invoke(mc);
-            } catch (IllegalAccessException | InvocationTargetException var4) {
-            }
+            Reflection.rightClick();
         } else {
             int key = mc.gameSettings.keyBindAttack.getKeyCode();
             KeyBinding.setKeyBindState(key, st);

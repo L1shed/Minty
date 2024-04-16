@@ -1,5 +1,7 @@
 package keystrokesmod.module.impl.player;
 
+import keystrokesmod.event.PostUpdateEvent;
+import keystrokesmod.event.PreUpdateEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.setting.impl.ButtonSetting;
@@ -22,11 +24,15 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.input.Mouse;
 
 public class AutoPlace extends Module {
-    public static DescriptionSetting description;
-    public static ButtonSetting holdRight;
-    public static ButtonSetting b;
-    public static SliderSetting frameDelay;
-    private double lfd = 0.0D;
+    private DescriptionSetting description;
+    private SliderSetting frameDelay;
+    private SliderSetting minPlaceDelay;
+    private SliderSetting motion;
+    private ButtonSetting disableLeft;
+    private ButtonSetting holdRight;
+    private ButtonSetting fastPlaceJump;
+    private ButtonSetting pitchCheck;
+    private double fDelay = 0.0D;
     private long l = 0L;
     private int f = 0;
     private MovingObjectPosition lm = null;
@@ -36,15 +42,20 @@ public class AutoPlace extends Module {
         super("AutoPlace", Module.category.player, 0);
         this.registerSetting(description = new DescriptionSetting("Best with safewalk."));
         this.registerSetting(frameDelay = new SliderSetting("Frame delay", 8.0D, 0.0D, 30.0D, 1.0D));
+        this.registerSetting(minPlaceDelay = new SliderSetting("Min place delay", 60.0, 25.0, 500.0, 5.0));
+        this.registerSetting(motion = new SliderSetting("Motion", 1.0, 0.5, 1.2, 0.01));
+        this.registerSetting(disableLeft = new ButtonSetting("Disable left", false));
         this.registerSetting(holdRight = new ButtonSetting("Hold right", true));
+        this.registerSetting(fastPlaceJump = new ButtonSetting("Fast place on jump", true));
+        this.registerSetting(pitchCheck = new ButtonSetting("Pitch check", false));
     }
 
     public void guiUpdate() {
-        if (this.lfd != frameDelay.getInput()) {
-            this.rv();
+        if (this.fDelay != frameDelay.getInput()) {
+            this.resetVariables();
         }
 
-        this.lfd = frameDelay.getInput();
+        this.fDelay = frameDelay.getInput();
     }
 
     public void onDisable() {
@@ -52,30 +63,40 @@ public class AutoPlace extends Module {
             this.rd(4);
         }
 
-        this.rv();
+        this.resetVariables();
     }
 
     public void onUpdate() {
-        if (holdRight.isToggled() && Mouse.isButtonDown(1) && !mc.thePlayer.capabilities.isFlying && !ModuleManager.fastPlace.isEnabled()) {
-            ItemStack i = mc.thePlayer.getHeldItem();
-            if (i == null || !(i.getItem() instanceof ItemBlock)) {
-                return;
-            }
-
-            this.rd(mc.thePlayer.motionY > 0.0D ? 1 : 1000);
+        if (mc.currentScreen != null || mc.thePlayer.capabilities.isFlying) {
+            return;
         }
-
+        final ItemStack getHeldItem = mc.thePlayer.getHeldItem();
+        if (getHeldItem == null || !(getHeldItem.getItem() instanceof ItemBlock)) {
+            return;
+        }
+        if (fastPlaceJump.isToggled() && holdRight.isToggled() && !ModuleManager.fastPlace.isEnabled() && Mouse.isButtonDown(1)) {
+            if (mc.thePlayer.motionY > 0.0) {
+                this.rd(1);
+            }
+            else if (!pitchCheck.isToggled()) {
+                this.rd(1000);
+            }
+        }
+        if (motion.getInput() != 1.0 && mc.thePlayer.onGround && Utils.isStrafing() && (!pitchCheck.isToggled() || mc.thePlayer.rotationPitch >= 70.0f)) {
+            Utils.setSpeed(Utils.getHorizontalSpeed() * motion.getInput());
+        }
     }
 
-    @SubscribeEvent(
-            priority = EventPriority.HIGHEST
-    )
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void bh(DrawBlockHighlightEvent ev) {
         if (Utils.nullCheck()) {
             if (mc.currentScreen == null && !mc.thePlayer.capabilities.isFlying) {
                 ItemStack i = mc.thePlayer.getHeldItem();
                 if (i != null && i.getItem() instanceof ItemBlock) {
                     MovingObjectPosition m = mc.objectMouseOver;
+                    if (disableLeft.isToggled() && Mouse.isButtonDown(0)) {
+                        return;
+                    }
                     if (m != null && m.typeOfHit == MovingObjectType.BLOCK && m.sideHit != EnumFacing.UP && m.sideHit != EnumFacing.DOWN) {
                         if (this.lm != null && (double) this.f < frameDelay.getInput()) {
                             ++this.f;
@@ -87,7 +108,7 @@ public class AutoPlace extends Module {
                                 if (b != null && b != Blocks.air && !(b instanceof BlockLiquid)) {
                                     if (!holdRight.isToggled() || Mouse.isButtonDown(1)) {
                                         long n = System.currentTimeMillis();
-                                        if (n - this.l >= 25L) {
+                                        if (n - this.l >= minPlaceDelay.getInput()) {
                                             this.l = n;
                                             if (mc.playerController.onPlayerRightClick(mc.thePlayer, mc.theWorld, i, pos, m.sideHit, m.hitVec)) {
                                                 Reflection.setButton(1, true);
@@ -118,7 +139,7 @@ public class AutoPlace extends Module {
         }
     }
 
-    private void rv() {
+    private void resetVariables() {
         this.lp = null;
         this.lm = null;
         this.f = 0;

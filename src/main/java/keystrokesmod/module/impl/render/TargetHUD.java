@@ -25,6 +25,7 @@ public class TargetHUD extends Module {
     private ButtonSetting showStatus;
     private Timer fadeTimer;
     private EntityLivingBase target;
+    private long lastAliveMS;
 
     public TargetHUD() {
         super("TargetHUD", category.render);
@@ -34,15 +35,31 @@ public class TargetHUD extends Module {
         this.registerSetting(showStatus = new ButtonSetting("Show win or loss", true));
     }
 
+    public void onDisable() {
+        reset();
+    }
+
     @SubscribeEvent
     public void onRenderTick(TickEvent.RenderTickEvent ev) {
-        if (ev.phase == TickEvent.Phase.END && Utils.nullCheck()) {
+        if (!Utils.nullCheck()) {
+            reset();
+            return;
+        }
+        if (ev.phase == TickEvent.Phase.END) {
             if (mc.currentScreen != null) {
+                reset();
                 return;
             }
             if (KillAura.target != null) {
                 target = KillAura.target;
-            } else {
+                lastAliveMS = System.currentTimeMillis();
+                fadeTimer = null;
+            } else if (target != null) {
+                if (System.currentTimeMillis() - lastAliveMS >= 200 && fadeTimer == null) {
+                    (fadeTimer = new Timer(400)).start();
+                }
+            }
+            else {
                 return;
             }
             String playerInfo = target.getDisplayName().getFormattedText();
@@ -95,5 +112,13 @@ public class TargetHUD extends Module {
             GlStateManager.disableBlend();
             GlStateManager.popMatrix();
         }
+        else {
+            target = null;
+        }
+    }
+
+    private void reset() {
+        fadeTimer = null;
+        target = null;
     }
 }

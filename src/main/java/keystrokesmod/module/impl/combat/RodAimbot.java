@@ -1,64 +1,102 @@
 package keystrokesmod.module.impl.combat;
 
+import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.impl.world.AntiBot;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.utility.Reflection;
+import keystrokesmod.utility.RotationUtils;
 import keystrokesmod.utility.Utils;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemFishingRod;
 import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-import java.util.Iterator;
-
 public class RodAimbot extends Module {
-    public static SliderSetting a;
-    public static SliderSetting b;
-    public static ButtonSetting c;
+    private SliderSetting fov;
+    private SliderSetting predicatedTicks;
+    private SliderSetting distance;
+    private ButtonSetting aimInvis;
+    private ButtonSetting ignoreTeammates;
+    public static boolean canceled;
+    private static EntityPlayer entity;
 
     public RodAimbot() {
         super("RodAimbot", Module.category.combat, 0);
-        this.registerSetting(a = new SliderSetting("FOV", 90.0D, 15.0D, 360.0D, 1.0D));
-        this.registerSetting(b = new SliderSetting("Distance", 4.5D, 1.0D, 10.0D, 0.5D));
-        this.registerSetting(c = new ButtonSetting("Aim invis", false));
+        this.registerSetting(fov = new SliderSetting("FOV", 180, 30, 360, 4));
+        this.registerSetting(predicatedTicks = new SliderSetting("Predicted ticks", 5.0, 0.0, 20.0, 1.0));
+        this.registerSetting(distance = new SliderSetting("Distance", 6, 3, 30, 0.5));
+        this.registerSetting(aimInvis = new ButtonSetting("Aim invis", false));
+        this.registerSetting(ignoreTeammates = new ButtonSetting("Ignore teammates", false));
+    }
+
+    public void onDisable() {
+        canceled = false;
+        entity = null;
     }
 
     @SubscribeEvent
-    public void onMouse(MouseEvent ev) {
-        if (ev.button == 1 && ev.buttonstate && Utils.nullCheck() && mc.currentScreen == null) {
-            if (mc.thePlayer.getCurrentEquippedItem() != null && mc.thePlayer.getCurrentEquippedItem().getItem() instanceof ItemFishingRod && mc.thePlayer.fishEntity == null) {
-                Entity en = this.gE();
-                if (en != null) {
-                    ev.setCanceled(true);
-                    Utils.aim(en, -7.0F, true);
-                    mc.playerController.sendUseItem(mc.thePlayer, mc.theWorld, mc.thePlayer.getCurrentEquippedItem());
-                }
-            }
+    public void onMouse(final MouseEvent mouseEvent) {
+        if (mouseEvent.button != 1 || !mouseEvent.buttonstate || !Utils.nullCheck() || mc.currentScreen != null) {
+            return;
+        }
+        if (mc.thePlayer.getCurrentEquippedItem() == null || !(mc.thePlayer.getCurrentEquippedItem().getItem() instanceof ItemFishingRod) || mc.thePlayer.fishEntity != null) {
+            return;
+        }
+        entity = this.getEntity();
+        if (entity == null) {
+            return;
+        }
+        mouseEvent.setCanceled(true);
+        canceled = true;
+    }
 
+    @SubscribeEvent
+    public void onPreMotion(PreMotionEvent event) {
+        if (!Utils.nullCheck()) {
+            return;
+        }
+        if (canceled) {
+            canceled = false;
+            Reflection.rightClick();
+            if (mc.thePlayer.getCurrentEquippedItem() == null || !(mc.thePlayer.getCurrentEquippedItem().getItem() instanceof ItemFishingRod)) {
+                return;
+            }
+            float[] rotations = RotationUtils.getRotationsPredicated(entity, (int)predicatedTicks.getInput());
+            event.setYaw(rotations[0]);
+            event.setPitch(rotations[1]);
         }
     }
 
-    public Entity gE() {
-        int f = (int) a.getInput();
-        Iterator var2 = mc.theWorld.playerEntities.iterator();
-
-        EntityPlayer en;
-        do {
-            do {
-                do {
-                    do {
-                        if (!var2.hasNext()) {
-                            return null;
-                        }
-
-                        en = (EntityPlayer) var2.next();
-                    } while (en == mc.thePlayer);
-                } while (en.deathTime != 0);
-            } while (!c.isToggled() && en.isInvisible());
-        } while ((double) mc.thePlayer.getDistanceToEntity(en) > b.getInput() || AntiBot.isBot(en) || !Utils.fov(en, (float) f));
-
-        return en;
+    private EntityPlayer getEntity() {
+        for (final EntityPlayer entityPlayer : mc.theWorld.playerEntities) {
+            if (entityPlayer != mc.thePlayer) {
+                if (entityPlayer.deathTime != 0) {
+                    continue;
+                }
+                if (!aimInvis.isToggled() && entityPlayer.isInvisible()) {
+                    continue;
+                }
+                if (mc.thePlayer.getDistanceSqToEntity(entityPlayer) > distance.getInput() * distance.getInput()) {
+                    continue;
+                }
+                if (Utils.isFriended(entityPlayer)) {
+                    continue;
+                }
+                final float n = (float)fov.getInput();
+                if (n != 360.0f && !Utils.inFov(n, entityPlayer)) {
+                    continue;
+                }
+                if (AntiBot.isBot(entityPlayer)) {
+                    continue;
+                }
+                if (ignoreTeammates.isToggled() && Utils.isTeamMate(entityPlayer)) {
+                    continue;
+                }
+                return entityPlayer;
+            }
+        }
+        return null;
     }
 }

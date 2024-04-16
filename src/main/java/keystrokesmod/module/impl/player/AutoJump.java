@@ -24,7 +24,7 @@ public class AutoJump extends Module {
     public void p(PlayerTickEvent e) {
         if (Utils.nullCheck()) {
             if (mc.thePlayer.onGround && (!b.isToggled() || !mc.thePlayer.isSneaking())) {
-                if (mc.theWorld.getCollidingBoundingBoxes(mc.thePlayer, mc.thePlayer.getEntityBoundingBox().offset(mc.thePlayer.motionX / 3.0D, -1.0D, mc.thePlayer.motionZ / 3.0D)).isEmpty()) {
+                if (Utils.onEdge()) {
                     this.ju(this.c = true);
                 } else if (this.c) {
                     this.ju(this.c = false);

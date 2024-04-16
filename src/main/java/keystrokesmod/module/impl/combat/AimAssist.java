@@ -8,9 +8,6 @@ import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.Utils;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
-
-import java.util.Iterator;
-
 public class AimAssist extends Module {
     private SliderSetting speed;
     private SliderSetting fov;
@@ -19,6 +16,7 @@ public class AimAssist extends Module {
     private ButtonSetting weaponOnly;
     private ButtonSetting aimInvis;
     private ButtonSetting blatantMode;
+    private ButtonSetting ignoreTeammates;
 
     public AimAssist() {
         super("AimAssist", Module.category.combat, 0);
@@ -29,6 +27,7 @@ public class AimAssist extends Module {
         this.registerSetting(weaponOnly = new ButtonSetting("Weapon only", false));
         this.registerSetting(aimInvis = new ButtonSetting("Aim invis", false));
         this.registerSetting(blatantMode = new ButtonSetting("Blatant mode", false));
+        this.registerSetting(ignoreTeammates = new ButtonSetting("Ignore teammates", false));
     }
 
     public void onUpdate() {
@@ -40,7 +39,6 @@ public class AimAssist extends Module {
                         if (Raven.debugger) {
                             Utils.sendMessage(this.getName() + " &e" + en.getName());
                         }
-
                         if (blatantMode.isToggled()) {
                             Utils.aim(en, 0.0F, false);
                         } else {
@@ -57,29 +55,31 @@ public class AimAssist extends Module {
         }
     }
 
-    public Entity getEnemy() {
-        int fov = (int) this.fov.getInput();
-        Iterator var2 = mc.theWorld.playerEntities.iterator();
-
-        EntityPlayer en;
-        do {
-            do {
-                do {
-                    do {
-                        do {
-                            do {
-                                if (!var2.hasNext()) {
-                                    return null;
-                                }
-
-                                en = (EntityPlayer) var2.next();
-                            } while (en == mc.thePlayer);
-                        } while (en.deathTime != 0);
-                    } while (!aimInvis.isToggled() && en.isInvisible());
-                } while ((double) mc.thePlayer.getDistanceToEntity(en) > distance.getInput());
-            } while (AntiBot.isBot(en));
-        } while (!blatantMode.isToggled() && !Utils.fov(en, (float) fov));
-
-        return en;
+    private Entity getEnemy() {
+        final int n = (int)fov.getInput();
+        for (final EntityPlayer entityPlayer : mc.theWorld.playerEntities) {
+            if (entityPlayer != mc.thePlayer && entityPlayer.deathTime == 0) {
+                if (Utils.isFriended(entityPlayer)) {
+                    continue;
+                }
+                if (ignoreTeammates.isToggled() && Utils.isTeamMate(entityPlayer)) {
+                    continue;
+                }
+                if (!aimInvis.isToggled() && entityPlayer.isInvisible()) {
+                    continue;
+                }
+                if (mc.thePlayer.getDistanceToEntity(entityPlayer) > distance.getInput()) {
+                    continue;
+                }
+                if (AntiBot.isBot(entityPlayer)) {
+                    continue;
+                }
+                if (!blatantMode.isToggled() && n != 360 && !Utils.inFov((float)n, entityPlayer)) {
+                    continue;
+                }
+                return entityPlayer;
+            }
+        }
+        return null;
     }
 }

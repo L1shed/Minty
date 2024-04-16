@@ -9,6 +9,8 @@ import net.minecraftforge.fml.relauncher.ReflectionHelper;
 import org.lwjgl.input.Mouse;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 
 public class Reflection {
@@ -20,41 +22,59 @@ public class Reflection {
     public static Field rightClickDelayTimerField;
     public static Field curBlockDamageMP;
     public static Field blockHitDelay;
+    public static Method rightClickMouse;
 
     public static void getFields() {
         try {
             button = MouseEvent.class.getDeclaredField("button");
             buttonstate = MouseEvent.class.getDeclaredField("buttonstate");
             buttons = Mouse.class.getDeclaredField("buttons");
+
+            leftClickCounter = ReflectionHelper.findField(Minecraft.class, "field_71429_W", "leftClickCounter");
+
+            if (leftClickCounter != null) {
+                leftClickCounter.setAccessible(true);
+            }
+
+            jumpTicks = ReflectionHelper.findField(EntityLivingBase.class, "field_70773_bE", "jumpTicks");
+
+            if (jumpTicks != null) {
+                jumpTicks.setAccessible(true);
+            }
+
+            rightClickDelayTimerField = ReflectionHelper.findField(Minecraft.class, "field_71467_ac", "rightClickDelayTimer");
+
+            if (rightClickDelayTimerField != null) {
+                rightClickDelayTimerField.setAccessible(true);
+            }
+
+            curBlockDamageMP = ReflectionHelper.findField(PlayerControllerMP.class, "field_78770_f", "curBlockDamageMP");
+            if (curBlockDamageMP != null) {
+                curBlockDamageMP.setAccessible(true);
+            }
+
+            blockHitDelay = ReflectionHelper.findField(PlayerControllerMP.class, "field_78781_i", "blockHitDelay");
+            if (blockHitDelay != null) {
+                blockHitDelay.setAccessible(true);
+            }
         } catch (Exception var2) {
+            System.out.println("There was an error, relaunch the game.");
+            var2.printStackTrace();
+        }
+    }
+
+    public static void getMethods() {
+        try {
+            rightClickMouse = Minecraft.getMinecraft().getClass().getDeclaredMethod("func_147121_ag");
+        } catch (NoSuchMethodException var4) {
+            try {
+                rightClickMouse = Minecraft.getMinecraft().getClass().getDeclaredMethod("rightClickMouse");
+            } catch (NoSuchMethodException var3) {
+            }
         }
 
-        leftClickCounter = ReflectionHelper.findField(Minecraft.class, "field_71429_W", "leftClickCounter");
-
-        if (leftClickCounter != null) {
-            leftClickCounter.setAccessible(true);
-        }
-
-        jumpTicks = ReflectionHelper.findField(EntityLivingBase.class, "field_70773_bE", "jumpTicks");
-
-        if (jumpTicks != null) {
-            jumpTicks.setAccessible(true);
-        }
-
-        rightClickDelayTimerField = ReflectionHelper.findField(Minecraft.class, "field_71467_ac", "rightClickDelayTimer");
-
-        if (rightClickDelayTimerField != null) {
-            rightClickDelayTimerField.setAccessible(true);
-        }
-
-        curBlockDamageMP = ReflectionHelper.findField(PlayerControllerMP.class, "field_78770_f", "curBlockDamageMP");
-        if (curBlockDamageMP != null) {
-            curBlockDamageMP.setAccessible(true);
-        }
-
-        blockHitDelay = ReflectionHelper.findField(PlayerControllerMP.class, "field_78781_i", "blockHitDelay");
-        if (blockHitDelay != null) {
-            blockHitDelay.setAccessible(true);
+        if (rightClickMouse != null) {
+            rightClickMouse.setAccessible(true);
         }
     }
 
@@ -75,5 +95,13 @@ public class Reflection {
             } catch (IllegalAccessException var4) {
             }
         }
+    }
+
+    public static void rightClick() {
+        try {
+            Reflection.rightClickMouse.invoke(Minecraft.getMinecraft());
+        }
+        catch (InvocationTargetException ex) {}
+        catch (IllegalAccessException ex2) {}
     }
 }

@@ -47,7 +47,7 @@ public class KillAura extends Module {
     private ButtonSetting requireMouseDown;
     private ButtonSetting weaponOnly;
     private String[] autoBlockModes = new String[]{"Manual", "Vanilla", "Fake"};
-    private String[] rotationModes = new String[]{"None", "Silent", "Lock"};
+    private String[] rotationModes = new String[]{"None", "Silent", "Lock view"};
     private String[] sortModes = new String[]{"Health", "HurtTime", "Distance", "Yaw"};
     private List<EntityLivingBase> availableTargets = new ArrayList<>();
     private AtomicBoolean block = new AtomicBoolean();
@@ -102,13 +102,21 @@ public class KillAura extends Module {
 
     @SubscribeEvent
     public void onRenderTick(TickEvent.RenderTickEvent ev) {
-        if (ev.phase != TickEvent.Phase.END && Utils.nullCheck()) {
-            if (cpsCheck()) {
-                attack = true;
-            }
+        if (!Utils.nullCheck()) {
+            return;
+        }
+        if (ev.phase != TickEvent.Phase.START) {
+            return;
+        }
+        if (canAttack()) {
+            attack = true;
+        }
+        if (target != null && rotationMode.getInput() == 2) {
+            float[] rotations = RotationUtils.getRotations(target, mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
+            mc.thePlayer.rotationYaw = rotations[0];
+            mc.thePlayer.rotationPitch = rotations[1];
         }
     }
-
 
     @SubscribeEvent
     public void onPreUpdate(PreUpdateEvent e) {
@@ -148,18 +156,10 @@ public class KillAura extends Module {
             return;
         }
         setTarget();
-        if (target != null && rotationMode.getInput() > 0) {
+        if (target != null && rotationMode.getInput() == 1) {
             float[] rotations = RotationUtils.getRotations(target, e.getYaw(), e.getPitch());
-            switch ((int) rotationMode.getInput()) {
-                case 1:
-                    e.setYaw(rotations[0]);
-                    e.setPitch(rotations[1]);
-                    break;
-                case 2:
-                    mc.thePlayer.rotationYaw = rotations[0];
-                    mc.thePlayer.rotationPitch = rotations[1];
-                    break;
-            }
+            e.setYaw(rotations[0]);
+            e.setPitch(rotations[1]);
         }
     }
 
@@ -329,7 +329,7 @@ public class KillAura extends Module {
         return Mouse.isButtonDown(0) && mc.objectMouseOver != null && mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK;
     }
 
-    private boolean cpsCheck() {
+    private boolean canAttack() {
         if (this.j > 0L && this.i > 0L) {
             if (System.currentTimeMillis() > this.j) {
                 this.gd();

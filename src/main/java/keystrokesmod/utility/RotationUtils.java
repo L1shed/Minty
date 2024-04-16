@@ -83,6 +83,34 @@ public class RotationUtils {
         return new float[]{mc.thePlayer.rotationYaw + MathHelper.wrapAngleTo180_float((float) (Math.atan2(n2, n) * 57.295780181884766) - 90.0f - mc.thePlayer.rotationYaw), m(mc.thePlayer.rotationPitch + MathHelper.wrapAngleTo180_float((float) (-(Math.atan2(n3, MathHelper.sqrt_double(n * n + n2 * n2)) * 57.295780181884766)) - mc.thePlayer.rotationPitch) + 3.0f)};
     }
 
+    public static float[] getRotationsPredicated(final Entity entity, final int ticks) {
+        if (entity == null) {
+            return null;
+        }
+        if (ticks == 0) {
+            return getRotations(entity);
+        }
+        double posX = entity.posX;
+        final double posY = entity.posY;
+        double posZ = entity.posZ;
+        final double n2 = posX - entity.lastTickPosX;
+        final double n3 = posZ - entity.lastTickPosZ;
+        for (int i = 0; i < ticks; ++i) {
+            posX += n2;
+            posZ += n3;
+        }
+        final double n4 = posX - mc.thePlayer.posX;
+        double n5;
+        if (entity instanceof EntityLivingBase) {
+            n5 = posY + entity.getEyeHeight() * 0.9 - (mc.thePlayer.posY + mc.thePlayer.getEyeHeight());
+        }
+        else {
+            n5 = (entity.getEntityBoundingBox().minY + entity.getEntityBoundingBox().maxY) / 2.0 - (mc.thePlayer.posY + mc.thePlayer.getEyeHeight());
+        }
+        final double n6 = posZ - mc.thePlayer.posZ;
+        return new float[] { mc.thePlayer.rotationYaw + MathHelper.wrapAngleTo180_float((float)(Math.atan2(n6, n4) * 57.295780181884766) - 90.0f - mc.thePlayer.rotationYaw), m(mc.thePlayer.rotationPitch + MathHelper.wrapAngleTo180_float((float)(-(Math.atan2(n5, MathHelper.sqrt_double(n4 * n4 + n6 * n6)) * 57.295780181884766)) - mc.thePlayer.rotationPitch) + 3.0f) };
+    }
+
     public static float m(final float n) {
         return MathHelper.clamp_float(n, -90.0f, 90.0f);
     }
