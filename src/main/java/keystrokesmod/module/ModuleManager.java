@@ -119,6 +119,7 @@ public class ModuleManager {
         this.addModule(new Manager());
         this.addModule(new AutoWho());
         this.addModule(new Gui());
+        this.addModule(new Shaders());
         antiBot.enable();
         Collections.sort(this.modules, Comparator.comparing(Module::getName));
     }

@@ -54,12 +54,12 @@ public class Raven {
         FMLCommonHandler.instance().bus().register(new KeySrokeRenderer());
         FMLCommonHandler.instance().bus().register(new Ping());
         FMLCommonHandler.instance().bus().register(badPacketsHandler = new BadPacketsHandler());
+        Reflection.getFields();
+        Reflection.getMethods();
         moduleManager.register();
         keySrokeRenderer = new KeySrokeRenderer();
         clickGui = new ClickGui();
         profileManager = new ProfileManager();
-        Reflection.getFields();
-        Reflection.getMethods();
         profileManager.loadProfiles();
         profileManager.loadProfile("default");
     }

@@ -2,7 +2,10 @@ package keystrokesmod.utility;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.PlayerControllerMP;
+import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.projectile.EntityArrow;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.relauncher.ReflectionHelper;
@@ -23,6 +26,11 @@ public class Reflection {
     public static Field curBlockDamageMP;
     public static Field blockHitDelay;
     public static Method rightClickMouse;
+    public static Field shaderResourceLocations;
+    public static Field useShader;
+    public static Field shaderIndex;
+    public static Method loadShader;
+    public static Field inGround;
 
     public static void getFields() {
         try {
@@ -57,6 +65,26 @@ public class Reflection {
             if (blockHitDelay != null) {
                 blockHitDelay.setAccessible(true);
             }
+
+            shaderResourceLocations = ReflectionHelper.findField(EntityRenderer.class, "shaderResourceLocations", "field_147712_ad");
+            if (shaderResourceLocations != null) {
+                shaderResourceLocations.setAccessible(true);
+            }
+
+            useShader = ReflectionHelper.findField(EntityRenderer.class, "useShader");
+            if (useShader != null) {
+                useShader.setAccessible(true);
+            }
+
+            shaderIndex = ReflectionHelper.findField(EntityRenderer.class, "field_147713_ae", "shaderIndex");
+            if (shaderIndex != null) {
+                shaderIndex.setAccessible(true);
+            }
+
+            inGround = ReflectionHelper.findField(EntityArrow.class, "field_70254_i", "inGround");
+            if (inGround != null) {
+                inGround.setAccessible(true);
+            }
         } catch (Exception var2) {
             System.out.println("There was an error, relaunch the game.");
             var2.printStackTrace();
@@ -75,6 +103,12 @@ public class Reflection {
 
         if (rightClickMouse != null) {
             rightClickMouse.setAccessible(true);
+        }
+
+        loadShader = ReflectionHelper.findMethod(EntityRenderer.class, Minecraft.getMinecraft().entityRenderer, new String[]{"func_175069_a", "loadShader"}, ResourceLocation.class);
+
+        if (loadShader != null) {
+            loadShader.setAccessible(true);
         }
     }
 
