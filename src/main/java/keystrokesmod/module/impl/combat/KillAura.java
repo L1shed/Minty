@@ -70,7 +70,7 @@ public class KillAura extends Module {
 
     public KillAura() {
         super("KillAura", category.combat);
-        this.registerSetting(aps = new SliderSetting("APS", 16.0, 1.0, 25.0, 0.5));
+        this.registerSetting(aps = new SliderSetting("APS", 16.0, 1.0, 20.0, 0.5));
         this.registerSetting(randomization = new SliderSetting("Randomization", 0, 0, 5, 0.15));
         this.registerSetting(autoBlockMode = new SliderSetting("Autoblock", autoBlockModes, 0));
         this.registerSetting(fov = new SliderSetting("FOV", 360.0, 30.0, 360.0, 4.0));
