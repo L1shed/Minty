@@ -1,5 +1,6 @@
 package keystrokesmod.utility;
 
+import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.module.impl.client.Settings;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
@@ -44,6 +45,14 @@ public class RotationUtils {
             return null;
         }
         return fixRotation(array[0], array[1], n, n2);
+    }
+
+    public static double distanceFromYaw(final Entity entity, final boolean b) {
+        return Math.abs(MathHelper.wrapAngleTo180_double(i(entity.posX, entity.posZ) - ((b && PreMotionEvent.isSetRenderYaw()) ? RotationUtils.renderYaw : mc.thePlayer.rotationYaw)));
+    }
+
+    public static float i(final double n, final double n2) {
+        return (float)(Math.atan2(n - mc.thePlayer.posX, n2 - mc.thePlayer.posZ) * 57.295780181884766 * -1.0);
     }
 
     public static boolean inRange(final BlockPos blockPos, final double n) {

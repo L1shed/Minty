@@ -153,7 +153,7 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
         }
 
         if (this.isCurrentViewEntity()) {
-            if (preMotionEvent.isSetRenderYaw()) {
+            if (PreMotionEvent.isSetRenderYaw()) {
                 RotationUtils.setRenderYaw(preMotionEvent.getYaw());
                 preMotionEvent.setRenderYaw(false);
             }

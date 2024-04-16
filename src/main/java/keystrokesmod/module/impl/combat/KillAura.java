@@ -8,10 +8,7 @@ import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.world.AntiBot;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
-import keystrokesmod.utility.BlockUtils;
-import keystrokesmod.utility.RandomUtils;
-import keystrokesmod.utility.RotationUtils;
-import keystrokesmod.utility.Utils;
+import keystrokesmod.utility.*;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -21,10 +18,10 @@ import net.minecraft.util.BlockPos;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.input.Mouse;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class KillAura extends Module {
@@ -59,6 +56,16 @@ public class KillAura extends Module {
     private boolean switchTargets;
     private byte entityIndex;
     private boolean swing;
+    // autoclicker vars
+    private long i;
+    private long j;
+    private long k;
+    private long l;
+    private double m;
+    private boolean n;
+    private Random rand;
+    // autoclicker vars end
+    private boolean attack = false;
 
 
     public KillAura() {
@@ -85,9 +92,23 @@ public class KillAura extends Module {
         this.registerSetting(weaponOnly = new ButtonSetting("Weapon only", false));
     }
 
+    public void onEnable() {
+        this.rand = new Random();
+    }
+
     public void onDisable() {
         resetVariables();
     }
+
+    @SubscribeEvent
+    public void onRenderTick(TickEvent.RenderTickEvent ev) {
+        if (ev.phase != TickEvent.Phase.END && Utils.nullCheck()) {
+            if (cpsCheck()) {
+                attack = true;
+            }
+        }
+    }
+
 
     @SubscribeEvent
     public void onPreUpdate(PreUpdateEvent e) {
@@ -105,14 +126,14 @@ public class KillAura extends Module {
             if (mc.thePlayer.isBlocking() && disableWhileBlocking.isToggled()) {
                 return;
             }
-            boolean canAttack = Math.abs(System.currentTimeMillis() - lastAttacked) > 1000 / aps.getInput() + RandomUtils.getRandom(randomization.getInput());
-            if (swing && canAttack) {
+            if (swing && attack) {
                 mc.thePlayer.swingItem();
             }
             if (target == null) {
                 return;
             }
-            if (canAttack) {
+            if (attack) {
+                attack = false;
                 switchTargets = true;
                 Utils.attackEntity(target, !swing);
                 lastAttacked = System.currentTimeMillis();
@@ -190,6 +211,9 @@ public class KillAura extends Module {
         availableTargets.clear();
         block.set(false);
         swing = false;
+        attack = false;
+        this.i = 0L;
+        this.j = 0L;
     }
 
     private void setTarget() {
@@ -250,6 +274,22 @@ public class KillAura extends Module {
             lastSwitched = System.currentTimeMillis();
         }
         if (!availableTargets.isEmpty()) {
+            Comparator<EntityLivingBase> comparator = null;
+            switch ((int) sortMode.getInput()) {
+                case 0:
+                    comparator = Comparator.comparingDouble(entityPlayer -> (double)entityPlayer.getHealth());
+                    break;
+                case 1:
+                    comparator = Comparator.comparingDouble(entityPlayer2 -> (double)entityPlayer2.hurtTime);
+                    break;
+                case 2:
+                    comparator = Comparator.comparingDouble(entity -> mc.thePlayer.getDistanceSqToEntity(entity));
+                    break;
+                case 3:
+                    comparator = Comparator.comparingDouble(entity2 -> RotationUtils.distanceFromYaw(entity2, false));
+                    break;
+            }
+            Collections.sort(availableTargets, comparator);
             if (entityIndex > availableTargets.size() - 1) {
                 entityIndex = 0;
             }
@@ -287,5 +327,49 @@ public class KillAura extends Module {
 
     private boolean isMining() {
         return Mouse.isButtonDown(0) && mc.objectMouseOver != null && mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK;
+    }
+
+    private boolean cpsCheck() {
+        if (this.j > 0L && this.i > 0L) {
+            if (System.currentTimeMillis() > this.j) {
+                this.gd();
+                return true;
+            } else if (System.currentTimeMillis() > this.i) {
+                return false;
+            }
+        } else {
+            this.gd();
+        }
+        return false;
+    }
+
+    public void gd() {
+        double c = aps.getInput() + 0.4D * this.rand.nextDouble();
+        long d = (long) ((int) Math.round(1000.0D / c));
+        if (System.currentTimeMillis() > this.k) {
+            if (!this.n && this.rand.nextInt(100) >= 85) {
+                this.n = true;
+                this.m = 1.1D + this.rand.nextDouble() * 0.15D;
+            } else {
+                this.n = false;
+            }
+
+            this.k = System.currentTimeMillis() + 500L + (long) this.rand.nextInt(1500);
+        }
+
+        if (this.n) {
+            d = (long) ((double) d * this.m);
+        }
+
+        if (System.currentTimeMillis() > this.l) {
+            if (this.rand.nextInt(100) >= 80) {
+                d += 50L + (long) this.rand.nextInt(100);
+            }
+
+            this.l = System.currentTimeMillis() + 500L + (long) this.rand.nextInt(1500);
+        }
+
+        this.j = System.currentTimeMillis() + d;
+        this.i = System.currentTimeMillis() + d / 2L - (long) this.rand.nextInt(10);
     }
 }
