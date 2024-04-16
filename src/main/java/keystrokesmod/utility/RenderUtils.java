@@ -576,7 +576,7 @@ public class RenderUtils {
         GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f);
     }
 
-    public static void drawRoundedGradientRectangle(float n, float n2, float n3, float n4, final float n5, final int n6, final int n7, final int n8, final int n9) {
+    public static void drawRoundedGradientRectangle(float x, float y, float x2, float y2, final float n5, final int n6, final int n7, final int n8, final int n9) {
         GL11.glEnable(3042);
         GL11.glDisable(3553);
         GL11.glBlendFunc(770, 771);
@@ -584,10 +584,10 @@ public class RenderUtils {
         GL11.glShadeModel(7425);
         GL11.glPushAttrib(0);
         GL11.glScaled(0.5, 0.5, 0.5);
-        n *= 2.0;
-        n2 *= 2.0;
-        n3 *= 2.0;
-        n4 *= 2.0;
+        x *= 2.0;
+        y *= 2.0;
+        x2 *= 2.0;
+        y2 *= 2.0;
         GL11.glEnable(3042);
         GL11.glDisable(3553);
         f(n6);
@@ -596,22 +596,22 @@ public class RenderUtils {
         GL11.glBegin(9);
         for (int i = 0; i <= 90; i += 3) {
             final double n10 = (double) (i * 0.017453292f);
-            GL11.glVertex2d((double) (n + n5) + Math.sin(n10) * n5 * -1.0, (double) (n2 + n5) + Math.cos(n10) * n5 * -1.0);
+            GL11.glVertex2d((double) (x + n5) + Math.sin(n10) * n5 * -1.0, (double) (y + n5) + Math.cos(n10) * n5 * -1.0);
         }
         f(n7);
         for (int j = 90; j <= 180; j += 3) {
             final double n11 = (double) (j * 0.017453292f);
-            GL11.glVertex2d((double) (n + n5) + Math.sin(n11) * n5 * -1.0, (double) (n4 - n5) + Math.cos(n11) * n5 * -1.0);
+            GL11.glVertex2d((double) (x + n5) + Math.sin(n11) * n5 * -1.0, (double) (y2 - n5) + Math.cos(n11) * n5 * -1.0);
         }
         f(n8);
         for (int k = 0; k <= 90; k += 3) {
             final double n12 = (double) (k * 0.017453292f);
-            GL11.glVertex2d((double) (n3 - n5) + Math.sin(n12) * n5, (double) (n4 - n5) + Math.cos(n12) * n5);
+            GL11.glVertex2d((double) (x2 - n5) + Math.sin(n12) * n5, (double) (y2 - n5) + Math.cos(n12) * n5);
         }
         f(n9);
         for (int l = 90; l <= 180; l += 3) {
             final double n13 = (double) (l * 0.017453292f);
-            GL11.glVertex2d((double) (n3 - n5) + Math.sin(n13) * n5, (double) (n2 + n5) + Math.cos(n13) * n5);
+            GL11.glVertex2d((double) (x2 - n5) + Math.sin(n13) * n5, (double) (y + n5) + Math.cos(n13) * n5);
         }
         GL11.glEnd();
         GL11.glEnable(3553);

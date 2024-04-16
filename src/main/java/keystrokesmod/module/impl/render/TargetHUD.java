@@ -24,8 +24,11 @@ public class TargetHUD extends Module {
     private ButtonSetting renderEsp;
     private ButtonSetting showStatus;
     private Timer fadeTimer;
+    private Timer healthBarTimer = null;
     private EntityLivingBase target;
     private long lastAliveMS;
+    private float previousHealth;
+    private double prevHealth;
 
     public TargetHUD() {
         super("TargetHUD", category.render);
@@ -64,6 +67,10 @@ public class TargetHUD extends Module {
             }
             String playerInfo = target.getDisplayName().getFormattedText();
             double health = target.getHealth() / target.getMaxHealth();
+            if (health != prevHealth) {
+                (healthBarTimer = new Timer(50)).start();
+            }
+            prevHealth = health;
             playerInfo += " " + Utils.getHealthStr(target);
             drawTargetHUD(fadeTimer, playerInfo, health);
         }
@@ -104,7 +111,11 @@ public class TargetHUD extends Module {
             RenderUtils.drawRoundedRectangle((float) n13, (float) n15, (float) n14, (float) (n15 + 5), 4.0f, Utils.merge(Color.black.getRGB(), n11)); // background
             final int k = Utils.merge(array[0], n12);
             final int n16 = (n > 0.15) ? Utils.merge(array[1], n12) : k;
-            RenderUtils.drawRoundedGradientRectangle((float) n13, (float) n15, (float) (int) (n14 + (n13 - n14) * (1.0 - ((n < 0.05) ? 0.05 : n))), (float) (n15 + 5), 4.0f, k, k, n16, n16); // health bar
+            float health = (float) (int) (n14 + (n13 - n14) * (1.0 - ((n < 0.05) ? 0.05 : n)));
+            if (health - n13 < 3) { // if goes below, the rounded health bar glitches out
+                health = n13 + 3;
+            }
+            RenderUtils.drawRoundedGradientRectangle((float) n13, (float) n15, health, (float) (n15 + 5), 4.0f, k, k, n16, n16); // health bar
             GlStateManager.pushMatrix();
             GlStateManager.enableBlend();
             GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
@@ -120,5 +131,6 @@ public class TargetHUD extends Module {
     private void reset() {
         fadeTimer = null;
         target = null;
+        healthBarTimer = null;
     }
 }
