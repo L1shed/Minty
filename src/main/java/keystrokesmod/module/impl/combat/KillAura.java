@@ -1,5 +1,6 @@
 package keystrokesmod.module.impl.combat;
 
+import keystrokesmod.event.PostMotionEvent;
 import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.event.PreUpdateEvent;
 import keystrokesmod.event.ReceivePacketEvent;
@@ -13,6 +14,9 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
+import net.minecraft.network.play.client.C07PacketPlayerDigging;
+import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
+import net.minecraft.network.play.client.C09PacketHeldItemChange;
 import net.minecraft.network.play.server.S2FPacketSetSlot;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.MovingObjectPosition;
@@ -23,6 +27,8 @@ import org.lwjgl.input.Mouse;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import static net.minecraft.util.EnumFacing.DOWN;
 
 public class KillAura extends Module {
     public static EntityLivingBase target;
@@ -46,7 +52,7 @@ public class KillAura extends Module {
     private ButtonSetting ignoreTeammates;
     private ButtonSetting requireMouseDown;
     private ButtonSetting weaponOnly;
-    private String[] autoBlockModes = new String[]{"Manual", "Vanilla", "Fake"};
+    private String[] autoBlockModes = new String[]{"Manual", "Vanilla", "Post", "Fake"};
     private String[] rotationModes = new String[]{"None", "Silent", "Lock view"};
     private String[] sortModes = new String[]{"Health", "HurtTime", "Distance", "Yaw"};
     private List<EntityLivingBase> availableTargets = new ArrayList<>();
@@ -65,7 +71,8 @@ public class KillAura extends Module {
     private boolean n;
     private Random rand;
     // autoclicker vars end
-    private boolean attack = false;
+    private boolean attack;
+    private boolean blocking;
 
 
     public KillAura() {
@@ -125,10 +132,10 @@ public class KillAura extends Module {
             return;
         }
 
-        // block range code here
+        block();
 
         if (settingCondition()) {
-            if ((ModuleManager.bedAura != null && ModuleManager.bedAura.isEnabled() && !ModuleManager.bedAura.allowKillAura.isToggled() && ModuleManager.bedAura.currentBlock != null)) {
+            if (ModuleManager.bedAura != null && ModuleManager.bedAura.isEnabled() && !ModuleManager.bedAura.allowKillAura.isToggled() && ModuleManager.bedAura.currentBlock != null) {
                 return;
             }
             if (mc.thePlayer.isBlocking() && disableWhileBlocking.isToggled()) {
@@ -161,6 +168,18 @@ public class KillAura extends Module {
             e.setYaw(rotations[0]);
             e.setPitch(rotations[1]);
         }
+        if (autoBlockMode.getInput() == 2 && block.get() && Utils.holdingSword()) {
+            mc.thePlayer.sendQueue.addToSendQueue(new C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem % 8 + 1));
+            mc.thePlayer.sendQueue.addToSendQueue(new C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem));
+        }
+    }
+
+    @SubscribeEvent
+    public void onPostMotion(PostMotionEvent e) {
+        if (autoBlockMode.getInput() == 2 && block.get() && Utils.holdingSword()) {
+            mc.thePlayer.sendQueue.addToSendQueue(new C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem % 8 + 1));
+            mc.thePlayer.sendQueue.addToSendQueue(new C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem));
+        }
     }
 
     @SubscribeEvent
@@ -187,7 +206,7 @@ public class KillAura extends Module {
                 mouseEvent.setCanceled(true);
             }
         }
-        else if (mouseEvent.button == 1 && (autoBlockMode.getInput() >= 1) && Utils.holdingSword()) {
+        else if (mouseEvent.button == 1 && autoBlockMode.getInput() == 1 && Utils.holdingSword() && block.get()) {
             if (target == null && mc.objectMouseOver != null) {
                 if (mc.objectMouseOver.entityHit != null && AntiBot.isBot(mc.objectMouseOver.entityHit)) {
                     return;
@@ -214,6 +233,7 @@ public class KillAura extends Module {
         attack = false;
         this.i = 0L;
         this.j = 0L;
+        block();
     }
 
     private void setTarget() {
@@ -371,5 +391,44 @@ public class KillAura extends Module {
 
         this.j = System.currentTimeMillis() + d;
         this.i = System.currentTimeMillis() + d / 2L - (long) this.rand.nextInt(10);
+    }
+
+    private void block() {
+        if (ModuleManager.bedAura != null && ModuleManager.bedAura.isEnabled() && !ModuleManager.bedAura.allowAutoBlock.isToggled() && ModuleManager.bedAura.currentBlock != null) {
+            block.set(false);
+        }
+        if (!Utils.holdingSword()) {
+            block.set(false);
+        }
+        switch ((int) autoBlockMode.getInput()) {
+            case 1:
+                setBlockState(block.get(), true, true);
+                break;
+            case 2:
+
+                setBlockState(block.get(), false, true);
+                break;
+            case 3:
+                setBlockState(block.get(), false, false);
+                break;
+        }
+    }
+
+    private void setBlockState(boolean state, boolean sendBlock, boolean sendUnBlock) {
+        if (Utils.holdingSword()) {
+            if (sendBlock && !blocking && state) {
+                mc.getNetHandler().addToSendQueue(new C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()));
+            } else if (sendUnBlock && blocking && !state) {
+                unBlock();
+            }
+        }
+        blocking = Reflection.setBlocking(state);
+    }
+
+    private void unBlock() {
+        if (!Utils.holdingSword()) {
+            return;
+        }
+        mc.thePlayer.sendQueue.addToSendQueue(new C07PacketPlayerDigging(C07PacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, DOWN));
     }
 }

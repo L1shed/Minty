@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.PlayerControllerMP;
 import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.projectile.EntityArrow;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.MouseEvent;
@@ -31,6 +32,7 @@ public class Reflection {
     public static Field shaderIndex;
     public static Method loadShader;
     public static Field inGround;
+    public static Field itemInUseCount;
 
     public static void getFields() {
         try {
@@ -85,6 +87,11 @@ public class Reflection {
             if (inGround != null) {
                 inGround.setAccessible(true);
             }
+
+            itemInUseCount = ReflectionHelper.findField(EntityPlayer.class, "field_71072_f", "itemInUseCount");
+            if (itemInUseCount != null) {
+                itemInUseCount.setAccessible(true);
+            }
         } catch (Exception var2) {
             System.out.println("There was an error, relaunch the game.");
             var2.printStackTrace();
@@ -137,5 +144,16 @@ public class Reflection {
         }
         catch (InvocationTargetException ex) {}
         catch (IllegalAccessException ex2) {}
+    }
+
+    public static boolean setBlocking(boolean blocking) {
+        try {
+            itemInUseCount.set(Minecraft.getMinecraft().thePlayer, blocking ? 1 : 0);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Utils.sendMessage("§cFailed to set block state client-side.");
+            return false;
+        }
+        return blocking;
     }
 }

@@ -1,70 +1,59 @@
 package keystrokesmod.module.impl.player;
 
+import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.module.Module;
-import keystrokesmod.module.setting.impl.DescriptionSetting;
-import keystrokesmod.utility.Utils;
+import keystrokesmod.module.setting.impl.ButtonSetting;
+import keystrokesmod.utility.BlockUtils;
+import keystrokesmod.utility.RotationUtils;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockAir;
+import net.minecraft.block.BlockSign;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
 import net.minecraft.util.BlockPos;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.util.MovingObjectPosition.MovingObjectType;
+import net.minecraft.util.Vec3;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
 
 public class WaterBucket extends Module {
-    public static DescriptionSetting a;
-    private boolean handling;
+    //private ButtonSetting pickup;
+    private ButtonSetting silentAim;
+    private ButtonSetting switchToItem;
 
     public WaterBucket() {
         super("Water bucket", category.player, 0);
+        //this.registerSetting(pickup = new ButtonSetting("Pickup water", true));
+        this.registerSetting(silentAim = new ButtonSetting("Silent aim", true));
+        this.registerSetting(switchToItem = new ButtonSetting("Switch to item", true));
     }
 
     @SubscribeEvent
-    public void onTick(ClientTickEvent ev) {
-        if (ev.phase != Phase.END && Utils.nullCheck() && !mc.isGamePaused()) {
-            if (this.inPosition() && this.holdWaterBucket()) {
-                this.handling = true;
+    public void onPreMotion(PreMotionEvent e) {
+        MovingObjectPosition rayCast = RotationUtils.rayCast(mc.playerController.getBlockReachDistance(), e.getYaw(), 90);
+        if (inPosition() && rayCast != null && rayCast.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK && holdWaterBucket(switchToItem.isToggled())) {
+            if (silentAim.isToggled()) {
+                e.setPitch(90);
             }
-
-            if (this.handling) {
-                this.mlg();
-                if (mc.thePlayer.onGround || mc.thePlayer.motionY > 0.0D) {
-                    this.reset();
-                }
+            else {
+                mc.thePlayer.rotationPitch = 90;
             }
-
+            sendPlace();
         }
     }
 
     private boolean inPosition() {
-        if (mc.thePlayer.motionY < -0.6D && !mc.thePlayer.onGround && !mc.thePlayer.capabilities.isFlying && !mc.thePlayer.capabilities.isCreativeMode && !this.handling) {
-            BlockPos playerPos = mc.thePlayer.getPosition();
-
-            for (int i = 1; i < 3; ++i) {
-                BlockPos blockPos = playerPos.down(i);
-                Block block = mc.theWorld.getBlockState(blockPos).getBlock();
-                if (block.isBlockSolid(mc.theWorld, blockPos, EnumFacing.UP)) {
-                    return false;
-                }
-            }
-
-            return true;
-        } else {
-            return false;
-        }
+        return !mc.thePlayer.capabilities.isFlying && !mc.thePlayer.capabilities.isCreativeMode && !mc.thePlayer.onGround && mc.thePlayer.motionY < -0.6D && !mc.thePlayer.isInWater() && fallDistance() <= 2;
     }
 
-    private boolean holdWaterBucket() {
+    private boolean holdWaterBucket(boolean setSlot) {
         if (this.containsItem(mc.thePlayer.getHeldItem(), Items.water_bucket)) {
             return true;
         } else {
             for (int i = 0; i < InventoryPlayer.getHotbarSize(); ++i) {
-                if (this.containsItem(mc.thePlayer.inventory.mainInventory[i], Items.water_bucket)) {
+                if (this.containsItem(mc.thePlayer.inventory.mainInventory[i], Items.water_bucket) && setSlot) {
                     mc.thePlayer.inventory.currentItem = i;
                     return true;
                 }
@@ -74,27 +63,26 @@ public class WaterBucket extends Module {
         }
     }
 
-    private void mlg() {
-        ItemStack heldItem = mc.thePlayer.getHeldItem();
-        if (this.containsItem(heldItem, Items.water_bucket) && mc.thePlayer.rotationPitch >= 70.0F) {
-            MovingObjectPosition object = mc.objectMouseOver;
-            if (object.typeOfHit == MovingObjectType.BLOCK && object.sideHit == EnumFacing.UP) {
-                mc.playerController.sendUseItem(mc.thePlayer, mc.theWorld, heldItem);
-            }
-        }
-
-    }
-
-    private void reset() {
-        ItemStack heldItem = mc.thePlayer.getHeldItem();
-        if (this.containsItem(heldItem, Items.bucket)) {
-            mc.playerController.sendUseItem(mc.thePlayer, mc.theWorld, heldItem);
-        }
-
-        this.handling = false;
-    }
-
     private boolean containsItem(ItemStack itemStack, Item item) {
         return itemStack != null && itemStack.getItem() == item;
+    }
+
+    private void sendPlace() {
+        mc.getNetHandler().addToSendQueue(new C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()));
+    }
+
+    private int fallDistance() {
+        int fallDist = -1;
+        Vec3 pos = new Vec3(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
+        int y = (int) Math.floor(pos.yCoord);
+        if (pos.yCoord % 1 == 0) y--;
+        for (int i = y; i > -1; i--) {
+            Block block = BlockUtils.getBlock(new BlockPos((int) Math.floor(pos.xCoord), i, (int) Math.floor(pos.zCoord)));
+            if (!(block instanceof BlockAir) && !(block instanceof BlockSign)) {
+                fallDist = y - i;
+                break;
+            }
+        }
+        return fallDist;
     }
 }

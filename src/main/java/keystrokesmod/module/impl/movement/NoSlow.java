@@ -22,7 +22,7 @@ public class NoSlow extends Module {
     public static ButtonSetting disablePotions;
     public static ButtonSetting swordOnly;
     public static ButtonSetting vanillaSword;
-    private String[] modes = new String[]{"Vanilla", "Post", "Alpha"};
+    private String[] modes = new String[]{"Vanilla", "Pre", "Post", "Alpha"};
     private boolean postPlace;
 
     public NoSlow() {
@@ -47,9 +47,14 @@ public class NoSlow extends Module {
         }
         switch ((int) mode.getInput()) {
             case 1:
-                postPlace = true;
+                if (mc.thePlayer.ticksExisted % 3 == 0) {
+                    mc.thePlayer.sendQueue.addToSendQueue(new C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()));
+                }
                 break;
             case 2:
+                postPlace = true;
+                break;
+            case 3:
                 if (mc.thePlayer.ticksExisted % 3 == 0) {
                     mc.thePlayer.sendQueue.addToSendQueue(new C08PacketPlayerBlockPlacement(new BlockPos(-1, -1, -1), 1, null, 0, 0, 0));
                 }

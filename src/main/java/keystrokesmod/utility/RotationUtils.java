@@ -7,6 +7,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.MathHelper;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 
 public class RotationUtils {
@@ -139,5 +140,16 @@ public class RotationUtils {
 
     public static float angle(final double n, final double n2) {
         return (float) (Math.atan2(n - mc.thePlayer.posX, n2 - mc.thePlayer.posZ) * 57.295780181884766 * -1.0);
+    }
+
+    public static MovingObjectPosition rayCast(final double n, final float n2, final float n3) {
+        final Vec3 getPositionEyes = mc.thePlayer.getPositionEyes(1.0f);
+        final float n4 = -n2 * 0.017453292f;
+        final float n5 = -n3 * 0.017453292f;
+        final float cos = MathHelper.cos(n4 - 3.1415927f);
+        final float sin = MathHelper.sin(n4 - 3.1415927f);
+        final float n6 = -MathHelper.cos(n5);
+        final Vec3 vec3 = new Vec3((double)(sin * n6), (double)MathHelper.sin(n5), (double)(cos * n6));
+        return mc.theWorld.rayTraceBlocks(getPositionEyes, getPositionEyes.addVector(vec3.xCoord * n, vec3.yCoord * n, vec3.zCoord * n), false, false, false);
     }
 }
