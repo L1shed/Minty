@@ -255,7 +255,6 @@ public class BedAura extends Module {
             setSlot(slot);
             swing();
             stopBreak(blockPos);
-            mc.playerController.onPlayerDestroyBlock(blockPos, EnumFacing.UP);
         }
     }
 
