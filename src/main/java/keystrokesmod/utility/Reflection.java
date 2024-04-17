@@ -71,7 +71,7 @@ public class Reflection {
                 shaderResourceLocations.setAccessible(true);
             }
 
-            useShader = ReflectionHelper.findField(EntityRenderer.class, "useShader");
+            useShader = ReflectionHelper.findField(EntityRenderer.class, "useShader", "field_175083_ad");
             if (useShader != null) {
                 useShader.setAccessible(true);
             }

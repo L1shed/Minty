@@ -36,7 +36,7 @@ public class Shaders extends Module {
             return;
         }
         try {
-            if (Reflection.shaderIndex.getInt(mc.entityRenderer) != shader.getInput()) {
+            if (Reflection.shaderIndex.getInt(mc.entityRenderer) != (int) shader.getInput()) {
                 Reflection.shaderIndex.setInt(mc.entityRenderer, (int) shader.getInput());
                 Reflection.loadShader.invoke(mc.entityRenderer, shaderLocations[(int) shader.getInput()]);
             }
@@ -47,6 +47,7 @@ public class Shaders extends Module {
         catch (Exception ex) {
             ex.printStackTrace();
             Utils.sendMessage("&cError loading shader.");
+            this.disable();
         }
     }
 

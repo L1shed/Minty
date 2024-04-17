@@ -380,19 +380,19 @@ public class Utils {
     }
 
     public static double n(Entity en) {
-        return ((double) (mc.thePlayer.rotationYaw - m(en)) % 360.0D + 540.0D) % 360.0D - 180.0D;
+        return ((double) (mc.thePlayer.rotationYaw - getYaw(en)) % 360.0D + 540.0D) % 360.0D - 180.0D;
     }
 
-    public static float m(Entity ent) {
+    public static float getYaw(Entity ent) {
         double x = ent.posX - mc.thePlayer.posX;
         double z = ent.posZ - mc.thePlayer.posZ;
-        double yaw = Math.atan2(x, z) * 57.2957795D;
+        double yaw = Math.atan2(x, z) * 57.29577951308232;
         return (float) (yaw * -1.0D);
     }
 
     public static boolean fov(Entity entity, float fov) {
         fov = (float) ((double) fov * 0.5D);
-        double v = ((double) (mc.thePlayer.rotationYaw - m(entity)) % 360.0D + 540.0D) % 360.0D - 180.0D;
+        double v = ((double) (mc.thePlayer.rotationYaw - getYaw(entity)) % 360.0D + 540.0D) % 360.0D - 180.0D;
         return v > 0.0D && v < (double) fov || (double) (-fov) < v && v < 0.0D;
     }
 
