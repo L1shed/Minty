@@ -1,6 +1,9 @@
 package keystrokesmod.mixins.impl.entity;
 
+import keystrokesmod.event.StrafeEvent;
+import keystrokesmod.module.impl.client.Settings;
 import keystrokesmod.module.impl.player.SafeWalk;
+import keystrokesmod.utility.RotationUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockFence;
 import net.minecraft.block.BlockFenceGate;
@@ -14,6 +17,8 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.*;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.common.FMLCommonHandler;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
@@ -410,5 +415,41 @@ public abstract class MixinEntity {
 
             this.worldObj.theProfiler.endSection();
         }
+    }
+
+    @Overwrite
+    public void moveFlying(float p_moveFlying_1_, float p_moveFlying_2_, float p_moveFlying_3_) {
+        float yaw = this.rotationYaw;
+        if((Object) this == Minecraft.getMinecraft().thePlayer) {
+            StrafeEvent strafeEvent = new StrafeEvent(p_moveFlying_1_, p_moveFlying_2_, p_moveFlying_3_, this.rotationYaw);
+            net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(strafeEvent);
+            if (strafeEvent.isCanceled()) {
+                return;
+            }
+            p_moveFlying_1_ = strafeEvent.getStrafe();
+            p_moveFlying_2_ = strafeEvent.getForward();
+            p_moveFlying_3_ = strafeEvent.getFriction();
+            yaw = strafeEvent.getYaw();
+            if (Settings.movementFix.isToggled()) {
+                yaw = RotationUtils.renderYaw;
+            }
+        }
+
+        float f = p_moveFlying_1_ * p_moveFlying_1_ + p_moveFlying_2_ * p_moveFlying_2_;
+        if (f >= 1.0E-4F) {
+            f = MathHelper.sqrt_float(f);
+            if (f < 1.0F) {
+                f = 1.0F;
+            }
+
+            f = p_moveFlying_3_ / f;
+            p_moveFlying_1_ *= f;
+            p_moveFlying_2_ *= f;
+            float f1 = MathHelper.sin(yaw * 3.1415927F / 180.0F);
+            float f2 = MathHelper.cos(yaw * 3.1415927F / 180.0F);
+            this.motionX += (double)(p_moveFlying_1_ * f2 - p_moveFlying_2_ * f1);
+            this.motionZ += (double)(p_moveFlying_2_ * f2 + p_moveFlying_1_ * f1);
+        }
+
     }
 }
