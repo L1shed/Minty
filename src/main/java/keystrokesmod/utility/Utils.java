@@ -264,7 +264,9 @@ public class Utils {
     }
 
     public static int getBedwarsStatus() {
-        int i = -1;
+        if (!Utils.nullCheck()) {
+            return -1;
+        }
         final Scoreboard scoreboard = mc.theWorld.getScoreboard();
         if (scoreboard == null) {
             return -1;
@@ -285,7 +287,6 @@ public class Utils {
             } else if (line.startsWith("R Red:") || line.startsWith("B Blue:")) {
                 return 2;
             }
-            i++;
         }
         return -1;
     }

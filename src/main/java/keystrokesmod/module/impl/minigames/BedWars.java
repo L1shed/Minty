@@ -115,14 +115,6 @@ public class BedWars extends Module {
         }
     }
 
-    @SubscribeEvent
-    public void onReceivePacket(ReceivePacketEvent e) {
-        if (mc.isSingleplayer() || Utils.getBedwarsStatus() != 2) {
-            return;
-        }
-
-    }
-
     private String getItemType(ItemStack item) {
         if (item == null || item.getItem() == null) {
             return null;
