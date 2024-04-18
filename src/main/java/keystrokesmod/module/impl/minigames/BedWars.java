@@ -1,5 +1,6 @@
 package keystrokesmod.module.impl.minigames;
 
+import keystrokesmod.event.ReceivePacketEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.impl.world.AntiBot;
 import keystrokesmod.module.setting.impl.ButtonSetting;
@@ -26,8 +27,8 @@ public class BedWars extends Module {
     private BlockPos spawnPos;
     private boolean check;
     public static boolean outsideSpawn = true;
-    private final List<String> armoredPlayer = new ArrayList<>();
-    private final Map<String, String> lastHeldMap = new ConcurrentHashMap<>();
+    private List<String> armoredPlayer = new ArrayList<>();
+    private Map<String, String> lastHeldMap = new ConcurrentHashMap<>();
 
     public BedWars() {
         super("Bed Wars", category.minigames);
@@ -114,33 +115,31 @@ public class BedWars extends Module {
         }
     }
 
+    @SubscribeEvent
+    public void onReceivePacket(ReceivePacketEvent e) {
+        if (mc.isSingleplayer() || Utils.getBedwarsStatus() != 2) {
+            return;
+        }
+
+    }
+
     private String getItemType(ItemStack item) {
         if (item == null || item.getItem() == null) {
             return null;
         }
         String unlocalizedName = item.getItem().getUnlocalizedName();
         if (item.getItem() instanceof ItemEnderPearl && enderPearl.isToggled()) {
-            return "Ender Pearl";
+            return "&7an §3Ender Pearl";
         } else if (unlocalizedName.contains("tile.obsidian") && obsidian.isToggled()) {
-            return "Obsidian";
+            return "§dObsidian";
         }
         // opportunity to add more here
         return null;
     }
 
     private void handleAlert(String itemType, String name, String info) {
-        String alertMessage;
-        switch (itemType) {
-            case "Ender Pearl":
-                alertMessage = "&eAlert: &r" + name + " &7is holding an §3Ender Pearl &7(" + "§d" + info + "m" + "&7)";
-                break;
-            case "Obsidian":
-                alertMessage = "&eAlert: &r" + name + " &7is holding §0Obsidian§7.";
-                break;
-            default:
-                return;
-        }
-        Utils.sendMessage(alertMessage);
+        String alert = "&eAlert: &r" + name + " &7is holding " + itemType + " &7(" + "§d" + info + "m" + "&7)";
+        Utils.sendMessage(alert);
         ping();
     }
 
