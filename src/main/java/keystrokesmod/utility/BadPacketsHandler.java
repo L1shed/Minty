@@ -14,9 +14,6 @@ public class BadPacketsHandler { // ensures you don't get banned
     private boolean C02;
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onSendPacket(SendPacketEvent e) {
-        if (e.isCanceled()) {
-            return;
-        }
         if (e.getPacket() instanceof C02PacketUseEntity) { // sending a C07 on the same tick as C02 can ban, this usually happens when you unblock and attack on the same tick
             if (C07) {
                 e.setCanceled(true);

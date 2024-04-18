@@ -93,7 +93,7 @@ public class BedAura extends Module {
                 return;
             }
         }
-        if (breakBlockAbove.isToggled() && !replaceable(bedPos[0].up())) {
+        if (breakBlockAbove.isToggled() && isCovered(bedPos[0]) && isCovered(bedPos[1])) {
             breakBlock(bedPos[0].up());
         }
         else {
@@ -104,7 +104,7 @@ public class BedAura extends Module {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onPreMotion(PreMotionEvent e) {
-        if ((rotate || breakProgress >= 1) && currentBlock != null) {
+        if ((rotate || breakProgress >= 1 || breakProgress == 0) && currentBlock != null) {
             float[] rotations = RotationUtils.getRotations(currentBlock, e.getYaw(), e.getPitch());
             e.setYaw(rotations[0]);
             e.setPitch(rotations[1]);
@@ -266,5 +266,15 @@ public class BedAura extends Module {
             lastSlot = mc.thePlayer.inventory.currentItem;
         }
         mc.thePlayer.inventory.currentItem = slot;
+    }
+
+    private boolean isCovered(BlockPos blockPos) {
+        for (EnumFacing enumFacing : EnumFacing.values()) {
+            BlockPos offset = blockPos.offset(enumFacing);
+            if (replaceable(offset)) {
+                return false;
+            }
+        }
+        return true;
     }
 }

@@ -430,7 +430,7 @@ public abstract class MixinEntity {
             p_moveFlying_2_ = strafeEvent.getForward();
             p_moveFlying_3_ = strafeEvent.getFriction();
             yaw = strafeEvent.getYaw();
-            if (Settings.movementFix.isToggled()) {
+            if (Settings.movementFix != null && Settings.movementFix.isToggled()) {
                 yaw = RotationUtils.renderYaw;
             }
         }
