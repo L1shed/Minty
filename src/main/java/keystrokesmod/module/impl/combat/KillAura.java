@@ -33,7 +33,6 @@ import static net.minecraft.util.EnumFacing.DOWN;
 public class KillAura extends Module {
     public static EntityLivingBase target;
     private SliderSetting aps;
-    private SliderSetting randomization;
     private SliderSetting autoBlockMode;
     private SliderSetting fov;
     private SliderSetting attackRange;
@@ -78,7 +77,6 @@ public class KillAura extends Module {
     public KillAura() {
         super("KillAura", category.combat);
         this.registerSetting(aps = new SliderSetting("APS", 16.0, 1.0, 20.0, 0.5));
-        this.registerSetting(randomization = new SliderSetting("Randomization", 0, 0, 5, 0.15));
         this.registerSetting(autoBlockMode = new SliderSetting("Autoblock", autoBlockModes, 0));
         this.registerSetting(fov = new SliderSetting("FOV", 360.0, 30.0, 360.0, 4.0));
         this.registerSetting(attackRange = new SliderSetting("Range (attack)", 3.0, 3.0, 6.0, 0.05));
@@ -86,7 +84,7 @@ public class KillAura extends Module {
         this.registerSetting(blockRange = new SliderSetting("Range (block)", 6.0, 3.0, 12.0, 0.05));
         this.registerSetting(rotationMode = new SliderSetting("Rotation mode", rotationModes, 0));
         this.registerSetting(sortMode = new SliderSetting("Sort mode", sortModes, 0.0));
-        this.registerSetting(switchDelay = new SliderSetting("Switch delay (ms)", 200.0, 50.0, 1000.0, 25.0));
+        this.registerSetting(switchDelay = new SliderSetting("Switch delay", 200.0, 50.0, 1000.0, 25.0, "ms"));
         this.registerSetting(targets = new SliderSetting("Targets", 3.0, 1.0, 10.0, 1.0));
         this.registerSetting(targetInvis = new ButtonSetting("Target invis", true));
         this.registerSetting(disableInInventory = new ButtonSetting("Disable in inventory", true));

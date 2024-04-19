@@ -26,7 +26,7 @@ public class AntiBot extends Module {
     public AntiBot() {
         super("AntiBot", Module.category.world, 0);
         this.registerSetting(entitySpawnDelay = new ButtonSetting("Entity spawn delay", false));
-        this.registerSetting(delay = new SliderSetting("Delay", 7.0, 0.5, 15.0, 0.5));
+        this.registerSetting(delay = new SliderSetting("Delay", 7.0, 0.5, 15.0, 0.5, " second"));
         this.registerSetting(tablist = new ButtonSetting("Tab list", false));
     }
 

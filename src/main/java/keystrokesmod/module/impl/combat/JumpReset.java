@@ -22,7 +22,7 @@ public class JumpReset extends Module {
     @SubscribeEvent
     public void onReceivePacket(ReceivePacketEvent e) {
         if (e.getPacket() instanceof S12PacketEntityVelocity && Utils.nullCheck()) {
-            if (((S12PacketEntityVelocity) e.getPacket()).getEntityID() == mc.thePlayer.getEntityId() && mc.thePlayer.onGround) {
+            if (((S12PacketEntityVelocity) e.getPacket()).getEntityID() == mc.thePlayer.getEntityId()) {
                 if (chance.getInput() != 100.0D) {
                     double ch = Math.random();
                     if (ch >= chance.getInput() / 100.0D) {
@@ -30,7 +30,9 @@ public class JumpReset extends Module {
                     }
                 }
                 jump = true;
-                mc.thePlayer.jump();
+                if (mc.thePlayer.onGround) {
+                    mc.thePlayer.jump();
+                }
             }
         }
     }

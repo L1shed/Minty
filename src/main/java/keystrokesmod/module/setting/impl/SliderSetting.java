@@ -14,6 +14,7 @@ public class SliderSetting extends Setting {
     private double min;
     private double intervals;
     public boolean isString;
+    private String settingInfo = "";
 
     public SliderSetting(String settingName, double defaultValue, double min, double max, double intervals) {
         super(settingName);
@@ -25,6 +26,17 @@ public class SliderSetting extends Setting {
         this.isString = false;
     }
 
+    public SliderSetting(String settingName, double defaultValue, double min, double max, double intervals, String settingInfo) {
+        super(settingName);
+        this.settingName = settingName;
+        this.defaultValue = defaultValue;
+        this.min = min;
+        this.max = max;
+        this.intervals = intervals;
+        this.isString = false;
+        this.settingInfo = settingInfo;
+    }
+
     public SliderSetting(String settingName, String[] options, double defaultValue) {
         super(settingName);
         this.settingName = settingName;
@@ -34,6 +46,14 @@ public class SliderSetting extends Setting {
         this.max = options.length - 1;
         this.intervals = 1;
         this.isString = true;
+    }
+
+    public String getInfo() {
+        return this.settingInfo;
+    }
+
+    public void setInfo(String info) {
+        this.settingInfo = info;
     }
 
     public String[] getOptions() {

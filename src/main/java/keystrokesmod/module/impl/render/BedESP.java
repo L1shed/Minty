@@ -36,7 +36,7 @@ public class BedESP extends Module {
         super("BedESP", category.render);
         this.registerSetting(theme = new SliderSetting("Theme", Theme.themes, 0));
         this.registerSetting(range = new SliderSetting("Range", 10.0, 2.0, 30.0, 1.0));
-        this.registerSetting(rate = new SliderSetting("Rate", 0.4, 0.1, 3.0, 0.1));
+        this.registerSetting(rate = new SliderSetting("Rate", 0.4, 0.1, 3.0, 0.1, " second"));
         this.registerSetting(firstBed = new ButtonSetting("Only render first bed", false));
     }
 

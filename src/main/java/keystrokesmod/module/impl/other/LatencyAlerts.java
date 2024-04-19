@@ -16,8 +16,8 @@ public class LatencyAlerts extends Module {
     public LatencyAlerts() {
         super("Latency Alerts", category.other);
         this.registerSetting(description = new DescriptionSetting("Detects packet loss."));
-        this.registerSetting(interval = new SliderSetting("Alert interval", 3.0, 0.0, 5.0, 0.1));
-        this.registerSetting(highLatency = new SliderSetting("High latency", 0.5, 0.1, 5.0, 0.1));
+        this.registerSetting(interval = new SliderSetting("Alert interval", 3.0, 0.0, 5.0, 0.1, " second"));
+        this.registerSetting(highLatency = new SliderSetting("High latency", 0.5, 0.1, 5.0, 0.1, " second"));
     }
 
     @SubscribeEvent

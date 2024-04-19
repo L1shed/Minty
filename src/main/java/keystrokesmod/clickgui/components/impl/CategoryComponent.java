@@ -59,17 +59,19 @@ public class CategoryComponent {
         this.bh = 13;
         int tY = this.bh + 3;
 
-        ModuleComponent manager = new ModuleComponent(new Manager(), this, tY);
-        this.modules.add(manager);
+        if (this.categoryName == Module.category.profiles) {
+            ModuleComponent manager = new ModuleComponent(new Manager(), this, tY);
+            this.modules.add(manager);
 
-        if (Raven.profileManager == null) {
-            return;
-        }
+            if (Raven.profileManager == null) {
+                return;
+            }
 
-        for (Profile profile : Raven.profileManager.profiles) {
-            tY += 16;
-            ModuleComponent b = new ModuleComponent(profile.getModule(), this, tY);
-            this.modules.add(b);
+            for (Profile profile : Raven.profileManager.profiles) {
+                tY += 16;
+                ModuleComponent b = new ModuleComponent(profile.getModule(), this, tY);
+                this.modules.add(b);
+            }
         }
     }
 

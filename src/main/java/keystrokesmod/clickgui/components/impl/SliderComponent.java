@@ -40,12 +40,16 @@ public class SliderComponent extends Component {
         GL11.glScaled(0.5D, 0.5D, 0.5D);
         String value;
         double input = this.sliderSetting.getInput();
+        String info = this.sliderSetting.getInfo();
+        if (input != 1 && info.equals(" second")) {
+            info += "s";
+        }
         if (this.sliderSetting.isString) {
             value = this.sliderSetting.getOptions()[(int) this.sliderSetting.getInput()];
         } else {
             value = Utils.isWholeNumber(input) ? (int) input + "" : String.valueOf(input);
         }
-        Minecraft.getMinecraft().fontRendererObj.drawStringWithShadow(this.sliderSetting.getName() + ": " + value, (float) ((int) ((float) (this.moduleComponent.categoryComponent.getX() + 4) * 2.0F)), (float) ((int) ((float) (this.moduleComponent.categoryComponent.getY() + this.o + 3) * 2.0F)), -1);
+        Minecraft.getMinecraft().fontRendererObj.drawStringWithShadow(this.sliderSetting.getName() + ": " + value + info, (float) ((int) ((float) (this.moduleComponent.categoryComponent.getX() + 4) * 2.0F)), (float) ((int) ((float) (this.moduleComponent.categoryComponent.getY() + this.o + 3) * 2.0F)), -1);
         GL11.glPopMatrix();
     }
 

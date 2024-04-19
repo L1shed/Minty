@@ -6,6 +6,7 @@ import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.utility.Utils;
 
 import java.awt.*;
+import java.io.IOException;
 
 public class Manager extends Module {
     private ButtonSetting loadProfiles, openFolder, createProfile;
@@ -35,8 +36,10 @@ public class Manager extends Module {
         this.registerSetting(openFolder = new ButtonSetting("Open folder", () -> {
             try {
                 Desktop.getDesktop().open(Raven.profileManager.directory);
-            } catch (Exception e) {
-                e.printStackTrace();
+            }
+            catch (IOException ex) {
+                Raven.profileManager.directory.mkdirs();
+                Utils.sendMessage("&cError locating folder, recreated.");
             }
         }));
         ignoreOnSave = true;

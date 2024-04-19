@@ -34,8 +34,8 @@ public class Xray extends Module {
 
     public Xray() {
         super("Xray", Module.category.render);
-        this.registerSetting(range = new SliderSetting("Range", 20.0D, 5.0D, 50.0D, 1.0D));
-        this.registerSetting(rate = new SliderSetting("Rate", 0.5, 0.1, 3.0, 0.1));
+        this.registerSetting(range = new SliderSetting("Range", 20, 5, 50, 1));
+        this.registerSetting(rate = new SliderSetting("Rate", 0.5, 0.1, 3.0, 0.1, " second"));
         this.registerSetting(coal = new ButtonSetting("Coal", true));
         this.registerSetting(diamond = new ButtonSetting("Diamond", true));
         this.registerSetting(emerald = new ButtonSetting("Emerald", true));

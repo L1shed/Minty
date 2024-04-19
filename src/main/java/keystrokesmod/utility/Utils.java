@@ -34,6 +34,7 @@ import org.lwjgl.input.Mouse;
 import java.awt.*;
 import java.util.List;
 import java.util.*;
+import java.util.stream.IntStream;
 
 public class Utils {
     private static final Random rand = new Random();
@@ -187,6 +188,13 @@ public class Utils {
             c.setValue(d.getInput());
             d.setValue(p);
         }
+    }
+
+    public static String generateRandomString(final int n) {
+        final char[] array = "abcdefghijklmnopqrstuvwxyz0123456789".toCharArray();
+        final StringBuilder sb = new StringBuilder();
+        IntStream.range(0, n).forEach(p2 -> sb.append(array[rand.nextInt(array.length)]));
+        return sb.toString();
     }
 
     public static boolean isFriended(EntityPlayer entityPlayer) {
