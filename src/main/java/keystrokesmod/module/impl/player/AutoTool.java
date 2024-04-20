@@ -55,7 +55,6 @@ public class AutoTool extends Module {
             ticksHovered++;
         }
         else {
-            resetSlot();
             ticksHovered = 0;
         }
         currentBlock = over.getBlockPos();

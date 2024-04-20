@@ -6,6 +6,7 @@ import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.projectile.EntityArrow;
+import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.common.MinecraftForge;
@@ -33,6 +34,9 @@ public class Reflection {
     public static Method loadShader;
     public static Field inGround;
     public static Field itemInUseCount;
+    public static Field S08PacketPlayerPosLookYaw;
+    public static Field S08PacketPlayerPosLookPitch;
+    public static boolean sendMessage = false;
 
     public static void getFields() {
         try {
@@ -58,7 +62,7 @@ public class Reflection {
                 rightClickDelayTimerField.setAccessible(true);
             }
 
-            curBlockDamageMP = ReflectionHelper.findField(PlayerControllerMP.class, "field_78770_f", "curBlockDamageMP");
+            curBlockDamageMP = ReflectionHelper.findField(PlayerControllerMP.class, "field_78770_f", "curBlockDamageMP"); // fastmine and mining related stuff
             if (curBlockDamageMP != null) {
                 curBlockDamageMP.setAccessible(true);
             }
@@ -78,23 +82,34 @@ public class Reflection {
                 useShader.setAccessible(true);
             }
 
-            shaderIndex = ReflectionHelper.findField(EntityRenderer.class, "field_147713_ae", "shaderIndex");
+            shaderIndex = ReflectionHelper.findField(EntityRenderer.class, "field_147713_ae", "shaderIndex"); // for shaders
             if (shaderIndex != null) {
                 shaderIndex.setAccessible(true);
             }
 
-            inGround = ReflectionHelper.findField(EntityArrow.class, "field_70254_i", "inGround");
+            inGround = ReflectionHelper.findField(EntityArrow.class, "field_70254_i", "inGround"); // for indicators
             if (inGround != null) {
                 inGround.setAccessible(true);
             }
 
-            itemInUseCount = ReflectionHelper.findField(EntityPlayer.class, "field_71072_f", "itemInUseCount");
+            itemInUseCount = ReflectionHelper.findField(EntityPlayer.class, "field_71072_f", "itemInUseCount"); // for fake block
             if (itemInUseCount != null) {
                 itemInUseCount.setAccessible(true);
+            }
+
+            S08PacketPlayerPosLookYaw = ReflectionHelper.findField(S08PacketPlayerPosLook.class, "field_148936_d", "yaw");
+            if (S08PacketPlayerPosLookYaw != null) {
+                S08PacketPlayerPosLookYaw.setAccessible(true);
+            }
+
+            S08PacketPlayerPosLookPitch = ReflectionHelper.findField(S08PacketPlayerPosLook.class, "field_148937_e", "pitch");
+            if (S08PacketPlayerPosLookPitch != null) {
+                S08PacketPlayerPosLookPitch.setAccessible(true);
             }
         } catch (Exception var2) {
             System.out.println("There was an error, relaunch the game.");
             var2.printStackTrace();
+            sendMessage = true;
         }
     }
 

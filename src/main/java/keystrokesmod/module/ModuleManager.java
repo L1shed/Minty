@@ -109,14 +109,17 @@ public class ModuleManager {
         this.addModule(new ItemESP());
         this.addModule(new MobESP());
         this.addModule(new Fun.Spin());
+        this.addModule(new NoRotate());
         this.addModule(new FakeChat());
         this.addModule(nameHider = new NameHider());
+        this.addModule(new FakeLag());
         this.addModule(new WaterBucket());
         this.addModule(commandLine = new CommandLine());
         this.addModule(bedwars = new BedWars());
         this.addModule(fastMine = new FastMine());
         this.addModule(new JumpReset());
         this.addModule(new Manager());
+        this.addModule(new ViewPackets());
         this.addModule(new AutoWho());
         this.addModule(new Gui());
         this.addModule(new Shaders());

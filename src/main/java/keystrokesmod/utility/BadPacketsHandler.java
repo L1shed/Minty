@@ -1,5 +1,6 @@
 package keystrokesmod.utility;
 
+import keystrokesmod.Raven;
 import keystrokesmod.event.PostUpdateEvent;
 import keystrokesmod.event.SendPacketEvent;
 import net.minecraft.network.play.client.C02PacketUseEntity;
@@ -16,6 +17,9 @@ public class BadPacketsHandler { // ensures you don't get banned
     public void onSendPacket(SendPacketEvent e) {
         if (e.getPacket() instanceof C02PacketUseEntity) { // sending a C07 on the same tick as C02 can ban, this usually happens when you unblock and attack on the same tick
             if (C07) {
+                if (Raven.debugger) {
+                    Utils.sendMessage("&cPrevented &bC02PacketUseEntity from sending on same tick as &bC07PacketPlayerDigging.");
+                }
                 e.setCanceled(true);
                 return;
             }

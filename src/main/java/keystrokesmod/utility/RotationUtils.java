@@ -152,4 +152,18 @@ public class RotationUtils {
         final Vec3 vec3 = new Vec3((double)(sin * n6), (double)MathHelper.sin(n5), (double)(cos * n6));
         return mc.theWorld.rayTraceBlocks(getPositionEyes, getPositionEyes.addVector(vec3.xCoord * n, vec3.yCoord * n, vec3.zCoord * n), false, false, false);
     }
+
+    public static double direction(float rotationYaw, final double moveForward, final double moveStrafing) {
+        if (moveForward < 0F) rotationYaw += 180F;
+
+        float forward = 1F;
+
+        if (moveForward < 0F) forward = -0.5F;
+        else if (moveForward > 0F) forward = 0.5F;
+
+        if (moveStrafing > 0F) rotationYaw -= 90F * forward;
+        if (moveStrafing < 0F) rotationYaw += 90F * forward;
+
+        return Math.toRadians(rotationYaw);
+    }
 }

@@ -35,7 +35,7 @@ public class Anticheat extends Module {
     public Anticheat() {
         super("Anticheat", category.other);
         this.registerSetting(description = new DescriptionSetting("Tries to detect cheaters."));
-        this.registerSetting(interval = new SliderSetting("Flag interval", 20.0, 0.0, 60.0, 1.0));
+        this.registerSetting(interval = new SliderSetting("Flag interval", 20.0, 0.0, 60.0, 1.0, " second"));
         this.registerSetting(enemyAdd = new ButtonSetting("Add cheaters as enemy", false));
         this.registerSetting(ignoreTeammates = new ButtonSetting("Ignore teammates", false));
         this.registerSetting(atlasSuspect = new ButtonSetting("Only atlas suspect", false));

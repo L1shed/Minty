@@ -1,15 +1,13 @@
 package keystrokesmod.module.impl.combat;
 
-import keystrokesmod.event.PostMotionEvent;
-import keystrokesmod.event.PreMotionEvent;
-import keystrokesmod.event.PreUpdateEvent;
-import keystrokesmod.event.ReceivePacketEvent;
+import keystrokesmod.event.*;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.world.AntiBot;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.*;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -51,7 +49,7 @@ public class KillAura extends Module {
     private ButtonSetting ignoreTeammates;
     private ButtonSetting requireMouseDown;
     private ButtonSetting weaponOnly;
-    private String[] autoBlockModes = new String[]{"Manual", "Vanilla", "Post", "Fake"};
+    private String[] autoBlockModes = new String[]{"Manual", "Vanilla", "Post", "Fake", "Partial"};
     private String[] rotationModes = new String[]{"None", "Silent", "Lock view"};
     private String[] sortModes = new String[]{"Health", "HurtTime", "Distance", "Yaw"};
     private List<EntityLivingBase> availableTargets = new ArrayList<>();
@@ -238,7 +236,7 @@ public class KillAura extends Module {
         availableTargets.clear();
         block.set(false);
         swing = false;
-        for (Entity entity : mc.theWorld.loadedEntityList) {
+        for (EntityPlayer entity : mc.theWorld.playerEntities) {
             if (availableTargets.size() > targets.getInput()) {
                 continue;
             }
@@ -248,13 +246,10 @@ public class KillAura extends Module {
             if (entity == mc.thePlayer) {
                 continue;
             }
-            if (!(entity instanceof EntityPlayer)) {
+            if (Utils.isFriended(entity)) {
                 continue;
             }
-            if (Utils.isFriended((EntityPlayer) entity)) {
-                continue;
-            }
-            if (!entity.isEntityAlive() || entity.ticksExisted < 10) {
+            if (entity.deathTime != 0) {
                 continue;
             }
             if (AntiBot.isBot(entity) || (Utils.isTeamMate(entity) && ignoreTeammates.isToggled())) {
@@ -270,17 +265,17 @@ public class KillAura extends Module {
             if (n != 360.0f && !Utils.inFov(n, entity)) {
                 continue;
             }
-            double distance = mc.thePlayer.getDistanceToEntity(entity); // need a more accurate distance check as this can ghost on hypixel
-            if (distance <= blockRange.getInput()) {
+            double distance = mc.thePlayer.getDistanceSqToEntity(entity); // need a more accurate distance check as this can ghost on hypixel
+            if (distance <= blockRange.getInput() * blockRange.getInput()) {
                 block.set(true);
             }
-            if (distance <= swingRange.getInput()) {
+            if (distance <= swingRange.getInput() * swingRange.getInput()) {
                 swing = true;
             }
-            if (distance > attackRange.getInput()) {
+            if (distance > attackRange.getInput() * swingRange.getInput()) {
                 continue;
             }
-            availableTargets.add((EntityLivingBase) entity);
+            availableTargets.add(entity);
         }
         if (Math.abs(System.currentTimeMillis() - lastSwitched) > switchDelay.getInput() && switchTargets) {
             switchTargets = false;
@@ -392,6 +387,9 @@ public class KillAura extends Module {
     }
 
     private void block() {
+        if (!block.get() && !blocking) {
+            return;
+        }
         if (ModuleManager.bedAura != null && ModuleManager.bedAura.isEnabled() && !ModuleManager.bedAura.allowAutoBlock.isToggled() && ModuleManager.bedAura.currentBlock != null) {
             block.set(false);
         }
@@ -403,18 +401,22 @@ public class KillAura extends Module {
                 setBlockState(block.get(), true, true);
                 break;
             case 2:
-
                 setBlockState(block.get(), false, true);
                 break;
             case 3:
                 setBlockState(block.get(), false, false);
                 break;
+            case 4:
+                boolean down = (target == null || target.hurtTime >= 5) && block.get();
+                KeyBinding.setKeyBindState(mc.gameSettings.keyBindUseItem.getKeyCode(), down);
+                Reflection.setButton(1, down);
+                blocking = down;
         }
     }
 
     private void setBlockState(boolean state, boolean sendBlock, boolean sendUnBlock) {
         if (Utils.holdingSword()) {
-            if (sendBlock && !blocking && state) {
+            if (sendBlock && !blocking && state && Utils.holdingSword()) {
                 mc.getNetHandler().addToSendQueue(new C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()));
             } else if (sendUnBlock && blocking && !state) {
                 unBlock();

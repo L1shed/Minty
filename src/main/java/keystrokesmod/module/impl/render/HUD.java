@@ -20,12 +20,12 @@ import java.awt.*;
 import java.io.IOException;
 
 public class HUD extends Module {
-    private SliderSetting theme;
+    private static SliderSetting theme;
     private ButtonSetting editPosition;
     public static ButtonSetting dropShadow;
     public static ButtonSetting alphabeticalSort;
-    private ButtonSetting alignRight;
-    private ButtonSetting lowercase;
+    private static ButtonSetting alignRight;
+    private static ButtonSetting lowercase;
     public static ButtonSetting showInfo;
     public static int hudX = 5;
     public static int hudY = 70;
@@ -71,6 +71,7 @@ public class HUD extends Module {
         if (mc.currentScreen != null || mc.gameSettings.showDebugInfo) {
             return;
         }
+        int longestModule = getLongestModule(mc.fontRendererObj);
         int n = hudY;
         double n2 = 0.0;
         for (Module module : ModuleManager.organizedModules) {
@@ -82,7 +83,7 @@ public class HUD extends Module {
                     continue;
                 }
                 String moduleName = module.getName();
-                if (showInfo.isToggled()) {
+                if (showInfo.isToggled() && !module.getInfo().isEmpty()) {
                     moduleName += " §7" + module.getInfo();
                 }
                 if (lowercase.isToggled()) {
@@ -92,12 +93,32 @@ public class HUD extends Module {
                 n2 -= 12;
                 int n3 = hudX;
                 if (alignRight.isToggled()) {
-                    n3 -= mc.fontRendererObj.getStringWidth(moduleName);
+                    n3 += longestModule - mc.fontRendererObj.getStringWidth(moduleName);
                 }
                 mc.fontRendererObj.drawString(moduleName, n3, (float) n, e, dropShadow.isToggled());
                 n += mc.fontRendererObj.FONT_HEIGHT + 2;
             }
         }
+    }
+
+    public static int getLongestModule(FontRenderer fr) {
+        int length = 0;
+
+        for (Module module : ModuleManager.organizedModules) {
+            if (module.isEnabled()) {
+                String moduleName = module.getName();
+                if (showInfo.isToggled() && !module.getInfo().isEmpty()) {
+                    moduleName += " §7" + module.getInfo();
+                }
+                if (lowercase.isToggled()) {
+                    moduleName = moduleName.toLowerCase();
+                }
+                if (fr.getStringWidth(moduleName) > length) {
+                    length = fr.getStringWidth(moduleName);
+                }
+            }
+        }
+        return length;
     }
 
     static class EditScreen extends GuiScreen {
@@ -128,11 +149,17 @@ public class HUD extends Module {
             int miY = this.aY;
             int maX = miX + 50;
             int maY = miY + 32;
-            this.d(this.mc.fontRendererObj, this.example);
+            int[] maxPos = this.d(this.mc.fontRendererObj, this.example);
             this.miX = miX;
             this.miY = miY;
-            this.maX = maX;
-            this.maY = maY;
+            if (maxPos == null) {
+                this.maX = maX;
+                this.maY = maY;
+            }
+            else {
+                this.maX = maxPos[0];
+                this.maY = maxPos[1];
+            }
             HUD.hudX = miX;
             HUD.hudY = miY;
             ScaledResolution res = new ScaledResolution(this.mc);
@@ -148,16 +175,52 @@ public class HUD extends Module {
             super.drawScreen(mX, mY, pt);
         }
 
-        private void d(FontRenderer fr, String t) {
-            int x = this.miX;
-            int y = this.miY;
-            String[] var5 = t.split("-");
+        private int[] d(FontRenderer fr, String t) {
+            if (empty()) {
+                int x = this.miX;
+                int y = this.miY;
+                String[] var5 = t.split("-");
 
-            for (String s : var5) {
-                fr.drawString(s, (float) x, (float) y, Color.white.getRGB(), HUD.dropShadow.isToggled());
-                y += fr.FONT_HEIGHT + 2;
+                for (String s : var5) {
+                    if (HUD.alignRight.isToggled()) {
+                        x += mc.fontRendererObj.getStringWidth(var5[0]) - mc.fontRendererObj.getStringWidth(s);
+                    }
+                    fr.drawString(s, (float) x, (float) y, Color.white.getRGB(), HUD.dropShadow.isToggled());
+                    y += fr.FONT_HEIGHT + 2;
+                }
             }
-
+            else {
+                int longestModule = getLongestModule(mc.fontRendererObj);
+                int n = this.miY;
+                double n2 = 0.0;
+                for (Module module : ModuleManager.organizedModules) {
+                    if (module.isEnabled() && !module.getName().equals("HUD")) {
+                        if (!module.isVisible()) {
+                            continue;
+                        }
+                        if (module == ModuleManager.commandLine) {
+                            continue;
+                        }
+                        String moduleName = module.getName();
+                        if (showInfo.isToggled() && !module.getInfo().isEmpty()) {
+                            moduleName += " §7" + module.getInfo();
+                        }
+                        if (lowercase.isToggled()) {
+                            moduleName = moduleName.toLowerCase();
+                        }
+                        int e = Theme.getGradient((int) theme.getInput(), n2);
+                        n2 -= 12;
+                        int n3 = this.miX;
+                        if (alignRight.isToggled()) {
+                            n3 += longestModule - mc.fontRendererObj.getStringWidth(moduleName);
+                        }
+                        mc.fontRendererObj.drawString(moduleName, n3, (float) n, e, dropShadow.isToggled());
+                        n += mc.fontRendererObj.FONT_HEIGHT + 2;
+                    }
+                }
+                return new int[]{this.miX + longestModule, n};
+            }
+            return null;
         }
 
         protected void mouseClickMove(int mX, int mY, int b, long t) {
@@ -195,6 +258,21 @@ public class HUD extends Module {
 
         public boolean doesGuiPauseGame() {
             return false;
+        }
+
+        private boolean empty() {
+            for (Module module : ModuleManager.organizedModules) {
+                if (module.isEnabled() && !module.getName().equals("HUD")) {
+                    if (!module.isVisible()) {
+                        continue;
+                    }
+                    if (module == ModuleManager.commandLine) {
+                        continue;
+                    }
+                    return false;
+                }
+            }
+            return true;
         }
     }
 }

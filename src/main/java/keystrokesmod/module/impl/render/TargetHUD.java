@@ -27,8 +27,6 @@ public class TargetHUD extends Module {
     private Timer healthBarTimer = null;
     private EntityLivingBase target;
     private long lastAliveMS;
-    private float previousHealth;
-    private double prevHealth;
 
     public TargetHUD() {
         super("TargetHUD", category.render);
@@ -67,10 +65,6 @@ public class TargetHUD extends Module {
             }
             String playerInfo = target.getDisplayName().getFormattedText();
             double health = target.getHealth() / target.getMaxHealth();
-            if (health != prevHealth) {
-                (healthBarTimer = new Timer(50)).start();
-            }
-            prevHealth = health;
             playerInfo += " " + Utils.getHealthStr(target);
             drawTargetHUD(fadeTimer, playerInfo, health);
         }
@@ -125,6 +119,7 @@ public class TargetHUD extends Module {
         }
         else {
             target = null;
+            healthBarTimer = null;
         }
     }
 

@@ -10,9 +10,11 @@ public enum Theme {
     Cotton_candy(new Color(99, 249, 255), new Color(255, 104, 204)),
     Flare(new Color(210, 40, 15), new Color(220, 150, 25)),
     Flower(new Color(215, 166, 231), new Color(211, 90, 232)),
+    Gold(new Color(255, 215, 0), new Color(240, 159, 0)), // from croat
     Grayscale(new Color(240, 240, 240), new Color(110, 110, 110)),
     Royal(new Color(125, 204, 241), new Color(30, 71, 170)),
-    Sky(new Color(160, 230, 225), new Color(15, 190, 220));
+    Sky(new Color(160, 230, 225), new Color(15, 190, 220)),
+    Vine(new Color(50, 205, 50), new Color(0, 128, 50)); // from croat
 
     private final Color firstGradient;
     private final Color secondGradient;
@@ -50,6 +52,6 @@ public enum Theme {
         return new int[]{0, 0};
     }
 
-    public static String[] themes = new String[]{"Rainbow", "Cherry", "Cotton candy", "Flare", "Flower", "Grayscale", "Royal", "Sky"};
-    //public static String[] themes = new String[]{"Rainbow", "Cherry", "Cotton candy", "Flare", "Flower", "Gold", "Grayscale", "Royal", "Sky", "Vine"};
+    //public static String[] themes = new String[]{"Rainbow", "Cherry", "Cotton candy", "Flare", "Flower", "Grayscale", "Royal", "Sky"};
+    public static String[] themes = new String[]{"Rainbow", "Cherry", "Cotton candy", "Flare", "Flower", "Gold", "Grayscale", "Royal", "Sky", "Vine"};
 }

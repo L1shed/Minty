@@ -37,6 +37,7 @@ public class Raven {
     public static ModuleManager moduleManager;
     public static ClickGui clickGui;
     public static ProfileManager profileManager;
+    //public static ScriptManager scriptManager;
     public static Profile currentProfile;
     public static BadPacketsHandler badPacketsHandler;
 
@@ -60,6 +61,7 @@ public class Raven {
         keySrokeRenderer = new KeySrokeRenderer();
         clickGui = new ClickGui();
         profileManager = new ProfileManager();
+        //scriptManager = new ScriptManager();
         profileManager.loadProfiles();
         profileManager.loadProfile("default");
     }
@@ -68,6 +70,10 @@ public class Raven {
     public void onTick(ClientTickEvent e) {
         if (e.phase == Phase.END) {
             if (Utils.nullCheck()) {
+                if (Reflection.sendMessage) {
+                    Utils.sendMessage("&cThere was an error, relaunch the game.");
+                    Reflection.sendMessage = false;
+                }
                 for (Module module : getModuleManager().getModules()) {
                     if (mc.currentScreen == null && module.canBeEnabled) {
                         module.keybind();

@@ -170,5 +170,6 @@ public class Module {
         other,
         client,
         profiles;
+        //scripts
     }
 }

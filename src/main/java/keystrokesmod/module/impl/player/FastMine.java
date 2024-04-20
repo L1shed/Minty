@@ -10,7 +10,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.input.Mouse;
 
-public class FastMine extends Module {
+public class FastMine extends Module { // from b4 src
     private DescriptionSetting description;
     private SliderSetting delay;
     public SliderSetting multiplier;
