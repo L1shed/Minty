@@ -444,7 +444,6 @@ public class InvManager extends Module {
             return true;
         }
         if (itemStack.getItem() instanceof ItemSword && getBestSword(null, (int) swordSlot.getInput()) != slot) {
-            Utils.sendMessage(getBestSword(null, (int) swordSlot.getInput()) + " " + slot);
             return true;
         }
         if (itemStack.getItem() instanceof ItemArmor && getBestArmor(((ItemArmor) itemStack.getItem()).armorType, null) != slot) {
