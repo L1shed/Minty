@@ -3,12 +3,19 @@ package keystrokesmod.module.impl.render;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.utility.BlockUtils;
 import keystrokesmod.utility.RenderUtils;
 import keystrokesmod.utility.Utils;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockBed;
+import net.minecraft.block.properties.IProperty;
+import net.minecraft.block.state.BlockState;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.EnumFacing;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
+import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.awt.*;
@@ -29,11 +36,11 @@ public class Xray extends Module {
     private ButtonSetting coal;
     private ButtonSetting spawner;
     private ButtonSetting obsidian;
-    private java.util.Timer t;
-    private List<BlockPos> blocks;
+    private List<BlockPos> blocks = new ArrayList<>();
+    private long lastCheck = 0;
 
     public Xray() {
-        super("Xray", Module.category.render);
+        super("Xray", category.render);
         this.registerSetting(range = new SliderSetting("Range", 20, 5, 50, 1));
         this.registerSetting(rate = new SliderSetting("Rate", 0.5, 0.1, 3.0, 0.1, " second"));
         this.registerSetting(coal = new ButtonSetting("Coal", true));
@@ -47,60 +54,73 @@ public class Xray extends Module {
         this.registerSetting(spawner = new ButtonSetting("Spawner", true));
     }
 
-    public void onEnable() {
-        this.blocks = new ArrayList();
-        (this.t = new java.util.Timer()).scheduleAtFixedRate(this.t(), 0L, (long) (rate.getInput() * 1000));
-    }
-
     public void onDisable() {
-        if (this.t != null) {
-            this.t.cancel();
-            this.t.purge();
-            this.t = null;
-        }
+        this.blocks.clear();
     }
 
-    private TimerTask t() {
-        TimerTask t = new TimerTask() {
-            public void run() {
-                blocks.clear();
-                int ra = (int) range.getInput();
-
-                for (int y = ra; y >= -ra; --y) {
-                    for (int x = -ra; x <= ra; ++x) {
-                        for (int z = -ra; z <= ra; ++z) {
-                            BlockPos p = new BlockPos(Module.mc.thePlayer.posX + (double) x, Module.mc.thePlayer.posY + (double) y, Module.mc.thePlayer.posZ + (double) z);
-                            Block bl = Module.mc.theWorld.getBlockState(p).getBlock();
-                            if (iron.isToggled() && bl.equals(Blocks.iron_ore) || gold.isToggled() && bl.equals(Blocks.gold_ore) || diamond.isToggled() && bl.equals(Blocks.diamond_ore) || emerald.isToggled() && bl.equals(Blocks.emerald_ore) || lapis.isToggled() && bl.equals(Blocks.lapis_ore) || redstone.isToggled() && bl.equals(Blocks.redstone_ore) || coal.isToggled() && bl.equals(Blocks.coal_ore) || spawner.isToggled() && bl.equals(Blocks.mob_spawner) || obsidian.isToggled() && bl.equals(Blocks.obsidian)) {
-                                blocks.add(p);
-                            }
-                        }
+    public void onUpdate() {
+        if (System.currentTimeMillis() - lastCheck < rate.getInput() * 1000) {
+            return;
+        }
+        lastCheck = System.currentTimeMillis();
+        int i;
+        for (int n = i = (int) range.getInput(); i >= -n; --i) {
+            for (int j = -n; j <= n; ++j) {
+                for (int k = -n; k <= n; ++k) {
+                    BlockPos blockPos = new BlockPos(mc.thePlayer.posX + j, mc.thePlayer.posY + i, mc.thePlayer.posZ + k);
+                    if (blocks.contains(blockPos)) {
+                        continue;
+                    }
+                    Block blockState = BlockUtils.getBlock(blockPos);
+                    if (blockState != null && canBreak(blockState)) {
+                        blocks.add(blockPos);
                     }
                 }
             }
-        };
-        return t;
+        }
+    }
+
+    @SubscribeEvent
+    public void onEntityJoin(EntityJoinWorldEvent e) {
+        if (e.entity == mc.thePlayer) {
+            this.blocks.clear();
+        }
     }
 
     @SubscribeEvent
     public void onRenderWorld(RenderWorldLastEvent ev) {
-        if (Utils.nullCheck() && !this.blocks.isEmpty()) {
-            List<BlockPos> tRen = new ArrayList(this.blocks);
-            Iterator var3 = tRen.iterator();
+        if (!Utils.nullCheck()) {
+            return;
+        }
+        if (!this.blocks.isEmpty()) {
+            Iterator iterator = blocks.iterator();
 
-            while (var3.hasNext()) {
-                BlockPos p = (BlockPos) var3.next();
+            while (iterator.hasNext()) {
+                BlockPos blockPos = (BlockPos) iterator.next();
+                if (!canBreak(BlockUtils.getBlock(blockPos))) {
+                    iterator.remove();
+                    continue;
+                }
+                if (!iterator.hasNext()) {
+                    break;
+                }
+                BlockPos p = (BlockPos) iterator.next();
+                if (p == null) {
+                    continue;
+                }
                 this.drawBox(p);
             }
         }
     }
 
     private void drawBox(BlockPos p) {
-        int[] rgb = this.getColor(mc.theWorld.getBlockState(p).getBlock());
+        if (p == null) {
+            return;
+        }
+        int[] rgb = this.getColor(BlockUtils.getBlock(p));
         if (rgb[0] + rgb[1] + rgb[2] != 0) {
             RenderUtils.renderBlock(p, (new Color(rgb[0], rgb[1], rgb[2])).getRGB(), false, true);
         }
-
     }
 
     private int[] getColor(Block b) {
@@ -131,5 +151,17 @@ public class Xray extends Module {
         }
 
         return new int[]{red, green, blue};
+    }
+
+    public boolean canBreak(Block block) {
+        return (iron.isToggled() && block.equals(Blocks.iron_ore)) ||
+                (gold.isToggled() && block.equals(Blocks.gold_ore)) ||
+                (diamond.isToggled() && block.equals(Blocks.diamond_ore)) ||
+                (emerald.isToggled() && block.equals(Blocks.emerald_ore)) ||
+                (lapis.isToggled() && block.equals(Blocks.lapis_ore)) ||
+                (redstone.isToggled() && block.equals(Blocks.redstone_ore)) ||
+                (coal.isToggled() && block.equals(Blocks.coal_ore)) ||
+                (spawner.isToggled() && block.equals(Blocks.mob_spawner)) ||
+                (obsidian.isToggled() && block.equals(Blocks.obsidian));
     }
 }

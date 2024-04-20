@@ -22,7 +22,6 @@ public class PacketUtils {
         }
         catch (Exception e) {
             e.printStackTrace();
-            Utils.sendMessage("&cThere was an error receiving&7: &b" + packet.getClass().getSimpleName());
         }
     }
 }
