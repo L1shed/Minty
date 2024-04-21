@@ -1,15 +1,16 @@
 package keystrokesmod.clickgui.components.impl;
 
+import keystrokesmod.Raven;
 import keystrokesmod.clickgui.components.Component;
+import keystrokesmod.module.Module;
 import keystrokesmod.module.impl.client.Gui;
+import keystrokesmod.utility.Theme;
+import keystrokesmod.utility.profile.ProfileModule;
 import net.minecraft.client.Minecraft;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
-import java.awt.*;
-
 public class BindComponent extends Component {
-    private boolean h;
     private boolean isBinding;
     private ModuleComponent moduleComponent;
     private int bind;
@@ -30,19 +31,24 @@ public class BindComponent extends Component {
     public void render() {
         GL11.glPushMatrix();
         GL11.glScaled(0.5D, 0.5D, 0.5D);
-        this.drawString(!this.moduleComponent.mod.canBeEnabled ? "This module cannot be bound." : this.isBinding ? "Press a key..." : "Bind" + ": " + Keyboard.getKeyName(this.moduleComponent.mod.getKeycode()));
+        this.drawString(!this.moduleComponent.mod.canBeEnabled ? "Module cannot be bound." : this.isBinding ? "Press a key..." : "Current bind: '§e" + Keyboard.getKeyName(this.moduleComponent.mod.getKeycode()) + "§r'");
         GL11.glPopMatrix();
     }
 
     public void drawScreen(int x, int y) {
-        this.h = this.i(x, y);
         this.y = this.moduleComponent.categoryComponent.getY() + this.bind;
         this.x = this.moduleComponent.categoryComponent.getX();
     }
 
     public void onClick(int x, int y, int b) {
-        if (this.i(x, y) && b == 0 && this.moduleComponent.po) {
-            this.isBinding = !this.isBinding;
+        if (this.i(x, y) && this.moduleComponent.po) {
+            if (b == 0) {
+                this.isBinding = !this.isBinding;
+            }
+            else if (b == 1 && this.moduleComponent.mod.moduleCategory() != Module.category.profiles) {
+                this.moduleComponent.mod.setVisibility(!this.moduleComponent.mod.isVisible());
+                ((ProfileModule) Raven.currentProfile.getModule()).saved = false;
+            }
         }
     }
 
@@ -50,11 +56,14 @@ public class BindComponent extends Component {
         if (this.isBinding) {
             if (keybind == 11) {
                 if (this.moduleComponent.mod instanceof Gui) {
+                    ((ProfileModule) Raven.currentProfile.getModule()).saved = false;
                     this.moduleComponent.mod.setBind(54);
                 } else {
+                    ((ProfileModule) Raven.currentProfile.getModule()).saved = false;
                     this.moduleComponent.mod.setBind(0);
                 }
             } else {
+                ((ProfileModule) Raven.currentProfile.getModule()).saved = false;
                 this.moduleComponent.mod.setBind(keybind);
             }
 
@@ -71,6 +80,10 @@ public class BindComponent extends Component {
     }
 
     private void drawString(String s) {
-        Minecraft.getMinecraft().fontRendererObj.drawStringWithShadow(s, (float) ((this.moduleComponent.categoryComponent.getX() + 4) * 2), (float) ((this.moduleComponent.categoryComponent.getY() + this.bind + 3) * 2), Color.HSBtoRGB((float) (System.currentTimeMillis() % 3750L) / 3750.0F, 0.8F, 0.8F));
+        Minecraft.getMinecraft().fontRendererObj.drawStringWithShadow(s, (float) ((this.moduleComponent.categoryComponent.getX() + 4) * 2), (float) ((this.moduleComponent.categoryComponent.getY() + this.bind + 3) * 2), this.moduleComponent.mod.visible ? Theme.getGradient(10, 0) : Theme.getGradient(11, 0));
+    }
+
+    public void onGuiClosed() {
+        this.isBinding = false;
     }
 }

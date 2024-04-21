@@ -1,8 +1,10 @@
 package keystrokesmod.clickgui.components.impl;
 
+import keystrokesmod.Raven;
 import keystrokesmod.clickgui.components.Component;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ButtonSetting;
+import keystrokesmod.utility.profile.ProfileModule;
 import net.minecraft.client.Minecraft;
 import org.lwjgl.opengl.GL11;
 
@@ -89,6 +91,7 @@ public class ButtonComponent extends Component {
             }
             this.buttonSetting.toggle();
             this.mod.guiButtonToggled(this.buttonSetting);
+            ((ProfileModule) Raven.currentProfile.getModule()).saved = false;
         }
     }
 

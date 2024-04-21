@@ -177,7 +177,6 @@ public class BedAura extends Module {
         if (slot == currentSlot || slot == -1) {
             return;
         }
-        Utils.sendMessage(String.valueOf(slot));
         mc.getNetHandler().addToSendQueue(new C09PacketHeldItemChange(slot));
         currentSlot = slot;
     }
@@ -235,7 +234,6 @@ public class BedAura extends Module {
                 }
                 swing();
                 stopBreak(blockPos);
-                mc.playerController.onPlayerDestroyBlock(blockPos, EnumFacing.UP);
                 reset();
                 return;
             }

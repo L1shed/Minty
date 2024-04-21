@@ -26,6 +26,11 @@ public class Velocity extends Module {
         this.registerSetting(disableS = new ButtonSetting("Disable while holding S", false));
     }
 
+    @Override
+    public String getInfo() {
+        return (horizontal.getInput() == 100 ? "" : (int) horizontal.getInput() + "h") + (horizontal.getInput() != 100 && vertical.getInput() != 100 ? " " : "") + (vertical.getInput() == 100 ? "" : (int) vertical.getInput() + "v");
+    }
+
     @SubscribeEvent
     public void onLivingUpdate(LivingUpdateEvent ev) {
         if (Utils.nullCheck() && !LongJump.stopModules) {

@@ -3,6 +3,7 @@ package keystrokesmod.module.impl.render;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.setting.impl.ButtonSetting;
+import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.RenderUtils;
 import keystrokesmod.utility.Theme;
@@ -20,6 +21,7 @@ import java.awt.*;
 import java.io.IOException;
 
 public class HUD extends Module {
+    private DescriptionSetting description;
     private static SliderSetting theme;
     private ButtonSetting editPosition;
     public static ButtonSetting dropShadow;
@@ -34,6 +36,7 @@ public class HUD extends Module {
 
     public HUD() {
         super("HUD", Module.category.render);
+        this.registerSetting(description = new DescriptionSetting("Right click bind to hide modules."));
         this.registerSetting(theme = new SliderSetting("Theme", Theme.themes, 0));
         this.registerSetting(editPosition = new ButtonSetting("Edit position", () -> {
             mc.displayGuiScreen(new EditScreen());

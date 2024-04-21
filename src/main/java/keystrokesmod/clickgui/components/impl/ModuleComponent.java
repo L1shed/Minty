@@ -1,11 +1,14 @@
 package keystrokesmod.clickgui.components.impl;
 
+import keystrokesmod.Raven;
 import keystrokesmod.clickgui.components.Component;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.Setting;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.utility.profile.Manager;
+import keystrokesmod.utility.profile.ProfileModule;
 import net.minecraft.client.Minecraft;
 import org.lwjgl.opengl.GL11;
 
@@ -119,6 +122,9 @@ public class ModuleComponent extends Component {
         v((float) this.categoryComponent.getX(), (float) (this.categoryComponent.getY() + this.o), (float) (this.categoryComponent.getX() + this.categoryComponent.gw()), (float) (this.categoryComponent.getY() + 15 + this.o), this.mod.isEnabled() ? this.c2 : -12829381, this.mod.isEnabled() ? this.c2 : -12302777);
         GL11.glPushMatrix();
         int button_rgb = this.mod.isEnabled() ? new Color(24, 154, 255).getRGB() : new Color(192, 192, 192).getRGB();
+        if (this.mod.moduleCategory() == Module.category.profiles && !(this.mod instanceof Manager) && !((ProfileModule) this.mod).saved && Raven.currentProfile.getModule() == this.mod) {
+            button_rgb = new Color(114, 188, 250).getRGB();
+        }
         Minecraft.getMinecraft().fontRendererObj.drawStringWithShadow(this.mod.getName(), (float) (this.categoryComponent.getX() + this.categoryComponent.gw() / 2 - Minecraft.getMinecraft().fontRendererObj.getStringWidth(this.mod.getName()) / 2), (float) (this.categoryComponent.getY() + this.o + 4), button_rgb);
         GL11.glPopMatrix();
         if (this.po && !this.settings.isEmpty()) {
@@ -166,6 +172,9 @@ public class ModuleComponent extends Component {
     public void onClick(int x, int y, int b) {
         if (this.ii(x, y) && b == 0) {
             this.mod.toggle();
+            if (this.mod.moduleCategory() != Module.category.profiles) {
+                ((ProfileModule) Raven.currentProfile.getModule()).saved = false;
+            }
         }
 
         if (this.ii(x, y) && b == 1) {
@@ -176,7 +185,6 @@ public class ModuleComponent extends Component {
         for (Component c : this.settings) {
             c.onClick(x, y, b);
         }
-
     }
 
     public void mouseReleased(int x, int y, int m) {
@@ -190,7 +198,12 @@ public class ModuleComponent extends Component {
         for (Component c : this.settings) {
             c.keyTyped(t, k);
         }
+    }
 
+    public void onGuiClosed() {
+        for (Component c : this.settings) {
+            c.onGuiClosed();
+        }
     }
 
     public boolean ii(int x, int y) {

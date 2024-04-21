@@ -1,8 +1,10 @@
 package keystrokesmod.clickgui.components.impl;
 
+import keystrokesmod.Raven;
 import keystrokesmod.clickgui.components.Component;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.Utils;
+import keystrokesmod.utility.profile.ProfileModule;
 import net.minecraft.client.Minecraft;
 import org.lwjgl.opengl.GL11;
 
@@ -69,6 +71,7 @@ public class SliderComponent extends Component {
                 double n = roundToInterval(d / (double) (this.moduleComponent.categoryComponent.gw() - 8) * (this.sliderSetting.getMax() - this.sliderSetting.getMin()) + this.sliderSetting.getMin(), 2);
                 this.sliderSetting.setValue(n);
             }
+            ((ProfileModule) Raven.currentProfile.getModule()).saved = false;
         }
 
     }
@@ -104,5 +107,9 @@ public class SliderComponent extends Component {
 
     public boolean i(int x, int y) {
         return x > this.x + this.moduleComponent.categoryComponent.gw() / 2 && x < this.x + this.moduleComponent.categoryComponent.gw() && y > this.y && y < this.y + 16;
+    }
+
+    public void onGuiClosed() {
+        this.d = false;
     }
 }

@@ -11,6 +11,7 @@ import net.minecraft.entity.projectile.EntityFireball;
 import net.minecraft.item.*;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import org.lwjgl.input.Mouse;
 
 import java.util.HashSet;
 
@@ -45,7 +46,7 @@ public class AntiFireball extends Module {
         if (fireball != null) {
             Utils.attackEntity(fireball, !silentSwing.isToggled());
             final ItemStack getHeldItem = mc.thePlayer.getHeldItem();
-            if (getHeldItem != null && getHeldItem.getItem() instanceof ItemBlock && !blocksRotate.isToggled()) {
+            if (getHeldItem != null && getHeldItem.getItem() instanceof ItemBlock && !blocksRotate.isToggled() && Mouse.isButtonDown(1)) {
                 return;
             }
             if (getHeldItem != null && (getHeldItem.getItem() instanceof ItemBow || getHeldItem.getItem() instanceof ItemSnowball || getHeldItem.getItem() instanceof ItemEgg || getHeldItem.getItem() instanceof ItemFishingRod) && !projectileRotate.isToggled()) {

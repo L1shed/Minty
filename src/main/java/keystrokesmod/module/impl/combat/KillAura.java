@@ -183,7 +183,7 @@ public class KillAura extends Module {
         if (!basicCondition() || !fixSlotReset.isToggled()) {
             return;
         }
-        if (Utils.holdingSword() && mc.thePlayer.isBlocking()) {
+        if (Utils.holdingSword() && mc.thePlayer.isBlocking() || block.get()) {
             if (e.getPacket() instanceof S2FPacketSetSlot) {
                 if (mc.thePlayer.inventory.currentItem == ((S2FPacketSetSlot) e.getPacket()).func_149173_d() - 36 && mc.currentScreen == null) {
                     if (((S2FPacketSetSlot) e.getPacket()).func_149174_e() == null || (((S2FPacketSetSlot) e.getPacket()).func_149174_e().getItem() != mc.thePlayer.getHeldItem().getItem())) {

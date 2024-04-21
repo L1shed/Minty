@@ -72,7 +72,7 @@ public class InvManager extends Module {
 
     public void onUpdate() {
         if (Utils.inInventory()) {
-            if (autoArmor.isToggled() && lastArmor++ > autoArmorDelay.getInput()) {
+            if (autoArmor.isToggled() && lastArmor++ >= autoArmorDelay.getInput()) {
                 for (int i = 0; i < 4; i++) {
                     int bestSlot = getBestArmor(i, null);
                     if (bestSlot == i + 5) {
@@ -89,7 +89,7 @@ public class InvManager extends Module {
                     }
                 }
             }
-            if (autoSort.isToggled() && lastSort++ > sortDelay.getInput()) {
+            if (autoSort.isToggled() && lastSort++ >= sortDelay.getInput()) {
                 if (swordSlot.getInput() != 0) {
                     if (sort(getBestSword(null, (int) swordSlot.getInput()), (int) swordSlot.getInput())) {
                         lastSort = 0;
@@ -131,7 +131,7 @@ public class InvManager extends Module {
                 if (middleClickToClean.isToggled() && !Mouse.isButtonDown(2)) {
                     return;
                 }
-                if (lastClean++ > cleanerDelay.getInput()) {
+                if (lastClean++ >= cleanerDelay.getInput()) {
                     for (int i = 5; i < 45; i++) {
                         ItemStack stack = getItemStack(i);
                         if (stack == null) {
@@ -174,7 +174,7 @@ public class InvManager extends Module {
                     if (getBestSword(inventory, (int) swordSlot.getInput()) != i) {
                         continue;
                     }
-                    if (lastStole++ > stealerDelay.getInput()) {
+                    if (lastStole++ >= stealerDelay.getInput()) {
                         if (swordSlot.getInput() != 0) {
                             mc.playerController.windowClick(chest.windowId, i, (int) swordSlot.getInput() - 1, 2, mc.thePlayer);
                         }
@@ -189,28 +189,28 @@ public class InvManager extends Module {
                     if (!canBePlaced((ItemBlock) item.getItem())) {
                         continue;
                     }
-                    if (lastStole++ > stealerDelay.getInput()) {
+                    if (lastStole++ >= stealerDelay.getInput()) {
                         mc.playerController.windowClick(chest.windowId, i, 0, 1, mc.thePlayer);
                         lastStole = 0;
                     }
                     stolen = true;
                 }
                 else if (item.getItem() instanceof ItemAppleGold) {
-                    if (lastStole++ > stealerDelay.getInput()) {
+                    if (lastStole++ >= stealerDelay.getInput()) {
                         mc.playerController.windowClick(chest.windowId, i, (int) (goldenAppleSlot.getInput() - 1), 2, mc.thePlayer);
                         lastStole = 0;
                     }
                     stolen = true;
                 }
                 else if (item.getItem() instanceof ItemSnowball || item.getItem() instanceof ItemEgg) {
-                    if (lastStole++ > stealerDelay.getInput()) {
+                    if (lastStole++ >= stealerDelay.getInput()) {
                         mc.playerController.windowClick(chest.windowId, i, (int) (projectileSlot.getInput() - 1), 2, mc.thePlayer);
                         lastStole = 0;
                     }
                     stolen = true;
                 }
                 else if (item.getItem() instanceof ItemEnderPearl) {
-                    if (lastStole++ > stealerDelay.getInput()) {
+                    if (lastStole++ >= stealerDelay.getInput()) {
                         mc.playerController.windowClick(chest.windowId, i, (int) (pearlSlot.getInput() - 1), 2, mc.thePlayer);
                         lastStole = 0;
                     }
@@ -220,14 +220,14 @@ public class InvManager extends Module {
                     if (getBestArmor(((ItemArmor) item.getItem()).armorType, inventory) != i) {
                         continue;
                     }
-                    if (lastStole++ > stealerDelay.getInput()) {
+                    if (lastStole++ >= stealerDelay.getInput()) {
                         mc.playerController.windowClick(chest.windowId, i, 0, 1, mc.thePlayer);
                         lastStole = 0;
                     }
                     stolen = true;
                 }
                 else if (item.getItem() instanceof ItemPotion) {
-                    if (lastStole++ > stealerDelay.getInput()) {
+                    if (lastStole++ >= stealerDelay.getInput()) {
                         if (!isSpeedPot(item)) {
                             mc.playerController.windowClick(chest.windowId, i, 0, 1, mc.thePlayer);
                         } else {
@@ -238,7 +238,7 @@ public class InvManager extends Module {
                     stolen = true;
                 }
                 else {
-                    if (lastStole++ > stealerDelay.getInput()) {
+                    if (lastStole++ >= stealerDelay.getInput()) {
                         mc.playerController.windowClick(chest.windowId, i, 0, 1, mc.thePlayer);
                         lastStole = 0;
                     }

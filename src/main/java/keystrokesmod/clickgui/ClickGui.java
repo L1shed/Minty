@@ -247,7 +247,11 @@ public class ClickGui extends GuiScreen {
             Commands.rCMD(this.c.getText());
             this.c.setText("");
         }
-
+        for (CategoryComponent c : categories) {
+            for (Component m : c.getModules()) {
+                m.onGuiClosed();
+            }
+        }
     }
 
     public void onGuiClosed() {

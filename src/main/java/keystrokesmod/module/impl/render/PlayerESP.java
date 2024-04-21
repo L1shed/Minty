@@ -15,43 +15,42 @@ import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.awt.*;
-import java.util.Iterator;
 
 public class PlayerESP extends Module {
-    public static DescriptionSetting g;
-    public static SliderSetting a;
-    public static SliderSetting b;
-    public static SliderSetting c;
-    public static SliderSetting i;
-    public static SliderSetting j;
-    public static ButtonSetting d;
-    public static ButtonSetting f;
-    public static ButtonSetting h;
-    public static ButtonSetting t1;
-    public static ButtonSetting t2;
-    public static ButtonSetting t3;
-    public static ButtonSetting t4;
-    public static ButtonSetting t5;
-    public static ButtonSetting t6;
+    private DescriptionSetting types;
+    private SliderSetting red;
+    private SliderSetting green;
+    private SliderSetting blue;
+    private SliderSetting expand;
+    private SliderSetting xShift;
+    private ButtonSetting rainbow;
+    private ButtonSetting showInvis;
+    private ButtonSetting redOnDamage;
+    private ButtonSetting box;
+    private ButtonSetting shaded;
+    private ButtonSetting twoD;
+    private ButtonSetting health;
+    private ButtonSetting arrow;
+    private ButtonSetting ring;
     private int rgb_c = 0;
 
     public PlayerESP() {
         super("PlayerESP", Module.category.render, 0);
-        this.registerSetting(a = new SliderSetting("Red", 0.0D, 0.0D, 255.0D, 1.0D));
-        this.registerSetting(b = new SliderSetting("Green", 255.0D, 0.0D, 255.0D, 1.0D));
-        this.registerSetting(c = new SliderSetting("Blue", 0.0D, 0.0D, 255.0D, 1.0D));
-        this.registerSetting(d = new ButtonSetting("Rainbow", false));
-        this.registerSetting(g = new DescriptionSetting("ESP Types"));
-        this.registerSetting(t3 = new ButtonSetting("2D", false));
-        this.registerSetting(t5 = new ButtonSetting("Arrow", false));
-        this.registerSetting(t1 = new ButtonSetting("Box", false));
-        this.registerSetting(t4 = new ButtonSetting("Health", true));
-        this.registerSetting(t6 = new ButtonSetting("Ring", false));
-        this.registerSetting(t2 = new ButtonSetting("Shaded", false));
-        this.registerSetting(i = new SliderSetting("Expand", 0.0D, -0.3D, 2.0D, 0.1D));
-        this.registerSetting(j = new SliderSetting("X-Shift", 0.0D, -35.0D, 10.0D, 1.0D));
-        this.registerSetting(f = new ButtonSetting("Show invis", true));
-        this.registerSetting(h = new ButtonSetting("Red on damage", true));
+        this.registerSetting(red = new SliderSetting("Red", 0.0D, 0.0D, 255.0D, 1.0D));
+        this.registerSetting(green = new SliderSetting("Green", 255.0D, 0.0D, 255.0D, 1.0D));
+        this.registerSetting(blue = new SliderSetting("Blue", 0.0D, 0.0D, 255.0D, 1.0D));
+        this.registerSetting(rainbow = new ButtonSetting("Rainbow", false));
+        this.registerSetting(types = new DescriptionSetting("ESP Types"));
+        this.registerSetting(twoD = new ButtonSetting("2D", false));
+        this.registerSetting(arrow = new ButtonSetting("Arrow", false));
+        this.registerSetting(box = new ButtonSetting("Box", false));
+        this.registerSetting(health = new ButtonSetting("Health", true));
+        this.registerSetting(ring = new ButtonSetting("Ring", false));
+        this.registerSetting(shaded = new ButtonSetting("Shaded", false));
+        this.registerSetting(expand = new SliderSetting("Expand", 0.0D, -0.3D, 2.0D, 0.1D));
+        this.registerSetting(xShift = new SliderSetting("X-Shift", 0.0D, -35.0D, 10.0D, 1.0D));
+        this.registerSetting(redOnDamage = new ButtonSetting("Red on damage", true));
+        this.registerSetting(showInvis = new ButtonSetting("Show invis", true));
     }
 
     public void onDisable() {
@@ -59,73 +58,61 @@ public class PlayerESP extends Module {
     }
 
     public void guiUpdate() {
-        this.rgb_c = (new Color((int) a.getInput(), (int) b.getInput(), (int) c.getInput())).getRGB();
+        this.rgb_c = (new Color((int) red.getInput(), (int) green.getInput(), (int) blue.getInput())).getRGB();
     }
 
     @SubscribeEvent
-    public void r1(RenderWorldLastEvent e) {
+    public void onRenderWorld(RenderWorldLastEvent e) {
         if (Utils.nullCheck()) {
-            int rgb = d.isToggled() ? 0 : this.rgb_c;
-            Iterator var3;
+            int rgb = rainbow.isToggled() ? 0 : this.rgb_c;
             if (Raven.debugger) {
-                var3 = mc.theWorld.loadedEntityList.iterator();
-
-                while (var3.hasNext()) {
-                    Entity en = (Entity) var3.next();
-                    if (en instanceof EntityLivingBase && en != mc.thePlayer) {
-                        this.r(en, rgb);
+                for (final Entity entity : mc.theWorld.loadedEntityList) {
+                    if (entity instanceof EntityLivingBase && entity != mc.thePlayer) {
+                        this.render(entity, rgb);
                     }
                 }
-
-            } else {
-                var3 = mc.theWorld.playerEntities.iterator();
-
-                while (true) {
-                    EntityPlayer en;
-                    do {
-                        do {
-                            do {
-                                if (!var3.hasNext()) {
-                                    return;
-                                }
-
-                                en = (EntityPlayer) var3.next();
-                            } while (en == mc.thePlayer);
-                        } while (en.deathTime != 0);
-                    } while (!f.isToggled() && en.isInvisible());
-
-                    if (!AntiBot.isBot(en)) {
-                        this.r(en, rgb);
+                return;
+            }
+            for (final EntityPlayer entityPlayer : mc.theWorld.playerEntities) {
+                if (entityPlayer != mc.thePlayer) {
+                    if (entityPlayer.deathTime != 0) {
+                        continue;
                     }
+                    if (!showInvis.isToggled() && entityPlayer.isInvisible()) {
+                        continue;
+                    }
+                    if (AntiBot.isBot(entityPlayer)) {
+                        continue;
+                    }
+                    this.render(entityPlayer, rgb);
                 }
             }
         }
     }
 
-    private void r(Entity en, int rgb) {
-        if (t1.isToggled()) {
-            RenderUtils.renderEntity(en, 1, i.getInput(), j.getInput(), rgb, h.isToggled());
+    private void render(Entity en, int rgb) {
+        if (box.isToggled()) {
+            RenderUtils.renderEntity(en, 1, expand.getInput(), xShift.getInput(), rgb, redOnDamage.isToggled());
         }
 
-        if (t2.isToggled()) {
-            RenderUtils.renderEntity(en, 2, i.getInput(), j.getInput(), rgb, h.isToggled());
+        if (shaded.isToggled()) {
+            RenderUtils.renderEntity(en, 2, expand.getInput(), xShift.getInput(), rgb, redOnDamage.isToggled());
         }
 
-        if (t3.isToggled()) {
-            RenderUtils.renderEntity(en, 3, i.getInput(), j.getInput(), rgb, h.isToggled());
+        if (twoD.isToggled()) {
+            RenderUtils.renderEntity(en, 3, expand.getInput(), xShift.getInput(), rgb, redOnDamage.isToggled());
         }
 
-        if (t4.isToggled()) {
-            RenderUtils.renderEntity(en, 4, i.getInput(), j.getInput(), rgb, h.isToggled());
+        if (health.isToggled()) {
+            RenderUtils.renderEntity(en, 4, expand.getInput(), xShift.getInput(), rgb, redOnDamage.isToggled());
         }
 
-        if (t5.isToggled()) {
-            RenderUtils.renderEntity(en, 5, i.getInput(), j.getInput(), rgb, h.isToggled());
+        if (arrow.isToggled()) {
+            RenderUtils.renderEntity(en, 5, expand.getInput(), xShift.getInput(), rgb, redOnDamage.isToggled());
         }
 
-        if (t6.isToggled()) {
-            RenderUtils.renderEntity(en, 6, i.getInput(), j.getInput(), rgb, h.isToggled());
+        if (ring.isToggled()) {
+            RenderUtils.renderEntity(en, 6, expand.getInput(), xShift.getInput(), rgb, redOnDamage.isToggled());
         }
-
     }
 }

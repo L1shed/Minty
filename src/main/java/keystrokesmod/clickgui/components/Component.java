@@ -22,4 +22,7 @@ public class Component {
     public int gh() {
         return 0;
     }
+
+    public void onGuiClosed() {
+    }
 }
