@@ -59,10 +59,10 @@ public class Module {
     public void keybind() {
         if (this.keycode != 0) {
             try {
-                if (!this.isToggled && this.keycode >= 1000 ? Mouse.isButtonDown(this.keycode - 1000) : Keyboard.isKeyDown(this.keycode)) {
+                if (!this.isToggled && (this.keycode >= 1000 ? Mouse.isButtonDown(this.keycode - 1000) : Keyboard.isKeyDown(this.keycode))) {
                     this.toggle();
                     this.isToggled = true;
-                } else if (this.keycode >= 1000 ? !Mouse.isButtonDown(this.keycode - 1000) : !Keyboard.isKeyDown(this.keycode)) {
+                } else if ((this.keycode >= 1000 ? !Mouse.isButtonDown(this.keycode - 1000) : !Keyboard.isKeyDown(this.keycode))) {
                     this.isToggled = false;
                 }
             }
