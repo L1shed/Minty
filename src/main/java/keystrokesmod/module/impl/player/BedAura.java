@@ -125,7 +125,7 @@ public class BedAura extends Module {
         }
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     public void onPreMotion(PreMotionEvent e) {
         if ((rotate || breakProgress >= 1 || breakProgress == 0) && currentBlock != null) {
             float[] rotations = RotationUtils.getRotations(currentBlock, e.getYaw(), e.getPitch());
