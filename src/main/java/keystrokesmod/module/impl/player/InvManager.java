@@ -513,7 +513,7 @@ public class InvManager extends Module {
         if (block == null) {
             return false;
         }
-        if (block instanceof BlockLiquid || block instanceof BlockChest || block instanceof BlockAnvil || block instanceof BlockEnderChest || block instanceof BlockLadder || block instanceof BlockTorch || block instanceof BlockRedstoneTorch || block instanceof BlockFence || block instanceof BlockFenceGate || block instanceof BlockPane || block instanceof BlockStainedGlassPane || block instanceof BlockGravel || block instanceof BlockClay || block instanceof BlockSand || block instanceof BlockSoulSand) {
+        if (block instanceof BlockLiquid || block instanceof BlockEnchantmentTable || block instanceof BlockChest || block instanceof BlockAnvil || block instanceof BlockEnderChest || block instanceof BlockLadder || block instanceof BlockTorch || block instanceof BlockRedstoneTorch || block instanceof BlockFence || block instanceof BlockFenceGate || block instanceof BlockPane || block instanceof BlockStainedGlassPane || block instanceof BlockGravel || block instanceof BlockClay || block instanceof BlockSand || block instanceof BlockSoulSand) {
             return false;
         }
         return true;

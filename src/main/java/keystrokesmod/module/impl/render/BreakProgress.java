@@ -74,7 +74,7 @@ public class BreakProgress extends Module {
             this.resetVariables();
             return;
         }
-        if (ModuleManager.bedAura != null && ModuleManager.bedAura.isEnabled() && ModuleManager.bedAura.breakProgress != 0.0f && ModuleManager.bedAura.currentBlock != null && !(BlockUtils.getBlock(ModuleManager.bedAura.currentBlock) instanceof BlockBed)) {
+        if (ModuleManager.bedAura != null && ModuleManager.bedAura.isEnabled() && ModuleManager.bedAura.breakProgress != 0.0f && ModuleManager.bedAura.currentBlock != null && !(BlockUtils.getBlock(ModuleManager.bedAura.currentBlock) instanceof BlockBed) || ModuleManager.bedAura.mode.getInput() == 0) {
             this.progress = Math.min(1.0f, ModuleManager.bedAura.breakProgress);
             this.block = ModuleManager.bedAura.currentBlock;
             this.setProgress();

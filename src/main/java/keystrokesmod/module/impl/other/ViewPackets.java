@@ -61,7 +61,10 @@ public class ViewPackets extends Module {
 
     @SubscribeEvent
     public void onSendPacket(SendPacketEvent e) {
-        if (singlePlayer.isToggled() && mc.isSingleplayer() && e.getPacket().getClass().getSimpleName().charAt(0) == 'S' && sent.isToggled()) {
+        if (!sent.isToggled()) {
+            return;
+        }
+        if (singlePlayer.isToggled() && mc.isSingleplayer() && e.getPacket().getClass().getSimpleName().charAt(0) == 'S') {
             return;
         }
         if (e.isCanceled() && !includeCancelled.isToggled()) {
@@ -81,7 +84,10 @@ public class ViewPackets extends Module {
 
     @SubscribeEvent
     public void onReceivePacket(ReceivePacketEvent e) {
-        if (singlePlayer.isToggled() && mc.isSingleplayer() && e.getPacket().getClass().getSimpleName().charAt(0) == 'C' && received.isToggled()) {
+        if (!received.isToggled()) {
+            return;
+        }
+        if (singlePlayer.isToggled() && mc.isSingleplayer() && e.getPacket().getClass().getSimpleName().charAt(0) == 'C') {
             return;
         }
         sendMessage(e.getPacket(), true);

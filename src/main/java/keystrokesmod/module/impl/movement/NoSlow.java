@@ -80,7 +80,7 @@ public class NoSlow extends Module {
             }
             if (mc.thePlayer.getHeldItem().getItem() instanceof ItemBow && disableBow.isToggled()) {
                 return 0.2f;
-            } else if (mc.thePlayer.getHeldItem().getItem() instanceof ItemPotion && disablePotions.isToggled()) {
+            } else if (mc.thePlayer.getHeldItem().getItem() instanceof ItemPotion && !ItemPotion.isSplash(mc.thePlayer.getHeldItem().getItemDamage()) && disablePotions.isToggled()) {
                 return 0.2f;
             }
         }

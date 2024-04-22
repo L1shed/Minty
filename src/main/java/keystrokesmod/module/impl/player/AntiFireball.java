@@ -44,7 +44,7 @@ public class AntiFireball extends Module {
             return;
         }
         if (fireball != null) {
-            Utils.attackEntity(fireball, !silentSwing.isToggled());
+            Utils.attackEntity(fireball, !silentSwing.isToggled(), silentSwing.isToggled());
             final ItemStack getHeldItem = mc.thePlayer.getHeldItem();
             if (getHeldItem != null && getHeldItem.getItem() instanceof ItemBlock && !blocksRotate.isToggled() && Mouse.isButtonDown(1)) {
                 return;

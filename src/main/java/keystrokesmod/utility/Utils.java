@@ -23,6 +23,7 @@ import net.minecraft.init.Items;
 import net.minecraft.inventory.ContainerPlayer;
 import net.minecraft.item.*;
 import net.minecraft.network.play.client.C03PacketPlayer.C05PacketPlayerLook;
+import net.minecraft.network.play.client.C0APacketAnimation;
 import net.minecraft.potion.Potion;
 import net.minecraft.scoreboard.*;
 import net.minecraft.util.*;
@@ -120,9 +121,12 @@ public class Utils {
         }
     }
 
-    public static void attackEntity(Entity e, boolean clientSwing) {
+    public static void attackEntity(Entity e, boolean clientSwing, boolean silentSwing) {
         if (clientSwing) {
             mc.thePlayer.swingItem();
+        }
+        else if (silentSwing || (!silentSwing && !clientSwing)) {
+            mc.thePlayer.sendQueue.addToSendQueue(new C0APacketAnimation());
         }
         mc.playerController.attackEntity(mc.thePlayer, e);
     }
