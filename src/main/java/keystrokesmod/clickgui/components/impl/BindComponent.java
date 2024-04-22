@@ -31,7 +31,7 @@ public class BindComponent extends Component {
     public void render() {
         GL11.glPushMatrix();
         GL11.glScaled(0.5D, 0.5D, 0.5D);
-        this.drawString(!this.moduleComponent.mod.canBeEnabled ? "Module cannot be bound." : this.isBinding ? "Press a key..." : "Current bind: '§e" + Keyboard.getKeyName(this.moduleComponent.mod.getKeycode()) + "§r'");
+        this.drawString(!this.moduleComponent.mod.canBeEnabled ? "Module cannot be bound." : this.isBinding ? "Press a key..." : "Current bind: '§e" + (this.moduleComponent.mod.getKeycode() >= 1000 ? "M" + (this.moduleComponent.mod.getKeycode() - 1000) : Keyboard.getKeyName(this.moduleComponent.mod.getKeycode())) + "§r'");
         GL11.glPopMatrix();
     }
 
@@ -48,6 +48,13 @@ public class BindComponent extends Component {
             else if (b == 1 && this.moduleComponent.mod.moduleCategory() != Module.category.profiles) {
                 this.moduleComponent.mod.setVisibility(!this.moduleComponent.mod.isVisible());
                 ((ProfileModule) Raven.currentProfile.getModule()).saved = false;
+            }
+            else if (b > 1) {
+                if (this.isBinding) {
+                    this.moduleComponent.mod.setBind(b + 1000);
+                    ((ProfileModule) Raven.currentProfile.getModule()).saved = false;
+                    this.isBinding = false;
+                }
             }
         }
     }

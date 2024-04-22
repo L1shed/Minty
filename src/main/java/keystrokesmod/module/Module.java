@@ -2,10 +2,11 @@ package keystrokesmod.module;
 
 import keystrokesmod.module.setting.Setting;
 import keystrokesmod.module.setting.impl.ButtonSetting;
+import keystrokesmod.utility.Utils;
 import net.minecraft.client.Minecraft;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -57,13 +58,19 @@ public class Module {
 
     public void keybind() {
         if (this.keycode != 0) {
-            if (!this.isToggled && Keyboard.isKeyDown(this.keycode)) {
-                this.toggle();
-                this.isToggled = true;
-            } else if (!Keyboard.isKeyDown(this.keycode)) {
-                this.isToggled = false;
+            try {
+                if (!this.isToggled && this.keycode >= 1000 ? Mouse.isButtonDown(this.keycode - 1000) : Keyboard.isKeyDown(this.keycode)) {
+                    this.toggle();
+                    this.isToggled = true;
+                } else if (this.keycode >= 1000 ? !Mouse.isButtonDown(this.keycode - 1000) : !Keyboard.isKeyDown(this.keycode)) {
+                    this.isToggled = false;
+                }
             }
-
+            catch (Exception e) {
+                e.printStackTrace();
+                Utils.sendMessage("&cFailed to check keybinding. Setting to none");
+                this.keycode = 0;
+            }
         }
     }
 
