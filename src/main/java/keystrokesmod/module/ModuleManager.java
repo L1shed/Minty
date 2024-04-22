@@ -34,6 +34,7 @@ public class ModuleManager {
     public static Module autoClicker;
     public static Module hitBox;
     public static Module reach;
+    public static BedESP bedESP;
     public static Module hud;
     public static Module timer;
     public static Module fly;
@@ -99,7 +100,7 @@ public class ModuleManager {
         this.addModule(new TargetHUD());
         this.addModule(new DuelsStats());
         this.addModule(new AntiFireball());
-        this.addModule(new BedESP());
+        this.addModule(bedESP = new BedESP());
         this.addModule(new MurderMystery());
         this.addModule(new SumoFences());
         this.addModule(new Fun.ExtraBobbing());

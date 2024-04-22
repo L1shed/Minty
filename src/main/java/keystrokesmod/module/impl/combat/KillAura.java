@@ -8,13 +8,10 @@ import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.*;
 import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
-import net.minecraft.network.play.client.C07PacketPlayerDigging;
-import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
-import net.minecraft.network.play.client.C09PacketHeldItemChange;
+import net.minecraft.network.play.client.*;
 import net.minecraft.network.play.server.S2FPacketSetSlot;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.MovingObjectPosition;
@@ -47,7 +44,9 @@ public class KillAura extends Module {
     private ButtonSetting fixSlotReset;
     private ButtonSetting hitThroughBlocks;
     private ButtonSetting ignoreTeammates;
+    private ButtonSetting manualBlock;
     private ButtonSetting requireMouseDown;
+    private ButtonSetting silentSwing;
     private ButtonSetting weaponOnly;
     private String[] autoBlockModes = new String[]{"Manual", "Vanilla", "Post", "Fake", "Partial"};
     private String[] rotationModes = new String[]{"None", "Silent", "Lock view"};
@@ -55,7 +54,6 @@ public class KillAura extends Module {
     private List<EntityLivingBase> availableTargets = new ArrayList<>();
     private AtomicBoolean block = new AtomicBoolean();
     private long lastSwitched = System.currentTimeMillis();
-    private long lastAttacked = System.currentTimeMillis();
     private boolean switchTargets;
     private byte entityIndex;
     private boolean swing;
@@ -70,7 +68,6 @@ public class KillAura extends Module {
     // autoclicker vars end
     private boolean attack;
     private boolean blocking;
-
 
     public KillAura() {
         super("KillAura", category.combat);
@@ -91,7 +88,9 @@ public class KillAura extends Module {
         this.registerSetting(fixSlotReset = new ButtonSetting("Fix slot reset", false));
         this.registerSetting(hitThroughBlocks = new ButtonSetting("Hit through blocks", true));
         this.registerSetting(ignoreTeammates = new ButtonSetting("Ignore teammates", true));
+        this.registerSetting(manualBlock = new ButtonSetting("Manual block", true));
         this.registerSetting(requireMouseDown = new ButtonSetting("Require mouse down", false));
+        this.registerSetting(silentSwing = new ButtonSetting("Silent swing while blocking", false));
         this.registerSetting(weaponOnly = new ButtonSetting("Weapon only", false));
     }
 
@@ -101,6 +100,7 @@ public class KillAura extends Module {
 
     public void onDisable() {
         resetVariables();
+
     }
 
     @SubscribeEvent
@@ -123,32 +123,35 @@ public class KillAura extends Module {
 
     @SubscribeEvent
     public void onPreUpdate(PreUpdateEvent e) {
-        if (!basicCondition()) {
+        if (!basicCondition() || !settingCondition()) {
             resetVariables();
             return;
         }
 
         block();
 
-        if (settingCondition()) {
-            if (ModuleManager.bedAura != null && ModuleManager.bedAura.isEnabled() && !ModuleManager.bedAura.allowKillAura.isToggled() && ModuleManager.bedAura.currentBlock != null) {
-                return;
-            }
-            if (mc.thePlayer.isBlocking() && disableWhileBlocking.isToggled()) {
-                return;
-            }
-            if (swing && attack) {
+        if (ModuleManager.bedAura != null && ModuleManager.bedAura.isEnabled() && !ModuleManager.bedAura.allowKillAura.isToggled() && ModuleManager.bedAura.currentBlock != null) {
+            return;
+        }
+        if ((mc.thePlayer.isBlocking() || block.get()) && disableWhileBlocking.isToggled()) {
+            return;
+        }
+        boolean swingWhileBlocking = !silentSwing.isToggled() || !block.get();
+        if (swing && attack) {
+            if (swingWhileBlocking) {
                 mc.thePlayer.swingItem();
             }
-            if (target == null) {
-                return;
+            else {
+                mc.thePlayer.sendQueue.addToSendQueue(new C0APacketAnimation());
             }
-            if (attack) {
-                attack = false;
-                switchTargets = true;
-                Utils.attackEntity(target, !swing);
-                lastAttacked = System.currentTimeMillis();
-            }
+        }
+        if (target == null) {
+            return;
+        }
+        if (attack) {
+            attack = false;
+            switchTargets = true;
+            Utils.attackEntity(target, swingWhileBlocking, !swingWhileBlocking);
         }
     }
 
@@ -183,7 +186,7 @@ public class KillAura extends Module {
         if (!basicCondition() || !fixSlotReset.isToggled()) {
             return;
         }
-        if (Utils.holdingSword() && mc.thePlayer.isBlocking() || block.get()) {
+        if (Utils.holdingSword() && (mc.thePlayer.isBlocking() || block.get())) {
             if (e.getPacket() instanceof S2FPacketSetSlot) {
                 if (mc.thePlayer.inventory.currentItem == ((S2FPacketSetSlot) e.getPacket()).func_149173_d() - 36 && mc.currentScreen == null) {
                     if (((S2FPacketSetSlot) e.getPacket()).func_149174_e() == null || (((S2FPacketSetSlot) e.getPacket()).func_149174_e().getItem() != mc.thePlayer.getHeldItem().getItem())) {
@@ -202,7 +205,7 @@ public class KillAura extends Module {
                 mouseEvent.setCanceled(true);
             }
         }
-        else if (mouseEvent.button == 1 && autoBlockMode.getInput() == 1 && Utils.holdingSword() && block.get()) {
+        else if (mouseEvent.button == 1 && ((autoBlockMode.getInput() == 1 && Utils.holdingSword() && block.get()) || stopBlock())) {
             if (target == null && mc.objectMouseOver != null) {
                 if (mc.objectMouseOver.entityHit != null && AntiBot.isBot(mc.objectMouseOver.entityHit)) {
                     return;
@@ -230,6 +233,49 @@ public class KillAura extends Module {
         this.i = 0L;
         this.j = 0L;
         block();
+    }
+
+    private boolean stopBlock() {
+        return ModuleManager.bedAura != null && ModuleManager.bedAura.isEnabled() && !ModuleManager.bedAura.allowAutoBlock.isToggled() && ModuleManager.bedAura.currentBlock != null;
+    }
+
+    private void block() {
+        if (!block.get() && !blocking) {
+            return;
+        }
+        if (stopBlock()) {
+            block.set(false);
+        }
+        if (!Utils.holdingSword()) {
+            block.set(false);
+        }
+        switch ((int) autoBlockMode.getInput()) {
+            case 1: // vanilla
+                setBlockState(block.get(), true, true);
+                break;
+            case 2: // post
+                setBlockState(block.get(), false, true);
+                break;
+            case 3: // fake
+                setBlockState(block.get(), false, false);
+                break;
+            case 4: // partial
+                boolean down = (target == null || target.hurtTime >= 5) && block.get();
+                KeyBinding.setKeyBindState(mc.gameSettings.keyBindUseItem.getKeyCode(), down);
+                Reflection.setButton(1, down);
+                blocking = down;
+        }
+    }
+
+    private void setBlockState(boolean state, boolean sendBlock, boolean sendUnBlock) {
+        if (Utils.holdingSword()) {
+            if (sendBlock && !blocking && state && Utils.holdingSword()) {
+                mc.getNetHandler().addToSendQueue(new C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()));
+            } else if (sendUnBlock && blocking && !state) {
+                unBlock();
+            }
+        }
+        blocking = Reflection.setBlocking(state);
     }
 
     private void setTarget() {
@@ -266,7 +312,7 @@ public class KillAura extends Module {
                 continue;
             }
             double distance = mc.thePlayer.getDistanceSqToEntity(entity); // need a more accurate distance check as this can ghost on hypixel
-            if (distance <= blockRange.getInput() * blockRange.getInput()) {
+            if (distance <= blockRange.getInput() * blockRange.getInput() && autoBlockMode.getInput() > 0) {
                 block.set(true);
             }
             if (distance <= swingRange.getInput() * swingRange.getInput()) {
@@ -384,45 +430,6 @@ public class KillAura extends Module {
 
         this.j = System.currentTimeMillis() + d;
         this.i = System.currentTimeMillis() + d / 2L - (long) this.rand.nextInt(10);
-    }
-
-    private void block() {
-        if (!block.get() && !blocking) {
-            return;
-        }
-        if (ModuleManager.bedAura != null && ModuleManager.bedAura.isEnabled() && !ModuleManager.bedAura.allowAutoBlock.isToggled() && ModuleManager.bedAura.currentBlock != null) {
-            block.set(false);
-        }
-        if (!Utils.holdingSword()) {
-            block.set(false);
-        }
-        switch ((int) autoBlockMode.getInput()) {
-            case 1:
-                setBlockState(block.get(), true, true);
-                break;
-            case 2:
-                setBlockState(block.get(), false, true);
-                break;
-            case 3:
-                setBlockState(block.get(), false, false);
-                break;
-            case 4:
-                boolean down = (target == null || target.hurtTime >= 5) && block.get();
-                KeyBinding.setKeyBindState(mc.gameSettings.keyBindUseItem.getKeyCode(), down);
-                Reflection.setButton(1, down);
-                blocking = down;
-        }
-    }
-
-    private void setBlockState(boolean state, boolean sendBlock, boolean sendUnBlock) {
-        if (Utils.holdingSword()) {
-            if (sendBlock && !blocking && state && Utils.holdingSword()) {
-                mc.getNetHandler().addToSendQueue(new C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()));
-            } else if (sendUnBlock && blocking && !state) {
-                unBlock();
-            }
-        }
-        blocking = Reflection.setBlocking(state);
     }
 
     private void unBlock() {

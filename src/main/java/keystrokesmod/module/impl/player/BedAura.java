@@ -45,7 +45,6 @@ public class BedAura extends Module {
     private boolean rotate;
     public BlockPos currentBlock;
     private long lastCheck = 0;
-    public boolean stopAutoblock;
     private int outlineColor = new Color(226, 65, 65).getRGB();
     private int breakTickDelay = 5;
     private int ticksAfterBreak = 0;
@@ -185,7 +184,6 @@ public class BedAura extends Module {
 
     private void reset() {
         resetSlot();
-        stopAutoblock = false;
         bedPos = null;
         breakProgress = 0;
         currentSlot = -1;
@@ -194,7 +192,6 @@ public class BedAura extends Module {
         currentBlock = null;
         lastSlot = -1;
         delayStart = false;
-        stopAutoblock = false;
     }
 
     private boolean replaceable(BlockPos blockPos) {
@@ -248,7 +245,6 @@ public class BedAura extends Module {
         Block block = BlockUtils.getBlock(blockPos);
         if (mode.getInput() == 2 || mode.getInput() == 0) {
             if (breakProgress == 0) {
-                stopAutoblock = true;
                 rotate = true;
                 if (mode.getInput() == 0) {
                     setSlot(Utils.getTool(block));
@@ -257,7 +253,6 @@ public class BedAura extends Module {
                 startBreak(blockPos);
             }
             else if (breakProgress >= 1) {
-                stopAutoblock = true;
                 if (mode.getInput() == 2) {
                     setPacketSlot(Utils.getTool(block));
                 }
@@ -269,7 +264,6 @@ public class BedAura extends Module {
             }
             else {
                 if (mode.getInput() == 0) {
-                    stopAutoblock = true;
                     rotate = true;
                     swing();
                 }
@@ -277,7 +271,6 @@ public class BedAura extends Module {
             breakProgress += BlockUtils.getBlockHardness(block, (mode.getInput() == 2 && Utils.getTool(block) != -1) ? mc.thePlayer.inventory.getStackInSlot(Utils.getTool(block)) : mc.thePlayer.getHeldItem(), false);
         }
         else if (mode.getInput() == 1) {
-            stopAutoblock = true;
             rotate = true;
             swing();
             startBreak(blockPos);
