@@ -93,7 +93,12 @@ public class HUD extends Module {
                     moduleName = moduleName.toLowerCase();
                 }
                 int e = Theme.getGradient((int) theme.getInput(), n2);
-                n2 -= 12;
+                if (theme.getInput() == 0) {
+                    n2 -= 120;
+                }
+                else {
+                    n2 -= 12;
+                }
                 int n3 = hudX;
                 if (alignRight.isToggled()) {
                     n3 += longestModule - mc.fontRendererObj.getStringWidth(moduleName);
@@ -212,7 +217,12 @@ public class HUD extends Module {
                             moduleName = moduleName.toLowerCase();
                         }
                         int e = Theme.getGradient((int) theme.getInput(), n2);
-                        n2 -= 12;
+                        if (theme.getInput() == 0) {
+                            n2 -= 120;
+                        }
+                        else {
+                            n2 -= 12;
+                        }
                         int n3 = this.miX;
                         if (alignRight.isToggled()) {
                             n3 += longestModule - mc.fontRendererObj.getStringWidth(moduleName);
