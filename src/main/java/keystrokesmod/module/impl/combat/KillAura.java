@@ -52,7 +52,7 @@ public class KillAura extends Module {
     private String[] rotationModes = new String[]{"None", "Silent", "Lock view"};
     private String[] sortModes = new String[]{"Health", "HurtTime", "Distance", "Yaw"};
     private List<EntityLivingBase> availableTargets = new ArrayList<>();
-    private AtomicBoolean block = new AtomicBoolean();
+    public AtomicBoolean block = new AtomicBoolean();
     private long lastSwitched = System.currentTimeMillis();
     private boolean switchTargets;
     private byte entityIndex;
@@ -176,8 +176,7 @@ public class KillAura extends Module {
     @SubscribeEvent
     public void onPostMotion(PostMotionEvent e) {
         if (autoBlockMode.getInput() == 2 && block.get() && Utils.holdingSword()) {
-            mc.thePlayer.sendQueue.addToSendQueue(new C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem % 8 + 1));
-            mc.thePlayer.sendQueue.addToSendQueue(new C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem));
+            mc.getNetHandler().addToSendQueue(new C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()));
         }
     }
 

@@ -30,7 +30,7 @@ public class ModuleManager {
     public static Module commandLine;
     public static Module antiBot;
     public static Module noSlow;
-    public static Module killAura;
+    public static KillAura killAura;
     public static Module autoClicker;
     public static Module hitBox;
     public static Module reach;

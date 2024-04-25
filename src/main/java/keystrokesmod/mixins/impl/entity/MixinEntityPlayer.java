@@ -3,11 +3,13 @@ package keystrokesmod.mixins.impl.entity;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.combat.Reduce;
 import keystrokesmod.module.impl.movement.KeepSprint;
+import net.minecraft.client.Minecraft;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.*;
 import net.minecraft.entity.boss.EntityDragonPart;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.item.EnumAction;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.server.S12PacketEntityVelocity;
 import net.minecraft.potion.Potion;
@@ -51,6 +53,10 @@ public abstract class MixinEntityPlayer extends EntityLivingBase {
 
     @Shadow
     public abstract void addExhaustion(float p_addExhaustion_1_);
+    @Shadow
+    private ItemStack itemInUse;
+    @Shadow
+    public abstract boolean isUsingItem();
 
     @Overwrite
     public void attackTargetEntityWithCurrentItem(Entity p_attackTargetEntityWithCurrentItem_1_) {
@@ -161,5 +167,13 @@ public abstract class MixinEntityPlayer extends EntityLivingBase {
             }
 
         }
+    }
+
+    @Overwrite
+    public boolean isBlocking() {
+        if (ModuleManager.killAura != null && ModuleManager.killAura.isEnabled() && ModuleManager.killAura.block.get() && ((Object) this) == Minecraft.getMinecraft().thePlayer) {
+            return true;
+        }
+        return this.isUsingItem() && this.itemInUse.getItem().getItemUseAction(this.itemInUse) == EnumAction.BLOCK;
     }
 }
