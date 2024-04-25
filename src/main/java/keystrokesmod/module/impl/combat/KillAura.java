@@ -204,7 +204,7 @@ public class KillAura extends Module {
                 mouseEvent.setCanceled(true);
             }
         }
-        else if (mouseEvent.button == 1 && ((autoBlockMode.getInput() == 1 && Utils.holdingSword() && block.get()) || stopBlock())) {
+        else if (mouseEvent.button == 1 && ((autoBlockMode.getInput() >= 1 && Utils.holdingSword() && block.get()) || stopBlock())) {
             if (target == null && mc.objectMouseOver != null) {
                 if (mc.objectMouseOver.entityHit != null && AntiBot.isBot(mc.objectMouseOver.entityHit)) {
                     return;
