@@ -173,7 +173,9 @@ public class ModuleComponent extends Component {
         if (this.ii(x, y) && b == 0) {
             this.mod.toggle();
             if (this.mod.moduleCategory() != Module.category.profiles) {
-                ((ProfileModule) Raven.currentProfile.getModule()).saved = false;
+                if (Raven.currentProfile != null) {
+                    ((ProfileModule) Raven.currentProfile.getModule()).saved = false;
+                }
             }
         }
 

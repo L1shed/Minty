@@ -47,12 +47,16 @@ public class BindComponent extends Component {
             }
             else if (b == 1 && this.moduleComponent.mod.moduleCategory() != Module.category.profiles) {
                 this.moduleComponent.mod.setVisibility(!this.moduleComponent.mod.isVisible());
-                ((ProfileModule) Raven.currentProfile.getModule()).saved = false;
+                if (Raven.currentProfile != null) {
+                    ((ProfileModule) Raven.currentProfile.getModule()).saved = false;
+                }
             }
             else if (b > 1) {
                 if (this.isBinding) {
                     this.moduleComponent.mod.setBind(b + 1000);
-                    ((ProfileModule) Raven.currentProfile.getModule()).saved = false;
+                    if (Raven.currentProfile != null) {
+                        ((ProfileModule) Raven.currentProfile.getModule()).saved = false;
+                    }
                     this.isBinding = false;
                 }
             }
@@ -63,14 +67,17 @@ public class BindComponent extends Component {
         if (this.isBinding) {
             if (keybind == 11) {
                 if (this.moduleComponent.mod instanceof Gui) {
-                    ((ProfileModule) Raven.currentProfile.getModule()).saved = false;
                     this.moduleComponent.mod.setBind(54);
                 } else {
-                    ((ProfileModule) Raven.currentProfile.getModule()).saved = false;
                     this.moduleComponent.mod.setBind(0);
                 }
+                if (Raven.currentProfile != null) {
+                    ((ProfileModule) Raven.currentProfile.getModule()).saved = false;
+                }
             } else {
-                ((ProfileModule) Raven.currentProfile.getModule()).saved = false;
+                if (Raven.currentProfile != null) {
+                    ((ProfileModule) Raven.currentProfile.getModule()).saved = false;
+                }
                 this.moduleComponent.mod.setBind(keybind);
             }
 

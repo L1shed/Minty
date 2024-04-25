@@ -71,7 +71,9 @@ public class SliderComponent extends Component {
                 double n = roundToInterval(d / (double) (this.moduleComponent.categoryComponent.gw() - 8) * (this.sliderSetting.getMax() - this.sliderSetting.getMin()) + this.sliderSetting.getMin(), 2);
                 this.sliderSetting.setValue(n);
             }
-            ((ProfileModule) Raven.currentProfile.getModule()).saved = false;
+            if (Raven.currentProfile != null) {
+                ((ProfileModule) Raven.currentProfile.getModule()).saved = false;
+            }
         }
 
     }
