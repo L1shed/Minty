@@ -344,7 +344,7 @@ public class Utils {
     }
 
     public static List<String> getSidebarLines() {
-        final List<String> lines = new ArrayList<String>();
+        final List<String> lines = new ArrayList<>();
         if (mc.theWorld == null) {
             return lines;
         }
@@ -357,7 +357,7 @@ public class Utils {
             return lines;
         }
         Collection<Score> scores = scoreboard.getSortedScores(objective);
-        final List<Score> list = new ArrayList<Score>();
+        final List<Score> list = new ArrayList<>();
         for (final Score input : scores) {
             if (input != null && input.getPlayerName() != null && !input.getPlayerName().startsWith("#")) {
                 list.add(input);
@@ -368,9 +368,14 @@ public class Utils {
         } else {
             scores = list;
         }
+        int index = 0;
         for (final Score score : scores) {
+            ++index;
             final ScorePlayerTeam team = scoreboard.getPlayersTeam(score.getPlayerName());
-            lines.add(ScorePlayerTeam.formatPlayerName((Team) team, score.getPlayerName()));
+            lines.add(ScorePlayerTeam.formatPlayerName(team, score.getPlayerName()));
+            if (index == scores.size()) {
+                lines.add(objective.getDisplayName());
+            }
         }
         return lines;
     }
