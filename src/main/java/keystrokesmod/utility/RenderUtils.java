@@ -37,7 +37,7 @@ public class RenderUtils {
         width *= scale;
         height *= scale;
 
-        GL11.glScissor((int) x, (int) (y - height), (int) ((int) x * 100), (int) height);
+        GL11.glScissor((int) x, (int) (y - height), (int) width, (int) height);
     }
 
     public static void renderBox(int x, int y, int z, int color, boolean outline, boolean shade) {
