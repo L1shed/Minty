@@ -50,12 +50,14 @@ public class ProfileManager {
             JsonObject moduleInformation = getJsonObject(module);
             jsonArray.add(moduleInformation);
         }
-        for (Module module : Raven.scriptManager.scripts.values()) {
-            if (module.ignoreOnSave) {
-                continue;
+        if (Raven.scriptManager != null && Raven.scriptManager.scripts != null) {
+            for (Module module : Raven.scriptManager.scripts.values()) {
+                if (module.ignoreOnSave) {
+                    continue;
+                }
+                JsonObject moduleInformation = getJsonObject(module);
+                jsonArray.add(moduleInformation);
             }
-            JsonObject moduleInformation = getJsonObject(module);
-            jsonArray.add(moduleInformation);
         }
         jsonObject.add("modules", jsonArray);
         try (FileWriter fileWriter = new FileWriter(new File(directory, profile.getName() + ".json"))) {

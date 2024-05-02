@@ -60,12 +60,12 @@ public class Raven {
         Reflection.getFields();
         Reflection.getMethods();
         moduleManager.register();
+        scriptManager = new ScriptManager();
         keySrokeRenderer = new KeySrokeRenderer();
         clickGui = new ClickGui();
         profileManager = new ProfileManager();
         profileManager.loadProfiles();
         profileManager.loadProfile("default");
-        scriptManager = new ScriptManager();
         Reflection.setKeyBindings();
         scriptManager.loadScripts();
         scriptManager.loadScripts();
