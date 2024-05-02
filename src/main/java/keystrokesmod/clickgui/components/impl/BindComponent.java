@@ -31,7 +31,7 @@ public class BindComponent extends Component {
     public void render() {
         GL11.glPushMatrix();
         GL11.glScaled(0.5D, 0.5D, 0.5D);
-        this.drawString(!this.moduleComponent.mod.canBeEnabled ? "Module cannot be bound." : this.isBinding ? "Press a key..." : "Current bind: '§e" + (this.moduleComponent.mod.getKeycode() >= 1000 ? "M" + (this.moduleComponent.mod.getKeycode() - 1000) : Keyboard.getKeyName(this.moduleComponent.mod.getKeycode())) + "§r'");
+        this.drawString(!this.moduleComponent.mod.canBeEnabled() && this.moduleComponent.mod.script == null ? "Module cannot be bound." : this.isBinding ? "Press a key..." : "Current bind: '§e" + (this.moduleComponent.mod.getKeycode() >= 1000 ? "M" + (this.moduleComponent.mod.getKeycode() - 1000) : Keyboard.getKeyName(this.moduleComponent.mod.getKeycode())) + "§r'");
         GL11.glPopMatrix();
     }
 
@@ -41,7 +41,7 @@ public class BindComponent extends Component {
     }
 
     public void onClick(int x, int y, int b) {
-        if (this.i(x, y) && this.moduleComponent.po) {
+        if (this.i(x, y) && this.moduleComponent.po && this.moduleComponent.mod.canBeEnabled()) {
             if (b == 0) {
                 this.isBinding = !this.isBinding;
             }

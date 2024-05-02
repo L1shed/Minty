@@ -1,5 +1,6 @@
 package keystrokesmod.module.impl.render;
 
+import keystrokesmod.Raven;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.setting.impl.ButtonSetting;
@@ -8,6 +9,7 @@ import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.RenderUtils;
 import keystrokesmod.utility.Theme;
 import keystrokesmod.utility.Utils;
+import keystrokesmod.utility.profile.ProfileModule;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
@@ -74,7 +76,6 @@ public class HUD extends Module {
         if (mc.currentScreen != null || mc.gameSettings.showDebugInfo) {
             return;
         }
-        int longestModule = getLongestModule(mc.fontRendererObj);
         int n = hudY;
         double n2 = 0.0;
         for (Module module : ModuleManager.organizedModules) {
@@ -101,12 +102,16 @@ public class HUD extends Module {
                 }
                 int n3 = hudX;
                 if (alignRight.isToggled()) {
-                    n3 += longestModule - mc.fontRendererObj.getStringWidth(moduleName);
+                    n3 -= mc.fontRendererObj.getStringWidth(moduleName);
                 }
                 mc.fontRendererObj.drawString(moduleName, n3, (float) n, e, dropShadow.isToggled());
                 n += mc.fontRendererObj.FONT_HEIGHT + 2;
             }
         }
+    }
+
+    public void onUpdate() {
+        ModuleManager.sort();
     }
 
     public static int getLongestModule(FontRenderer fr) {
@@ -225,7 +230,7 @@ public class HUD extends Module {
                         }
                         int n3 = this.miX;
                         if (alignRight.isToggled()) {
-                            n3 += longestModule - mc.fontRendererObj.getStringWidth(moduleName);
+                            n3 -= mc.fontRendererObj.getStringWidth(moduleName);
                         }
                         mc.fontRendererObj.drawString(moduleName, n3, (float) n, e, dropShadow.isToggled());
                         n += mc.fontRendererObj.FONT_HEIGHT + 2;

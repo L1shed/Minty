@@ -9,8 +9,15 @@ import keystrokesmod.utility.PlayerData;
 import keystrokesmod.utility.Utils;
 import net.minecraft.block.BlockAir;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.event.ClickEvent;
+import net.minecraft.event.HoverEvent;
 import net.minecraft.item.ItemBlock;
+import net.minecraft.network.play.client.C03PacketPlayer;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.ChatStyle;
+import net.minecraft.util.IChatComponent;
+import net.minecraftforge.event.ServerChatEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -74,8 +81,11 @@ public class Anticheat extends Module {
             hashMap.put(mode, currentTimeMillis);
             flags.put(entityPlayer.getUniqueID(), hashMap);
         }
-        String s2 = "&3Anticheat: &r" + entityPlayer.getDisplayName().getUnformattedText() + " &7detected for &d" + mode.getName();
-        Utils.sendMessage(s2);
+        final ChatComponentText chatComponentText = new ChatComponentText(Utils.formatColor("&3Anticheat: &r" + entityPlayer.getDisplayName().getUnformattedText() + " &7detected for &d" + mode.getName()));
+        final ChatStyle chatStyle = new ChatStyle();
+        chatStyle.setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/wdr " + entityPlayer.getName()));
+        ((IChatComponent)chatComponentText).appendSibling(new ChatComponentText(Utils.formatColor(" §7[§cWDR§7]")).setChatStyle(chatStyle));
+        mc.thePlayer.addChatMessage(chatComponentText);
         if (shouldPing.isToggled() && Utils.getDifference(lastAlert, currentTimeMillis) >= 1500L) {
             mc.thePlayer.playSound("note.pling", 1.0f, 1.0f);
             lastAlert = currentTimeMillis;
@@ -88,6 +98,9 @@ public class Anticheat extends Module {
         }
         for (EntityPlayer entityPlayer : mc.theWorld.playerEntities) {
             if (entityPlayer == null) {
+                continue;
+            }
+            if (entityPlayer == mc.thePlayer) {
                 continue;
             }
             PlayerData data = players.get(entityPlayer.getUniqueID());

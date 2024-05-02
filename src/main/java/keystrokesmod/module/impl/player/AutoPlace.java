@@ -1,7 +1,5 @@
 package keystrokesmod.module.impl.player;
 
-import keystrokesmod.event.PostUpdateEvent;
-import keystrokesmod.event.PreUpdateEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.setting.impl.ButtonSetting;
@@ -27,7 +25,6 @@ public class AutoPlace extends Module {
     private DescriptionSetting description;
     private SliderSetting frameDelay;
     private SliderSetting minPlaceDelay;
-    private SliderSetting motion;
     private ButtonSetting disableLeft;
     private ButtonSetting holdRight;
     private ButtonSetting fastPlaceJump;
@@ -43,7 +40,6 @@ public class AutoPlace extends Module {
         this.registerSetting(description = new DescriptionSetting("Best with safewalk."));
         this.registerSetting(frameDelay = new SliderSetting("Frame delay", 8.0D, 0.0D, 30.0D, 1.0D));
         this.registerSetting(minPlaceDelay = new SliderSetting("Min place delay", 60.0, 25.0, 500.0, 5.0));
-        this.registerSetting(motion = new SliderSetting("Motion", 1.0, 0.5, 1.2, 0.01));
         this.registerSetting(disableLeft = new ButtonSetting("Disable left", false));
         this.registerSetting(holdRight = new ButtonSetting("Hold right", true));
         this.registerSetting(fastPlaceJump = new ButtonSetting("Fast place on jump", true));
@@ -81,9 +77,6 @@ public class AutoPlace extends Module {
             else if (!pitchCheck.isToggled()) {
                 this.rd(1000);
             }
-        }
-        if (motion.getInput() != 1.0 && mc.thePlayer.onGround && Utils.isStrafing() && (!pitchCheck.isToggled() || mc.thePlayer.rotationPitch >= 70.0f)) {
-            Utils.setSpeed(Utils.getHorizontalSpeed() * motion.getInput());
         }
     }
 

@@ -12,7 +12,10 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockBed;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
+import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.C07PacketPlayerDigging;
 import net.minecraft.network.play.client.C09PacketHeldItemChange;
 import net.minecraft.network.play.client.C0APacketAnimation;
@@ -45,6 +48,7 @@ public class BedAura extends Module {
     private boolean rotate;
     public BlockPos currentBlock;
     private long lastCheck = 0;
+    public boolean stopAutoblock;
     private int outlineColor = new Color(226, 65, 65).getRGB();
     private int breakTickDelay = 5;
     private int ticksAfterBreak = 0;
@@ -99,7 +103,7 @@ public class BedAura extends Module {
             }
         }
         else {
-            if (!(BlockUtils.getBlock(bedPos[0]) instanceof BlockBed) || (currentBlock != null && replaceable(currentBlock)) || !RotationUtils.inRange(bedPos[0], range.getInput())) {
+            if (!(BlockUtils.getBlock(bedPos[0]) instanceof BlockBed) || (currentBlock != null && BlockUtils.replaceable(currentBlock)) || !RotationUtils.inRange(bedPos[0], range.getInput())) {
                 reset();
                 return;
             }
@@ -132,7 +136,7 @@ public class BedAura extends Module {
             e.setYaw(rotations[0]);
             e.setPitch(rotations[1]);
             rotate = false;
-            if (groundSpoof.isToggled()) {
+            if (groundSpoof.isToggled() && !mc.thePlayer.isInWater() && (ModuleManager.noFall == null || !ModuleManager.noFall.isEnabled() || ModuleManager.noFall.mode.getInput() != 3)) {
                 e.setOnGround(true);
             }
         }
@@ -192,13 +196,7 @@ public class BedAura extends Module {
         currentBlock = null;
         lastSlot = -1;
         delayStart = false;
-    }
-
-    private boolean replaceable(BlockPos blockPos) {
-        if (!Utils.nullCheck()) {
-            return true;
-        }
-        return BlockUtils.getBlock(blockPos).isReplaceable(mc.theWorld, blockPos);
+        stopAutoblock = false;
     }
 
     public void setPacketSlot(int slot) {
@@ -237,7 +235,7 @@ public class BedAura extends Module {
         if (onlyWhileVisible.isToggled() && (mc.objectMouseOver == null || mc.objectMouseOver.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK || !mc.objectMouseOver.getBlockPos().equals(blockPos))) {
             return;
         }
-        if (replaceable(currentBlock == null ? blockPos : currentBlock)) {
+        if (BlockUtils.replaceable(currentBlock == null ? blockPos : currentBlock)) {
             reset();
             return;
         }
@@ -245,6 +243,7 @@ public class BedAura extends Module {
         Block block = BlockUtils.getBlock(blockPos);
         if (mode.getInput() == 2 || mode.getInput() == 0) {
             if (breakProgress == 0) {
+                stopAutoblock = true;
                 rotate = true;
                 if (mode.getInput() == 0) {
                     setSlot(Utils.getTool(block));
@@ -253,6 +252,7 @@ public class BedAura extends Module {
                 startBreak(blockPos);
             }
             else if (breakProgress >= 1) {
+                stopAutoblock = true;
                 if (mode.getInput() == 2) {
                     setPacketSlot(Utils.getTool(block));
                 }
@@ -264,6 +264,7 @@ public class BedAura extends Module {
             }
             else {
                 if (mode.getInput() == 0) {
+                    stopAutoblock = true;
                     rotate = true;
                     swing();
                 }
@@ -271,11 +272,11 @@ public class BedAura extends Module {
             breakProgress += BlockUtils.getBlockHardness(block, (mode.getInput() == 2 && Utils.getTool(block) != -1) ? mc.thePlayer.inventory.getStackInSlot(Utils.getTool(block)) : mc.thePlayer.getHeldItem(), false);
         }
         else if (mode.getInput() == 1) {
+            stopAutoblock = true;
             rotate = true;
             swing();
             startBreak(blockPos);
-            int slot = Utils.getTool(block);
-            setSlot(slot);
+            setSlot(Utils.getTool(block));
             swing();
             stopBreak(blockPos);
         }
@@ -294,10 +295,21 @@ public class BedAura extends Module {
     private boolean isCovered(BlockPos blockPos) {
         for (EnumFacing enumFacing : EnumFacing.values()) {
             BlockPos offset = blockPos.offset(enumFacing);
-            if (replaceable(offset)) {
+            if (BlockUtils.replaceable(offset)) {
                 return false;
             }
         }
         return true;
+    }
+
+    private int getBlockZapper() {
+        int slot = -1;
+        for (int i = 0; i < InventoryPlayer.getHotbarSize(); ++i) {
+            final ItemStack getStackInSlot = mc.thePlayer.inventory.getStackInSlot(i);
+            if (getStackInSlot != null && getStackInSlot.getItem() == Items.prismarine_shard && Utils.stripColor(getStackInSlot.getDisplayName()).equals("Block Zapper")) {
+                slot = i;
+            }
+        }
+        return slot;
     }
 }

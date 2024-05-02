@@ -65,7 +65,7 @@ public class Reach extends Module {
                 }
             }
 
-            double r = Utils.getRandomValue(min, max, Utils.rand());
+            double r = Utils.getRandomValue(min, max, Utils.getRandom());
             Object[] o = zz(r, 0.0D);
             if (o == null) {
                 return false;

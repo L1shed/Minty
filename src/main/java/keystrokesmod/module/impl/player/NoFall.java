@@ -2,24 +2,38 @@ package keystrokesmod.module.impl.player;
 
 import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.module.Module;
+import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import net.minecraft.block.BlockAir;
+import net.minecraft.network.Packet;
 import net.minecraft.network.play.client.C03PacketPlayer;
+import net.minecraft.util.BlockPos;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class NoFall extends Module {
-    private SliderSetting mode;
+    public SliderSetting mode;
     private SliderSetting minFallDistance;
+    private ButtonSetting ignoreVoid;
     private String[] modes = new String[]{"Spoof", "Extra"};
+    private List<Packet> blinkedPackets = new ArrayList<>();
 
     public NoFall() {
         super("NoFall", category.player);
         this.registerSetting(mode = new SliderSetting("Mode", modes, 0));
         this.registerSetting(minFallDistance = new SliderSetting("Minimum fall distance", 3.0, 0.0, 8.0, 0.1));
+        this.registerSetting(ignoreVoid = new ButtonSetting("Ignore void", true));
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     public void onPreMotion(PreMotionEvent e) {
-        if ((double) mc.thePlayer.fallDistance > minFallDistance.getInput()) {
+        if (ignoreVoid.isToggled() && isVoid()) {
+            return;
+        }
+        if ((double) mc.thePlayer.fallDistance > minFallDistance.getInput() || minFallDistance.getInput() == 0) {
             switch ((int) mode.getInput()) {
                 case 0:
                     e.setOnGround(true);
@@ -29,7 +43,10 @@ public class NoFall extends Module {
     }
 
     public void onUpdate() {
-        if (mode.getInput() == 1 && (double)mc.thePlayer.fallDistance > minFallDistance.getInput()) {
+        if (ignoreVoid.isToggled() && isVoid()) {
+            return;
+        }
+        if (mode.getInput() == 1 && ((double)mc.thePlayer.fallDistance > minFallDistance.getInput()|| minFallDistance.getInput() == 0)) {
             mc.thePlayer.sendQueue.addToSendQueue(new C03PacketPlayer(true));
         }
     }
@@ -37,5 +54,14 @@ public class NoFall extends Module {
     @Override
     public String getInfo() {
         return modes[(int) mode.getInput()];
+    }
+
+    private boolean isVoid() {
+        for (int i = (int) mc.thePlayer.posY; i > -1; i--) {
+            if (!(mc.theWorld.getBlockState(new BlockPos(mc.thePlayer.posX, i, mc.thePlayer.posZ)).getBlock() instanceof BlockAir)) {
+                return false;
+            }
+        }
+        return true;
     }
 }

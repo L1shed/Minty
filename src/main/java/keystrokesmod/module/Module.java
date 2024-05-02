@@ -1,7 +1,9 @@
 package keystrokesmod.module;
 
+import keystrokesmod.Raven;
 import keystrokesmod.module.setting.Setting;
 import keystrokesmod.module.setting.impl.ButtonSetting;
+import keystrokesmod.script.Script;
 import keystrokesmod.utility.Utils;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.common.FMLCommonHandler;
@@ -22,6 +24,7 @@ public class Module {
     public boolean canBeEnabled = true;
     public boolean ignoreOnSave = false;
     public boolean visible = true;
+    public Script script = null;
 
     public Module(String moduleName, Module.category moduleCategory, int keycode) {
         this.moduleName = moduleName;
@@ -56,6 +59,16 @@ public class Module {
         this.settings = new ArrayList();
     }
 
+    public Module(Script script) {
+        super();
+        this.enabled = false;
+        this.moduleName = script.name;
+        this.script = script;
+        this.keycode = 0;
+        this.moduleCategory = category.scripts;
+        this.settings = new ArrayList<>();
+    }
+
     public void keybind() {
         if (this.keycode != 0) {
             try {
@@ -74,6 +87,13 @@ public class Module {
         }
     }
 
+    public boolean canBeEnabled() {
+        if (this.script != null && script.error) {
+            return false;
+        }
+        return this.canBeEnabled;
+    }
+
     public boolean isVisible() {
         return visible;
     }
@@ -83,7 +103,7 @@ public class Module {
     }
 
     public void enable() {
-        if (!this.canBeEnabled || this.isEnabled()) {
+        if (!this.canBeEnabled() || this.isEnabled()) {
             return;
         }
         this.setEnabled(true);
@@ -92,8 +112,13 @@ public class Module {
             ModuleManager.sort();
         }
 
-        FMLCommonHandler.instance().bus().register(this);
-        this.onEnable();
+        if (this.script != null) {
+            Raven.scriptManager.onEnable(script);
+        }
+        else {
+            FMLCommonHandler.instance().bus().register(this);
+            this.onEnable();
+        }
     }
 
     public void disable() {
@@ -102,8 +127,13 @@ public class Module {
         }
         this.setEnabled(false);
         ModuleManager.organizedModules.remove(this);
-        FMLCommonHandler.instance().bus().unregister(this);
-        this.onDisable();
+        if (this.script != null) {
+            Raven.scriptManager.onDisable(script);
+        }
+        else {
+            FMLCommonHandler.instance().bus().unregister(this);
+            this.onDisable();
+        }
     }
 
     public String getInfo() {
@@ -176,7 +206,7 @@ public class Module {
         fun,
         other,
         client,
-        profiles;
-        //scripts
+        profiles,
+        scripts;
     }
 }

@@ -13,6 +13,7 @@ public class BHop extends Module {
     private ButtonSetting sneakDisable;
     private ButtonSetting stopMotion;
     private String[] modes = new String[]{"Strafe", "Ground"};
+    public boolean hopping;
 
     public BHop() {
         super("Bhop", Module.category.movement);
@@ -34,17 +35,18 @@ public class BHop extends Module {
         }
         switch ((int) mode.getInput()) {
             case 0:
-                if (Utils.isStrafing()) {
+                if (Utils.isMoving()) {
                     if (mc.thePlayer.onGround) {
                         mc.thePlayer.jump();
                     }
                     mc.thePlayer.setSprinting(true);
                     Utils.setSpeed(Utils.getHorizontalSpeed() + 0.005 * speed.getInput());
+                    hopping = true;
                     break;
                 }
                 break;
             case 1:
-                if (!Keyboard.isKeyDown(mc.gameSettings.keyBindJump.getKeyCode()) && Utils.isStrafing() && mc.currentScreen == null) {
+                if (!Keyboard.isKeyDown(mc.gameSettings.keyBindJump.getKeyCode()) && Utils.isMoving() && mc.currentScreen == null) {
                     if (!mc.thePlayer.onGround) {
                         break;
                     }
@@ -56,6 +58,7 @@ public class BHop extends Module {
                         horizontalSpeed = additionalSpeed;
                     }
                     Utils.setSpeed(horizontalSpeed);
+                    hopping = true;
                 }
                 break;
         }
@@ -67,5 +70,6 @@ public class BHop extends Module {
             mc.thePlayer.motionY = 0;
             mc.thePlayer.motionX = 0;
         }
+        hopping = false;
     }
 }

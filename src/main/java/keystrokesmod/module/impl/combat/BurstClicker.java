@@ -43,7 +43,7 @@ public class BurstClicker extends Module {
                             if (del != 0) {
                                 int realDel = del;
                                 if (delayRandomizer.isToggled()) {
-                                    realDel = del + Utils.rand().nextInt(25) * (Utils.rand().nextBoolean() ? -1 : 1);
+                                    realDel = del + Utils.getRandom().nextInt(25) * (Utils.getRandom().nextBoolean() ? -1 : 1);
                                     if (realDel <= 0) {
                                         realDel = del / 3 - realDel;
                                     }

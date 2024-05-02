@@ -59,11 +59,11 @@ public class BreakProgress extends Module {
                 break;
             }
             case 1: {
-                this.progressStr = Utils.rnd((double) ((1.0f - this.progress) / BlockUtils.getBlockHardness(mc.theWorld.getBlockState(this.block).getBlock(), mc.thePlayer.getHeldItem(), false)) / 20.0, 1) + "s";
+                this.progressStr = Utils.rnd((double) ((1.0f - this.progress) / BlockUtils.getBlockHardness(BlockUtils.getBlock(this.block), mc.thePlayer.getHeldItem(), false)) / 20.0, 1) + "s";
                 break;
             }
             case 2: {
-                this.progressStr = String.valueOf(Utils.rnd((double) this.progress, 2));
+                this.progressStr = String.valueOf(Utils.rnd(this.progress, 2));
                 break;
             }
         }
@@ -74,9 +74,12 @@ public class BreakProgress extends Module {
             this.resetVariables();
             return;
         }
-        if (ModuleManager.bedAura != null && ModuleManager.bedAura.isEnabled() && ModuleManager.bedAura.breakProgress != 0.0f && ModuleManager.bedAura.currentBlock != null && !(BlockUtils.getBlock(ModuleManager.bedAura.currentBlock) instanceof BlockBed) || ModuleManager.bedAura.mode.getInput() == 0) {
+        if (bedAura.isToggled() && ModuleManager.bedAura != null && ModuleManager.bedAura.isEnabled() && ModuleManager.bedAura.breakProgress != 0.0f && ModuleManager.bedAura.currentBlock != null && !(BlockUtils.getBlock(ModuleManager.bedAura.currentBlock) instanceof BlockBed)) {
             this.progress = Math.min(1.0f, ModuleManager.bedAura.breakProgress);
             this.block = ModuleManager.bedAura.currentBlock;
+            if (this.block == null) {
+                return;
+            }
             this.setProgress();
             return;
         }

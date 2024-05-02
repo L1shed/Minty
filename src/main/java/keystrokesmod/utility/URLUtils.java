@@ -33,7 +33,7 @@ public class URLUtils {
         return r;
     }
 
-    private static String getTextFromConnection(HttpURLConnection connection) {
+    public static String getTextFromConnection(HttpURLConnection connection) {
         if (connection != null) {
             try {
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));

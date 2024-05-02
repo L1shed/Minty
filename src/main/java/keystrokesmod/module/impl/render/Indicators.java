@@ -1,6 +1,7 @@
 package keystrokesmod.module.impl.render;
 
 import keystrokesmod.module.Module;
+import keystrokesmod.module.impl.world.AntiBot;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.Reflection;
@@ -12,6 +13,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.projectile.EntityArrow;
 import net.minecraft.entity.projectile.EntityFireball;
 import net.minecraft.init.Items;
+import net.minecraft.item.ItemFireball;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -20,6 +22,8 @@ import org.lwjgl.opengl.GL11;
 
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Indicators extends Module {
     private ButtonSetting renderArrows;
@@ -29,7 +33,9 @@ public class Indicators extends Module {
     private SliderSetting radius;
     private ButtonSetting renderItem;
     private ButtonSetting threatsOnly;
+    private ButtonSetting showInChat;
     private HashSet<Entity> threats = new HashSet<>();
+    private Map<String, String> lastHeldItems = new ConcurrentHashMap<>();
 
     public Indicators() {
         super("Indicators", category.render);
@@ -40,10 +46,12 @@ public class Indicators extends Module {
         this.registerSetting(radius = new SliderSetting("Circle radius", 50, 5, 250, 2));
         this.registerSetting(renderItem = new ButtonSetting("Render item", true));
         this.registerSetting(threatsOnly = new ButtonSetting("Render only threats", true));
+        this.registerSetting(showInChat = new ButtonSetting("Show in chat", false));
     }
 
     public void onDisable() {
         this.threats.clear();
+        this.lastHeldItems.clear();
     }
 
     @SubscribeEvent
@@ -61,7 +69,7 @@ public class Indicators extends Module {
         while (iterator.hasNext()) {
             Entity entity = iterator.next();
             try {
-                if (entity instanceof EntityArrow && Reflection.inGround.getBoolean(entity)) {
+                if (entity == null || !mc.theWorld.loadedEntityList.contains(entity) || (entity instanceof EntityArrow && Reflection.inGround.getBoolean(entity))) {
                     iterator.remove();
                     continue;
                 }
@@ -70,25 +78,59 @@ public class Indicators extends Module {
                 continue;
             }
             float rotationDegree = Utils.getYaw(entity) - mc.thePlayer.rotationYaw;
-            ItemStack entityItem;
-            if (entity instanceof EntityEnderPearl) {
-                entityItem = new ItemStack(Items.ender_pearl);
-            } else if (entity instanceof EntityArrow) {
-                entityItem = new ItemStack(Items.arrow);
-            } else {
-                entityItem = new ItemStack(Items.fire_charge);
-            }
             ScaledResolution sr = new ScaledResolution(mc);
             float x = sr.getScaledWidth( )/ 2;
             float y = sr.getScaledHeight() / 2;
             GL11.glPushMatrix();
             GL11.glTranslatef(x, y, 0.0f);
             GL11.glRotatef(rotationDegree, 0.0f, 0.0f, 1.0f);
-            mc.getRenderItem().renderItemIntoGUI(entityItem, 0, 0);
+            if (renderItem.isToggled()) {
+                ItemStack entityItem = null;
+                if (entity instanceof EntityEnderPearl) {
+                    entityItem = new ItemStack(Items.ender_pearl);
+                } else if (entity instanceof EntityArrow) {
+                    entityItem = new ItemStack(Items.arrow);
+                } else if (entity instanceof EntityFireball) {
+                    entityItem = new ItemStack(Items.fire_charge);
+                }
+                if (entityItem != null) {
+                    GL11.glPushMatrix();
+                    mc.getRenderItem().renderItemIntoGUI(entityItem, 0, (int) -radius.getInput());
+                    GL11.glPopMatrix();
+                }
+            }
+            GL11.glRotatef(-rotationDegree, 0.0f, 0.0f, 1.0f);
+            GL11.glTranslatef(-x, -y, 0.0f);
             GL11.glPopMatrix();
         }
     }
 
+    public void onUpdate() {
+        if (!showInChat.isToggled()) {
+            return;
+        }
+        for (EntityPlayer player : mc.theWorld.playerEntities) {
+            if (player == mc.thePlayer) {
+                continue;
+            }
+            if (AntiBot.isBot(player)) {
+                continue;
+            }
+            ItemStack item = player.getHeldItem();
+            String name = player.getName();
+            if (item != null && item.getItem() instanceof ItemFireball && !lastHeldItems.containsKey(name)) {
+                String itemType = item.getUnlocalizedName();
+                lastHeldItems.put(name, itemType);
+                double distance = Utils.rnd(mc.thePlayer.getDistanceToEntity(player), 1);
+                Utils.sendMessage(player.getDisplayName().getFormattedText() + " &7is holding a §3Fireball &7(§d" + (int) distance +  "m&7)");
+            } else if (lastHeldItems.containsKey(name) ) {
+                String itemType = lastHeldItems.get(name);
+                if (item == null || !itemType.equals(item.getUnlocalizedName())) {
+                    lastHeldItems.remove(name);
+                }
+            }
+        }
+    }
 
     @SubscribeEvent
     public void onEntityJoin(EntityJoinWorldEvent e) {

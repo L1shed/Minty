@@ -21,7 +21,7 @@ public class Velocity extends Module {
         super("Velocity", Module.category.combat, 0);
         this.registerSetting(horizontal = new SliderSetting("Horizontal", 90.0D, 0.0D, 100.0D, 1.0D));
         this.registerSetting(vertical = new SliderSetting("Vertical", 100.0D, 0.0D, 100.0D, 1.0D));
-        this.registerSetting(chance = new SliderSetting("Chance", 100.0D, 0.0D, 100.0D, 1.0D));
+        this.registerSetting(chance = new SliderSetting("Chance", 100.0D, 0.0D, 100.0D, 1.0D, "%"));
         this.registerSetting(onlyWhileTargeting = new ButtonSetting("Only while targeting", false));
         this.registerSetting(disableS = new ButtonSetting("Disable while holding S", false));
     }

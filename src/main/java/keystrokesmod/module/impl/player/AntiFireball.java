@@ -1,7 +1,10 @@
 package keystrokesmod.module.impl.player;
 
 import keystrokesmod.event.PreMotionEvent;
+import keystrokesmod.event.PreUpdateEvent;
 import keystrokesmod.module.Module;
+import keystrokesmod.module.ModuleManager;
+import keystrokesmod.module.impl.combat.KillAura;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.RotationUtils;
@@ -10,6 +13,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.projectile.EntityFireball;
 import net.minecraft.item.*;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.input.Mouse;
 
@@ -21,9 +25,10 @@ public class AntiFireball extends Module {
     private ButtonSetting disableWhileFlying;
     private ButtonSetting blocksRotate;
     private ButtonSetting projectileRotate;
-    private ButtonSetting silentSwing;
-    private EntityFireball fireball;
+    public ButtonSetting silentSwing;
+    public EntityFireball fireball;
     private HashSet<Entity> fireballs = new HashSet<>();
+    public boolean attack;
 
     public AntiFireball() {
         super("AntiFireball", category.player);
@@ -35,16 +40,15 @@ public class AntiFireball extends Module {
         this.registerSetting(silentSwing = new ButtonSetting("Silent swing", false));
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOW)
     public void onPreMotion(PreMotionEvent e) {
-        if (!Utils.nullCheck()) {
+        if (!condition()) {
             return;
         }
-        if (mc.thePlayer.capabilities.isFlying && disableWhileFlying.isToggled()) {
+        if (stopAttack()) {
             return;
         }
         if (fireball != null) {
-            Utils.attackEntity(fireball, !silentSwing.isToggled(), silentSwing.isToggled());
             final ItemStack getHeldItem = mc.thePlayer.getHeldItem();
             if (getHeldItem != null && getHeldItem.getItem() instanceof ItemBlock && !blocksRotate.isToggled() && Mouse.isButtonDown(1)) {
                 return;
@@ -52,9 +56,33 @@ public class AntiFireball extends Module {
             if (getHeldItem != null && (getHeldItem.getItem() instanceof ItemBow || getHeldItem.getItem() instanceof ItemSnowball || getHeldItem.getItem() instanceof ItemEgg || getHeldItem.getItem() instanceof ItemFishingRod) && !projectileRotate.isToggled()) {
                 return;
             }
+            if (ModuleManager.scaffold != null && ModuleManager.scaffold.stopRotation()) {
+                return;
+            }
             float[] rotations = RotationUtils.getRotations(fireball, e.getYaw(), e.getPitch());
             e.setYaw(rotations[0]);
             e.setPitch(rotations[1]);
+        }
+    }
+
+    @SubscribeEvent
+    public void onPreUpdate(PreUpdateEvent e) {
+        if (!condition()) {
+            return;
+        }
+        if (stopAttack()) {
+            return;
+        }
+        if (fireball != null) {
+            if (ModuleManager.killAura != null && ModuleManager.killAura.isEnabled() && ModuleManager.killAura.block.get() && (ModuleManager.killAura.autoBlockMode.getInput() == 3 || ModuleManager.killAura.autoBlockMode.getInput() == 4)) {
+                if (KillAura.target != null) {
+                    attack = false;
+                    return;
+                }
+                attack = true;
+            } else {
+                Utils.attackEntity(fireball, !silentSwing.isToggled(), silentSwing.isToggled());
+            }
         }
     }
 
@@ -93,13 +121,32 @@ public class AntiFireball extends Module {
     public void onDisable() {
         this.fireballs.clear();
         this.fireball = null;
+        this.attack = false;
     }
 
     public void onUpdate() {
+        if (!condition()) {
+            return;
+        }
         if (mc.currentScreen != null) {
+            attack = false;
             fireball = null;
             return;
         }
         fireball = this.getFireball();
+    }
+
+    private boolean stopAttack() {
+        return (ModuleManager.bedAura != null && ModuleManager.bedAura.isEnabled() && ModuleManager.bedAura.currentBlock != null) || (ModuleManager.killAura != null && ModuleManager.killAura.isEnabled() && KillAura.target != null);
+    }
+
+    private boolean condition() {
+        if (!Utils.nullCheck()) {
+            return false;
+        }
+        if (mc.thePlayer.capabilities.isFlying && disableWhileFlying.isToggled()) {
+            return false;
+        }
+        return true;
     }
 }

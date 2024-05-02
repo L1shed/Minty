@@ -15,6 +15,7 @@ import org.lwjgl.input.Keyboard;
 
 public class SafeWalk extends Module {
     private SliderSetting shiftDelay;
+    private SliderSetting motion;
     public static ButtonSetting shift, blocksOnly, pitchCheck, disableOnForward;
     private boolean isSneaking;
     private long b = 0L;
@@ -22,6 +23,7 @@ public class SafeWalk extends Module {
     public SafeWalk() {
         super("SafeWalk", Module.category.player, 0);
         this.registerSetting(shiftDelay = new SliderSetting("Delay until next shift", 0.0, 0.0, 800.0, 10.0));
+        this.registerSetting(motion = new SliderSetting("Motion", 1.0, 0.5, 1.2, 0.01));
         this.registerSetting(blocksOnly = new ButtonSetting("Blocks only", true));
         this.registerSetting(disableOnForward = new ButtonSetting("Disable on forward", false));
         this.registerSetting(pitchCheck = new ButtonSetting("Pitch check", false));
@@ -33,6 +35,12 @@ public class SafeWalk extends Module {
             this.setSneakState(false);
         }
         isSneaking = false;
+    }
+
+    public void onUpdate() {
+        if (motion.getInput() != 1.0 && mc.thePlayer.onGround && Utils.isMoving() && (!pitchCheck.isToggled() || mc.thePlayer.rotationPitch >= 70.0f)) {
+            Utils.setSpeed(Utils.getHorizontalSpeed() * motion.getInput());
+        }
     }
 
     @SubscribeEvent

@@ -97,18 +97,18 @@ public class Xray extends Module {
 
             while (iterator.hasNext()) {
                 BlockPos blockPos = (BlockPos) iterator.next();
-                if (!canBreak(BlockUtils.getBlock(blockPos))) {
+                Block block = BlockUtils.getBlock(blockPos);
+                if (block == null || !canBreak(block)) {
                     iterator.remove();
                     continue;
                 }
                 if (!iterator.hasNext()) {
                     break;
                 }
-                BlockPos p = (BlockPos) iterator.next();
-                if (p == null) {
+                if (blockPos == null) {
                     continue;
                 }
-                this.drawBox(p);
+                this.drawBox(blockPos);
             }
         }
     }

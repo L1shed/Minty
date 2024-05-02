@@ -42,8 +42,10 @@ public class Blink extends Module {
     }
 
     public void onDisable() {
-        for (Packet packet : blinkedPackets) {
-            PacketUtils.sendPacketNoEvent(packet);
+        synchronized (blinkedPackets) {
+            for (Packet packet : blinkedPackets) {
+                PacketUtils.sendPacketNoEvent(packet);
+            }
         }
         blinkedPackets.clear();
         pos = null;

@@ -1,8 +1,8 @@
 package keystrokesmod.utility;
 
+import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockContainer;
+import net.minecraft.block.*;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
@@ -16,12 +16,12 @@ import net.minecraft.util.BlockPos;
 public class BlockUtils {
     public static final Minecraft mc = Minecraft.getMinecraft();
 
-    public static boolean canInteract(final Block block) {
-        return block instanceof BlockContainer || block == Blocks.crafting_table;
-    }
-
     public static boolean isSamePos(BlockPos blockPos, BlockPos blockPos2) {
         return blockPos == blockPos2 || (blockPos.getX() == blockPos2.getX() && blockPos.getY() == blockPos2.getY() && blockPos.getZ() == blockPos2.getZ());
+    }
+
+    public static boolean isInteractable(Block block) {
+        return block instanceof BlockFurnace || block instanceof BlockFenceGate || block instanceof BlockChest || block instanceof BlockEnderChest || block instanceof BlockEnchantmentTable || block instanceof BlockBrewingStand || block instanceof BlockBed || block instanceof BlockDropper || block instanceof BlockDispenser || block instanceof BlockHopper || block instanceof BlockAnvil || block == Blocks.crafting_table;
     }
 
     public static float getBlockHardness(final Block block, final ItemStack itemStack, final boolean b) {
@@ -69,7 +69,7 @@ public class BlockUtils {
             if (mc.thePlayer.isInsideOfMaterial(Material.water) && !EnchantmentHelper.getAquaAffinityModifier(mc.thePlayer)) {
                 n /= 5.0f;
             }
-            if (!mc.thePlayer.onGround && (ModuleManager.bedAura == null || !ModuleManager.bedAura.isEnabled() || !ModuleManager.bedAura.groundSpoof.isToggled() || ModuleManager.bedAura.currentBlock == null)) {
+            if ((!mc.thePlayer.onGround && (ModuleManager.bedAura == null || !ModuleManager.bedAura.isEnabled() || !ModuleManager.bedAura.groundSpoof.isToggled() || ModuleManager.bedAura.currentBlock == null)) || (ModuleManager.noFall != null && ModuleManager.noFall.isEnabled() && ModuleManager.noFall.mode.getInput() == 3)) {
                 n /= 5.0f;
             }
         }
@@ -97,5 +97,12 @@ public class BlockUtils {
 
     public static boolean check(final BlockPos blockPos, final Block block) {
         return getBlock(blockPos) == block;
+    }
+
+    public static boolean replaceable(BlockPos blockPos) {
+        if (!Utils.nullCheck()) {
+            return true;
+        }
+        return getBlock(blockPos).isReplaceable(mc.theWorld, blockPos);
     }
 }

@@ -5,10 +5,13 @@ import keystrokesmod.clickgui.components.Component;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.impl.client.Gui;
 import keystrokesmod.utility.RenderUtils;
+import keystrokesmod.utility.Timer;
 import keystrokesmod.utility.Utils;
 import keystrokesmod.utility.profile.Manager;
 import keystrokesmod.utility.profile.Profile;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.gui.ScaledResolution;
 import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
@@ -31,6 +34,9 @@ public class CategoryComponent {
     public String pvp;
     public boolean pin = false;
     public boolean hovering = false;
+    private Timer smoothTimer;
+    public int scale;
+    private float big;
 
     public CategoryComponent(Module.category category) {
         this.categoryName = category;
@@ -38,10 +44,12 @@ public class CategoryComponent {
         this.x = 5;
         this.y = 5;
         this.bh = 13;
+        this.smoothTimer = null;
         this.xx = 0;
         this.categoryOpened = false;
         this.id = false;
         int tY = this.bh + 3;
+        this.scale = new ScaledResolution(Minecraft.getMinecraft()).getScaleFactor();
 
         for (Iterator var3 = Raven.getModuleManager().inCategory(this.categoryName).iterator(); var3.hasNext(); tY += 16) {
             Module mod = (Module) var3.next();
@@ -54,23 +62,32 @@ public class CategoryComponent {
         return this.modules;
     }
 
-    public void reloadModules() {
+    public void reloadModules(boolean isProfile) {
         this.modules.clear();
         this.bh = 13;
         int tY = this.bh + 3;
 
-        if (this.categoryName == Module.category.profiles) {
-            ModuleComponent manager = new ModuleComponent(new Manager(), this, tY);
+        if ((this.categoryName == Module.category.profiles && isProfile) || (this.categoryName == Module.category.scripts && !isProfile)) {
+            ModuleComponent manager = new ModuleComponent(isProfile ? new Manager() : new keystrokesmod.script.Manager(), this, tY);
             this.modules.add(manager);
 
-            if (Raven.profileManager == null) {
+            if ((Raven.profileManager == null && isProfile) || (Raven.scriptManager == null && !isProfile)) {
                 return;
             }
 
-            for (Profile profile : Raven.profileManager.profiles) {
-                tY += 16;
-                ModuleComponent b = new ModuleComponent(profile.getModule(), this, tY);
-                this.modules.add(b);
+            if (isProfile) {
+                for (Profile profile : Raven.profileManager.profiles) {
+                    tY += 16;
+                    ModuleComponent b = new ModuleComponent(profile.getModule(), this, tY);
+                    this.modules.add(b);
+                }
+            }
+            else {
+                for (Module module : Raven.scriptManager.scripts.values()) {
+                    tY += 16;
+                    ModuleComponent b = new ModuleComponent(module, this, tY);
+                    this.modules.add(b);
+                }
             }
         }
     }
@@ -99,22 +116,32 @@ public class CategoryComponent {
         return this.categoryOpened;
     }
 
-    public void oo(boolean on) {
+    public void mouseClicked(boolean on) {
         this.categoryOpened = on;
+        (this.smoothTimer = new Timer(150)).start();
     }
 
     public void rf(FontRenderer renderer) {
         this.k = 92;
         int h = 0;
-
         if (!this.modules.isEmpty() && this.categoryOpened) {
             Component c;
             for (Iterator var3 = this.modules.iterator(); var3.hasNext(); h += c.gh()) {
                 c = (Component) var3.next();
             }
+            big = h;
         }
 
-        RenderUtils.drawRoundedGradientOutlinedRectangle(this.x - 2, this.y, this.x + this.k + 2, this.y + this.bh + h + 4, 8, Gui.translucentBackground.isToggled() ? new Color(0, 0, 0, 110).getRGB() : new Color(0, 0, 0, 250).getRGB(),
+        float extra = smoothTimer == null ? this.y + this.bh + h + 4 : smoothTimer.getValueFloat(this.y + this.bh + 4, this.y + this.bh + h + 4, 1);
+
+        if (!this.categoryOpened) {
+            extra = smoothTimer == null ? this.y + this.bh + h + 4 : (this.y + this.bh + 4 + big) - smoothTimer.getValueFloat(0, big, 1);
+        }
+
+        GL11.glPushMatrix();
+        GL11.glEnable(GL11.GL_SCISSOR_TEST);
+        RenderUtils.scissor(0, this.y - 2, this.x + this.k + 4, extra - this.y + 4);
+        RenderUtils.drawRoundedGradientOutlinedRectangle(this.x - 2, this.y, this.x + this.k + 2, extra, 9, Gui.translucentBackground.isToggled() ? new Color(0, 0, 0, 110).getRGB() : new Color(0, 0, 0, 250).getRGB(),
                 ((categoryOpened || hovering) && Gui.rainBowOutlines.isToggled()) ? RenderUtils.setAlpha(Utils.getChroma(2, 0), 0.5) : new Color(81, 99, 149).getRGB(), ((categoryOpened || hovering) && Gui.rainBowOutlines.isToggled()) ? RenderUtils.setAlpha(Utils.getChroma(2, 700), 0.5) : new Color(97, 67, 133).getRGB());
 
         renderer.drawString(this.n4m ? this.pvp : this.categoryName.name(), (float) (this.x + 2), (float) (this.y + 4), new Color(220, 220, 220).getRGB(), false);
@@ -132,6 +159,8 @@ public class CategoryComponent {
             }
 
         }
+        GL11.glDisable(GL11.GL_SCISSOR_TEST);
+        GL11.glPopMatrix();
     }
 
     public void render() {

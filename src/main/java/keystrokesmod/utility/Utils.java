@@ -89,8 +89,12 @@ public class Utils {
         return num == Math.floor(num);
     }
 
-    public static int randomize(final int n, final int n2) {
-        return rand.nextInt(n2 - n + 1) + n;
+    public static int randomizeInt(int min, int max) {
+        return rand.nextInt(max - min + 1) + min;
+    }
+
+    public static double randomizeDouble(double min, double max) {
+        return org.apache.commons.lang3.RandomUtils.nextDouble(min, max);
     }
 
     public static boolean inFov(float fov, BlockPos blockPos) {
@@ -118,6 +122,12 @@ public class Utils {
         if (nullCheck()) {
             String m = formatColor("&7[&dR&7]&r " + txt);
             mc.thePlayer.addChatMessage(new ChatComponentText(m));
+        }
+    }
+
+    public static void sendDebugMessage(String message) {
+        if (nullCheck()) {
+            mc.thePlayer.addChatMessage(new ChatComponentText("§7[§dR§7]§r " + message));
         }
     }
 
@@ -177,6 +187,10 @@ public class Utils {
         return !enemies.isEmpty() && enemies.contains(entityPlayer.getName().toLowerCase());
     }
 
+    public static boolean isEnemy(String name) {
+        return !enemies.isEmpty() && enemies.contains(name.toLowerCase());
+    }
+
     public static String getColorForHealth(double n, double n2) {
         double health = rnd(n2, 1);
         return ((n < 0.3) ? "§c" : ((n < 0.5) ? "§6" : ((n < 0.7) ? "§e" : "§a"))) + (isWholeNumber(health) ? (int) health + "": health);
@@ -205,6 +219,10 @@ public class Utils {
         return !friends.isEmpty() && friends.contains(entityPlayer.getName().toLowerCase());
     }
 
+    public static boolean isFriended(String name) {
+        return !friends.isEmpty() && friends.contains(name.toLowerCase());
+    }
+
     public static double getRandomValue(SliderSetting a, SliderSetting b, Random r) {
         return a.getInput() == b.getInput() ? a.getInput() : a.getInput() + r.nextDouble() * (b.getInput() - a.getInput());
     }
@@ -223,6 +241,17 @@ public class Utils {
 
     public static float n() {
         return ae(mc.thePlayer.rotationYaw, mc.thePlayer.movementInput.moveForward, mc.thePlayer.movementInput.moveStrafe);
+    }
+
+    public static String extractFileName(String name) {
+        int firstIndex = name.indexOf("_");
+        int lastIndex = name.lastIndexOf("_");
+
+        if (firstIndex != -1 && lastIndex != -1 && lastIndex > firstIndex) {
+            return name.substring(firstIndex + 1, lastIndex);
+        } else {
+            return name;
+        }
     }
 
     public static int merge(int n, int n2) {
@@ -346,11 +375,11 @@ public class Utils {
         return lines;
     }
 
-    public static Random rand() {
+    public static Random getRandom() {
         return rand;
     }
 
-    public static boolean isStrafing() {
+    public static boolean isMoving() {
         return mc.thePlayer.moveForward != 0.0F || mc.thePlayer.moveStrafing != 0.0F;
     }
 
@@ -403,49 +432,11 @@ public class Utils {
         return (float) (yaw * -1.0D);
     }
 
-    public static boolean fov(Entity entity, float fov) {
-        fov = (float) ((double) fov * 0.5D);
-        double v = ((double) (mc.thePlayer.rotationYaw - getYaw(entity)) % 360.0D + 540.0D) % 360.0D - 180.0D;
-        return v > 0.0D && v < (double) fov || (double) (-fov) < v && v < 0.0D;
-    }
-
     public static void ss(double s, boolean m) {
-        if (!m || isStrafing()) {
+        if (!m || isMoving()) {
             mc.thePlayer.motionX = -Math.sin(gd()) * s;
             mc.thePlayer.motionZ = Math.cos(gd()) * s;
         }
-    }
-
-    public static void ss2(double s) {
-        double forward = mc.thePlayer.movementInput.moveForward;
-        double strafe = mc.thePlayer.movementInput.moveStrafe;
-        float yaw = mc.thePlayer.rotationYaw;
-        if (forward == 0.0D && strafe == 0.0D) {
-            mc.thePlayer.motionX = 0.0D;
-            mc.thePlayer.motionZ = 0.0D;
-        } else {
-            if (forward != 0.0D) {
-                if (strafe > 0.0D) {
-                    yaw += (float) (forward > 0.0D ? -45 : 45);
-                } else if (strafe < 0.0D) {
-                    yaw += (float) (forward > 0.0D ? 45 : -45);
-                }
-
-                strafe = 0.0D;
-                if (forward > 0.0D) {
-                    forward = 1.0D;
-                } else if (forward < 0.0D) {
-                    forward = -1.0D;
-                }
-            }
-
-            double rad = Math.toRadians((double) (yaw + 90.0F));
-            double sin = Math.sin(rad);
-            double cos = Math.cos(rad);
-            mc.thePlayer.motionX = forward * s * cos + strafe * s * sin;
-            mc.thePlayer.motionZ = forward * s * sin - strafe * s * cos;
-        }
-
     }
 
     public static float gd() {
@@ -492,11 +483,19 @@ public class Utils {
     }
 
     public static double getHorizontalSpeed() {
-        return Math.sqrt(mc.thePlayer.motionX * mc.thePlayer.motionX + mc.thePlayer.motionZ * mc.thePlayer.motionZ);
+        return getHorizontalSpeed(mc.thePlayer);
+    }
+
+    public static double getHorizontalSpeed(Entity entity) {
+        return Math.sqrt(entity.motionX * entity.motionX + entity.motionZ * entity.motionZ);
     }
 
     public static boolean onEdge() {
-        return mc.theWorld.getCollidingBoundingBoxes(mc.thePlayer, mc.thePlayer.getEntityBoundingBox().offset(mc.thePlayer.motionX / 3.0D, -1.0D, mc.thePlayer.motionZ / 3.0D)).isEmpty();
+        return onEdge(mc.thePlayer);
+    }
+
+    public static boolean onEdge(Entity entity) {
+        return mc.theWorld.getCollidingBoundingBoxes(entity, entity.getEntityBoundingBox().offset(entity.motionX / 3.0D, -1.0D, entity.motionZ / 3.0D)).isEmpty();
     }
 
     public static double gbps(Entity en, int d) {

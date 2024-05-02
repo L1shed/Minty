@@ -1,11 +1,14 @@
 package keystrokesmod.utility;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.multiplayer.PlayerControllerMP;
 import net.minecraft.client.renderer.EntityRenderer;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.projectile.EntityArrow;
+import net.minecraft.network.play.client.C02PacketUseEntity;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.MouseEvent;
@@ -17,6 +20,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Reflection {
     public static Field button;
@@ -27,16 +32,20 @@ public class Reflection {
     public static Field rightClickDelayTimerField;
     public static Field curBlockDamageMP;
     public static Field blockHitDelay;
+    public static Method clickMouse;
     public static Method rightClickMouse;
     public static Field shaderResourceLocations;
     public static Field useShader;
     public static Field shaderIndex;
     public static Method loadShader;
+    public static Method getPlayerInfo;
     public static Field inGround;
     public static Field itemInUseCount;
     public static Field S08PacketPlayerPosLookYaw;
     public static Field S08PacketPlayerPosLookPitch;
+    public static Field C02PacketUseEntityEntityId;
     public static boolean sendMessage = false;
+    public static Map<KeyBinding, String> keyBindings = new HashMap<>();
 
     public static void getFields() {
         try {
@@ -106,6 +115,11 @@ public class Reflection {
             if (S08PacketPlayerPosLookPitch != null) {
                 S08PacketPlayerPosLookPitch.setAccessible(true);
             }
+
+            C02PacketUseEntityEntityId = ReflectionHelper.findField(C02PacketUseEntity.class, "entityId", "field_149567_a");
+            if (C02PacketUseEntityEntityId != null) {
+                C02PacketUseEntityEntityId.setAccessible(true);
+            }
         } catch (Exception var2) {
             System.out.println("There was an error, relaunch the game.");
             var2.printStackTrace();
@@ -113,24 +127,65 @@ public class Reflection {
         }
     }
 
+    public static void setKeyBindings() {
+        for (KeyBinding keyBinding : Minecraft.getMinecraft().gameSettings.keyBindings) {
+            keyBindings.put(keyBinding, keyBinding.getKeyDescription().substring(4));
+        }
+    }
+
     public static void getMethods() {
         try {
-            rightClickMouse = Minecraft.getMinecraft().getClass().getDeclaredMethod("func_147121_ag");
-        } catch (NoSuchMethodException var4) {
             try {
-                rightClickMouse = Minecraft.getMinecraft().getClass().getDeclaredMethod("rightClickMouse");
-            } catch (NoSuchMethodException var3) {
+                rightClickMouse = Minecraft.getMinecraft().getClass().getDeclaredMethod("func_147121_ag");
+            } catch (NoSuchMethodException var4) {
+                try {
+                    rightClickMouse = Minecraft.getMinecraft().getClass().getDeclaredMethod("rightClickMouse");
+                } catch (NoSuchMethodException var3) {
+                }
+            }
+
+            if (rightClickMouse != null) {
+                rightClickMouse.setAccessible(true);
+            }
+
+            loadShader = ReflectionHelper.findMethod(EntityRenderer.class, Minecraft.getMinecraft().entityRenderer, new String[]{"func_175069_a", "loadShader"}, ResourceLocation.class);
+
+            if (loadShader != null) {
+                loadShader.setAccessible(true);
+            }
+
+            try {
+                clickMouse = Minecraft.getMinecraft().getClass().getDeclaredMethod("clickMouse");
+            } catch (NoSuchMethodException var4) {
+                try {
+                    clickMouse = Minecraft.getMinecraft().getClass().getDeclaredMethod("func_147116_af");
+                } catch (NoSuchMethodException var3) {
+                }
+            }
+
+            if (clickMouse != null) {
+                clickMouse.setAccessible(true);
+            }
+
+            try {
+                getPlayerInfo = AbstractClientPlayer.class.getDeclaredMethod("getPlayerInfo");
+            } catch (NoSuchMethodException var4) {
+                try {
+                    getPlayerInfo =
+
+                            AbstractClientPlayer.class.getDeclaredMethod("func_175155_b");
+                } catch (NoSuchMethodException var3) {
+                }
+            }
+
+            if (getPlayerInfo != null) {
+                getPlayerInfo.setAccessible(true);
             }
         }
-
-        if (rightClickMouse != null) {
-            rightClickMouse.setAccessible(true);
-        }
-
-        loadShader = ReflectionHelper.findMethod(EntityRenderer.class, Minecraft.getMinecraft().entityRenderer, new String[]{"func_175069_a", "loadShader"}, ResourceLocation.class);
-
-        if (loadShader != null) {
-            loadShader.setAccessible(true);
+        catch (Exception e) {
+            System.out.println("There was an error, relaunch the game.");
+            e.printStackTrace();
+            sendMessage = true;
         }
     }
 
@@ -159,6 +214,16 @@ public class Reflection {
         }
         catch (InvocationTargetException ex) {}
         catch (IllegalAccessException ex2) {}
+    }
+
+    public static void clickMouse() {
+        if (clickMouse != null) {
+            try {
+                clickMouse.invoke(Minecraft.getMinecraft());
+            }
+            catch (InvocationTargetException ex) {}
+            catch (IllegalAccessException ex2) {}
+        }
     }
 
     public static boolean setBlocking(boolean blocking) {

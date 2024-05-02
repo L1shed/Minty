@@ -7,6 +7,7 @@ import keystrokesmod.module.setting.Setting;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.utility.RenderUtils;
 import keystrokesmod.utility.profile.Manager;
 import keystrokesmod.utility.profile.ProfileModule;
 import net.minecraft.client.Minecraft;
@@ -18,11 +19,13 @@ import java.util.Iterator;
 
 public class ModuleComponent extends Component {
     private final int c2 = (new Color(154, 2, 255)).getRGB();
+    private final int hoverColor = (new Color(0, 0, 0, 80)).getRGB();
     public Module mod;
     public CategoryComponent categoryComponent;
     public int o;
     private ArrayList<Component> settings;
     public boolean po;
+    private boolean hovering;
 
     public ModuleComponent(Module mod, CategoryComponent p, int o) {
         this.mod = mod;
@@ -119,9 +122,15 @@ public class ModuleComponent extends Component {
     }
 
     public void render() {
+        if (hovering) {
+            RenderUtils.drawRoundedRectangle(this.categoryComponent.getX(), this.categoryComponent.getY() + o, this.categoryComponent.getX() + this.categoryComponent.gw(), this.categoryComponent.getY() + 16 + this.o, 8, hoverColor);
+        }
         v((float) this.categoryComponent.getX(), (float) (this.categoryComponent.getY() + this.o), (float) (this.categoryComponent.getX() + this.categoryComponent.gw()), (float) (this.categoryComponent.getY() + 15 + this.o), this.mod.isEnabled() ? this.c2 : -12829381, this.mod.isEnabled() ? this.c2 : -12302777);
         GL11.glPushMatrix();
         int button_rgb = this.mod.isEnabled() ? new Color(24, 154, 255).getRGB() : new Color(192, 192, 192).getRGB();
+        if (this.mod.script != null && this.mod.script.error) {
+            button_rgb = new Color(255, 80, 80).getRGB();
+        }
         if (this.mod.moduleCategory() == Module.category.profiles && !(this.mod instanceof Manager) && !((ProfileModule) this.mod).saved && Raven.currentProfile.getModule() == this.mod) {
             button_rgb = new Color(114, 188, 250).getRGB();
         }
@@ -132,7 +141,6 @@ public class ModuleComponent extends Component {
                 c.render();
             }
         }
-
     }
 
     public int gh() {
@@ -163,6 +171,11 @@ public class ModuleComponent extends Component {
                 c.drawScreen(x, y);
             }
         }
+        if (ii(x, y)) {
+            hovering = true;
+        } else {
+            hovering = false;
+        }
     }
 
     public String getName() {
@@ -170,7 +183,7 @@ public class ModuleComponent extends Component {
     }
 
     public void onClick(int x, int y, int b) {
-        if (this.ii(x, y) && b == 0) {
+        if (this.ii(x, y) && b == 0 && this.mod.canBeEnabled()) {
             this.mod.toggle();
             if (this.mod.moduleCategory() != Module.category.profiles) {
                 if (Raven.currentProfile != null) {

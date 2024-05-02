@@ -4,13 +4,13 @@ import net.minecraftforge.fml.common.eventhandler.Cancelable;
 import net.minecraftforge.fml.common.eventhandler.Event;
 
 @Cancelable
-public class StrafeEvent extends Event {
+public class PrePlayerInput extends Event {
     private float strafe;
     private float forward;
     private float friction;
     private float yaw;
 
-    public StrafeEvent(float strafe, float forward, float friction, float yaw) {
+    public PrePlayerInput(float strafe, float forward, float friction, float yaw) {
         this.strafe = strafe;
         this.forward = forward;
         this.friction = friction;

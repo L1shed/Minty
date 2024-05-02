@@ -160,7 +160,7 @@ public class ClickGui extends GuiScreen {
                     }
 
                     if (category.d(x, y) && m == 0) {
-                        category.oo(!category.fv());
+                        category.mouseClicked(!category.fv());
                     }
 
                     if (category.i(x, y) && m == 0) {

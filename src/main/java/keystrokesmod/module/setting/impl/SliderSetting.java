@@ -106,7 +106,7 @@ public class SliderSetting extends Setting {
     public void loadProfile(JsonObject data) {
         if (data.has(getName()) && data.get(getName()).isJsonPrimitive()) {
             double newValue = data.getAsJsonPrimitive(getName()).getAsDouble();
-            setValueRaw(newValue);
+            setValue(newValue);
         }
     }
 }

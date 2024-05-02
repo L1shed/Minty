@@ -2,7 +2,6 @@ package keystrokesmod.module.impl.combat;
 
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
-import keystrokesmod.module.impl.world.AntiBot;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.Utils;
@@ -82,7 +81,7 @@ public class HitBox extends Module {
         if (mc.getRenderViewEntity() != null && mc.theWorld != null) {
             mc.pointedEntity = null;
             pE = null;
-            double d0 = mc.playerController.extendedReach() ? 6.0 : (ModuleManager.reach.isEnabled() ? Utils.getRandomValue(Reach.min, Reach.max, Utils.rand()) : 3.0);
+            double d0 = mc.playerController.extendedReach() ? 6.0 : (ModuleManager.reach.isEnabled() ? Utils.getRandomValue(Reach.min, Reach.max, Utils.getRandom()) : 3.0);
             mv = mc.getRenderViewEntity().rayTrace(d0, partialTicks);
             double d2 = d0;
             Vec3 vec3 = mc.getRenderViewEntity().getPositionEyes(partialTicks);

@@ -44,7 +44,7 @@ public class AimAssist extends Module {
                         } else {
                             double n = Utils.n(en);
                             if (n > 1.0D || n < -1.0D) {
-                                float val = (float) (-(n / (101.0D - speed.getInput())));
+                                float val = (float) (-(n / (101.0D - (speed.getInput()))));
                                 mc.thePlayer.rotationYaw += val;
                             }
                         }

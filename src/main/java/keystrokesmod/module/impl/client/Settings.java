@@ -1,12 +1,25 @@
 package keystrokesmod.module.impl.client;
 
 import keystrokesmod.module.Module;
+import keystrokesmod.module.impl.render.HUD;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.util.ResourceLocation;
+
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 public class Settings extends Module {
     private DescriptionSetting general;
+    public static SliderSetting customCapes;
     public static ButtonSetting weaponAxe;
     public static ButtonSetting weaponRod;
     public static ButtonSetting weaponStick;
@@ -20,6 +33,8 @@ public class Settings extends Module {
     public static SliderSetting timeMultiplier;
     private DescriptionSetting profiles;
     public static ButtonSetting sendMessage;
+    private String[] capes = new String[]{"None", "Anime", "Aqua", "Green", "Purple", "Red", "White", "Yellow"};
+    public static List<ResourceLocation> loadedCapes = new ArrayList<>();
 
     public Settings() {
         super("Settings", category.client, 0);
@@ -39,6 +54,4 @@ public class Settings extends Module {
         this.registerSetting(timeMultiplier = new SliderSetting("Time multiplier", 0.5, 0.1, 4.0, 0.1));
         this.canBeEnabled = false;
     }
-
-
 }

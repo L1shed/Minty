@@ -24,6 +24,7 @@ public class ModuleManager {
     public static List<Module> organizedModules = new ArrayList<>();
     public static Module nameHider;
     public static Module fastPlace;
+    public static AntiFireball antiFireball;
     public static BedAura bedAura;
     public static FastMine fastMine;
     public static Module antiShuffle;
@@ -39,13 +40,16 @@ public class ModuleManager {
     public static Module timer;
     public static Module fly;
     public static Module wTap;
-    public static Module noFall;
+    public static Potions potions;
+    public static NoFall noFall;
     public static Module playerESP;
     public static Module reduce;
     public static Module safeWalk;
     public static Module keepSprint;
     public static Module antiKnockback;
     public static Module bedwars;
+    public static BHop bHop;
+    public static Scaffold scaffold;
 
     public void register() {
         this.addModule(autoClicker = new AutoClicker());
@@ -61,15 +65,19 @@ public class ModuleManager {
         this.addModule(reach = new Reach());
         this.addModule(new RodAimbot());
         this.addModule(new Velocity());
-        this.addModule(new BHop());
+        this.addModule(bHop = new BHop());
         this.addModule(new InvManager());
+        this.addModule(scaffold = new Scaffold());
+        this.addModule(new AntiAFK());
         this.addModule(new Boost());
         this.addModule(new AutoTool());
         this.addModule(fly = new Fly());
         this.addModule(new InvMove());
+        this.addModule(potions = new Potions());
         this.addModule(keepSprint = new KeepSprint());
         this.addModule(bedAura = new BedAura());
         this.addModule(noSlow = new NoSlow());
+        this.addModule(new Indicators());
         this.addModule(new Speed());
         this.addModule(new LatencyAlerts());
         this.addModule(new Sprint());
@@ -99,9 +107,10 @@ public class ModuleManager {
         this.addModule(new BridgeInfo());
         this.addModule(new TargetHUD());
         this.addModule(new DuelsStats());
-        this.addModule(new AntiFireball());
+        this.addModule(antiFireball = new AntiFireball());
         this.addModule(bedESP = new BedESP());
         this.addModule(new MurderMystery());
+        this.addModule(new keystrokesmod.script.Manager());
         this.addModule(new SumoFences());
         this.addModule(new Fun.ExtraBobbing());
         this.addModule(killAura = new KillAura());

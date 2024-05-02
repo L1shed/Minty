@@ -2,6 +2,8 @@ package keystrokesmod.mixins.impl.entity;
 
 import com.google.common.collect.Maps;
 import keystrokesmod.event.JumpEvent;
+import keystrokesmod.event.PreMotionEvent;
+import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.client.Settings;
 import keystrokesmod.utility.RotationUtils;
 import net.minecraft.client.entity.EntityPlayerSP;
@@ -15,6 +17,9 @@ import net.minecraftforge.common.ForgeHooks;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Map;
 
@@ -94,6 +99,10 @@ public abstract class MixinEntityLivingBase extends Entity {
             return;
         }
 
+        if (Settings.movementFix != null && Settings.movementFix.isToggled() && PreMotionEvent.setRenderYaw()) {
+            jumpEvent.setYaw(RotationUtils.renderYaw);
+        }
+
         this.motionY = jumpEvent.getMotionY();
 
         if (this.isPotionActive(Potion.jump)) {
@@ -108,5 +117,12 @@ public abstract class MixinEntityLivingBase extends Entity {
 
         this.isAirBorne = true;
         ForgeHooks.onLivingJump(((EntityLivingBase) (Object) this));
+    }
+
+    @Inject(method = "isPotionActive(Lnet/minecraft/potion/Potion;)Z", at = @At("HEAD"), cancellable = true)
+    private void isPotionActive(Potion p_isPotionActive_1_, final CallbackInfoReturnable<Boolean> callbackInfoReturnable) {
+        if (ModuleManager.potions != null && ModuleManager.potions.isEnabled() && ((p_isPotionActive_1_ == Potion.confusion && ModuleManager.potions.removeNausea.isToggled()) || (p_isPotionActive_1_ == Potion.blindness && ModuleManager.potions.removeBlindness.isToggled()))) {
+            callbackInfoReturnable.setReturnValue(false);
+        }
     }
 }

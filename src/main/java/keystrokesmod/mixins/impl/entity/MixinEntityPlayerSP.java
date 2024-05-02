@@ -125,12 +125,14 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
                 this.posZ,
                 this.rotationYaw,
                 this.rotationPitch,
-                this.onGround
+                this.onGround,
+                this.isSprinting(),
+                this.isSneaking()
         );
 
         net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(preMotionEvent);
 
-        boolean flag = this.isSprinting();
+        boolean flag = preMotionEvent.isSprinting();
         if (flag != this.serverSprintState) {
             if (flag) {
                 this.sendQueue.addToSendQueue(new C0BPacketEntityAction(this, C0BPacketEntityAction.Action.START_SPRINTING));
@@ -141,7 +143,7 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
             this.serverSprintState = flag;
         }
 
-        boolean flag1 = this.isSneaking();
+        boolean flag1 = preMotionEvent.isSneaking();
         if (flag1 != this.serverSneakState) {
             if (flag1) {
                 this.sendQueue.addToSendQueue(new C0BPacketEntityAction(this, C0BPacketEntityAction.Action.START_SNEAKING));
@@ -153,7 +155,7 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
         }
 
         if (this.isCurrentViewEntity()) {
-            if (PreMotionEvent.isSetRenderYaw()) {
+            if (PreMotionEvent.setRenderYaw()) {
                 RotationUtils.setRenderYaw(preMotionEvent.getYaw());
                 preMotionEvent.setRenderYaw(false);
             }
@@ -254,8 +256,9 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
         float f = 0.8F;
         boolean flag2 = this.movementInput.moveForward >= f;
         this.movementInput.updatePlayerMoveState();
+        boolean usingItemModified = this.isUsingItem() || (ModuleManager.killAura != null && ModuleManager.killAura.isEnabled() && ModuleManager.killAura.block.get() && ((Object) this) == Minecraft.getMinecraft().thePlayer && ModuleManager.killAura.rmbDown);
 
-        if (this.isUsingItem() && !this.isRiding()) {
+        if (usingItemModified && !this.isRiding()) {
             MovementInput var10000 = this.movementInput;
             float slowed = NoSlow.getSlowed();
             var10000.moveStrafe *= slowed;
@@ -273,7 +276,7 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
         this.pushOutOfBlocks(this.posX + (double) this.width * 0.35, this.getEntityBoundingBox().minY + 0.5, this.posZ - (double) this.width * 0.35);
         this.pushOutOfBlocks(this.posX + (double) this.width * 0.35, this.getEntityBoundingBox().minY + 0.5, this.posZ + (double) this.width * 0.35);
         boolean flag3 = (float) this.getFoodStats().getFoodLevel() > 6.0F || this.capabilities.allowFlying;
-        if (this.onGround && !flag1 && !flag2 && this.movementInput.moveForward >= f && !this.isSprinting() && flag3 && !this.isUsingItem() && !this.isPotionActive(Potion.blindness)) {
+        if (this.onGround && !flag1 && !flag2 && this.movementInput.moveForward >= f && !this.isSprinting() && flag3 && !usingItemModified && !this.isPotionActive(Potion.blindness)) {
             if (this.sprintToggleTimer <= 0 && !this.mc.gameSettings.keyBindSprint.isKeyDown()) {
                 this.sprintToggleTimer = 7;
             } else {
@@ -281,19 +284,14 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
             }
         }
 
-        if (!this.isSprinting() && this.movementInput.moveForward >= f && flag3 && !this.isUsingItem() && !this.isPotionActive(Potion.blindness) && this.mc.gameSettings.keyBindSprint.isKeyDown()) {
-            if (ModuleManager.wTap.isEnabled() && WTap.stopSprint) {
-                this.setSprinting(false);
-                WTap.stopSprint = false;
-            }
-            else {
-                this.setSprinting(true);
-            }
+        if ((!this.isSprinting() && this.movementInput.moveForward >= f && flag3 && !usingItemModified && !this.isPotionActive(Potion.blindness) && this.mc.gameSettings.keyBindSprint.isKeyDown())) {
+            this.setSprinting(true);
         }
 
-        if (this.isSprinting() && (this.movementInput.moveForward < f || this.isCollidedHorizontally || !flag3)) {
-            if (!this.isUsingItem() || stopSprint) { // modified checks
+        if (this.isSprinting() && ((this.movementInput.moveForward < f || this.isCollidedHorizontally || !flag3) || (ModuleManager.scaffold != null && ModuleManager.scaffold.isEnabled() && !ModuleManager.scaffold.sprint()) || (ModuleManager.wTap.isEnabled() && WTap.stopSprint))) {
+            if (!usingItemModified || stopSprint) {
                 this.setSprinting(false);
+                WTap.stopSprint = false;
             }
         }
 

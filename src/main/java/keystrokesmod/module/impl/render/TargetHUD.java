@@ -27,6 +27,8 @@ public class TargetHUD extends Module {
     private Timer healthBarTimer = null;
     private EntityLivingBase target;
     private long lastAliveMS;
+    private double lastHealth;
+    private float lastHealthBar;
 
     public TargetHUD() {
         super("TargetHUD", category.render);
@@ -65,6 +67,10 @@ public class TargetHUD extends Module {
             }
             String playerInfo = target.getDisplayName().getFormattedText();
             double health = target.getHealth() / target.getMaxHealth();
+            if (health != lastHealth) {
+                (healthBarTimer = new Timer(300)).start();
+            }
+            lastHealth = health;
             playerInfo += " " + Utils.getHealthStr(target);
             drawTargetHUD(fadeTimer, playerInfo, health);
         }
@@ -109,7 +115,19 @@ public class TargetHUD extends Module {
             if (health - n13 < 3) { // if goes below, the rounded health bar glitches out
                 health = n13 + 3;
             }
-            RenderUtils.drawRoundedGradientRectangle((float) n13, (float) n15, health, (float) (n15 + 5), 4.0f, k, k, n16, n16); // health bar
+            if (health != lastHealthBar && lastHealthBar - n13 >= 3 && healthBarTimer != null ) {
+                float diff = lastHealthBar - health;
+                if (diff > 0) {
+                    lastHealthBar = lastHealthBar - healthBarTimer.getValueFloat(0, diff, 1);
+                }
+                else {
+                    lastHealthBar = healthBarTimer.getValueFloat(lastHealthBar, health, 1);
+                }
+            }
+            else {
+                lastHealthBar = health;
+            }
+            RenderUtils.drawRoundedGradientRectangle((float) n13, (float) n15, lastHealthBar, (float) (n15 + 5), 4.0f, k, k, n16, n16); // health bar
             GlStateManager.pushMatrix();
             GlStateManager.enableBlend();
             GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);

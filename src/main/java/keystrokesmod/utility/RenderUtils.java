@@ -26,6 +26,20 @@ public class RenderUtils {
         renderBox(blockPos.getX(), blockPos.getY(), blockPos.getZ(), color, outline, shade);
     }
 
+    public static void scissor(double x, double y, double width, double height) {
+        final ScaledResolution sr = new ScaledResolution(mc);
+        final double scale = sr.getScaleFactor();
+
+        y = sr.getScaledHeight() - y;
+
+        x *= scale;
+        y *= scale;
+        width *= scale;
+        height *= scale;
+
+        GL11.glScissor((int) x, (int) (y - height), (int) ((int) x * 100), (int) height);
+    }
+
     public static void renderBox(int x, int y, int z, int color, boolean outline, boolean shade) {
         double xPos = x - mc.getRenderManager().viewerPosX;
         double yPos = y - mc.getRenderManager().viewerPosY;

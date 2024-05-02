@@ -3,11 +3,13 @@ package keystrokesmod.module.impl.player;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.utility.BlockUtils;
 import keystrokesmod.utility.Utils;
 import net.minecraft.block.*;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
+import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.IInventory;
@@ -508,12 +510,12 @@ public class InvManager extends Module {
         return item;
     }
 
-    private boolean canBePlaced(ItemBlock itemBlock) {
+    public static boolean canBePlaced(ItemBlock itemBlock) {
         Block block = itemBlock.getBlock();
         if (block == null) {
             return false;
         }
-        if (block instanceof BlockLiquid || block instanceof BlockEnchantmentTable || block instanceof BlockChest || block instanceof BlockAnvil || block instanceof BlockEnderChest || block instanceof BlockLadder || block instanceof BlockTorch || block instanceof BlockRedstoneTorch || block instanceof BlockFence || block instanceof BlockFenceGate || block instanceof BlockPane || block instanceof BlockStainedGlassPane || block instanceof BlockGravel || block instanceof BlockClay || block instanceof BlockSand || block instanceof BlockSoulSand) {
+        if (BlockUtils.isInteractable(block) || block instanceof BlockSkull || block instanceof BlockLiquid || block instanceof BlockCactus || block instanceof BlockCarpet || block instanceof BlockTripWire || block instanceof BlockTripWireHook || block instanceof BlockTallGrass || block instanceof BlockFlower || block instanceof BlockFlowerPot || block instanceof BlockSign || block instanceof BlockLadder || block instanceof BlockTorch || block instanceof BlockRedstoneTorch || block instanceof BlockFence || block instanceof BlockPane || block instanceof BlockStainedGlassPane || block instanceof BlockGravel || block instanceof BlockClay || block instanceof BlockSand || block instanceof BlockSoulSand) {
             return false;
         }
         return true;

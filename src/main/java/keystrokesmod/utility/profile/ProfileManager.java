@@ -4,10 +4,12 @@ import com.google.gson.*;
 import keystrokesmod.Raven;
 import keystrokesmod.clickgui.components.impl.CategoryComponent;
 import keystrokesmod.module.Module;
+import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.render.HUD;
 import keystrokesmod.module.setting.Setting;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.script.Manager;
 import keystrokesmod.utility.Utils;
 import net.minecraft.client.Minecraft;
 
@@ -48,6 +50,13 @@ public class ProfileManager {
             JsonObject moduleInformation = getJsonObject(module);
             jsonArray.add(moduleInformation);
         }
+        for (Module module : Raven.scriptManager.scripts.values()) {
+            if (module.ignoreOnSave) {
+                continue;
+            }
+            JsonObject moduleInformation = getJsonObject(module);
+            jsonArray.add(moduleInformation);
+        }
         jsonObject.add("modules", jsonArray);
         try (FileWriter fileWriter = new FileWriter(new File(directory, profile.getName() + ".json"))) {
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -60,13 +69,13 @@ public class ProfileManager {
 
     private static JsonObject getJsonObject(Module module) {
         JsonObject moduleInformation = new JsonObject();
-        moduleInformation.addProperty("name", module.getName());
+        moduleInformation.addProperty("name", (module.moduleCategory() == Module.category.scripts && !(module instanceof Manager)) ?  "sc-" + module.getName() :  module.getName());
         if (module.canBeEnabled) {
             moduleInformation.addProperty("enabled", module.isEnabled());
             moduleInformation.addProperty("keybind", module.getKeycode());
             moduleInformation.addProperty("visible", module.isVisible());
         }
-        if (module.getName().equals("HUD")) {
+        if (module instanceof HUD) {
             moduleInformation.addProperty("posX", HUD.hudX);
             moduleInformation.addProperty("posY", HUD.hudY);
         }
@@ -90,6 +99,20 @@ public class ProfileManager {
             if (!file.getName().equals(name + ".json")) {
                 continue;
             }
+            if (Raven.scriptManager != null) {
+                for (Module module : Raven.scriptManager.scripts.values()) {
+                    if (module.canBeEnabled()) {
+                        module.disable();
+                        module.setBind(0);
+                    }
+                }
+            }
+            for (Module module : Raven.getModuleManager().getModules()) {
+                if (module.canBeEnabled()) {
+                    module.disable();
+                    module.setBind(0);
+                }
+            }
             try (FileReader fileReader = new FileReader(file)) {
                 JsonParser jsonParser = new JsonParser();
                 JsonObject profileJson = jsonParser.parse(fileReader).getAsJsonObject();
@@ -111,12 +134,19 @@ public class ProfileManager {
                     }
 
                     Module module = Raven.moduleManager.getModule(moduleName);
+                    if (module == null && moduleName.startsWith("sc-") && Raven.scriptManager != null) {
+                        for (Module module1 : Raven.scriptManager.scripts.values()) {
+                            if (module1.getName().equals(moduleName.substring(3))) {
+                                module = module1;
+                            }
+                        }
+                    }
 
                     if (module == null) {
                         continue;
                     }
 
-                    if (module.canBeEnabled) {
+                    if (module.canBeEnabled()) {
                         if (moduleInformation.has("enabled")) {
                             boolean enabled = moduleInformation.get("enabled").getAsBoolean();
                             if (enabled) {
@@ -208,7 +238,7 @@ public class ProfileManager {
 
             for (CategoryComponent categoryComponent : Raven.clickGui.categories) {
                 if (categoryComponent.categoryName == Module.category.profiles) {
-                    categoryComponent.reloadModules();
+                    categoryComponent.reloadModules(true);
                 }
             }
             Utils.sendMessage("&b" + Raven.profileManager.getProfileFiles().size() + " &7profiles loaded.");
@@ -239,6 +269,6 @@ public class ProfileManager {
     }
 
     public void failedMessage(String reason, String name) {
-        Utils.sendMessage("&cFailed to " + reason + " : &b" + name);
+        Utils.sendMessage("&cFailed to " + reason + ": &b" + name);
     }
 }

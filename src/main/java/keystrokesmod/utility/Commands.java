@@ -283,7 +283,7 @@ public class Commands {
                 }
 
                 boolean added = Utils.addFriend(args[1]);
-                if (!added) {
+                if (added) {
                     print("&aAdded friend: " + args[1], 1);
                 } else {
                     print("&aRemoved friend: " + args[1], 1);
@@ -461,7 +461,7 @@ public class Commands {
     }
 
     public static void setccs() {
-        int val = Utils.rand().nextInt(cs.size());
+        int val = Utils.getRandom().nextInt(cs.size());
         if (val == lccs) {
             val += val == 3 ? -3 : 1;
         }

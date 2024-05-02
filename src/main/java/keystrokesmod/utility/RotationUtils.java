@@ -33,7 +33,7 @@ public class RotationUtils {
         final double n = blockPos.getX() + 0.45 - mc.thePlayer.posX;
         final double n2 = blockPos.getY() + 0.45 - (mc.thePlayer.posY + mc.thePlayer.getEyeHeight());
         final double n3 = blockPos.getZ() + 0.45 - mc.thePlayer.posZ;
-        return new float[] { mc.thePlayer.rotationYaw + MathHelper.wrapAngleTo180_float((float)(Math.atan2(n3, n) * 57.295780181884766) - 90.0f - mc.thePlayer.rotationYaw), m(mc.thePlayer.rotationPitch + MathHelper.wrapAngleTo180_float((float)(-(Math.atan2(n2, MathHelper.sqrt_double(n * n + n3 * n3)) * 57.295780181884766)) - mc.thePlayer.rotationPitch)) };
+        return new float[] { mc.thePlayer.rotationYaw + MathHelper.wrapAngleTo180_float((float)(Math.atan2(n3, n) * 57.295780181884766) - 90.0f - mc.thePlayer.rotationYaw), clamp(mc.thePlayer.rotationPitch + MathHelper.wrapAngleTo180_float((float)(-(Math.atan2(n2, MathHelper.sqrt_double(n * n + n3 * n3)) * 57.295780181884766)) - mc.thePlayer.rotationPitch)) };
     }
 
     public static float interpolateValue(float tickDelta, float old, float newFloat) {
@@ -49,7 +49,7 @@ public class RotationUtils {
     }
 
     public static double distanceFromYaw(final Entity entity, final boolean b) {
-        return Math.abs(MathHelper.wrapAngleTo180_double(i(entity.posX, entity.posZ) - ((b && PreMotionEvent.isSetRenderYaw()) ? RotationUtils.renderYaw : mc.thePlayer.rotationYaw)));
+        return Math.abs(MathHelper.wrapAngleTo180_double(i(entity.posX, entity.posZ) - ((b && PreMotionEvent.setRenderYaw()) ? RotationUtils.renderYaw : mc.thePlayer.rotationYaw)));
     }
 
     public static float i(final double n, final double n2) {
@@ -81,7 +81,7 @@ public class RotationUtils {
         } else {
             n3 = (entity.getEntityBoundingBox().minY + entity.getEntityBoundingBox().maxY) / 2.0 - (mc.thePlayer.posY + mc.thePlayer.getEyeHeight());
         }
-        return new float[]{mc.thePlayer.rotationYaw + MathHelper.wrapAngleTo180_float((float) (Math.atan2(n2, n) * 57.295780181884766) - 90.0f - mc.thePlayer.rotationYaw), m(mc.thePlayer.rotationPitch + MathHelper.wrapAngleTo180_float((float) (-(Math.atan2(n3, MathHelper.sqrt_double(n * n + n2 * n2)) * 57.295780181884766)) - mc.thePlayer.rotationPitch) + 3.0f)};
+        return new float[]{mc.thePlayer.rotationYaw + MathHelper.wrapAngleTo180_float((float) (Math.atan2(n2, n) * 57.295780181884766) - 90.0f - mc.thePlayer.rotationYaw), clamp(mc.thePlayer.rotationPitch + MathHelper.wrapAngleTo180_float((float) (-(Math.atan2(n3, MathHelper.sqrt_double(n * n + n2 * n2)) * 57.295780181884766)) - mc.thePlayer.rotationPitch) + 3.0f)};
     }
 
     public static float[] getRotationsPredicated(final Entity entity, final int ticks) {
@@ -109,10 +109,10 @@ public class RotationUtils {
             n5 = (entity.getEntityBoundingBox().minY + entity.getEntityBoundingBox().maxY) / 2.0 - (mc.thePlayer.posY + mc.thePlayer.getEyeHeight());
         }
         final double n6 = posZ - mc.thePlayer.posZ;
-        return new float[] { mc.thePlayer.rotationYaw + MathHelper.wrapAngleTo180_float((float)(Math.atan2(n6, n4) * 57.295780181884766) - 90.0f - mc.thePlayer.rotationYaw), m(mc.thePlayer.rotationPitch + MathHelper.wrapAngleTo180_float((float)(-(Math.atan2(n5, MathHelper.sqrt_double(n4 * n4 + n6 * n6)) * 57.295780181884766)) - mc.thePlayer.rotationPitch) + 3.0f) };
+        return new float[] { mc.thePlayer.rotationYaw + MathHelper.wrapAngleTo180_float((float)(Math.atan2(n6, n4) * 57.295780181884766) - 90.0f - mc.thePlayer.rotationYaw), clamp(mc.thePlayer.rotationPitch + MathHelper.wrapAngleTo180_float((float)(-(Math.atan2(n5, MathHelper.sqrt_double(n4 * n4 + n6 * n6)) * 57.295780181884766)) - mc.thePlayer.rotationPitch) + 3.0f) };
     }
 
-    public static float m(final float n) {
+    public static float clamp(final float n) {
         return MathHelper.clamp_float(n, -90.0f, 90.0f);
     }
 
@@ -129,13 +129,13 @@ public class RotationUtils {
         if (abs >= 1.0f) {
             final int n12 = (int) Settings.randomYawFactor.getInput();
             if (n12 != 0) {
-                final int n13 = n12 * 100 + Utils.randomize(-30, 30);
-                n += Utils.randomize(-n13, n13) / 100.0;
+                final int n13 = n12 * 100 + Utils.randomizeInt(-30, 30);
+                n += Utils.randomizeInt(-n13, n13) / 100.0;
             }
         } else if (abs <= 0.04) {
             n += ((abs > 0.0f) ? 0.01 : -0.01);
         }
-        return new float[]{n, m(n2)};
+        return new float[]{n, clamp(n2)};
     }
 
     public static float angle(final double n, final double n2) {

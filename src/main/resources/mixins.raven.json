@@ -12,7 +12,5 @@
     "entity.MixinEntityLivingBase",
     "network.MixinNetworkManager",
     "entity.MixinEntityPlayer"
-  ],
-  "client": [
   ]
 }

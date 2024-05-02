@@ -9,6 +9,7 @@ import keystrokesmod.keystroke.keystrokeCommand;
 import keystrokesmod.module.Module;
 import keystrokesmod.clickgui.ClickGui;
 import keystrokesmod.module.ModuleManager;
+import keystrokesmod.script.ScriptManager;
 import keystrokesmod.utility.*;
 import keystrokesmod.utility.profile.Profile;
 import keystrokesmod.utility.profile.ProfileManager;
@@ -37,9 +38,10 @@ public class Raven {
     public static ModuleManager moduleManager;
     public static ClickGui clickGui;
     public static ProfileManager profileManager;
-    //public static ScriptManager scriptManager;
+    public static ScriptManager scriptManager;
     public static Profile currentProfile;
     public static BadPacketsHandler badPacketsHandler;
+    private boolean loaded = false;
 
     public Raven() {
         moduleManager = new ModuleManager();
@@ -61,9 +63,12 @@ public class Raven {
         keySrokeRenderer = new KeySrokeRenderer();
         clickGui = new ClickGui();
         profileManager = new ProfileManager();
-        //scriptManager = new ScriptManager();
         profileManager.loadProfiles();
         profileManager.loadProfile("default");
+        scriptManager = new ScriptManager();
+        Reflection.setKeyBindings();
+        scriptManager.loadScripts();
+        scriptManager.loadScripts();
     }
 
     @SubscribeEvent
@@ -75,7 +80,7 @@ public class Raven {
                     Reflection.sendMessage = false;
                 }
                 for (Module module : getModuleManager().getModules()) {
-                    if (mc.currentScreen == null && module.canBeEnabled) {
+                    if (mc.currentScreen == null && module.canBeEnabled()) {
                         module.keybind();
                     } else if (mc.currentScreen instanceof ClickGui) {
                         module.guiUpdate();
@@ -88,6 +93,11 @@ public class Raven {
                 for (Profile profile : Raven.profileManager.profiles) {
                     if (mc.currentScreen == null) {
                         profile.getModule().keybind();
+                    }
+                }
+                for (Module module : Raven.scriptManager.scripts.values()) {
+                    if (mc.currentScreen == null) {
+                        module.keybind();
                     }
                 }
             }

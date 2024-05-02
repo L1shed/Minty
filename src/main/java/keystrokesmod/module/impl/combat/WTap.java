@@ -18,7 +18,7 @@ public class WTap extends Module {
     public static boolean stopSprint = false;
     public WTap() {
         super("WTap", category.combat);
-        this.registerSetting(chance = new SliderSetting("Chance", 100, 0, 100, 1));
+        this.registerSetting(chance = new SliderSetting("Chance", 100, 0, 100, 1, "%"));
         this.registerSetting(playersOnly = new ButtonSetting("Players only", true));
     }
 
