@@ -24,15 +24,17 @@ public class ScriptEvents {
     }
 
     @SubscribeEvent
-    public void onChat(ClientChatReceivedEvent clientChatReceivedEvent) {
-        if (clientChatReceivedEvent.type == 2 || !Utils.nullCheck()) {
+    public void onChat(ClientChatReceivedEvent e) {
+        if (e.type == 2 || !Utils.nullCheck()) {
             return;
         }
-        final String r = Utils.stripColor(clientChatReceivedEvent.message.getUnformattedText());
+        final String r = Utils.stripColor(e.message.getUnformattedText());
         if (r.isEmpty()) {
             return;
         }
-        Raven.scriptManager.invoke("onChat", module, r);
+        if (Raven.scriptManager.invokeBoolean("onChat", module, e.message.getUnformattedText()) == 0) {
+            e.setCanceled(true);
+        }
     }
 
     @SubscribeEvent
@@ -114,7 +116,9 @@ public class ScriptEvents {
     }
 
     @SubscribeEvent
-    public void onMouse(final MouseEvent mouseEvent) {
-        Raven.scriptManager.invoke("onMouse", module, mouseEvent.button, mouseEvent.buttonstate);
+    public void onMouse(MouseEvent e) {
+        if (Raven.scriptManager.invokeBoolean("onMouse", module, e.button, e.buttonstate) == 0) {
+            e.setCanceled(true);
+        }
     }
 }
