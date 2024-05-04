@@ -18,7 +18,7 @@ public class NoFall extends Module {
     public SliderSetting mode;
     private SliderSetting minFallDistance;
     private ButtonSetting ignoreVoid;
-    private String[] modes = new String[]{"Spoof", "Extra"};
+    private String[] modes = new String[]{"Spoof", "Extra", "NoGround"};
     private List<Packet> blinkedPackets = new ArrayList<>();
 
     public NoFall() {
@@ -37,6 +37,9 @@ public class NoFall extends Module {
             switch ((int) mode.getInput()) {
                 case 0:
                     e.setOnGround(true);
+                    break;
+                case 2:
+                    e.setOnGround(false);
                     break;
             }
         }

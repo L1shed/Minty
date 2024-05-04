@@ -27,6 +27,9 @@ public class Vec3 {
     }
 
     public static Vec3 convert(BlockPos blockPos) {
+        if (blockPos == null) {
+            return null;
+        }
         return new Vec3(blockPos.getX(), blockPos.getY(), blockPos.getZ());
     }
 

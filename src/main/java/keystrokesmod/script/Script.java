@@ -148,11 +148,11 @@ public class Script {
             extraLines++;
             sb.append("import ").append(iterator.next()).append(";\n");
         }
-        new ScriptDefaults.modules("s");
         sb.append("import keystrokesmod.script.classes.*;\n");
         sb.append("import keystrokesmod.script.packets.clientbound.*;\n");
         sb.append("import keystrokesmod.script.packets.serverbound.*;\n");
-        this.codeStr = sb + "public class " + this.scriptName + " extends " + ScriptDefaults.class.getName() + " {public static final " + ScriptDefaults.modules.class.getName().replace("$", ".") + " modules = new " + ScriptDefaults.modules.class.getName().replace("$", ".") + "(\"" + Utils.extractFileName(this.name) + "\");\n" + s + "\n}";
+        String name = Utils.extractFileName(this.name);
+        this.codeStr = sb + "public class " + this.scriptName + " extends " + ScriptDefaults.class.getName() + " {public static final " + ScriptDefaults.modules.class.getName().replace("$", ".") + " modules = new " + ScriptDefaults.modules.class.getName().replace("$", ".") + "(\"" + name + "\");public static final String scriptName = \"" + name + "\";\n" + s + "\n}";
         extraLines += 4;
     }
 

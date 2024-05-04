@@ -1,8 +1,6 @@
 package keystrokesmod.module.impl.minigames;
 
 import keystrokesmod.module.Module;
-import keystrokesmod.module.ModuleManager;
-import keystrokesmod.module.impl.world.AntiBot;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.utility.RenderUtils;
 import keystrokesmod.utility.Utils;
@@ -23,8 +21,8 @@ public class MurderMystery extends Module {
     private ButtonSetting a;
     private ButtonSetting b;
     private ButtonSetting c;
-    private static final List<EntityPlayer> mur = new ArrayList();
-    private static final List<EntityPlayer> det = new ArrayList();
+    private final List<EntityPlayer> murderers = new ArrayList();
+    private final List<EntityPlayer> detectives = new ArrayList();
     private final String c1 = "MURDER";
     private final String c2 = "MYSTERY";
     private final String c3 = "Role:";
@@ -32,80 +30,71 @@ public class MurderMystery extends Module {
     private final String c5 = "note.pling";
     private final String c6 = "is a murderer!";
     private final String c7 = "has a bow!";
+    private boolean override;
 
     public MurderMystery() {
-        super("Murder Mystery", Module.category.minigames, 0);
+        super("Murder Mystery", category.minigames);
         this.registerSetting(a = new ButtonSetting("Alert", true));
         this.registerSetting(b = new ButtonSetting("Search detectives", true));
         this.registerSetting(c = new ButtonSetting("Announce murderer", false));
     }
 
+    public void onDisable() {
+        this.clear();
+    }
+
     @SubscribeEvent
     public void o(RenderWorldLastEvent e) {
         if (Utils.nullCheck()) {
-            if (ModuleManager.playerESP.isEnabled()) {
-                ModuleManager.playerESP.disable();
-            }
-
-            if (!this.imm()) {
-                this.c();
+            if (!this.isMurderMystery()) {
+                this.clear();
             } else {
-                Iterator var2 = mc.theWorld.playerEntities.iterator();
+                override = false;
+                for (EntityPlayer en : mc.theWorld.playerEntities) {
+                    if (en != mc.thePlayer && !en.isInvisible()) {
+                        if (en.getHeldItem() != null && en.getHeldItem().hasDisplayName()) {
+                            Item i = en.getHeldItem().getItem();
+                            if (i instanceof ItemSword || i instanceof ItemAxe || en.getHeldItem().getDisplayName().contains("aKnife")) {
+                                if (!murderers.contains(en)) {
+                                    murderers.add(en);
+                                    if (a.isToggled()) {
+                                        mc.thePlayer.playSound(this.c5, 1.0F, 1.0F);
+                                        Utils.sendMessage(this.c4 + " &e" + en.getName() + " &3" + this.c6);
+                                    }
 
-                while (true) {
-                    EntityPlayer en;
-                    do {
-                        do {
-                            do {
-                                if (!var2.hasNext()) {
-                                    return;
-                                }
+                                    if (c.isToggled()) {
+                                        mc.thePlayer.sendChatMessage(en.getName() + " " + this.c6);
+                                    }
+                                } else if (i instanceof ItemBow && b.isToggled() && !detectives.contains(en)) {
+                                    detectives.add(en);
+                                    if (a.isToggled()) {
+                                        Utils.sendMessage(this.c4 + " &e" + en.getName() + " &3" + this.c7);
+                                    }
 
-                                en = (EntityPlayer) var2.next();
-                            } while (en == mc.thePlayer);
-                        } while (en.isInvisible());
-                    } while (AntiBot.isBot(en));
-
-                    if (en.getHeldItem() != null && en.getHeldItem().hasDisplayName()) {
-                        Item i = en.getHeldItem().getItem();
-                        if (i instanceof ItemSword || i instanceof ItemAxe || en.getHeldItem().getDisplayName().contains("aKnife")) {
-                            if (!mur.contains(en)) {
-                                mur.add(en);
-                                if (a.isToggled()) {
-                                    mc.thePlayer.playSound(this.c5, 1.0F, 1.0F);
-                                    Utils.sendMessage(this.c4 + " &e" + en.getName() + " &3" + this.c6);
-                                }
-
-                                if (c.isToggled()) {
-                                    mc.thePlayer.sendChatMessage(en.getName() + " " + this.c6);
-                                }
-                            } else if (i instanceof ItemBow && b.isToggled() && !det.contains(en)) {
-                                det.add(en);
-                                if (a.isToggled()) {
-                                    Utils.sendMessage(this.c4 + " &e" + en.getName() + " &3" + this.c7);
-                                }
-
-                                if (c.isToggled()) {
-                                    mc.thePlayer.sendChatMessage(en.getName() + " " + this.c7);
+                                    if (c.isToggled()) {
+                                        mc.thePlayer.sendChatMessage(en.getName() + " " + this.c7);
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    int rgb = Color.green.getRGB();
-                    if (mur.contains(en)) {
-                        rgb = Color.red.getRGB();
-                    } else if (det.contains(en)) {
-                        rgb = Color.orange.getRGB();
-                    }
+                        override = true;
 
-                    RenderUtils.renderEntity(en, 2, 0.0D, 0.0D, rgb, false);
+                        int rgb = Color.green.getRGB();
+                        if (murderers.contains(en)) {
+                            rgb = Color.red.getRGB();
+                        } else if (detectives.contains(en)) {
+                            rgb = Color.orange.getRGB();
+                        }
+
+                        RenderUtils.renderEntity(en, 2, 0.0D, 0.0D, rgb, false);
+                    }
                 }
             }
         }
     }
 
-    private boolean imm() {
+    private boolean isMurderMystery() {
         if (Utils.isHypixel()) {
             if (mc.thePlayer.getWorldScoreboard() == null || mc.thePlayer.getWorldScoreboard().getObjectiveInDisplaySlot(1) == null) {
                 return false;
@@ -130,8 +119,13 @@ public class MurderMystery extends Module {
         return false;
     }
 
-    private void c() {
-        mur.clear();
-        det.clear();
+    public boolean isEmpty() {
+        return murderers.isEmpty() && detectives.isEmpty() && !override;
+    }
+
+    private void clear() {
+        override = false;
+        murderers.clear();
+        detectives.clear();
     }
 }

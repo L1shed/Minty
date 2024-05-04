@@ -39,6 +39,12 @@ public class ScriptEvents {
 
     @SubscribeEvent
     public void onSendPacket(SendPacketEvent e) {
+        if (e.isCanceled()) {
+            return;
+        }
+        if (e.getPacket().getClass().getSimpleName().startsWith("S")) {
+            return;
+        }
         CPacket a = PacketHandler.convertServerBound(e.getPacket());
         if (a != null && Raven.scriptManager.invokeBoolean("onPacketSent", module, a) == 0) {
             e.setCanceled(true);
@@ -47,6 +53,9 @@ public class ScriptEvents {
 
     @SubscribeEvent
     public void onReceivePacket(ReceivePacketEvent e) {
+        if (e.isCanceled()) {
+            return;
+        }
         SPacket a = PacketHandler.convertClientBound(e.getPacket());
         if (a != null && Raven.scriptManager.invokeBoolean("onPacketReceived", module, a) == 0) {
             e.setCanceled(true);

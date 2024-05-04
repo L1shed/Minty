@@ -42,9 +42,13 @@ public class C03 extends CPacket {
 
     protected C03(C03PacketPlayer packet, String filler, String filler2, String filler3, String filler4, String filler5) {
         super(packet);
-        this.pos = new Vec3(packet.getPositionX(), packet.getPositionY(), packet.getPositionZ());
-        this.yaw = packet.getYaw();
-        this.pitch = packet.getPitch();
+        if (packet instanceof C03PacketPlayer.C04PacketPlayerPosition || packet instanceof C03PacketPlayer.C06PacketPlayerPosLook) {
+            this.pos = new Vec3(packet.getPositionX(), packet.getPositionY(), packet.getPositionZ());
+        }
+        if (packet instanceof C03PacketPlayer.C05PacketPlayerLook || packet instanceof C03PacketPlayer.C06PacketPlayerPosLook) {
+            this.yaw = packet.getYaw();
+            this.pitch = packet.getPitch();
+        }
         this.ground = packet.isOnGround();
     }
 

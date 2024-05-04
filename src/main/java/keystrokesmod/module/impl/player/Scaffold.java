@@ -4,11 +4,10 @@ import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.event.PreUpdateEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
+import keystrokesmod.module.impl.render.HUD;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
-import keystrokesmod.utility.BlockUtils;
-import keystrokesmod.utility.RotationUtils;
-import keystrokesmod.utility.Utils;
+import keystrokesmod.utility.*;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
@@ -17,10 +16,14 @@ import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraftforge.client.event.MouseEvent;
+import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
+import java.awt.*;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 public class Scaffold extends Module { // from b4 :)
     private SliderSetting forward;
@@ -29,6 +32,7 @@ public class Scaffold extends Module { // from b4 :)
     private SliderSetting fastScaffold;
     private ButtonSetting autoSwap;
     private ButtonSetting fastOnRMB;
+    private ButtonSetting highlightBlocks;
     public ButtonSetting safeWalk;
     private ButtonSetting showBlockCount;
     private ButtonSetting accelerationCoolDown;
@@ -45,6 +49,7 @@ public class Scaffold extends Module { // from b4 :)
     private int slowTicks;
     public boolean rmbDown;
     private int ticksAccelerated;
+    private Map<BlockPos, Timer> highlight = new HashMap<>();
     public Scaffold() {
         super("Scaffold", category.player);
         this.registerSetting(forward = new SliderSetting("Forward motion", 1.0, 0.5, 1.2, 0.01));
@@ -54,6 +59,7 @@ public class Scaffold extends Module { // from b4 :)
         this.registerSetting(accelerationCoolDown = new ButtonSetting("Acceleration cooldown", true));
         this.registerSetting(autoSwap = new ButtonSetting("AutoSwap", true));
         this.registerSetting(fastOnRMB = new ButtonSetting("Fast on RMB", false));
+        this.registerSetting(highlightBlocks = new ButtonSetting("Highlight blocks", true));
         this.registerSetting(safeWalk = new ButtonSetting("Safewalk", true));
         this.registerSetting(showBlockCount = new ButtonSetting("Show block count", true));
         this.registerSetting(silentSwing = new ButtonSetting("Silent swing", false));
@@ -67,6 +73,7 @@ public class Scaffold extends Module { // from b4 :)
         }
         at = index = slowTicks = ticksAccelerated = 0;
         slow = false;
+        highlight.clear();
     }
 
     public void onEnable() {
@@ -249,6 +256,27 @@ public class Scaffold extends Module { // from b4 :)
         }
     }
 
+    @SubscribeEvent
+    public void onRenderWorld(RenderWorldLastEvent e) {
+        if (!Utils.nullCheck() || !highlightBlocks.isToggled() || highlight.isEmpty()) {
+            return;
+        }
+        Iterator<Map.Entry<BlockPos, Timer>> iterator = highlight.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<BlockPos, Timer> entry = iterator.next();
+            if (entry.getValue() == null) {
+                entry.setValue(new Timer(750));
+                entry.getValue().start();
+            }
+            int alpha = entry.getValue() == null ? 210 : 210 - entry.getValue().getValueInt(0, 210, 1);
+            if (alpha == 0) {
+                iterator.remove();
+                continue;
+            }
+            RenderUtils.renderBlock(entry.getKey(), Utils.merge(Theme.getGradient((int) HUD.theme.getInput(), 0), alpha), true, false);
+        }
+    }
+
     public boolean sprint() {
         return this.isEnabled() && (fastScaffold.getInput() == 1 && (!fastOnRMB.isToggled() || rmbDown)) && placeBlock != null;
     }
@@ -319,6 +347,7 @@ public class Scaffold extends Module { // from b4 :)
                 mc.thePlayer.swingItem();
                 mc.getItemRenderer().resetEquippedProgress();
             }
+            highlight.put(placeBlock.getBlockPos().offset(placeBlock.sideHit), null);
         }
     }
 

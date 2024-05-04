@@ -30,6 +30,7 @@ import java.awt.*;
 
 public class BedAura extends Module {
     public SliderSetting mode;
+    private SliderSetting breakSpeed;
     private SliderSetting fov;
     private SliderSetting range;
     private SliderSetting rate;
@@ -39,6 +40,7 @@ public class BedAura extends Module {
     public ButtonSetting groundSpoof;
     private ButtonSetting onlyWhileVisible;
     private ButtonSetting renderOutline;
+    private ButtonSetting sendAnimations;
     private ButtonSetting silentSwing;
     private String[] modes = new String[]{"Legit", "Instant", "Swap"};
     private BlockPos[] bedPos;
@@ -57,6 +59,7 @@ public class BedAura extends Module {
     public BedAura() {
         super("BedAura", category.player, 0);
         this.registerSetting(mode = new SliderSetting("Break mode", modes, 0));
+        this.registerSetting(breakSpeed = new SliderSetting("Break speed", 1, 0.8, 2, 0.01, "x"));
         this.registerSetting(fov = new SliderSetting("FOV", 360.0, 30.0, 360.0, 4.0));
         this.registerSetting(range = new SliderSetting("Range", 4.5, 1.0, 8.0, 0.5));
         this.registerSetting(rate = new SliderSetting("Rate", 0.2, 0.05, 3.0, 0.05, " second"));
@@ -66,6 +69,7 @@ public class BedAura extends Module {
         this.registerSetting(groundSpoof = new ButtonSetting("Ground spoof", false));
         this.registerSetting(onlyWhileVisible = new ButtonSetting("Only while visible", false));
         this.registerSetting(renderOutline = new ButtonSetting("Render block outline", true));
+        this.registerSetting(sendAnimations = new ButtonSetting("Send animations", false));
         this.registerSetting(silentSwing = new ButtonSetting("Silent swing", false));
     }
 
@@ -103,7 +107,7 @@ public class BedAura extends Module {
             }
         }
         else {
-            if (!(BlockUtils.getBlock(bedPos[0]) instanceof BlockBed) || (currentBlock != null && BlockUtils.replaceable(currentBlock)) || !RotationUtils.inRange(bedPos[0], range.getInput())) {
+            if (!(BlockUtils.getBlock(bedPos[0]) instanceof BlockBed) || (currentBlock != null && BlockUtils.replaceable(currentBlock))) {
                 reset();
                 return;
             }
@@ -269,7 +273,10 @@ public class BedAura extends Module {
                     swing();
                 }
             }
-            breakProgress += BlockUtils.getBlockHardness(block, (mode.getInput() == 2 && Utils.getTool(block) != -1) ? mc.thePlayer.inventory.getStackInSlot(Utils.getTool(block)) : mc.thePlayer.getHeldItem(), false);
+            breakProgress += BlockUtils.getBlockHardness(block, (mode.getInput() == 2 && Utils.getTool(block) != -1) ? mc.thePlayer.inventory.getStackInSlot(Utils.getTool(block)) : mc.thePlayer.getHeldItem(), false) * breakProgress;
+            if (sendAnimations.isToggled()) {
+                mc.theWorld.sendBlockBreakProgress(mc.thePlayer.getEntityId(), blockPos, (int) ((breakProgress * 10) - 1));
+            }
         }
         else if (mode.getInput() == 1) {
             stopAutoblock = true;

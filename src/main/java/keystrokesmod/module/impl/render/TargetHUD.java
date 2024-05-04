@@ -68,7 +68,7 @@ public class TargetHUD extends Module {
             String playerInfo = target.getDisplayName().getFormattedText();
             double health = target.getHealth() / target.getMaxHealth();
             if (health != lastHealth) {
-                (healthBarTimer = new Timer(300)).start();
+                (healthBarTimer = new Timer(275)).start();
             }
             lastHealth = health;
             playerInfo += " " + Utils.getHealthStr(target);

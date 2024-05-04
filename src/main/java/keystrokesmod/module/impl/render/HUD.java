@@ -1,6 +1,5 @@
 package keystrokesmod.module.impl.render;
 
-import keystrokesmod.Raven;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.setting.impl.ButtonSetting;
@@ -9,7 +8,6 @@ import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.RenderUtils;
 import keystrokesmod.utility.Theme;
 import keystrokesmod.utility.Utils;
-import keystrokesmod.utility.profile.ProfileModule;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
@@ -24,7 +22,7 @@ import java.io.IOException;
 
 public class HUD extends Module {
     private DescriptionSetting description;
-    private static SliderSetting theme;
+    public static SliderSetting theme;
     private ButtonSetting editPosition;
     public static ButtonSetting dropShadow;
     public static ButtonSetting alphabeticalSort;

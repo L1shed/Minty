@@ -29,6 +29,6 @@ public class C08 extends CPacket {
 
     @Override
     public C08PacketPlayerBlockPlacement convert() {
-        return new C08PacketPlayerBlockPlacement(new BlockPos(this.pos.x, this.pos.y, this.pos.z), this.direction, this.itemStack.itemStack, (float) this.offset.x, (float) this.offset.y, (float) this.offset.z);
+        return new C08PacketPlayerBlockPlacement(new BlockPos(this.pos.x, this.pos.y, this.pos.z), this.direction, this.itemStack != null ? this.itemStack.itemStack : null, (float) this.offset.x, (float) this.offset.y, (float) this.offset.z);
     }
 }

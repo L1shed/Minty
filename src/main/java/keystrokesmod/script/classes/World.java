@@ -79,7 +79,11 @@ public class World {
     public Map<String, List<String>> getTeams() {
         Map<String, List<String>> teams = new HashMap<>();
         for (Team team : mc.theWorld.getScoreboard().getTeams()) {
-            teams.put(team.getRegisteredName(), (List<String>) team.getMembershipCollection());
+            List<String> members = new ArrayList<>();
+            for (String member : team.getMembershipCollection()) {
+                members.add(member);
+            }
+            teams.put(team.getRegisteredName(), members);
         }
         return teams;
     }

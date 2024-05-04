@@ -20,7 +20,12 @@ public class C02 extends CPacket {
 
     public C02(C02PacketUseEntity packet) {
         super(packet);
-        this.entity = new Entity(packet.getEntityFromWorld(Minecraft.getMinecraft().theWorld));
+        if (packet.getEntityFromWorld(Minecraft.getMinecraft().theWorld) == null) {
+            this.entity = null;
+        }
+        else {
+            this.entity = new Entity(packet.getEntityFromWorld(Minecraft.getMinecraft().theWorld));
+        }
         this.action = packet.getAction().name();
         if (packet.getHitVec() != null) {
             this.hitVec = new Vec3(packet.getHitVec().xCoord, packet.getHitVec().yCoord, packet.getHitVec().zCoord);

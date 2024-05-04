@@ -24,6 +24,7 @@ public class ModuleManager {
     public static List<Module> organizedModules = new ArrayList<>();
     public static Module nameHider;
     public static Module fastPlace;
+    public static MurderMystery murderMystery;
     public static AntiFireball antiFireball;
     public static BedAura bedAura;
     public static FastMine fastMine;
@@ -74,6 +75,7 @@ public class ModuleManager {
         this.addModule(fly = new Fly());
         this.addModule(new InvMove());
         this.addModule(potions = new Potions());
+        this.addModule(new AutoSwap());
         this.addModule(keepSprint = new KeepSprint());
         this.addModule(bedAura = new BedAura());
         this.addModule(noSlow = new NoSlow());
@@ -109,7 +111,7 @@ public class ModuleManager {
         this.addModule(new DuelsStats());
         this.addModule(antiFireball = new AntiFireball());
         this.addModule(bedESP = new BedESP());
-        this.addModule(new MurderMystery());
+        this.addModule(murderMystery = new MurderMystery());
         this.addModule(new keystrokesmod.script.Manager());
         this.addModule(new SumoFences());
         this.addModule(new Fun.ExtraBobbing());

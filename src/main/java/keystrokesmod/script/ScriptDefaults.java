@@ -167,6 +167,9 @@ public class ScriptDefaults {
         }
 
         public static void sendPacket(CPacket packet) {
+            if (!Utils.nullCheck()) {
+                return;
+            }
             Packet packet1 = PacketHandler.convertCPacket(packet);
             if (packet1 == null) {
                 return;
@@ -175,9 +178,11 @@ public class ScriptDefaults {
         }
 
         public static void sendPacketNoEvent(CPacket packet) {
+            if (!Utils.nullCheck()) {
+                return;
+            }
             Packet packet1 = PacketHandler.convertCPacket(packet);
             if (packet1 == null) {
-                Utils.sendMessage(packet.name);
                 return;
             }
             PacketUtils.sendPacketNoEvent(packet1);
@@ -246,6 +251,13 @@ public class ScriptDefaults {
 
             public static void text(String text, float x, float y, int color, boolean shadow) {
                 mc.fontRendererObj.drawString(text, x, y, color, shadow);
+            }
+
+            public static void text(String text, float x, float y, double scale, int color, boolean shadow) {
+                GlStateManager.pushMatrix();
+                GL11.glScaled(scale, scale, scale);
+                mc.fontRendererObj.drawString(text, x, y, color, shadow);
+                GlStateManager.popMatrix();
             }
 
             public static void player(Entity entity, int color, float partialTicks, boolean outline, boolean shade) {

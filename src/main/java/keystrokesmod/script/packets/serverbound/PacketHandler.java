@@ -10,6 +10,9 @@ import net.minecraft.network.play.server.S27PacketExplosion;
 
 public class PacketHandler {
     public static CPacket convertServerBound(net.minecraft.network.Packet packet) {
+        if (packet == null || packet.getClass().getSimpleName().startsWith("S")) {
+            return null;
+        }
         CPacket newPacket;
         try {
             if (packet instanceof C0APacketAnimation) {
@@ -72,35 +75,39 @@ public class PacketHandler {
     }
 
     public static Packet convertCPacket(CPacket cPacket) {
-        if (cPacket instanceof C0A) {
-            return new C0APacketAnimation();
+        try {
+            if (cPacket instanceof C0A) {
+                return new C0APacketAnimation();
+            } else if (cPacket instanceof C0B) {
+                return ((C0B) cPacket).convert();
+            } else if (cPacket instanceof C09) {
+                return ((C09) cPacket).convert();
+            } else if (cPacket instanceof C0E) {
+                return ((C0E) cPacket).convert();
+            } else if (cPacket instanceof C0F) {
+                return ((C0F) cPacket).convert();
+            } else if (cPacket instanceof C08) {
+                return ((C08) cPacket).convert();
+            } else if (cPacket instanceof C07) {
+                return ((C07) cPacket).convert();
+            } else if (cPacket instanceof C01) {
+                return ((C01) cPacket).convert();
+            } else if (cPacket instanceof C02) {
+                return ((C02) cPacket).convert();
+            } else if (cPacket instanceof C03) {
+                return ((C03) cPacket).convert();
+            }
         }
-        else if (cPacket instanceof C0B) {
-            return ((C0B) cPacket).convert();
+        catch (Exception e) {
+            if (cPacket != null && cPacket.packet != null && !cPacket.name.startsWith("S")) {
+                return cPacket.packet;
+            }
+            else {
+                return null;
+            }
         }
-        else if (cPacket instanceof C09) {
-            return ((C09) cPacket).convert();
-        }
-        else if (cPacket instanceof C0E) {
-            return ((C0E) cPacket).convert();
-        }
-        else if (cPacket instanceof C0F) {
-            return ((C0F) cPacket).convert();
-        }
-        else if (cPacket instanceof C08) {
-            return ((C08) cPacket).convert();
-        }
-        else if (cPacket instanceof C07) {
-            return ((C07) cPacket).convert();
-        }
-        else if (cPacket instanceof C01) {
-            return ((C01) cPacket).convert();
-        }
-        else if (cPacket instanceof C02) {
-            return ((C02) cPacket).convert();
-        }
-        else if (cPacket instanceof C03) {
-            return ((C03) cPacket).convert();
+        if (cPacket == null && cPacket.packet == null) {
+            return null;
         }
         return cPacket.packet;
     }
