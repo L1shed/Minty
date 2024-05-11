@@ -1,6 +1,7 @@
 package keystrokesmod.script.classes;
 
 import net.minecraft.client.network.NetworkPlayerInfo;
+import net.minecraft.scoreboard.ScorePlayerTeam;
 
 public class NetworkPlayer {
     private NetworkPlayerInfo networkPlayerInfo;
@@ -9,26 +10,44 @@ public class NetworkPlayer {
     }
 
     public String getCape() {
+        if (networkPlayerInfo == null) {
+            return "";
+        }
         return networkPlayerInfo.getLocationCape().getResourcePath();
     }
 
     public String getDisplayName() {
-        return networkPlayerInfo.getDisplayName().getFormattedText();
+        if (networkPlayerInfo == null) {
+            return "";
+        }
+        return networkPlayerInfo.getDisplayName() != null ? networkPlayerInfo.getDisplayName().getFormattedText() : ScorePlayerTeam.formatPlayerName(networkPlayerInfo.getPlayerTeam(), networkPlayerInfo.getGameProfile().getName());
     }
 
     public String getName() {
+        if (networkPlayerInfo == null) {
+            return "";
+        }
         return networkPlayerInfo.getGameProfile().getName();
     }
 
     public int getPing() {
+        if (networkPlayerInfo == null) {
+            return 0;
+        }
         return networkPlayerInfo.getResponseTime();
     }
 
     public String getSkinData() {
+        if (networkPlayerInfo == null) {
+            return "";
+        }
         return networkPlayerInfo.getLocationSkin().getResourcePath();
     }
 
     public String getUUID() {
+        if (networkPlayerInfo == null) {
+            return "";
+        }
         return networkPlayerInfo.getGameProfile().getId().toString();
     }
 }

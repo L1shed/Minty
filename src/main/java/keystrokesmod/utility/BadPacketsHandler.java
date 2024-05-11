@@ -5,10 +5,7 @@ import keystrokesmod.event.ReceivePacketEvent;
 import keystrokesmod.event.SendPacketEvent;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.network.play.client.C02PacketUseEntity;
-import net.minecraft.network.play.client.C07PacketPlayerDigging;
-import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
-import net.minecraft.network.play.client.C09PacketHeldItemChange;
+import net.minecraft.network.play.client.*;
 import net.minecraft.network.play.server.S09PacketHeldItemChange;
 import net.minecraft.network.play.server.S0CPacketSpawnPlayer;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
@@ -16,10 +13,12 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 public class BadPacketsHandler { // ensures you don't get banned
-    private boolean C08;
-    private boolean C07;
+    public boolean C08;
+    public boolean C07;
     private boolean C02;
-    private int attacks = 0;
+    public boolean C09;
+    public boolean delayAttack;
+    public boolean delay;
     public int serverSlot = -1;
 
     @SubscribeEvent
@@ -41,9 +40,6 @@ public class BadPacketsHandler { // ensures you don't get banned
                 e.setCanceled(true);
                 return;
             }
-            if (((C02PacketUseEntity) e.getPacket()).getAction() == C02PacketUseEntity.Action.ATTACK) {
-                attacks++;
-            }
             C02 = true;
         }
         else if (e.getPacket() instanceof C08PacketPlayerBlockPlacement) {
@@ -57,6 +53,7 @@ public class BadPacketsHandler { // ensures you don't get banned
                 e.setCanceled(true);
                 return;
             }
+            C09 = true;
             serverSlot = ((C09PacketHeldItemChange) e.getPacket()).getSlotId();
         }
     }
@@ -79,7 +76,14 @@ public class BadPacketsHandler { // ensures you don't get banned
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onPostUpdate(PostUpdateEvent e) {
-        C08 = C07 = C02 = false;
-        attacks = 0;
+        if (delay) {
+            delayAttack = false;
+            delay = false;
+        }
+        if (C08 || C09) {
+            delay = true;
+            delayAttack = true;
+        }
+        C08 = C07 = C02 = C09 = false;
     }
 }

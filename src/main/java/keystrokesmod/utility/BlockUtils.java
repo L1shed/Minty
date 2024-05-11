@@ -1,6 +1,5 @@
 package keystrokesmod.utility;
 
-import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import net.minecraft.block.*;
 import net.minecraft.block.material.Material;
@@ -18,6 +17,14 @@ public class BlockUtils {
 
     public static boolean isSamePos(BlockPos blockPos, BlockPos blockPos2) {
         return blockPos == blockPos2 || (blockPos.getX() == blockPos2.getX() && blockPos.getY() == blockPos2.getY() && blockPos.getZ() == blockPos2.getZ());
+    }
+
+    public static boolean notFull(Block block) {
+        return block instanceof BlockFenceGate || block instanceof BlockLadder || block instanceof BlockFlowerPot || block instanceof BlockBasePressurePlate || isFluid(block) || block instanceof BlockFence || block instanceof BlockAnvil || block instanceof BlockEnchantmentTable || block instanceof BlockChest;
+    }
+
+    public static boolean isFluid(Block block) {
+        return block.getMaterial() == Material.lava || block.getMaterial() == Material.water;
     }
 
     public static boolean isInteractable(Block block) {

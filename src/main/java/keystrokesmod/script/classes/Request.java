@@ -1,13 +1,9 @@
 package keystrokesmod.script.classes;
 
-import com.google.gson.JsonObject;
-import keystrokesmod.utility.URLUtils;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,7 +14,7 @@ public class Request {
     public String userAgent;
     public int connectionTimeout;
     public int readTimeout;
-    public String content;
+    public String content = "";
 
     public Request(String method, String URL) {
         if (!method.equals("POST") && !method.equals("GET")) {
@@ -74,11 +70,11 @@ public class Request {
                 con.setDoOutput(true);
                 OutputStream stream = con.getOutputStream();
                 stream.write(content.getBytes());
-                stream.flush();
                 stream.close();
                 con.getInputStream().close();
             }
         } catch (IOException iOException) {
+            iOException.printStackTrace();
         }
         finally {
             if (con != null) {

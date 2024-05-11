@@ -26,7 +26,7 @@ public class C0B extends CPacket {
 
     private C0BPacketEntityAction.Action getAction() {
         for (C0BPacketEntityAction.Action action : C0BPacketEntityAction.Action.values()) {
-            if (action.name().equals(action)) {
+            if (action.name().equals(this.action)) {
                 return action;
             }
         }

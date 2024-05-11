@@ -9,6 +9,7 @@ import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.*;
 import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.C0APacketAnimation;
@@ -19,8 +20,8 @@ import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import org.lwjgl.input.Keyboard;
 
-import java.awt.*;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -86,16 +87,16 @@ public class Scaffold extends Module { // from b4 :)
             return;
         }
         double roundedSpeed = Utils.rnd(Utils.getHorizontalSpeed(), 2);
-        if (accelerationCoolDown.isToggled() && (roundedSpeed > 0.26 || (ModuleManager.bHop != null && ModuleManager.bHop.isEnabled() && ModuleManager.bHop.hopping))) {
+        if (accelerationCoolDown.isToggled() && (roundedSpeed > 0.26 || (ModuleManager.bHop != null && ModuleManager.bHop.isEnabled() && ModuleManager.bHop.hopping) || Keyboard.isKeyDown(mc.gameSettings.keyBindJump.getKeyCode()))) {
             slow = true;
             slowTicks = 0;
             ticksAccelerated++;
         }
-        else if (accelerationCoolDown.isToggled() && ticksAccelerated >= 5 && slow && (roundedSpeed <= 0.26 || (ModuleManager.bHop == null || !ModuleManager.bHop.isEnabled() || !ModuleManager.bHop.hopping)) && mc.thePlayer.onGround) {
+        else if (accelerationCoolDown.isToggled() && ticksAccelerated >= 5 && slow && (roundedSpeed <= 0.26 || (ModuleManager.bHop == null || !ModuleManager.bHop.isEnabled() || !ModuleManager.bHop.hopping) || !Keyboard.isKeyDown(mc.gameSettings.keyBindJump.getKeyCode())) && mc.thePlayer.onGround) {
             slowTicks++;
             if (slowTicks <= 20) {
-                mc.thePlayer.motionX *= 0.7;
-                mc.thePlayer.motionZ *= 0.7;
+                mc.thePlayer.motionX *= 0.65;
+                mc.thePlayer.motionZ *= 0.65;
             }
             else {
                 slow = false;
@@ -133,11 +134,11 @@ public class Scaffold extends Module { // from b4 :)
                         EnumFacing enumFacing = null;
                         double lastDistance = 0.0;
                         for (EnumFacing enumFacing2 : EnumFacing.VALUES) {
-                            Label_0345: {
+                            enumLoop: {
                                 if (enumFacing2 != EnumFacing.DOWN) {
                                     if (enumFacing2 == EnumFacing.UP) {
                                         if (mc.thePlayer.onGround) {
-                                            break Label_0345;
+                                            break enumLoop;
                                         }
                                     }
                                     final BlockPos offset = blockPos.offset(enumFacing2);
@@ -187,11 +188,8 @@ public class Scaffold extends Module { // from b4 :)
             for (float n8 = 0.0f; n8 < 23.0f; ++n8) {
                 final float m2 = RotationUtils.clamp((float)(70 + n8 + f()));
                 final MovingObjectPosition raycast = RotationUtils.rayCast(mc.playerController.getBlockReachDistance(), n7, m2);
-                if (raycast != null) {
+                if (raycast != null && Utils.overPlaceable()) {
                     if (raycast.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-                        if (raycast.getBlockPos().getY() > mc.thePlayer.posY) {
-                            continue;
-                        }
                         final EnumFacing enumFacing3 = possiblePositions.get(raycast.getBlockPos());
                         if (enumFacing3 != null) {
                             if (enumFacing3 == raycast.sideHit) {
@@ -213,6 +211,7 @@ public class Scaffold extends Module { // from b4 :)
             }
         }
         if (m != null) {
+            KeyBinding.setKeyBindState(mc.gameSettings.keyBindUseItem.getKeyCode(), false);
             placeBlock = m;
             place();
         }
@@ -250,10 +249,14 @@ public class Scaffold extends Module { // from b4 :)
     public void onMouse(final MouseEvent mouseEvent) {
         if (mouseEvent.button == 1) {
             rmbDown = mouseEvent.buttonstate;
-            if (placeBlock != null) {
+            if (placeBlock != null && rmbDown) {
                 mouseEvent.setCanceled(true);
             }
         }
+    }
+
+    public boolean stopFastPlace() {
+        return this.isEnabled() && placeBlock != null;
     }
 
     @SubscribeEvent
@@ -349,10 +352,6 @@ public class Scaffold extends Module { // from b4 :)
             }
             highlight.put(placeBlock.getBlockPos().offset(placeBlock.sideHit), null);
         }
-    }
-
-    public static BlockPos d(final MovingObjectPosition movingObjectPosition) {
-        return movingObjectPosition.getBlockPos().offset(movingObjectPosition.sideHit);
     }
 
     private int getSlot() {

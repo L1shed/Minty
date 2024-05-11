@@ -67,12 +67,21 @@ public class Entity {
         return entity.fallDistance;
     }
 
+    public String getUUID() {
+        if (!(entity instanceof EntityPlayer)) {
+            return entity.getUniqueID().toString();
+        }
+        return getNetworkPlayer().getUUID();
+    }
+
     public float getHealth() {
         if (!(entity instanceof EntityLivingBase)) {
             return -1;
         }
         return ((EntityLivingBase) entity).getHealth();
     }
+
+
 
     public float getEyeHeight() {
         return entity.getEyeHeight();
@@ -228,7 +237,7 @@ public class Entity {
     }
 
     public boolean isOnEdge() {
-        return Utils.onEdge(entity);
+        return Utils.onEdge(this.entity);
     }
 
     public boolean isSprinting() {

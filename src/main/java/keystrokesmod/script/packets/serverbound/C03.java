@@ -8,36 +8,31 @@ public class C03 extends CPacket {
     public float yaw;
     public float pitch;
     public boolean ground;
-    private int mode;
 
     public C03(boolean ground) {
-        super(null);
+        super(new C03PacketPlayer(ground));
         this.ground = ground;
-        this.mode = 0;
     }
 
     public C03(Vec3 pos, boolean ground) {
-        super(null);
+        super(new C03PacketPlayer.C04PacketPlayerPosition(pos.x, pos.y, pos.z, ground));
         this.pos = pos;
         this.ground = ground;
-        this.mode = 1;
     }
 
     public C03(float yaw, float pitch, boolean ground) {
-        super(null);
+        super(new C03PacketPlayer.C05PacketPlayerLook(yaw, pitch, ground));
         this.yaw = yaw;
         this.pitch = pitch;
         this.ground = ground;
-        this.mode = 2;
     }
 
     public C03(Vec3 pos, float yaw, float pitch, boolean ground) {
-        super(null);
+        super(new C03PacketPlayer.C06PacketPlayerPosLook(pos.x, pos.y, pos.z, yaw, pitch, ground));
         this.pos = pos;
         this.yaw = yaw;
         this.pitch = pitch;
         this.ground = ground;
-        this.mode = 3;
     }
 
     protected C03(C03PacketPlayer packet, String filler, String filler2, String filler3, String filler4, String filler5) {
@@ -50,22 +45,5 @@ public class C03 extends CPacket {
             this.pitch = packet.getPitch();
         }
         this.ground = packet.isOnGround();
-    }
-
-    @Override
-    public C03PacketPlayer convert() {
-        if (this.mode == 3) {
-            return new C03PacketPlayer.C06PacketPlayerPosLook(this.pos.x, this.pos.y, this.pos.z, this.yaw, this.pitch, this.ground);
-        }
-        else if (this.mode == 2) {
-            return new C03PacketPlayer.C05PacketPlayerLook(this.yaw, this.pitch, this.ground);
-        }
-        else if (this.mode == 1) {
-            return new C03PacketPlayer.C04PacketPlayerPosition(this.pos.x, this.pos.y, this.pos.z, this.ground);
-        }
-        else if (this.mode == 0) {
-            return new C03PacketPlayer(this.ground);
-        }
-        return null;
     }
 }

@@ -20,6 +20,10 @@ import java.util.Iterator;
 public class ModuleComponent extends Component {
     private final int c2 = (new Color(154, 2, 255)).getRGB();
     private final int hoverColor = (new Color(0, 0, 0, 80)).getRGB();
+    private final int unsavedColor = new Color(114, 188, 250).getRGB();
+    private final int invalidColor = new Color(255, 80, 80).getRGB();
+    private final int enabledColor = new Color(24, 154, 255).getRGB();
+    private final int disabledColor = new Color(192, 192, 192).getRGB();
     public Module mod;
     public CategoryComponent categoryComponent;
     public int o;
@@ -127,12 +131,12 @@ public class ModuleComponent extends Component {
         }
         v((float) this.categoryComponent.getX(), (float) (this.categoryComponent.getY() + this.o), (float) (this.categoryComponent.getX() + this.categoryComponent.gw()), (float) (this.categoryComponent.getY() + 15 + this.o), this.mod.isEnabled() ? this.c2 : -12829381, this.mod.isEnabled() ? this.c2 : -12302777);
         GL11.glPushMatrix();
-        int button_rgb = this.mod.isEnabled() ? new Color(24, 154, 255).getRGB() : new Color(192, 192, 192).getRGB();
+        int button_rgb = this.mod.isEnabled() ? enabledColor : disabledColor;
         if (this.mod.script != null && this.mod.script.error) {
-            button_rgb = new Color(255, 80, 80).getRGB();
+            button_rgb = invalidColor;
         }
         if (this.mod.moduleCategory() == Module.category.profiles && !(this.mod instanceof Manager) && !((ProfileModule) this.mod).saved && Raven.currentProfile.getModule() == this.mod) {
-            button_rgb = new Color(114, 188, 250).getRGB();
+            button_rgb = unsavedColor;
         }
         Minecraft.getMinecraft().fontRendererObj.drawStringWithShadow(this.mod.getName(), (float) (this.categoryComponent.getX() + this.categoryComponent.gw() / 2 - Minecraft.getMinecraft().fontRendererObj.getStringWidth(this.mod.getName()) / 2), (float) (this.categoryComponent.getY() + this.o + 4), button_rgb);
         GL11.glPopMatrix();

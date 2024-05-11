@@ -11,7 +11,6 @@ import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
 import net.minecraft.network.play.server.S12PacketEntityVelocity;
-import net.minecraft.network.play.server.S27PacketExplosion;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -22,9 +21,11 @@ public class LongJump extends Module {
     private SliderSetting boostTicks;
     private ButtonSetting invertYaw;
     private int lastSlot = -1;
-    private int ticks;
+    private int ticks = -1;
     private boolean setSpeed;
     public static boolean stopModules;
+    private boolean placed;
+    private int waitTicks;
     private String[] modes = new String[]{"Fireball", "AutoFireball"};
     public LongJump() {
         super("Long Jump", category.movement);
@@ -37,11 +38,8 @@ public class LongJump extends Module {
 
     @SubscribeEvent
     public void onReceivePacket(ReceivePacketEvent e) {
-        if (e.getPacket() instanceof S27PacketExplosion) {
-            e.setCanceled(true);
-        }
-        else if (e.getPacket() instanceof S12PacketEntityVelocity && Utils.nullCheck()) {
-            if (((S12PacketEntityVelocity) e.getPacket()).getEntityID() == mc.thePlayer.getEntityId()) {
+        if (e.getPacket() instanceof S12PacketEntityVelocity && Utils.nullCheck()) {
+            if (((S12PacketEntityVelocity) e.getPacket()).getEntityID() == mc.thePlayer.getEntityId() && placed && ticks < 0) {
                 ticks = 0;
             }
         }
@@ -61,35 +59,37 @@ public class LongJump extends Module {
             return;
         }
         if (mode.getInput() == 1) {
-            if (ticks > boostTicks.getInput()) {
-                this.disable();
-                return;
-            }
-            int fireballSlot = getFireball();
-            if (fireballSlot != -1 && fireballSlot != mc.thePlayer.inventory.currentItem) {
-                lastSlot = mc.thePlayer.inventory.currentItem;
-                mc.thePlayer.inventory.currentItem = fireballSlot;
-                return;
-            }
-            else if (fireballSlot == -1) {
-                Utils.sendMessage("§cNo fireball found.");
-                this.disable();
-                return;
-            }
-            if (holdingFireball()) {
-                mc.thePlayer.sendQueue.addToSendQueue(new C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()));
-            }
-            ticks++;
-            if (invertYaw.isToggled()) {
-                if (invertYaw.isToggled()) {
-                    e.setYaw(Utils.gd() - 180);
-                    e.setPitch(70); // seems to work well, goes far but not too up, change to like 80 if you want more vertical speed
+            if (!placed) {
+                if (mc.thePlayer.onGround) {
+                    waitTicks++;
                 }
-                else {
+                int fireballSlot = getFireball();
+                if (fireballSlot != -1 && fireballSlot != mc.thePlayer.inventory.currentItem) {
+                    lastSlot = mc.thePlayer.inventory.currentItem;
+                    mc.thePlayer.inventory.currentItem = fireballSlot;
+                }
+            }
+            if (!placed && mc.thePlayer.onGround && waitTicks <= 3) {
+                if (invertYaw.isToggled()) {
+                    e.setYaw(mc.thePlayer.rotationYaw - 180);
+                    e.setPitch(60);
+                } else {
                     e.setPitch(90);
                 }
             }
+            if (waitTicks == 2 && !placed) {
+                mc.thePlayer.sendQueue.addToSendQueue(new C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()));
+                placed = true;
+            }
+            if (ticks < 0) {
+                return;
+            }
+            if (ticks >= boostTicks.getInput()) {
+                this.disable();
+                return;
+            }
             setSpeed();
+            ticks++;
         }
         else {
             if (setSpeed) {
@@ -112,13 +112,17 @@ public class LongJump extends Module {
         if (lastSlot != -1 && mode.getInput() == 1) {
             mc.thePlayer.inventory.currentItem = lastSlot;
         }
-        lastSlot = -1;
-        setSpeed = false;
-        ticks = 0;
-        stopModules = false;
+        ticks = lastSlot = -1;
+        setSpeed = stopModules = placed = false;
+        waitTicks = 0;
     }
 
     public void onEnable() {
+        if (getFireball() == -1 && mode.getInput() == 1) {
+            Utils.sendMessage("§cNo fireball found.");
+            this.disable();
+            return;
+        }
         if (horizontalSpeed.getInput() == 0 && verticalSpeed.getInput() == 0) {
             Utils.sendMessage("&cLong jump values are set to 0.");
             this.disable();

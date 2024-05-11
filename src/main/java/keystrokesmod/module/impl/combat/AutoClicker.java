@@ -1,6 +1,8 @@
 package keystrokesmod.module.impl.combat;
 
+import akka.actor.Kill;
 import keystrokesmod.module.Module;
+import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
@@ -174,7 +176,7 @@ public class AutoClicker extends Module {
 
         if (this.j > 0L && this.i > 0L) {
             double c = blockHitChance.getInput();
-            if (System.currentTimeMillis() > this.j) {
+            if (System.currentTimeMillis() > this.j && KillAura.target == null && !ModuleManager.killAura.swing) {
                 KeyBinding.setKeyBindState(key, true);
                 KeyBinding.onTick(key);
                 Reflection.setButton(mouse, true);

@@ -16,7 +16,7 @@ public class PacketHandler {
         CPacket newPacket;
         try {
             if (packet instanceof C0APacketAnimation) {
-                newPacket = new C0A(packet);
+                newPacket = new C0A((C0APacketAnimation) packet);
             }
             else if (packet instanceof C0BPacketEntityAction) {
                 newPacket = new C0B((C0BPacketEntityAction) packet);
@@ -50,6 +50,7 @@ public class PacketHandler {
             }
         }
         catch (Exception ex) {
+            ex.printStackTrace();
             newPacket = null;
         }
         return newPacket;
@@ -95,7 +96,7 @@ public class PacketHandler {
             } else if (cPacket instanceof C02) {
                 return ((C02) cPacket).convert();
             } else if (cPacket instanceof C03) {
-                return ((C03) cPacket).convert();
+                return cPacket.packet;
             }
         }
         catch (Exception e) {

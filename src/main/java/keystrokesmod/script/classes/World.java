@@ -8,10 +8,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.util.BlockPos;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class World {
     private Minecraft mc = Minecraft.getMinecraft();
@@ -25,15 +22,10 @@ public class World {
     }
 
     public String getDimension() {
-        if (mc.thePlayer.dimension == -1) {
-            return "NETHER";
+        if (mc.theWorld == null) {
+            return "";
         }
-        else if (mc.thePlayer.dimension == 1) {
-            return "END";
-        }
-        else {
-            return "OVERWORLD";
-        }
+        return mc.theWorld.provider.getDimensionName();
     }
 
     public List<Entity> getEntities() {
@@ -70,10 +62,14 @@ public class World {
     }
 
     public List<String> getScoreboard() {
-        if (Utils.getSidebarLines().isEmpty()) {
+        List<String> sidebarLines = Utils.getSidebarLines();
+
+        if (sidebarLines.isEmpty()) {
             return null;
         }
-        return Utils.getSidebarLines();
+
+        Collections.reverse(sidebarLines);
+        return sidebarLines;
     }
 
     public Map<String, List<String>> getTeams() {

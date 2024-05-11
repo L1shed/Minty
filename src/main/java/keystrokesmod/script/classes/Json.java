@@ -16,7 +16,7 @@ public class Json {
         this.jsonObject = (new JsonParser()).parse(jsonString).getAsJsonObject();
     }
 
-    protected Json(JsonObject jsonObject) {
+    protected Json(JsonObject jsonObject, int s) {
         this.jsonObject = jsonObject;
     }
 
@@ -32,16 +32,16 @@ public class Json {
     }
 
     public String string() {
-        return this.jsonObject.getAsString();
+        return this.jsonObject.toString().replace("\"", "");
     }
 
     public String get(String key) {
-        return this.jsonObject.get(key).getAsString();
+        return this.jsonObject.get(key).toString().replace("\"", "");
     }
 
     public String get(String key, String defaultValue) {
         try {
-            return this.jsonObject.get(key).getAsString();
+            return this.jsonObject.get(key).toString().replace("\"", "");
         }
         catch (NullPointerException e) {
             return defaultValue;
@@ -49,13 +49,17 @@ public class Json {
     }
 
     public Json object(String name) {
-        return new Json(this.jsonObject.get(name).getAsJsonObject());
+        return new Json(this.jsonObject == null ? null : this.jsonObject.get(name).getAsJsonObject(), 0);
+    }
+
+    public Json object() {
+        return new Json(this.jsonObject == null ? null : this.jsonObject.getAsJsonObject(), 0);
     }
 
     public List<Json> array(String name) {
         List<Json> list = new ArrayList<>();
         for (JsonElement element : this.jsonObject.getAsJsonArray(name)) {
-            list.add(new Json(element.getAsJsonObject()));
+            list.add(new Json(element.getAsJsonObject(), 0));
         }
         return list;
     }
@@ -63,7 +67,7 @@ public class Json {
     public Map<String, Json> map() {
         Map<String, Json> map = new HashMap<>();
         for (Map.Entry<String, JsonElement> entry : this.jsonObject.entrySet()) {
-            map.put(entry.getKey(), new Json(entry.getValue().getAsJsonObject()));
+            map.put(entry.getKey(), new Json(entry.getValue().getAsJsonObject(), 0));
         }
         return map;
     }

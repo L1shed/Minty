@@ -482,7 +482,36 @@ public class RenderUtils {
         mc.entityRenderer.enableLightmap();
     }
 
-    public static void f(final int n) { // credit to the creator of raven b4
+    public static void drawArrow(float x, float y, int color, double width, double length) {
+        GL11.glPushMatrix();
+        GL11.glEnable(GL11.GL_LINE_SMOOTH);
+        GL11.glDisable(GL11.GL_TEXTURE_2D);
+        GL11.glEnable(GL11.GL_BLEND);
+        RenderUtils.glColor(color);
+        GL11.glLineWidth((float) width);
+
+        // Calculate offset to center the arrow
+        float halfWidth = (float) (width / 2.0);
+        float xOffset = halfWidth / 2.0f;
+        float yOffset = halfWidth / 2.0f;
+
+        GL11.glBegin(GL11.GL_LINES);
+        // Left line of the arrow
+        GL11.glVertex2d(x - xOffset, y + yOffset);
+        GL11.glVertex2d(x + length - xOffset, y - length + yOffset);
+
+        // Right line of the arrow
+        GL11.glVertex2d(x + length - xOffset, y - length + yOffset);
+        GL11.glVertex2d(x + 2 * length - xOffset, y + yOffset);
+        GL11.glEnd();
+
+        GL11.glDisable(GL11.GL_BLEND);
+        GL11.glEnable(GL11.GL_TEXTURE_2D);
+        GL11.glDisable(GL11.GL_LINE_SMOOTH);
+        GL11.glPopMatrix();
+    }
+
+    public static void glColor(final int n) { // credit to the creator of raven b4
         GL11.glColor4f((float) (n >> 16 & 0xFF) / 255.0f, (float) (n >> 8 & 0xFF) / 255.0f, (float) (n & 0xFF) / 255.0f, (float) (n >> 24 & 0xFF) / 255.0f);
     }
 
@@ -497,7 +526,7 @@ public class RenderUtils {
         GL11.glDisable(3553);
         GL11.glEnable(2848);
         GL11.glBegin(9);
-        f(n6);
+        glColor(n6);
         for (int i = 0; i <= 90; i += 3) {
             final double n9 = (double) (i * 0.017453292f);
             GL11.glVertex2d((double) (n + n5) + Math.sin(n9) * n5 * -1.0, (double) (n2 + n5) + Math.cos(n9) * n5 * -1.0);
@@ -520,7 +549,7 @@ public class RenderUtils {
         GL11.glLineWidth(2.0f);
         GL11.glBegin(2);
         if (n7 != 0L) {
-            f(n7);
+            glColor(n7);
         }
         for (int n13 = 0; n13 <= 90; n13 += 3) {
             final double n14 = (double) (n13 * 0.017453292f);
@@ -531,7 +560,7 @@ public class RenderUtils {
             GL11.glVertex2d((double) (n + n5) + Math.sin(n16) * n5 * -1.0, (double) (n4 - n5) + Math.cos(n16) * n5 * -1.0);
         }
         if (n8 != 0) {
-            f(n8);
+            glColor(n8);
         }
         for (int n17 = 0; n17 <= 90; n17 += 3) {
             final double n18 = (double) (n17 * 0.017453292f);
@@ -565,7 +594,7 @@ public class RenderUtils {
         GL11.glDisable(3553);
         GL11.glEnable(2848);
         GL11.glBegin(9);
-        f(n6);
+        glColor(n6);
         for (int i = 0; i <= 90; i += 3) {
             final double n7 = (double) (i * 0.017453292f);
             GL11.glVertex2d((double) (n + n5) + Math.sin(n7) * n5 * -1.0, (double) (n2 + n5) + Math.cos(n7) * n5 * -1.0);
@@ -606,7 +635,7 @@ public class RenderUtils {
         y2 *= 2.0;
         GL11.glEnable(3042);
         GL11.glDisable(3553);
-        f(n6);
+        glColor(n6);
         GL11.glEnable(2848);
         GL11.glShadeModel(7425);
         GL11.glBegin(9);
@@ -614,17 +643,17 @@ public class RenderUtils {
             final double n10 = (double) (i * 0.017453292f);
             GL11.glVertex2d((double) (x + n5) + Math.sin(n10) * n5 * -1.0, (double) (y + n5) + Math.cos(n10) * n5 * -1.0);
         }
-        f(n7);
+        glColor(n7);
         for (int j = 90; j <= 180; j += 3) {
             final double n11 = (double) (j * 0.017453292f);
             GL11.glVertex2d((double) (x + n5) + Math.sin(n11) * n5 * -1.0, (double) (y2 - n5) + Math.cos(n11) * n5 * -1.0);
         }
-        f(n8);
+        glColor(n8);
         for (int k = 0; k <= 90; k += 3) {
             final double n12 = (double) (k * 0.017453292f);
             GL11.glVertex2d((double) (x2 - n5) + Math.sin(n12) * n5, (double) (y2 - n5) + Math.cos(n12) * n5);
         }
-        f(n9);
+        glColor(n9);
         for (int l = 90; l <= 180; l += 3) {
             final double n13 = (double) (l * 0.017453292f);
             GL11.glVertex2d((double) (x2 - n5) + Math.sin(n13) * n5, (double) (y + n5) + Math.cos(n13) * n5);

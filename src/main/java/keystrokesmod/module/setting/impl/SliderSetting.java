@@ -52,10 +52,6 @@ public class SliderSetting extends Setting {
         return this.settingInfo;
     }
 
-    public void setInfo(String info) {
-        this.settingInfo = info;
-    }
-
     public String[] getOptions() {
         return options;
     }

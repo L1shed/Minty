@@ -14,7 +14,7 @@ public enum Theme {
     Grayscale(new Color(240, 240, 240), new Color(110, 110, 110)), // 6
     Royal(new Color(125, 204, 241), new Color(30, 71, 170)), // 7
     Sky(new Color(160, 230, 225), new Color(15, 190, 220)), // 8
-    Vine(new Color(50, 205, 50), new Color(0, 128, 50)), // from croat, 9
+    Vine(new Color(17, 192, 45), new Color(201, 234, 198)), // 9
     Descriptor(new Color(95, 235, 255), new Color(68, 102, 250)), // 10
     HiddenBind(new Color(245, 33, 33), new Color(229, 21, 98)); // 11
 

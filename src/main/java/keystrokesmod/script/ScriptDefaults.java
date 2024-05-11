@@ -29,11 +29,15 @@ import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 public class ScriptDefaults {
     private static Minecraft mc = Minecraft.getMinecraft();
     private static World world = new World();
     public final Bridge bridge = new Bridge();
+    private static final ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
+    protected static Entity player;
 
     public static class client {
         public static final String colorSymbol = "§";
@@ -42,7 +46,7 @@ public class ScriptDefaults {
         }
 
         public static void async(Runnable method) {
-            Raven.getExecutor().execute(method);
+            executor.execute(method);
         }
 
         public static int getSlot() {
@@ -118,7 +122,10 @@ public class ScriptDefaults {
         }
 
         public static Entity getPlayer() {
-            return new Entity(mc.thePlayer);
+            if (player == null || mc.thePlayer == null) {
+                player = new Entity(mc.thePlayer);
+            }
+            return player;
         }
 
         public static Vec3 getMotion() {
@@ -167,9 +174,6 @@ public class ScriptDefaults {
         }
 
         public static void sendPacket(CPacket packet) {
-            if (!Utils.nullCheck()) {
-                return;
-            }
             Packet packet1 = PacketHandler.convertCPacket(packet);
             if (packet1 == null) {
                 return;
@@ -178,9 +182,6 @@ public class ScriptDefaults {
         }
 
         public static void sendPacketNoEvent(CPacket packet) {
-            if (!Utils.nullCheck()) {
-                return;
-            }
             Packet packet1 = PacketHandler.convertCPacket(packet);
             if (packet1 == null) {
                 return;
@@ -296,6 +297,23 @@ public class ScriptDefaults {
 
             public static void rect(int startX, int startY, int endX, int endY, int color) {
                 Gui.drawRect(startX, startY, endX, endY, color);
+            }
+
+            public static void line2D(double startX, double startY, double endX, double endY, float lineWidth, int color) {
+                GL11.glPushMatrix();
+                GL11.glEnable(GL11.GL_LINE_SMOOTH);
+                GL11.glDisable(GL11.GL_TEXTURE_2D);
+                GL11.glEnable(GL11.GL_BLEND);
+                RenderUtils.glColor(color);
+                GL11.glLineWidth(lineWidth);
+                GL11.glBegin(GL11.GL_LINES);
+                GL11.glVertex2d(startX, startY);
+                GL11.glVertex2d(endX, endY);
+                GL11.glEnd();
+                GL11.glDisable(GL11.GL_BLEND);
+                GL11.glEnable(GL11.GL_TEXTURE_2D);
+                GL11.glDisable(GL11.GL_LINE_SMOOTH);
+                GL11.glPopMatrix();
             }
         }
 

@@ -31,7 +31,7 @@ public class C07 extends CPacket {
 
     private C07PacketPlayerDigging.Action getAction() {
         for (C07PacketPlayerDigging.Action action : C07PacketPlayerDigging.Action.values()) {
-            if (action.name().equals(action)) {
+            if (action.name().equals(this.status)) {
                 return action;
             }
         }
@@ -40,7 +40,7 @@ public class C07 extends CPacket {
 
     private EnumFacing getEnumFacing() {
         for (EnumFacing enumFacing : EnumFacing.values()) {
-            if (enumFacing.name().equals(facing)) {
+            if (enumFacing.name().equals(this.facing)) {
                 return enumFacing;
             }
         }

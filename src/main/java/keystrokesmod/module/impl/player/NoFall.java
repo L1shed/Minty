@@ -5,21 +5,16 @@ import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import net.minecraft.block.BlockAir;
-import net.minecraft.network.Packet;
 import net.minecraft.network.play.client.C03PacketPlayer;
 import net.minecraft.util.BlockPos;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class NoFall extends Module {
     public SliderSetting mode;
     private SliderSetting minFallDistance;
     private ButtonSetting ignoreVoid;
     private String[] modes = new String[]{"Spoof", "Extra", "NoGround"};
-    private List<Packet> blinkedPackets = new ArrayList<>();
 
     public NoFall() {
         super("NoFall", category.player);

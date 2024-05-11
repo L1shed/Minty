@@ -9,6 +9,7 @@ import keystrokesmod.script.packets.clientbound.SPacket;
 import keystrokesmod.script.packets.serverbound.CPacket;
 import keystrokesmod.script.packets.serverbound.PacketHandler;
 import keystrokesmod.utility.Utils;
+import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -39,7 +40,7 @@ public class ScriptEvents {
 
     @SubscribeEvent
     public void onSendPacket(SendPacketEvent e) {
-        if (e.isCanceled()) {
+        if (e.isCanceled() || e.getPacket() == null) {
             return;
         }
         if (e.getPacket().getClass().getSimpleName().startsWith("S")) {
@@ -53,7 +54,7 @@ public class ScriptEvents {
 
     @SubscribeEvent
     public void onReceivePacket(ReceivePacketEvent e) {
-        if (e.isCanceled()) {
+        if (e.isCanceled() || e.getPacket() == null) {
             return;
         }
         SPacket a = PacketHandler.convertClientBound(e.getPacket());
@@ -109,9 +110,15 @@ public class ScriptEvents {
 
     @SubscribeEvent
     public void onWorldJoin(EntityJoinWorldEvent e) {
-        if (e.world.isRemote) {
-            Raven.scriptManager.invoke("onWorldJoin", module, new Entity(e.entity));
+        if (e.entity == null) {
+            return;
         }
+        if (e.entity == Minecraft.getMinecraft().thePlayer) {
+            Raven.scriptManager.invoke("onWorldJoin", module, ScriptDefaults.client.getPlayer());
+            ScriptDefaults.player = new Entity(Minecraft.getMinecraft().thePlayer);
+            return;
+        }
+        Raven.scriptManager.invoke("onWorldJoin", module, new Entity(e.entity));
     }
 
     @SubscribeEvent

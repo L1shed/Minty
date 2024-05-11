@@ -53,7 +53,7 @@ public abstract class MixinEntityLivingBase extends Entity {
     @Overwrite
     protected float func_110146_f(float p_1101461, float p_1101462) {
         float rotationYaw = this.rotationYaw;
-        if (!Settings.fullBody.isToggled() && Settings.rotateBody.isToggled() && (EntityLivingBase) (Object) this instanceof EntityPlayerSP) {
+        if (Settings.fullBody != null && Settings.rotateBody != null && !Settings.fullBody.isToggled() && Settings.rotateBody.isToggled() && (EntityLivingBase) (Object) this instanceof EntityPlayerSP) {
             if (this.swingProgress > 0F) {
                 p_1101461 = RotationUtils.renderYaw;
             }

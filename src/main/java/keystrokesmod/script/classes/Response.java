@@ -18,7 +18,7 @@ public class Response {
             return this.connection.getResponseCode();
         }
         catch (IOException e) {
-            throw new RuntimeException();
+            return 0;
         }
     }
 
@@ -27,6 +27,6 @@ public class Response {
     }
 
     public Json json() {
-        return new Json((new JsonParser()).parse(URLUtils.getTextFromConnection(this.connection)).getAsJsonObject());
+        return new Json((new JsonParser()).parse(URLUtils.getTextFromConnection(this.connection)).getAsJsonObject(), 0);
     }
 }

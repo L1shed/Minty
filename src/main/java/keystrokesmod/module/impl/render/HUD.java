@@ -108,10 +108,6 @@ public class HUD extends Module {
         }
     }
 
-    public void onUpdate() {
-        ModuleManager.sort();
-    }
-
     public static int getLongestModule(FontRenderer fr) {
         int length = 0;
 

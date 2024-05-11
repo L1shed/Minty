@@ -2,6 +2,7 @@ package keystrokesmod.clickgui.components.impl;
 
 import keystrokesmod.Raven;
 import keystrokesmod.clickgui.components.Component;
+import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.Utils;
 import keystrokesmod.utility.profile.ProfileModule;
@@ -66,9 +67,15 @@ public class SliderComponent extends Component {
         this.w = (double) (this.moduleComponent.categoryComponent.gw() - 8) * (this.sliderSetting.getInput() - this.sliderSetting.getMin()) / (this.sliderSetting.getMax() - this.sliderSetting.getMin());
         if (this.d) {
             if (d == 0.0D) {
+                if (this.sliderSetting.getInput() != this.sliderSetting.getMin() && ModuleManager.hud != null && ModuleManager.hud.isEnabled() && !ModuleManager.organizedModules.isEmpty()) {
+                    ModuleManager.sort();
+                }
                 this.sliderSetting.setValue(this.sliderSetting.getMin());
             } else {
                 double n = roundToInterval(d / (double) (this.moduleComponent.categoryComponent.gw() - 8) * (this.sliderSetting.getMax() - this.sliderSetting.getMin()) + this.sliderSetting.getMin(), 2);
+                if (this.sliderSetting.getInput() != n && ModuleManager.hud != null && ModuleManager.hud.isEnabled() && !ModuleManager.organizedModules.isEmpty()) {
+                    ModuleManager.sort();
+                }
                 this.sliderSetting.setValue(n);
             }
             if (Raven.currentProfile != null) {

@@ -1,6 +1,7 @@
 package keystrokesmod.module.impl.player;
 
 import keystrokesmod.module.Module;
+import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.Reflection;
@@ -25,6 +26,9 @@ public class FastPlace extends Module {
     @SubscribeEvent
     public void a(PlayerTickEvent e) {
         if (e.phase == Phase.END) {
+            if (ModuleManager.scaffold.stopFastPlace()) {
+                return;
+            }
             if (Utils.nullCheck() && mc.inGameHasFocus && Reflection.rightClickDelayTimerField != null) {
                 if (blocksOnly.isToggled()) {
                     ItemStack item = mc.thePlayer.getHeldItem();

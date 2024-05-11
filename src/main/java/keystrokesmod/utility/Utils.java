@@ -30,6 +30,7 @@ import net.minecraft.util.*;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
 import java.awt.*;
@@ -444,6 +445,10 @@ public class Utils {
         }
     }
 
+    public static boolean keysDown() {
+        return Keyboard.isKeyDown(mc.gameSettings.keyBindForward.getKeyCode()) || Keyboard.isKeyDown(mc.gameSettings.keyBindBack.getKeyCode()) || Keyboard.isKeyDown(mc.gameSettings.keyBindLeft.getKeyCode()) || Keyboard.isKeyDown(mc.gameSettings.keyBindRight.getKeyCode());
+    }
+
     public static float gd() {
         float yw = mc.thePlayer.rotationYaw;
         if (mc.thePlayer.moveForward < 0.0F) {
@@ -667,6 +672,11 @@ public class Utils {
 
     public static boolean overAir() {
         return mc.theWorld.isAirBlock(new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY - 1.0, mc.thePlayer.posZ));
+    }
+
+    public static boolean overPlaceable() {
+        BlockPos playerPos = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY - 1.0, mc.thePlayer.posZ);
+        return BlockUtils.replaceable(playerPos) || BlockUtils.isFluid(BlockUtils.getBlock(playerPos));
     }
 
     public static boolean holdingWeapon() {

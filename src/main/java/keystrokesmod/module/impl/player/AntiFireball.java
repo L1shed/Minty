@@ -74,7 +74,7 @@ public class AntiFireball extends Module {
             return;
         }
         if (fireball != null) {
-            if (ModuleManager.killAura != null && ModuleManager.killAura.isEnabled() && ModuleManager.killAura.block.get() && (ModuleManager.killAura.autoBlockMode.getInput() == 3 || ModuleManager.killAura.autoBlockMode.getInput() == 4)) {
+            if (ModuleManager.killAura != null && ModuleManager.killAura.isEnabled() && ModuleManager.killAura.block.get() && ModuleManager.killAura.autoBlockMode.getInput() == 3) {
                 if (KillAura.target != null) {
                     attack = false;
                     return;

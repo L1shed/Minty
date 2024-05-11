@@ -2,7 +2,6 @@ package keystrokesmod.script.packets.serverbound;
 
 import keystrokesmod.script.classes.Entity;
 import keystrokesmod.script.classes.Vec3;
-import keystrokesmod.script.packets.serverbound.CPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.play.client.C02PacketUseEntity;
 
@@ -42,7 +41,7 @@ public class C02 extends CPacket {
 
     private C02PacketUseEntity.Action getAction() {
         for (C02PacketUseEntity.Action action : C02PacketUseEntity.Action.values()) {
-            if (action.name().equals(action)) {
+            if (action.name().equals(this.action)) {
                 return action;
             }
         }
