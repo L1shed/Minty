@@ -41,7 +41,7 @@ public class C02 extends CPacket {
 
     private C02PacketUseEntity.Action getAction() {
         for (C02PacketUseEntity.Action action : C02PacketUseEntity.Action.values()) {
-            if (action.name().equals(this.action)) {
+            if (action.name().equals(action)) {
                 return action;
             }
         }

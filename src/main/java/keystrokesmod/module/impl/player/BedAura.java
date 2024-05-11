@@ -38,7 +38,7 @@ public class BedAura extends Module {
     private SliderSetting rate;
     public ButtonSetting allowAutoBlock;
     public ButtonSetting allowKillAura;
-    private ButtonSetting breakNearBlock;
+    private ButtonSetting breakBlockAbove;
     public ButtonSetting groundSpoof;
     private ButtonSetting onlyWhileVisible;
     private ButtonSetting renderOutline;
@@ -69,7 +69,7 @@ public class BedAura extends Module {
         this.registerSetting(rate = new SliderSetting("Rate", 0.2, 0.05, 3.0, 0.05, " second"));
         this.registerSetting(allowAutoBlock = new ButtonSetting("Allow autoblock", false));
         this.registerSetting(allowKillAura = new ButtonSetting("Allow killaura", true));
-        this.registerSetting(breakNearBlock = new ButtonSetting("Break near block", false));
+        this.registerSetting(breakBlockAbove = new ButtonSetting("Break block above", false));
         this.registerSetting(groundSpoof = new ButtonSetting("Ground spoof", false));
         this.registerSetting(onlyWhileVisible = new ButtonSetting("Only while visible", false));
         this.registerSetting(renderOutline = new ButtonSetting("Render block outline", true));
@@ -129,7 +129,7 @@ public class BedAura extends Module {
         else {
             ticksAfterBreak = 0;
         }
-        if (breakNearBlock.isToggled() && isCovered(bedPos[0]) && isCovered(bedPos[1])) {
+        if (breakBlockAbove.isToggled() && isCovered(bedPos[0]) && isCovered(bedPos[1])) {
             breakBlock(bedPos[0].up());
         }
         else {
