@@ -75,7 +75,6 @@ public class KillAura extends Module {
     private boolean blocking;
     public boolean blinking;
     public boolean lag;
-    private boolean swapped;
     public boolean rmbDown;
     private ConcurrentLinkedQueue<Packet> blinkedPackets = new ConcurrentLinkedQueue<>();
 
@@ -295,7 +294,6 @@ public class KillAura extends Module {
         this.j = 0L;
         block();
         resetBlinkState(true);
-        swapped = false;
     }
 
     private void block() {
