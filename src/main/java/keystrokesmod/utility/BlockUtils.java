@@ -75,7 +75,7 @@ public class BlockUtils {
             if (mc.thePlayer.isInsideOfMaterial(Material.water) && !EnchantmentHelper.getAquaAffinityModifier(mc.thePlayer)) {
                 n /= 5.0f;
             }
-            if (mc.thePlayer.onGround && !ignoreGround) {
+            if (!mc.thePlayer.onGround && !ignoreGround) {
                 n /= 5.0f;
             }
         }
