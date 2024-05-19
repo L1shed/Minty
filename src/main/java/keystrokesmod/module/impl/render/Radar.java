@@ -16,13 +16,11 @@ import org.lwjgl.opengl.GL11;
 import java.awt.*;
 
 public class Radar extends Module {
-    private ButtonSetting showGUI;
     private ButtonSetting tracerLines;
     private int scale = 2;
     private int rectColor = new Color(0, 0, 0, 125).getRGB();
     public Radar() {
         super("Radar", category.render);
-        this.registerSetting(showGUI = new ButtonSetting("Show in GUI", false));
         this.registerSetting(tracerLines = new ButtonSetting("Show tracer lines", false));
     }
 
@@ -38,7 +36,7 @@ public class Radar extends Module {
         if (mc.currentScreen instanceof ClickGui) {
             return;
         }
-        if (!showGUI.isToggled() && (mc.currentScreen != null || mc.gameSettings.showDebugInfo)) {
+        if (mc.currentScreen != null || mc.gameSettings.showDebugInfo) {
             return;
         }
         final int n = 5;

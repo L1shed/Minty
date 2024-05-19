@@ -27,7 +27,7 @@ public class ModuleComponent extends Component {
     public Module mod;
     public CategoryComponent categoryComponent;
     public int o;
-    private ArrayList<Component> settings;
+    public ArrayList<Component> settings;
     public boolean po;
     private boolean hovering;
 

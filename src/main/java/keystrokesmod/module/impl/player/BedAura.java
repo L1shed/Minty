@@ -14,10 +14,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockBed;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
-import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.C07PacketPlayerDigging;
 import net.minecraft.network.play.client.C09PacketHeldItemChange;
 import net.minecraft.network.play.client.C0APacketAnimation;
@@ -36,10 +33,10 @@ public class BedAura extends Module {
     private SliderSetting fov;
     private SliderSetting range;
     private SliderSetting rate;
-    public ButtonSetting allowAutoBlock;
-    public ButtonSetting allowKillAura;
+    public ButtonSetting allowAura;
     private ButtonSetting breakBlockAbove;
     public ButtonSetting groundSpoof;
+    public ButtonSetting ignoreSlow;
     private ButtonSetting onlyWhileVisible;
     private ButtonSetting renderOutline;
     private ButtonSetting sendAnimations;
@@ -53,7 +50,7 @@ public class BedAura extends Module {
     public BlockPos currentBlock;
     private long lastCheck = 0;
     public boolean stopAutoblock;
-    private int outlineColor = new Color(226, 65, 65).getRGB();
+    private int outlineColor;
     private int breakTickDelay = 5;
     private int ticksAfterBreak = 0;
     private boolean delayStart;
@@ -67,10 +64,10 @@ public class BedAura extends Module {
         this.registerSetting(fov = new SliderSetting("FOV", 360.0, 30.0, 360.0, 4.0));
         this.registerSetting(range = new SliderSetting("Range", 4.5, 1.0, 8.0, 0.5));
         this.registerSetting(rate = new SliderSetting("Rate", 0.2, 0.05, 3.0, 0.05, " second"));
-        this.registerSetting(allowAutoBlock = new ButtonSetting("Allow autoblock", false));
-        this.registerSetting(allowKillAura = new ButtonSetting("Allow killaura", true));
+        this.registerSetting(allowAura = new ButtonSetting("Allow aura", true));
         this.registerSetting(breakBlockAbove = new ButtonSetting("Break block above", false));
         this.registerSetting(groundSpoof = new ButtonSetting("Ground spoof", false));
+        this.registerSetting(ignoreSlow = new ButtonSetting("Ignore slow", false));
         this.registerSetting(onlyWhileVisible = new ButtonSetting("Only while visible", false));
         this.registerSetting(renderOutline = new ButtonSetting("Render block outline", true));
         this.registerSetting(sendAnimations = new ButtonSetting("Send animations", false));
@@ -153,7 +150,7 @@ public class BedAura extends Module {
             e.setYaw(rotations[0]);
             e.setPitch(rotations[1]);
             rotate = false;
-            if (groundSpoof.isToggled() && !mc.thePlayer.isInWater() && (ModuleManager.noFall == null || !ModuleManager.noFall.isEnabled() || ModuleManager.noFall.mode.getInput() != 3)) {
+            if (groundSpoof.isToggled() && !mc.thePlayer.isInWater()) {
                 e.setOnGround(true);
             }
         }
@@ -166,6 +163,9 @@ public class BedAura extends Module {
         }
         if (ModuleManager.bedESP != null && ModuleManager.bedESP.isEnabled()) {
             outlineColor = Theme.getGradient((int) ModuleManager.bedESP.theme.getInput(), 0);
+        }
+        else if (ModuleManager.hud != null && ModuleManager.hud.isEnabled()) {
+            outlineColor = Theme.getGradient((int) ModuleManager.hud.theme.getInput(), 0);
         }
         else {
             outlineColor = defaultOutlineColor;
@@ -220,7 +220,7 @@ public class BedAura extends Module {
     }
 
     public void setPacketSlot(int slot) {
-        if (slot == currentSlot || slot == -1 || Raven.badPacketsHandler.serverSlot == slot) {
+        if (slot == currentSlot || slot == -1 || Raven.badPacketsHandler.playerSlot == slot) {
             return;
         }
         mc.getNetHandler().addToSendQueue(new C09PacketHeldItemChange(slot));
@@ -294,7 +294,7 @@ public class BedAura extends Module {
                     swing();
                 }
             }
-            double progress = BlockUtils.getBlockHardness(block, (mode.getInput() == 2 && Utils.getTool(block) != -1) ? mc.thePlayer.inventory.getStackInSlot(Utils.getTool(block)) : mc.thePlayer.getHeldItem(), false) * breakSpeed.getInput();
+            double progress = BlockUtils.getBlockHardness(block, (mode.getInput() == 2 && Utils.getTool(block) != -1) ? mc.thePlayer.inventory.getStackInSlot(Utils.getTool(block)) : mc.thePlayer.getHeldItem(), false, ignoreSlow.isToggled() || groundSpoof.isToggled()) * breakSpeed.getInput();
             if (lastProgress != 0 && breakProgress >= lastProgress) {
                 ModuleManager.killAura.resetBlinkState(false);
                 stopAutoblock = true;
@@ -337,16 +337,5 @@ public class BedAura extends Module {
             }
         }
         return true;
-    }
-
-    private int getBlockZapper() {
-        int slot = -1;
-        for (int i = 0; i < InventoryPlayer.getHotbarSize(); ++i) {
-            final ItemStack getStackInSlot = mc.thePlayer.inventory.getStackInSlot(i);
-            if (getStackInSlot != null && getStackInSlot.getItem() == Items.prismarine_shard && Utils.stripColor(getStackInSlot.getDisplayName()).equals("Block Zapper")) {
-                slot = i;
-            }
-        }
-        return slot;
     }
 }

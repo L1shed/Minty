@@ -78,7 +78,7 @@ public class HUD extends Module {
         double n2 = 0.0;
         for (Module module : ModuleManager.organizedModules) {
             if (module.isEnabled() && module != this) {
-                if (!module.isVisible()) {
+                if (module.isHidden()) {
                     continue;
                 }
                 if (module == ModuleManager.commandLine) {
@@ -129,7 +129,7 @@ public class HUD extends Module {
     }
 
     static class EditScreen extends GuiScreen {
-        final String example = new String("This is an-Example-HUD");
+        final String example = "This is an-Example-HUD";
         GuiButtonExt resetPosition;
         boolean d = false;
         int miX = 0;
@@ -145,7 +145,7 @@ public class HUD extends Module {
 
         public void initGui() {
             super.initGui();
-            this.buttonList.add(this.resetPosition = new GuiButtonExt(1, this.width - 90, 5, 85, 20, new String("Reset position")));
+            this.buttonList.add(this.resetPosition = new GuiButtonExt(1, this.width - 90, 5, 85, 20, "Reset position"));
             this.aX = HUD.hudX;
             this.aY = HUD.hudY;
         }
@@ -202,7 +202,7 @@ public class HUD extends Module {
                 double n2 = 0.0;
                 for (Module module : ModuleManager.organizedModules) {
                     if (module.isEnabled() && !module.getName().equals("HUD")) {
-                        if (!module.isVisible()) {
+                        if (module.isHidden()) {
                             continue;
                         }
                         if (module == ModuleManager.commandLine) {
@@ -275,7 +275,7 @@ public class HUD extends Module {
         private boolean empty() {
             for (Module module : ModuleManager.organizedModules) {
                 if (module.isEnabled() && !module.getName().equals("HUD")) {
-                    if (!module.isVisible()) {
+                    if (module.isHidden()) {
                         continue;
                     }
                     if (module == ModuleManager.commandLine) {

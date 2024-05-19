@@ -2,10 +2,13 @@ package keystrokesmod.clickgui;
 
 import keystrokesmod.Raven;
 import keystrokesmod.clickgui.components.Component;
+import keystrokesmod.clickgui.components.impl.BindComponent;
 import keystrokesmod.clickgui.components.impl.CategoryComponent;
+import keystrokesmod.clickgui.components.impl.ModuleComponent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.impl.client.CommandLine;
 import keystrokesmod.module.impl.client.Gui;
+import keystrokesmod.module.setting.Setting;
 import keystrokesmod.utility.Commands;
 import keystrokesmod.utility.Timer;
 import keystrokesmod.utility.Utils;
@@ -15,6 +18,7 @@ import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraftforge.fml.client.config.GuiButtonExt;
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
@@ -178,66 +182,42 @@ public class ClickGui extends GuiScreen {
 
     public void mouseReleased(int x, int y, int s) {
         if (s == 0) {
-            Iterator var4 = categories.iterator();
-
-            CategoryComponent c4t;
-            while (var4.hasNext()) {
-                c4t = (CategoryComponent) var4.next();
-                c4t.d(false);
-            }
-
-            var4 = categories.iterator();
-
-            while (true) {
-                do {
-                    do {
-                        if (!var4.hasNext()) {
-                            return;
-                        }
-
-                        c4t = (CategoryComponent) var4.next();
-                    } while (!c4t.fv());
-                } while (c4t.getModules().isEmpty());
-
-                for (Component c : c4t.getModules()) {
-                    c.mouseReleased(x, y, s);
+            Iterator<CategoryComponent> iterator = categories.iterator();
+            while (iterator.hasNext()) {
+                CategoryComponent category = iterator.next();
+                category.d(false);
+                if (category.fv() && !category.getModules().isEmpty()) {
+                    for (Component module : category.getModules()) {
+                        module.mouseReleased(x, y, s);
+                    }
                 }
             }
         }
     }
 
+    @Override
     public void keyTyped(char t, int k) {
-        if (k == 1) {
+        if (k == Keyboard.KEY_ESCAPE && !binding()) {
             this.mc.displayGuiScreen(null);
         } else {
-            Iterator var3 = categories.iterator();
+            Iterator<CategoryComponent> iterator = categories.iterator();
+            while (iterator.hasNext()) {
+                CategoryComponent category = iterator.next();
 
-            while (true) {
-                CategoryComponent c4t;
-                do {
-                    do {
-                        if (!var3.hasNext()) {
-                            if (CommandLine.a) {
-                                String cm = this.c.getText();
-                                if (k == 28 && !cm.isEmpty()) {
-                                    Commands.rCMD(this.c.getText());
-                                    this.c.setText("");
-                                    return;
-                                }
-
-                                this.c.textboxKeyTyped(t, k);
-                            }
-
-                            return;
-                        }
-
-                        c4t = (CategoryComponent) var3.next();
-                    } while (!c4t.fv());
-                } while (c4t.getModules().isEmpty());
-
-                for (Component c : c4t.getModules()) {
-                    c.keyTyped(t, k);
+                if (category.fv() && !category.getModules().isEmpty()) {
+                    for (Component module : category.getModules()) {
+                        module.keyTyped(t, k);
+                    }
                 }
+            }
+            if (CommandLine.a) {
+                String cm = this.c.getText();
+                if (k == 28 && !cm.isEmpty()) {
+                    Commands.rCMD(this.c.getText());
+                    this.c.setText("");
+                    return;
+                }
+                this.c.textboxKeyTyped(t, k);
             }
         }
     }
@@ -247,11 +227,6 @@ public class ClickGui extends GuiScreen {
             Commands.rCMD(this.c.getText());
             this.c.setText("");
         }
-        for (CategoryComponent c : categories) {
-            for (Component m : c.getModules()) {
-                m.onGuiClosed();
-            }
-        }
     }
 
     public void onGuiClosed() {
@@ -260,10 +235,28 @@ public class ClickGui extends GuiScreen {
             this.sf.cancel(true);
             this.sf = null;
         }
-
+        for (CategoryComponent c : categories) {
+            c.dragging = false;
+            for (Component m : c.getModules()) {
+                m.onGuiClosed();
+            }
+        }
     }
 
     public boolean doesGuiPauseGame() {
+        return false;
+    }
+
+    private boolean binding() {
+        for (CategoryComponent c : categories) {
+            for (ModuleComponent m : c.getModules()) {
+                for (Component component : m.settings) {
+                    if (component instanceof BindComponent && ((BindComponent) component).isBinding) {
+                        return true;
+                    }
+                }
+            }
+        }
         return false;
     }
 }

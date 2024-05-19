@@ -75,9 +75,9 @@ public class KillAura extends Module {
     private boolean blocking;
     public boolean blinking;
     public boolean lag;
+    private boolean swapped;
     public boolean rmbDown;
     private ConcurrentLinkedQueue<Packet> blinkedPackets = new ConcurrentLinkedQueue<>();
-
 
     public KillAura() {
         super("KillAura", category.combat);
@@ -98,7 +98,7 @@ public class KillAura extends Module {
         this.registerSetting(fixSlotReset = new ButtonSetting("Fix slot reset", false));
         this.registerSetting(hitThroughBlocks = new ButtonSetting("Hit through blocks", true));
         this.registerSetting(ignoreTeammates = new ButtonSetting("Ignore teammates", true));
-        this.registerSetting(manualBlock = new ButtonSetting("Manual block", true));
+        this.registerSetting(manualBlock = new ButtonSetting("Manual block", false));
         this.registerSetting(requireMouseDown = new ButtonSetting("Require mouse down", false));
         this.registerSetting(silentSwing = new ButtonSetting("Silent swing while blocking", false));
         this.registerSetting(weaponOnly = new ButtonSetting("Weapon only", false));
@@ -140,7 +140,7 @@ public class KillAura extends Module {
 
         block();
 
-        if (ModuleManager.bedAura != null && ModuleManager.bedAura.isEnabled() && !ModuleManager.bedAura.allowKillAura.isToggled() && ModuleManager.bedAura.currentBlock != null) {
+        if (ModuleManager.bedAura != null && ModuleManager.bedAura.isEnabled() && !ModuleManager.bedAura.allowAura.isToggled() && ModuleManager.bedAura.currentBlock != null) {
             resetBlinkState(true);
             return;
         }
@@ -157,7 +157,7 @@ public class KillAura extends Module {
                 mc.thePlayer.sendQueue.addToSendQueue(new C0APacketAnimation());
             }
         }
-        if (block.get() && autoBlockMode.getInput() == 3 && !stopBlock() && Utils.holdingSword()) {
+        if (block.get() && autoBlockMode.getInput() == 3 && Utils.holdingSword()) {
             setBlockState(block.get(), false, false);
             if (ModuleManager.bedAura.stopAutoblock) {
                 resetBlinkState(false);
@@ -263,7 +263,7 @@ public class KillAura extends Module {
         }
         else if (mouseEvent.button == 1) {
             rmbDown = mouseEvent.buttonstate;
-            if ((autoBlockMode.getInput() >= 1 && Utils.holdingSword() && block.get()) || stopBlock()) {
+            if (autoBlockMode.getInput() >= 1 && Utils.holdingSword() && block.get()) {
                 KeyBinding.setKeyBindState(mc.gameSettings.keyBindUseItem.getKeyCode(), false);
                 if (target == null && mc.objectMouseOver != null) {
                     if (mc.objectMouseOver.entityHit != null && AntiBot.isBot(mc.objectMouseOver.entityHit)) {
@@ -295,10 +295,7 @@ public class KillAura extends Module {
         this.j = 0L;
         block();
         resetBlinkState(true);
-    }
-
-    private boolean stopBlock() {
-        return ModuleManager.bedAura != null && ModuleManager.bedAura.isEnabled() && !ModuleManager.bedAura.allowAutoBlock.isToggled() && ModuleManager.bedAura.currentBlock != null;
+        swapped = false;
     }
 
     private void block() {
@@ -306,9 +303,6 @@ public class KillAura extends Module {
             return;
         }
         if (manualBlock.isToggled() && !rmbDown) {
-            block.set(false);
-        }
-        if (stopBlock()) {
             block.set(false);
         }
         if (!Utils.holdingSword()) {
@@ -321,7 +315,7 @@ public class KillAura extends Module {
             case 2: // post
                 setBlockState(block.get(), false, true);
                 break;
-            case 3: // interact
+            case 3:
                 setBlockState(block.get(), false, false);
                 break;
             case 4: // fake
@@ -530,7 +524,7 @@ public class KillAura extends Module {
             synchronized (blinkedPackets) {
                 for (Packet packet : blinkedPackets) {
                     if (packet instanceof C09PacketHeldItemChange) {
-                        Raven.badPacketsHandler.serverSlot = ((C09PacketHeldItemChange) packet).getSlotId();
+                        Raven.badPacketsHandler.playerSlot = ((C09PacketHeldItemChange) packet).getSlotId();
                     }
                     PacketUtils.sendPacketNoEvent(packet);
                 }

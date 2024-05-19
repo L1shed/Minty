@@ -144,17 +144,17 @@ public class RenderUtils {
                 int i;
                 if (type == 4) {
                     EntityLivingBase en = (EntityLivingBase) e;
-                    double r = (double) (en.getHealth() / en.getMaxHealth());
+                    double r = en.getHealth() / en.getMaxHealth();
                     int b = (int) (74.0D * r);
                     int hc = r < 0.3D ? Color.red.getRGB() : (r < 0.5D ? Color.orange.getRGB() : (r < 0.7D ? Color.yellow.getRGB() : Color.green.getRGB()));
                     GL11.glTranslated(x, y - 0.2D, z);
-                    GL11.glRotated((double) (-mc.getRenderManager().playerViewY), 0.0D, 1.0D, 0.0D);
+                    GL11.glRotated(-mc.getRenderManager().playerViewY, 0.0D, 1.0D, 0.0D);
                     GlStateManager.disableDepth();
                     GL11.glScalef(0.03F + d, 0.03F + d, 0.03F + d);
-                    i = (int) (21.0D + shift * 2.0D);
-                    net.minecraft.client.gui.Gui.drawRect(i, -1, i + 5, 75, Color.black.getRGB());
-                    net.minecraft.client.gui.Gui.drawRect(i + 1, b, i + 4, 74, Color.darkGray.getRGB());
-                    net.minecraft.client.gui.Gui.drawRect(i + 1, 0, i + 4, b, hc);
+                    i = (int) (21 + shift * 2);
+                    net.minecraft.client.gui.Gui.drawRect(i, -1, i + 4, 75, Color.black.getRGB());
+                    net.minecraft.client.gui.Gui.drawRect(i + 1, b, i + 3, 74, Color.darkGray.getRGB());
+                    net.minecraft.client.gui.Gui.drawRect(i + 1, 0, i + 3, b, hc);
                     GlStateManager.enableDepth();
                 } else if (type == 6) {
                     d3p(x, y, z, 0.699999988079071D, 45, 1.5F, color, color == 0);
@@ -486,26 +486,17 @@ public class RenderUtils {
         GL11.glPushMatrix();
         GL11.glEnable(GL11.GL_LINE_SMOOTH);
         GL11.glDisable(GL11.GL_TEXTURE_2D);
-        GL11.glEnable(GL11.GL_BLEND);
         RenderUtils.glColor(color);
         GL11.glLineWidth((float) width);
-
-        // Calculate offset to center the arrow
         float halfWidth = (float) (width / 2.0);
         float xOffset = halfWidth / 2.0f;
         float yOffset = halfWidth / 2.0f;
-
         GL11.glBegin(GL11.GL_LINES);
-        // Left line of the arrow
         GL11.glVertex2d(x - xOffset, y + yOffset);
         GL11.glVertex2d(x + length - xOffset, y - length + yOffset);
-
-        // Right line of the arrow
         GL11.glVertex2d(x + length - xOffset, y - length + yOffset);
         GL11.glVertex2d(x + 2 * length - xOffset, y + yOffset);
         GL11.glEnd();
-
-        GL11.glDisable(GL11.GL_BLEND);
         GL11.glEnable(GL11.GL_TEXTURE_2D);
         GL11.glDisable(GL11.GL_LINE_SMOOTH);
         GL11.glPopMatrix();
@@ -640,22 +631,22 @@ public class RenderUtils {
         GL11.glShadeModel(7425);
         GL11.glBegin(9);
         for (int i = 0; i <= 90; i += 3) {
-            final double n10 = (double) (i * 0.017453292f);
+            final double n10 = i * 0.017453292f;
             GL11.glVertex2d((double) (x + n5) + Math.sin(n10) * n5 * -1.0, (double) (y + n5) + Math.cos(n10) * n5 * -1.0);
         }
         glColor(n7);
         for (int j = 90; j <= 180; j += 3) {
-            final double n11 = (double) (j * 0.017453292f);
+            final double n11 = j * 0.017453292f;
             GL11.glVertex2d((double) (x + n5) + Math.sin(n11) * n5 * -1.0, (double) (y2 - n5) + Math.cos(n11) * n5 * -1.0);
         }
         glColor(n8);
         for (int k = 0; k <= 90; k += 3) {
-            final double n12 = (double) (k * 0.017453292f);
+            final double n12 = k * 0.017453292f;
             GL11.glVertex2d((double) (x2 - n5) + Math.sin(n12) * n5, (double) (y2 - n5) + Math.cos(n12) * n5);
         }
         glColor(n9);
         for (int l = 90; l <= 180; l += 3) {
-            final double n13 = (double) (l * 0.017453292f);
+            final double n13 = l * 0.017453292f;
             GL11.glVertex2d((double) (x2 - n5) + Math.sin(n13) * n5, (double) (y + n5) + Math.cos(n13) * n5);
         }
         GL11.glEnd();

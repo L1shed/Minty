@@ -3,6 +3,7 @@ package keystrokesmod.script;
 import keystrokesmod.Raven;
 import keystrokesmod.clickgui.components.impl.CategoryComponent;
 import keystrokesmod.module.Module;
+import keystrokesmod.script.classes.Entity;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 
@@ -20,6 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class ScriptManager {
+    protected static Entity localPlayer;
     private Minecraft mc = Minecraft.getMinecraft();
     public HashMap<Script, Module> scripts = new LinkedHashMap<>();
     public JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();

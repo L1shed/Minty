@@ -26,7 +26,7 @@ public class LongJump extends Module {
     public static boolean stopModules;
     private boolean placed;
     private int waitTicks;
-    private String[] modes = new String[]{"Fireball", "AutoFireball"};
+    private String[] modes = new String[]{"Fireball", "Fireball Auto"};
     public LongJump() {
         super("Long Jump", category.movement);
         this.registerSetting(mode = new SliderSetting("Mode", modes, 0));
