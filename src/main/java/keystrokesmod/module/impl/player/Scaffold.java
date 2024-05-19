@@ -44,8 +44,6 @@ public class Scaffold extends Module { // from b4 :)
     private String[] fastScaffoldModes = new String[]{"Disabled", "Sprint", "Edge"};
     public float placeYaw;
     public float placePitch;
-    public int at;
-    public int index;
     private boolean slow;
     private int slowTicks;
     public boolean rmbDown;
@@ -74,7 +72,7 @@ public class Scaffold extends Module { // from b4 :)
             lastSlot = -1;
         }
         highlight.clear();
-        at = index = slowTicks = ticksAccelerated = 0;
+        slowTicks = ticksAccelerated = 0;
         slow = false;
         forceStrict = false;
     }
