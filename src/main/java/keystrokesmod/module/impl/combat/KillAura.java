@@ -637,7 +637,7 @@ public class KillAura extends Module {
                 break;
             case 1:
                 if (rotationSmoothing.getInput() != 0) {
-                    return RotationUtils.rayCast(attackRange.getInput(), prevRotations[0], prevRotations[1]) != null;
+                    return RotationUtils.rayCast(attackRange.getInput(), prevRotations != null ? prevRotations[0] : mc.thePlayer.rotationYaw, prevRotations != null ? prevRotations[1] : mc.thePlayer.rotationPitch) != null;
                 }
                 return RotationUtils.rayCast(attackRange.getInput(), rotations[0], rotations[1]) != null;
         }
