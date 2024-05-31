@@ -179,8 +179,7 @@ public class KillAura extends Module {
                 if (lag) {
                     blinking = true;
                     if (Raven.badPacketsHandler.playerSlot != mc.thePlayer.inventory.currentItem % 8 + 1) {
-                        mc.thePlayer.sendQueue.addToSendQueue(new C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem % 8 + 1));
-                        Raven.badPacketsHandler.playerSlot = mc.thePlayer.inventory.currentItem % 8 + 1;
+                        mc.thePlayer.sendQueue.addToSendQueue(new C09PacketHeldItemChange(Raven.badPacketsHandler.playerSlot = mc.thePlayer.inventory.currentItem % 8 + 1));
                         swapped = true;
                     }
                     lag = false;
@@ -190,8 +189,7 @@ public class KillAura extends Module {
                         return;
                     }
                     if (Raven.badPacketsHandler.playerSlot != mc.thePlayer.inventory.currentItem) {
-                        mc.thePlayer.sendQueue.addToSendQueue(new C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem));
-                        Raven.badPacketsHandler.playerSlot = mc.thePlayer.inventory.currentItem;
+                        mc.thePlayer.sendQueue.addToSendQueue(new C09PacketHeldItemChange(Raven.badPacketsHandler.playerSlot = mc.thePlayer.inventory.currentItem));
                         swapped = false;
                     }
                     if (target != null && attack) {
