@@ -42,7 +42,7 @@ public class Scaffold extends Module { // from b4 :)
     private MovingObjectPosition placeBlock;
     private int lastSlot;
     private String[] rotationModes = new String[]{"None", "Backwards", "Strict", "Raytrace"};
-    private String[] fastScaffoldModes = new String[]{"Disabled", "Sprint", "Edge", "Jump", "Float", "Experimental"};
+    private String[] fastScaffoldModes = new String[]{"Disabled", "Sprint", "Edge", "Jump", "Float"};
     public float placeYaw;
     public float placePitch;
     public int at;
@@ -318,7 +318,6 @@ public class Scaffold extends Module { // from b4 :)
     public boolean sprint() {
         if (this.isEnabled() && fastScaffold.getInput() > 0 && placeBlock != null && (!fastOnRMB.isToggled() || Mouse.isButtonDown(1))) {
             switch ((int) fastScaffold.getInput()) {
-                case 5:
                 case 1:
                     return true;
                 case 2:
