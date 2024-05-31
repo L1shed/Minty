@@ -18,11 +18,12 @@ import java.util.Iterator;
 import java.util.List;
 
 public class MurderMystery extends Module {
-    private ButtonSetting a;
-    private ButtonSetting b;
-    private ButtonSetting c;
+    private ButtonSetting alert;
+    private ButtonSetting highlightMurderer;
+    private ButtonSetting highlightBow;
+    private ButtonSetting highlightInnocent;
     private final List<EntityPlayer> murderers = new ArrayList();
-    private final List<EntityPlayer> detectives = new ArrayList();
+    private final List<EntityPlayer> hasBow = new ArrayList();
     private final String c1 = "MURDER";
     private final String c2 = "MYSTERY";
     private final String c3 = "Role:";
@@ -34,9 +35,10 @@ public class MurderMystery extends Module {
 
     public MurderMystery() {
         super("Murder Mystery", category.minigames);
-        this.registerSetting(a = new ButtonSetting("Alert", true));
-        this.registerSetting(b = new ButtonSetting("Search detectives", true));
-        this.registerSetting(c = new ButtonSetting("Announce murderer", false));
+        this.registerSetting(alert = new ButtonSetting("Alert murderer", true));
+        this.registerSetting(highlightMurderer = new ButtonSetting("Highlight murderer", true));
+        this.registerSetting(highlightBow = new ButtonSetting("Highlight bow", true));
+        this.registerSetting(highlightInnocent = new ButtonSetting("Highlight innocent", true));
     }
 
     public void onDisable() {
@@ -57,36 +59,26 @@ public class MurderMystery extends Module {
                             if (i instanceof ItemSword || i instanceof ItemAxe || en.getHeldItem().getDisplayName().contains("aKnife")) {
                                 if (!murderers.contains(en)) {
                                     murderers.add(en);
-                                    if (a.isToggled()) {
+                                    if (alert.isToggled()) {
                                         mc.thePlayer.playSound(this.c5, 1.0F, 1.0F);
                                         Utils.sendMessage(this.c4 + " &e" + en.getName() + " &3" + this.c6);
                                     }
-
-                                    if (c.isToggled()) {
-                                        mc.thePlayer.sendChatMessage(en.getName() + " " + this.c6);
-                                    }
-                                } else if (i instanceof ItemBow && b.isToggled() && !detectives.contains(en)) {
-                                    detectives.add(en);
-                                    if (a.isToggled()) {
-                                        Utils.sendMessage(this.c4 + " &e" + en.getName() + " &3" + this.c7);
-                                    }
-
-                                    if (c.isToggled()) {
-                                        mc.thePlayer.sendChatMessage(en.getName() + " " + this.c7);
-                                    }
+                                } else if (i instanceof ItemBow && highlightMurderer.isToggled() && !hasBow.contains(en)) {
+                                    hasBow.add(en);
                                 }
                             }
                         }
-
                         override = true;
-
                         int rgb = Color.green.getRGB();
-                        if (murderers.contains(en)) {
+                        if (murderers.contains(en) && highlightMurderer.isToggled()) {
                             rgb = Color.red.getRGB();
-                        } else if (detectives.contains(en)) {
+                        }
+                        else if (hasBow.contains(en) && highlightBow.isToggled()) {
                             rgb = Color.orange.getRGB();
                         }
-
+                        else if (!highlightInnocent.isToggled()) {
+                            continue;
+                        }
                         RenderUtils.renderEntity(en, 2, 0.0D, 0.0D, rgb, false);
                     }
                 }
@@ -120,12 +112,12 @@ public class MurderMystery extends Module {
     }
 
     public boolean isEmpty() {
-        return murderers.isEmpty() && detectives.isEmpty() && !override;
+        return murderers.isEmpty() && hasBow.isEmpty() && !override;
     }
 
     private void clear() {
         override = false;
         murderers.clear();
-        detectives.clear();
+        hasBow.clear();
     }
 }

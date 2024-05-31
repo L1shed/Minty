@@ -2,6 +2,7 @@ package keystrokesmod.module.impl.combat;
 
 import keystrokesmod.event.ReceivePacketEvent;
 import keystrokesmod.module.Module;
+import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.movement.LongJump;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
@@ -19,6 +20,7 @@ public class AntiKnockback extends Module {
     private ButtonSetting damageBoost;
     private SliderSetting boostMultiplier;
     private ButtonSetting groundCheck;
+
     public AntiKnockback() {
         super("AntiKnockback", category.combat);
         this.registerSetting(description = new DescriptionSetting("Overrides Velocity."));
@@ -32,7 +34,7 @@ public class AntiKnockback extends Module {
 
     @SubscribeEvent
     public void onReceivePacket(ReceivePacketEvent e) {
-        if (!Utils.nullCheck() || LongJump.stopModules) {
+        if (!Utils.nullCheck() || LongJump.stopModules || e.isCanceled()) {
             return;
         }
         if (e.getPacket() instanceof S12PacketEntityVelocity) {
@@ -84,7 +86,7 @@ public class AntiKnockback extends Module {
     }
 
     private boolean cancel() {
-        return vertical.getInput() == 0 && horizontal.getInput() == 0;
+        return (vertical.getInput() == 0 && horizontal.getInput() == 0) || ModuleManager.bedAura.cancelKnockback();
     }
 
     @Override

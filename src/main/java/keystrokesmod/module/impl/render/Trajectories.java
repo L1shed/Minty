@@ -1,11 +1,13 @@
 package keystrokesmod.module.impl.render;
 
 import keystrokesmod.module.Module;
+import keystrokesmod.module.impl.world.AntiBot;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.utility.RenderUtils;
 import keystrokesmod.utility.Utils;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.*;
 import net.minecraft.util.*;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -102,6 +104,7 @@ public class Trajectories extends Module {
                 rayTraced = getEntityHit(start, predicted);
                 if (rayTraced != null) {
                     highlight = true;
+                    break;
                 }
                 float f14 = 0.99f;
                 transform[4] *= f14;
@@ -172,6 +175,9 @@ public class Trajectories extends Module {
     public MovingObjectPosition getEntityHit(Vec3 origin, Vec3 destination) {
         for (Entity e : mc.theWorld.loadedEntityList) {
             if (!(e instanceof EntityLivingBase)) {
+                continue;
+            }
+            if (e instanceof EntityPlayer && AntiBot.isBot(e)) {
                 continue;
             }
             if (e != mc.thePlayer) {

@@ -99,6 +99,10 @@ public abstract class MixinEntityLivingBase extends Entity {
             return;
         }
 
+        if (Settings.movementFix != null && Settings.movementFix.isToggled() && PreMotionEvent.setRenderYaw()) {
+            jumpEvent.setYaw(RotationUtils.renderYaw);
+        }
+
         this.motionY = jumpEvent.getMotionY();
 
         if (this.isPotionActive(Potion.jump)) {

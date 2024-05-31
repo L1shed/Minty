@@ -18,11 +18,10 @@ import java.util.List;
 import java.util.TimerTask;
 
 public class SumoFences extends Module {
-    private DescriptionSetting a;
-    public static SliderSetting b;
-    public SliderSetting c;
+    public static SliderSetting fenceHeight;
+    public SliderSetting blockType;
     private java.util.Timer t;
-    private final List<String> m = Arrays.asList("Sumo", "Space Mine", "White Crystal");
+    private final List<String> maps = Arrays.asList("Sumo", "Space Mine", "White Crystal", "Fort");
     private IBlockState f;
     private static final List<BlockPos> f_p = Arrays.asList(new BlockPos(9, 65, -2), new BlockPos(9, 65, -1), new BlockPos(9, 65, 0), new BlockPos(9, 65, 1), new BlockPos(9, 65, 2), new BlockPos(9, 65, 3), new BlockPos(8, 65, 3), new BlockPos(8, 65, 4), new BlockPos(8, 65, 5), new BlockPos(7, 65, 5), new BlockPos(7, 65, 6), new BlockPos(7, 65, 7), new BlockPos(6, 65, 7), new BlockPos(5, 65, 7), new BlockPos(5, 65, 8), new BlockPos(4, 65, 8), new BlockPos(3, 65, 8), new BlockPos(3, 65, 9), new BlockPos(2, 65, 9), new BlockPos(1, 65, 9), new BlockPos(0, 65, 9), new BlockPos(-1, 65, 9), new BlockPos(-2, 65, 9), new BlockPos(-3, 65, 9), new BlockPos(-3, 65, 8), new BlockPos(-4, 65, 8), new BlockPos(-5, 65, 8), new BlockPos(-5, 65, 7), new BlockPos(-6, 65, 7), new BlockPos(-7, 65, 7), new BlockPos(-7, 65, 6), new BlockPos(-7, 65, 5), new BlockPos(-8, 65, 5), new BlockPos(-8, 65, 4), new BlockPos(-8, 65, 3), new BlockPos(-9, 65, 3), new BlockPos(-9, 65, 2), new BlockPos(-9, 65, 1), new BlockPos(-9, 65, 0), new BlockPos(-9, 65, -1), new BlockPos(-9, 65, -2), new BlockPos(-9, 65, -3), new BlockPos(-8, 65, -3), new BlockPos(-8, 65, -4), new BlockPos(-8, 65, -5), new BlockPos(-7, 65, -5), new BlockPos(-7, 65, -6), new BlockPos(-7, 65, -7), new BlockPos(-6, 65, -7), new BlockPos(-5, 65, -7), new BlockPos(-5, 65, -8), new BlockPos(-4, 65, -8), new BlockPos(-3, 65, -8), new BlockPos(-3, 65, -9), new BlockPos(-2, 65, -9), new BlockPos(-1, 65, -9), new BlockPos(0, 65, -9), new BlockPos(1, 65, -9), new BlockPos(2, 65, -9), new BlockPos(3, 65, -9), new BlockPos(3, 65, -8), new BlockPos(4, 65, -8), new BlockPos(5, 65, -8), new BlockPos(5, 65, -7), new BlockPos(6, 65, -7), new BlockPos(7, 65, -7), new BlockPos(7, 65, -6), new BlockPos(7, 65, -5), new BlockPos(8, 65, -5), new BlockPos(8, 65, -4), new BlockPos(8, 65, -3), new BlockPos(9, 65, -3));
     private String[] mode = new String[]{"Oak fence", "Leaves", "Glass", "Barrier"};
@@ -30,9 +29,9 @@ public class SumoFences extends Module {
     public SumoFences() {
         super("Sumo Fences", category.minigames, 0);
         this.f = Blocks.oak_fence.getDefaultState();
-        this.registerSetting(a = new DescriptionSetting("Fences for Hypixel sumo."));
-        this.registerSetting(b = new SliderSetting("Fence height", 4.0D, 1.0D, 6.0D, 1.0D));
-        this.registerSetting(c = new SliderSetting("Block type", mode, 0));
+        this.registerSetting(new DescriptionSetting("Fences for Hypixel sumo."));
+        this.registerSetting(fenceHeight = new SliderSetting("Fence height", 4.0D, 1.0D, 6.0D, 1.0D));
+        this.registerSetting(blockType = new SliderSetting("Block type", mode, 0));
     }
 
     public void onEnable() {
@@ -47,7 +46,7 @@ public class SumoFences extends Module {
         }
 
         for (BlockPos p : f_p) {
-            for (int i = 0; (double) i < b.getInput(); ++i) {
+            for (int i = 0; (double) i < fenceHeight.getInput(); ++i) {
                 BlockPos p2 = new BlockPos(p.getX(), p.getY() + i, p.getZ());
                 if (mc.theWorld.getBlockState(p2).getBlock() == this.f) {
                     mc.theWorld.setBlockState(p2, Blocks.air.getDefaultState());
@@ -83,7 +82,7 @@ public class SumoFences extends Module {
             public void run() {
                 if (SumoFences.this.isSumo()) {
                     for (BlockPos p : SumoFences.f_p) {
-                        for (int i = 0; (double) i < SumoFences.b.getInput(); ++i) {
+                        for (int i = 0; (double) i < SumoFences.fenceHeight.getInput(); ++i) {
                             BlockPos p2 = new BlockPos(p.getX(), p.getY() + i, p.getZ());
                             if (mc.theWorld.getBlockState(p2).getBlock() == Blocks.air) {
                                 mc.theWorld.setBlockState(p2, SumoFences.this.f);
@@ -101,7 +100,7 @@ public class SumoFences extends Module {
             for (String l : Utils.gsl()) {
                 String s = Utils.stripColor(l);
                 if (s.startsWith("Map:")) {
-                    if (this.m.contains(s.substring(5))) {
+                    if (this.maps.contains(s.substring(5))) {
                         return true;
                     }
                 } else if (s.equals("Mode: Sumo Duel")) {
@@ -114,7 +113,7 @@ public class SumoFences extends Module {
     }
 
     public void guiUpdate() {
-        switch ((int) c.getInput()) {
+        switch ((int) blockType.getInput()) {
             case 0:
                 this.f = Blocks.oak_fence.getDefaultState();
                 break;

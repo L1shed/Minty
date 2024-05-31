@@ -58,7 +58,6 @@ public class Reflection {
 
     public static void getFields() {
         try {
-
             containerClasses.add(GuiFurnace.class);
             containerClasses.add(GuiBrewingStand.class);
             containerClasses.add(GuiEnchantment.class);
@@ -67,7 +66,6 @@ public class Reflection {
             containerClasses.add(ContainerWorkbench.class);
             containerClasses.add(ContainerMerchant.class);
             containerClasses.add(ContainerHorseInventory.class);
-
             button = MouseEvent.class.getDeclaredField("button");
             buttonstate = MouseEvent.class.getDeclaredField("buttonstate");
             buttons = Mouse.class.getDeclaredField("buttons");
@@ -244,6 +242,9 @@ public class Reflection {
             return;
         }
         field = ReflectionHelper.findField(clazz, field.getName());
+        if (field == null) {
+            return;
+        }
         field.setAccessible(true);
         containerInventoryPlayer.put(clazz, field);
     }

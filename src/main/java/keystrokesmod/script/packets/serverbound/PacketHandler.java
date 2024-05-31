@@ -45,6 +45,9 @@ public class PacketHandler {
             else if (packet instanceof C09PacketHeldItemChange) {
                 newPacket = new C09(((C09PacketHeldItemChange)packet), true);
             }
+            else if (packet instanceof C10PacketCreativeInventoryAction) {
+                newPacket = new C10((C10PacketCreativeInventoryAction) packet);
+            }
             else {
                 newPacket = new CPacket(packet);
             }
@@ -79,24 +82,36 @@ public class PacketHandler {
         try {
             if (cPacket instanceof C0A) {
                 return new C0APacketAnimation();
-            } else if (cPacket instanceof C0B) {
+            }
+            else if (cPacket instanceof C0B) {
                 return ((C0B) cPacket).convert();
-            } else if (cPacket instanceof C09) {
+            }
+            else if (cPacket instanceof C09) {
                 return ((C09) cPacket).convert();
-            } else if (cPacket instanceof C0E) {
+            }
+            else if (cPacket instanceof C0E) {
                 return ((C0E) cPacket).convert();
-            } else if (cPacket instanceof C0F) {
+            }
+            else if (cPacket instanceof C0F) {
                 return ((C0F) cPacket).convert();
-            } else if (cPacket instanceof C08) {
+            }
+            else if (cPacket instanceof C08) {
                 return ((C08) cPacket).convert();
-            } else if (cPacket instanceof C07) {
+            }
+            else if (cPacket instanceof C07) {
                 return ((C07) cPacket).convert();
-            } else if (cPacket instanceof C01) {
+            }
+            else if (cPacket instanceof C01) {
                 return ((C01) cPacket).convert();
-            } else if (cPacket instanceof C02) {
+            }
+            else if (cPacket instanceof C02) {
                 return ((C02) cPacket).convert();
-            } else if (cPacket instanceof C03) {
+            }
+            else if (cPacket instanceof C03) {
                 return cPacket.packet;
+            }
+            else if (cPacket instanceof C10) {
+                return ((C10) cPacket).convert();
             }
         }
         catch (Exception e) {

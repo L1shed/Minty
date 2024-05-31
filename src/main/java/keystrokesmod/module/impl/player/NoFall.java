@@ -4,6 +4,7 @@ import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.utility.Utils;
 import net.minecraft.block.BlockAir;
 import net.minecraft.network.play.client.C03PacketPlayer;
 import net.minecraft.util.BlockPos;
@@ -55,11 +56,6 @@ public class NoFall extends Module {
     }
 
     private boolean isVoid() {
-        for (int i = (int) mc.thePlayer.posY; i > -1; i--) {
-            if (!(mc.theWorld.getBlockState(new BlockPos(mc.thePlayer.posX, i, mc.thePlayer.posZ)).getBlock() instanceof BlockAir)) {
-                return false;
-            }
-        }
-        return true;
+        return Utils.overVoid(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
     }
 }

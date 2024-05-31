@@ -4,7 +4,9 @@ import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.utility.RotationUtils;
 import keystrokesmod.utility.Utils;
+import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItemFrame;
@@ -66,7 +68,7 @@ public class Reach extends Module {
             }
 
             double r = Utils.getRandomValue(min, max, Utils.getRandom());
-            Object[] o = zz(r, 0.0D);
+            Object[] o = getEntity(r, 0.0D);
             if (o == null) {
                 return false;
             } else {
@@ -78,11 +80,14 @@ public class Reach extends Module {
         }
     }
 
-    private static Object[] zz(double zzD, double zzE) {
+    private static Object[] getEntity(double reach, double expand) {
         if (!ModuleManager.reach.isEnabled()) {
-            zzD = mc.playerController.extendedReach() ? 6.0D : 3.0D;
+            reach = mc.playerController.extendedReach() ? 6.0D : 3.0D;
         }
+        return getEntity(reach, expand, null);
+    }
 
+    public static Object[] getEntity(double reach, double expand, float[] rotations) {
         Entity zz2 = mc.getRenderViewEntity();
         Entity entity = null;
         if (zz2 == null) {
@@ -90,23 +95,29 @@ public class Reach extends Module {
         } else {
             mc.mcProfiler.startSection("pick");
             Vec3 zz3 = zz2.getPositionEyes(1.0F);
-            Vec3 zz4 = zz2.getLook(1.0F);
-            Vec3 zz5 = zz3.addVector(zz4.xCoord * zzD, zz4.yCoord * zzD, zz4.zCoord * zzD);
-            Vec3 zz6 = null;
-            List zz8 = mc.theWorld.getEntitiesWithinAABBExcludingEntity(zz2, zz2.getEntityBoundingBox().addCoord(zz4.xCoord * zzD, zz4.yCoord * zzD, zz4.zCoord * zzD).expand(1.0D, 1.0D, 1.0D));
-            double zz9 = zzD;
+            Vec3 zz4;
+            if (rotations != null) {
+                zz4 = RotationUtils.getVectorForRotation(rotations[1], rotations[0]);
+            }
+            else {
+                zz4 = zz2.getLook(1.0F);
+            }
+            Vec3 zz5 = zz3.addVector(zz4.xCoord * reach, zz4.yCoord * reach, zz4.zCoord * reach);
+            Vec3 hitVec = null;
+            List zz8 = mc.theWorld.getEntitiesWithinAABBExcludingEntity(zz2, zz2.getEntityBoundingBox().addCoord(zz4.xCoord * reach, zz4.yCoord * reach, zz4.zCoord * reach).expand(1.0D, 1.0D, 1.0D));
+            double zz9 = reach;
 
             for (int zz10 = 0; zz10 < zz8.size(); ++zz10) {
                 Entity zz11 = (Entity) zz8.get(zz10);
                 if (zz11.canBeCollidedWith()) {
                     float ex = (float) ((double) zz11.getCollisionBorderSize() * HitBox.getExpand(zz11));
-                    AxisAlignedBB zz13 = zz11.getEntityBoundingBox().expand((double) ex, (double) ex, (double) ex);
-                    zz13 = zz13.expand(zzE, zzE, zzE);
+                    AxisAlignedBB zz13 = zz11.getEntityBoundingBox().expand(ex, ex, ex);
+                    zz13 = zz13.expand(expand, expand, expand);
                     MovingObjectPosition zz14 = zz13.calculateIntercept(zz3, zz5);
                     if (zz13.isVecInside(zz3)) {
                         if (0.0D < zz9 || zz9 == 0.0D) {
                             entity = zz11;
-                            zz6 = zz14 == null ? zz3 : zz14.hitVec;
+                            hitVec = zz14 == null ? zz3 : zz14.hitVec;
                             zz9 = 0.0D;
                         }
                     } else if (zz14 != null) {
@@ -115,11 +126,11 @@ public class Reach extends Module {
                             if (zz11 == zz2.ridingEntity) {
                                 if (zz9 == 0.0D) {
                                     entity = zz11;
-                                    zz6 = zz14.hitVec;
+                                    hitVec = zz14.hitVec;
                                 }
                             } else {
                                 entity = zz11;
-                                zz6 = zz14.hitVec;
+                                hitVec = zz14.hitVec;
                                 zz9 = zz15;
                             }
                         }
@@ -127,13 +138,13 @@ public class Reach extends Module {
                 }
             }
 
-            if (zz9 < zzD && !(entity instanceof EntityLivingBase) && !(entity instanceof EntityItemFrame)) {
+            if (zz9 < reach && !(entity instanceof EntityLivingBase) && !(entity instanceof EntityItemFrame)) {
                 entity = null;
             }
 
             mc.mcProfiler.endSection();
-            if (entity != null && zz6 != null) {
-                return new Object[]{entity, zz6};
+            if (entity != null && hitVec != null) {
+                return new Object[]{entity, hitVec};
             } else {
                 return null;
             }

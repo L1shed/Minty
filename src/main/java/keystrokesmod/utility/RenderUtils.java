@@ -172,7 +172,6 @@ public class RenderUtils {
                         GL11.glRotated((double) (-mc.getRenderManager().playerViewY), 0.0D, 1.0D, 0.0D);
                         GlStateManager.disableDepth();
                         GL11.glScalef(0.03F + d, 0.03F, 0.03F + d);
-                        int base = 1;
                         d2p(0.0D, 95.0D, 10, 3, Color.black.getRGB());
 
                         for (i = 0; i < 6; ++i) {
@@ -612,7 +611,7 @@ public class RenderUtils {
         GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f);
     }
 
-    public static void drawRoundedGradientRectangle(float x, float y, float x2, float y2, final float n5, final int n6, final int n7, final int n8, final int n9) {
+    public static void drawRoundedGradientRect(float x, float y, float x2, float y2, final float n5, final int n6, final int n7, final int n8, final int n9) {
         GL11.glEnable(3042);
         GL11.glDisable(3553);
         GL11.glBlendFunc(770, 771);

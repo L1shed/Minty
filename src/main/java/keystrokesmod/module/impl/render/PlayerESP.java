@@ -18,34 +18,37 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import java.awt.*;
 
 public class PlayerESP extends Module {
-    private DescriptionSetting types;
-    private SliderSetting red;
-    private SliderSetting green;
-    private SliderSetting blue;
+    public SliderSetting red;
+    public SliderSetting green;
+    public SliderSetting blue;
+    public ButtonSetting colorByName;
+    public ButtonSetting rainbow;
+    private ButtonSetting twoD;
+    private ButtonSetting arrow;
+    private ButtonSetting box;
+    private ButtonSetting health;
+    public ButtonSetting outline;
+    private ButtonSetting shaded;
+    private ButtonSetting ring;
     private SliderSetting expand;
     private SliderSetting xShift;
-    private ButtonSetting rainbow;
-    private ButtonSetting showInvis;
     private ButtonSetting redOnDamage;
-    private ButtonSetting box;
-    private ButtonSetting shaded;
-    private ButtonSetting twoD;
-    private ButtonSetting health;
-    private ButtonSetting arrow;
-    private ButtonSetting ring;
+    private ButtonSetting showInvis;
     private int rgb_c = 0;
 
     public PlayerESP() {
-        super("PlayerESP", Module.category.render, 0);
+        super("PlayerESP", category.render, 0);
         this.registerSetting(red = new SliderSetting("Red", 0.0D, 0.0D, 255.0D, 1.0D));
         this.registerSetting(green = new SliderSetting("Green", 255.0D, 0.0D, 255.0D, 1.0D));
         this.registerSetting(blue = new SliderSetting("Blue", 0.0D, 0.0D, 255.0D, 1.0D));
         this.registerSetting(rainbow = new ButtonSetting("Rainbow", false));
-        this.registerSetting(types = new DescriptionSetting("ESP Types"));
+        this.registerSetting(colorByName = new ButtonSetting("Color by name", false));
+        this.registerSetting(new DescriptionSetting("ESP Types"));
         this.registerSetting(twoD = new ButtonSetting("2D", false));
         this.registerSetting(arrow = new ButtonSetting("Arrow", false));
         this.registerSetting(box = new ButtonSetting("Box", false));
         this.registerSetting(health = new ButtonSetting("Health", true));
+        this.registerSetting(outline = new ButtonSetting("Outline", false));
         this.registerSetting(ring = new ButtonSetting("Ring", false));
         this.registerSetting(shaded = new ButtonSetting("Shaded", false));
         this.registerSetting(expand = new SliderSetting("Expand", 0.0D, -0.3D, 2.0D, 0.1D));
@@ -65,27 +68,33 @@ public class PlayerESP extends Module {
     @SubscribeEvent
     public void onRenderWorld(RenderWorldLastEvent e) {
         if (Utils.nullCheck()) {
-            int rgb = rainbow.isToggled() ? 0 : this.rgb_c;
+            int rgb = rainbow.isToggled() ? Utils.getChroma(2L, 0L) : this.rgb_c;
             if (Raven.debugger) {
                 for (final Entity entity : mc.theWorld.loadedEntityList) {
                     if (entity instanceof EntityLivingBase && entity != mc.thePlayer) {
+                        if (colorByName.isToggled()) {
+                            rgb = getColorFromTags(entity.getDisplayName().getFormattedText());
+                        }
                         this.render(entity, rgb);
                     }
                 }
                 return;
             }
-            for (final EntityPlayer entityPlayer : mc.theWorld.playerEntities) {
-                if (entityPlayer != mc.thePlayer) {
-                    if (entityPlayer.deathTime != 0) {
+            for (EntityPlayer player : mc.theWorld.playerEntities) {
+                if (player != mc.thePlayer) {
+                    if (player.deathTime != 0) {
                         continue;
                     }
-                    if (!showInvis.isToggled() && entityPlayer.isInvisible()) {
+                    if (!showInvis.isToggled() && player.isInvisible()) {
                         continue;
                     }
-                    if (AntiBot.isBot(entityPlayer)) {
+                    if (AntiBot.isBot(player)) {
                         continue;
                     }
-                    this.render(entityPlayer, rgb);
+                    if (colorByName.isToggled()) {
+                        rgb = getColorFromTags(player.getDisplayName().getFormattedText());
+                    }
+                    this.render(player, rgb);
                 }
             }
         }
@@ -117,5 +126,45 @@ public class PlayerESP extends Module {
         if (ring.isToggled()) {
             RenderUtils.renderEntity(en, 6, expand.getInput(), xShift.getInput(), rgb, redOnDamage.isToggled());
         }
+    }
+
+    public int getColorFromTags(String displayName) {
+        displayName = Utils.removeFormatCodes(displayName);
+        if (displayName.isEmpty() || !displayName.startsWith("§") || displayName.charAt(1) == 'f') {
+            return -1;
+        }
+        switch (displayName.charAt(1)) {
+            case '0':
+                return -16777216;
+            case '1':
+                return -16777046;
+            case '2':
+                return -16733696;
+            case '3':
+                return -16733526;
+            case '4':
+                return -5636096;
+            case '5':
+                return -5635926;
+            case '6':
+                return -22016;
+            case '7':
+                return -5592406;
+            case '8':
+                return -11184811;
+            case '9':
+                return -11184641;
+            case 'a':
+                return -11141291;
+            case 'b':
+                return -11141121;
+            case 'c':
+                return -43691;
+            case 'd':
+                return -43521;
+            case 'e':
+                return -171;
+        }
+        return -1;
     }
 }

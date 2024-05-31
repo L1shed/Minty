@@ -9,6 +9,8 @@ import keystrokesmod.module.impl.combat.AutoClicker;
 import keystrokesmod.module.impl.minigames.DuelsStats;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockAir;
+import net.minecraft.block.BlockSign;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.inventory.GuiInventory;
@@ -58,11 +60,35 @@ public class Utils {
         return DuelsStats.nick.isEmpty() ? mc.thePlayer.getName() : DuelsStats.nick;
     }
 
+    public static boolean overVoid(double posX, double posY, double posZ) {
+        for (int i = (int) posY; i > -1; i--) {
+            if (!(mc.theWorld.getBlockState(new BlockPos(posX, i, posZ)).getBlock() instanceof BlockAir)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public static List<NetworkPlayerInfo> getTablist() {
         final ArrayList<NetworkPlayerInfo> list = new ArrayList<>(mc.getNetHandler().getPlayerInfoMap());
         removeDuplicates((ArrayList) list);
         list.remove(mc.getNetHandler().getPlayerInfo(mc.thePlayer.getUniqueID()));
         return list;
+    }
+
+    public static double getFallDistance(Entity entity) {
+        double fallDist = -1;
+        Vec3 pos = new Vec3(entity.posX, entity.posY, entity.posZ);
+        int y = (int) Math.floor(pos.yCoord);
+        if (pos.yCoord % 1 == 0) y--;
+        for (int i = y; i > -1; i--) {
+            Block block = BlockUtils.getBlock(new BlockPos((int) Math.floor(pos.xCoord), i, (int) Math.floor(pos.zCoord)));
+            if (!(block instanceof BlockAir) && !(block instanceof BlockSign)) {
+                fallDist = y - i;
+                break;
+            }
+        }
+        return fallDist;
     }
 
     public static void removeDuplicates(final ArrayList list) {
@@ -551,6 +577,10 @@ public class Utils {
         return rnd(sp, d);
     }
 
+    public static String removeFormatCodes(String str) {
+        return str.replace("§k", "").replace("§l", "").replace("§m", "").replace("§n", "").replace("§o", "").replace("§r", "");
+    }
+
     public static boolean ilc() {
         if (ModuleManager.autoClicker.isEnabled()) {
             return AutoClicker.leftClick.isToggled() && Mouse.isButtonDown(0);
@@ -710,8 +740,8 @@ public class Utils {
         return mc.theWorld.isAirBlock(new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY - 1.0, mc.thePlayer.posZ));
     }
 
-    public static boolean overPlaceable() {
-        BlockPos playerPos = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY - 1.0, mc.thePlayer.posZ);
+    public static boolean overPlaceable(double yOffset) {
+        BlockPos playerPos = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY + yOffset, mc.thePlayer.posZ);
         return BlockUtils.replaceable(playerPos) || BlockUtils.isFluid(BlockUtils.getBlock(playerPos));
     }
 

@@ -1,7 +1,6 @@
 package keystrokesmod.module.impl.render;
 
 import keystrokesmod.module.Module;
-import keystrokesmod.module.impl.world.AntiBot;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.Reflection;
@@ -14,8 +13,8 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.projectile.EntityArrow;
 import net.minecraft.entity.projectile.EntityFireball;
 import net.minecraft.init.Items;
-import net.minecraft.item.ItemFireball;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.MathHelper;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -36,7 +35,6 @@ public class Indicators extends Module {
     private ButtonSetting itemColors;
     private ButtonSetting renderItem;
     private ButtonSetting threatsOnly;
-    private ButtonSetting showInChat;
     private HashSet<Entity> threats = new HashSet<>();
     private Map<String, String> lastHeldItems = new ConcurrentHashMap<>();
     private int pearlColor = new Color(173, 12, 255).getRGB();
@@ -52,7 +50,6 @@ public class Indicators extends Module {
         this.registerSetting(itemColors = new ButtonSetting("Item colors", true));
         this.registerSetting(renderItem = new ButtonSetting("Render item", true));
         this.registerSetting(threatsOnly = new ButtonSetting("Render only threats", true));
-        this.registerSetting(showInChat = new ButtonSetting("Show in chat", false));
     }
 
     public void onDisable() {
@@ -81,11 +78,11 @@ public class Indicators extends Module {
                 }
                 float yaw = Utils.getYaw(e) - mc.thePlayer.rotationYaw;
                 ScaledResolution sr = new ScaledResolution(mc);
-                float x = sr.getScaledWidth() / 2;
-                float y = sr.getScaledHeight() / 2;
+                float x = (float) sr.getScaledWidth() / 2;
+                float y = (float) sr.getScaledHeight() / 2;
                 GL11.glPushMatrix();
                 GL11.glTranslated(x, y, 0.0);
-
+                GL11.glPopMatrix();
                 int color = -1;
                 if (renderItem.isToggled()) {
                     ItemStack entityItem = null;
@@ -100,55 +97,35 @@ public class Indicators extends Module {
                     }
                     if (entityItem != null) {
                         GL11.glPushMatrix();
-                        GL11.glRotatef(yaw, 0.0f, 0.0f, 1.0f);
-                        mc.getRenderItem().renderItemAndEffectIntoGUI(entityItem, -8, (int) -radius.getInput());
+                        int[] position = getPositionForCircle(yaw, radius.getInput());
+                        GL11.glTranslated(x + position[0], y + position[1], 0.0);
+                        if (e instanceof EntityArrow) {
+                            GL11.glRotatef(yaw, 0.0f, 0.0f, 1.0f);
+                            GL11.glTranslatef(-7, 0, 0);
+                            GL11.glRotatef(-45.0f, 0.0f, 0.0f, 1.0f);
+                        }
+                        mc.getRenderItem().renderItemAndEffectIntoGUI(entityItem, -8, 0);
                         GL11.glPopMatrix();
                     }
                 }
 
                 GL11.glPushMatrix();
-                GL11.glRotatef(yaw, 0.0f, 0.0f, 1.0f);
+                int[] position = getPositionForCircle(yaw, radius.getInput() + 21);
+                GL11.glTranslated(x + position[0], y + position[1], 0.0);
                 String distanceStr = (int) mc.thePlayer.getDistanceToEntity(e) + "m";
                 float textWidth = mc.fontRendererObj.getStringWidth(distanceStr);
-                mc.fontRendererObj.drawStringWithShadow(distanceStr, -textWidth / 2, (float) (-radius.getInput() - 10), -1);
+                mc.fontRendererObj.drawStringWithShadow(distanceStr, -textWidth / 2, -mc.fontRendererObj.FONT_HEIGHT/2, -1);
                 GL11.glPopMatrix();
 
                 GL11.glPushMatrix();
+                GL11.glTranslated(x, y, 0.0);
                 GL11.glRotatef(yaw, 0.0f, 0.0f, 1.0f);
-                RenderUtils.drawArrow(-5f, (float) -radius.getInput() - 20, color, 3, 5);
-                GL11.glPopMatrix();
-
+                RenderUtils.drawArrow(-5f, (float) -radius.getInput() - 38, itemColors.isToggled() ? color : -1, 3, 5);
                 GL11.glPopMatrix();
             }
-        } catch (Exception ex) {
+        }
+        catch (Exception ex) {
             ex.printStackTrace();
-        }
-    }
-
-    public void onUpdate() {
-        if (!showInChat.isToggled()) {
-            return;
-        }
-        for (EntityPlayer player : mc.theWorld.playerEntities) {
-            if (player == mc.thePlayer) {
-                continue;
-            }
-            if (AntiBot.isBot(player)) {
-                continue;
-            }
-            ItemStack item = player.getHeldItem();
-            String name = player.getName();
-            if (item != null && item.getItem() instanceof ItemFireball && !lastHeldItems.containsKey(name)) {
-                String itemType = item.getUnlocalizedName();
-                lastHeldItems.put(name, itemType);
-                double distance = Utils.rnd(mc.thePlayer.getDistanceToEntity(player), 1);
-                Utils.sendMessage(player.getDisplayName().getFormattedText() + " &7is holding a §3Fireball &7(§d" + (int) distance +  "m&7)");
-            } else if (lastHeldItems.containsKey(name) ) {
-                String itemType = lastHeldItems.get(name);
-                if (item == null || !itemType.equals(item.getUnlocalizedName())) {
-                    lastHeldItems.remove(name);
-                }
-            }
         }
     }
 
@@ -178,11 +155,34 @@ public class Indicators extends Module {
             else if (entity instanceof EntityPlayer && renderPlayers.isToggled()) {
                 return true;
             }
-        } catch (IllegalAccessException e) {
+        }
+        catch (IllegalAccessException e) {
             Utils.sendMessage("&cIssue checking entity.");
             e.printStackTrace();
             return false;
         }
         return false;
+    }
+
+    public int[] getPositionForCircle(float angle, double radius) {
+        angle = angle % 360;
+        if (angle < 0) {
+            angle += 360;
+        }
+        float wrappedAngle = MathHelper.wrapAngleTo180_float(angle);
+        float absAngle = Math.abs(wrappedAngle);
+        int[] position = null;
+        if (absAngle >= 0 && absAngle <= 90) {
+            position = new int[]{(int) (Math.cos(Math.toRadians(90 - absAngle)) * radius), (int) (Math.sin(Math.toRadians(90 - absAngle)) * radius)};
+        } else if (absAngle > 90 && absAngle <= 180) {
+            position = new int[]{(int) (Math.cos(Math.toRadians(absAngle - 90)) * radius), (int) -(Math.sin(Math.toRadians(absAngle - 90)) * radius)};
+        }
+        if (position != null) {
+            if (wrappedAngle <= 0) {
+                position[0] = -position[0];
+            }
+            position[1] = -position[1];
+        }
+        return position;
     }
 }

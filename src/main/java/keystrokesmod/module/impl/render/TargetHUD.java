@@ -112,7 +112,7 @@ public class TargetHUD extends Module {
             final int n15 = n9;
             RenderUtils.drawRoundedRectangle((float) n13, (float) n15, (float) n14, (float) (n15 + 5), 4.0f, Utils.merge(Color.black.getRGB(), n11)); // background
             int k = Utils.merge(array[0], n12);
-            int n16 = (health > 0.15) ? Utils.merge(array[1], n12) : k;
+            int n16 = Utils.merge(array[1], n12);
             float healthBar = (float) (int) (n14 + (n13 - n14) * (1.0 - ((health < 0.05) ? 0.05 : health)));
             if (healthBar - n13 < 3) { // if goes below, the rounded health bar glitches out
                 healthBar = n13 + 3;
@@ -132,7 +132,7 @@ public class TargetHUD extends Module {
             if (healthColor.isToggled()) {
                 k = n16 = Utils.merge(Utils.getColorForHealth(health), n12);
             }
-            RenderUtils.drawRoundedGradientRectangle((float) n13, (float) n15, lastHealthBar, (float) (n15 + 5), 4.0f, k, k, n16, n16); // health bar
+            RenderUtils.drawRoundedGradientRect((float) n13, (float) n15, lastHealthBar, (float) (n15 + 5), 4.0f, k, k, k, n16); // health bar
             GlStateManager.pushMatrix();
             GlStateManager.enableBlend();
             GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);

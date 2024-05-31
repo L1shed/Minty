@@ -9,6 +9,7 @@ import keystrokesmod.keystroke.keystrokeCommand;
 import keystrokesmod.module.Module;
 import keystrokesmod.clickgui.ClickGui;
 import keystrokesmod.module.ModuleManager;
+import keystrokesmod.module.impl.player.Tower;
 import keystrokesmod.script.ScriptManager;
 import keystrokesmod.utility.*;
 import keystrokesmod.utility.profile.Profile;
@@ -69,6 +70,7 @@ public class Raven {
         Reflection.setKeyBindings();
         scriptManager.loadScripts();
         scriptManager.loadScripts();
+        FMLCommonHandler.instance().bus().register(ModuleManager.tower);
     }
 
     @SubscribeEvent

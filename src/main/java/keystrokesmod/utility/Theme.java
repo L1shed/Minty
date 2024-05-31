@@ -8,7 +8,7 @@ public enum Theme {
     Rainbow(null, null), // 0
     Cherry(new Color(255, 200, 200), new Color(243, 58, 106)), // 1
     Cotton_candy(new Color(99, 249, 255), new Color(255, 104, 204)), // 2
-    Flare(new Color(210, 40, 15), new Color(220, 150, 25)), // 3
+    Flare(new Color(231, 39, 24), new Color(245, 173, 49)), // 3
     Flower(new Color(215, 166, 231), new Color(211, 90, 232)), // 4
     Gold(new Color(255, 215, 0), new Color(240, 159, 0)), // from croat, 5
     Grayscale(new Color(240, 240, 240), new Color(110, 110, 110)), // 6

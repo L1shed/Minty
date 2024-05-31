@@ -8,6 +8,7 @@ import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.Utils;
 import net.minecraft.init.Items;
+import net.minecraft.item.ItemFireball;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
 import net.minecraft.network.play.server.S12PacketEntityVelocity;
@@ -16,40 +17,50 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 public class LongJump extends Module {
     private SliderSetting mode;
-    private SliderSetting horizontalSpeed;
-    private SliderSetting verticalSpeed;
-    private SliderSetting boostTicks;
+    private SliderSetting horizontalBoost;
+    private SliderSetting verticalMotion;
+    private SliderSetting motionTicks;
+    private ButtonSetting addMotion;
     private ButtonSetting invertYaw;
+    private ButtonSetting jump;
     private int lastSlot = -1;
     private int ticks = -1;
     private boolean setSpeed;
     public static boolean stopModules;
-    private boolean placed;
-    private int waitTicks;
+    private boolean sentPlace;
+    private int initTicks;
+    private boolean threw;
     private String[] modes = new String[]{"Fireball", "Fireball Auto"};
     public LongJump() {
         super("Long Jump", category.movement);
         this.registerSetting(mode = new SliderSetting("Mode", modes, 0));
-        this.registerSetting(horizontalSpeed = new SliderSetting("Horizontal speed", 0, 0.0, 8.0, 0.1));
-        this.registerSetting(verticalSpeed = new SliderSetting("Vertical speed", 0, 0.0, 8.0, 0.1));
-        this.registerSetting(boostTicks = new SliderSetting("Boost ticks", 2, 1, 20, 1));
+        this.registerSetting(horizontalBoost = new SliderSetting("Horizontal boost", 1.7, 0.0, 8.0, 0.1));
+        this.registerSetting(verticalMotion = new SliderSetting("Vertical motion", 0, 0.0, 1.0, 0.01));
+        this.registerSetting(motionTicks = new SliderSetting("Motion ticks", 10, 1, 40, 1));
+        this.registerSetting(addMotion = new ButtonSetting("Add motion", false));
         this.registerSetting(invertYaw = new ButtonSetting("Invert yaw", true));
+        this.registerSetting(jump = new ButtonSetting("Jump", false));
     }
 
     @SubscribeEvent
-    public void onReceivePacket(ReceivePacketEvent e) {
-        if (e.getPacket() instanceof S12PacketEntityVelocity && Utils.nullCheck()) {
-            if (((S12PacketEntityVelocity) e.getPacket()).getEntityID() == mc.thePlayer.getEntityId() && placed && ticks < 0) {
-                ticks = 0;
+    public void onSendPacket(SendPacketEvent e) {
+        if (e.getPacket() instanceof C08PacketPlayerBlockPlacement && ((C08PacketPlayerBlockPlacement) e.getPacket()).getStack() != null && ((C08PacketPlayerBlockPlacement) e.getPacket()).getStack().getItem() instanceof ItemFireball) {
+            threw = true;
+            if (mc.thePlayer.onGround && jump.isToggled()) {
+                mc.thePlayer.jump();
             }
         }
     }
 
     @SubscribeEvent
-    public void onSendPacket(SendPacketEvent e) {
-        if (mode.getInput() == 0 && e.getPacket() instanceof C08PacketPlayerBlockPlacement && holdingFireball()) {
-            ticks = 0;
-            setSpeed = true;
+    public void onReceivePacket(ReceivePacketEvent e) {
+        if (e.getPacket() instanceof S12PacketEntityVelocity && Utils.nullCheck()) {
+            if (((S12PacketEntityVelocity) e.getPacket()).getEntityID() == mc.thePlayer.getEntityId() && threw) {
+                ticks = 0;
+                setSpeed = true;
+                threw = false;
+                stopModules = true;
+            }
         }
     }
 
@@ -59,9 +70,13 @@ public class LongJump extends Module {
             return;
         }
         if (mode.getInput() == 1) {
-            if (!placed) {
-                if (mc.thePlayer.onGround) {
-                    waitTicks++;
+            if (initTicks == 0) {
+                if (invertYaw.isToggled()) {
+                    e.setYaw(mc.thePlayer.rotationYaw - 180);
+                    e.setPitch(89);
+                }
+                else {
+                    e.setPitch(90);
                 }
                 int fireballSlot = getFireball();
                 if (fireballSlot != -1 && fireballSlot != mc.thePlayer.inventory.currentItem) {
@@ -69,43 +84,43 @@ public class LongJump extends Module {
                     mc.thePlayer.inventory.currentItem = fireballSlot;
                 }
             }
-            if (!placed && mc.thePlayer.onGround && waitTicks <= 3) {
-                if (invertYaw.isToggled()) {
-                    e.setYaw(mc.thePlayer.rotationYaw - 180);
-                    e.setPitch(60);
-                } else {
-                    e.setPitch(90);
+            else if (initTicks == 1) {
+                if (!sentPlace) {
+                    mc.thePlayer.sendQueue.addToSendQueue(new C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()));
+                    sentPlace = true;
                 }
             }
-            if (waitTicks == 2 && !placed) {
-                mc.thePlayer.sendQueue.addToSendQueue(new C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()));
-                placed = true;
+            else if (initTicks == 2) {
+                if (lastSlot != -1) {
+                    mc.thePlayer.inventory.currentItem = lastSlot;
+                    lastSlot = -1;
+                }
             }
-            if (ticks < 0) {
-                return;
-            }
-            if (ticks >= boostTicks.getInput()) {
+            if (ticks > motionTicks.getInput()) {
                 this.disable();
                 return;
             }
-            setSpeed();
-            ticks++;
+            if (setSpeed) {
+                stopModules = true;
+                setSpeed();
+                ticks++;
+            }
+            if (initTicks < 3) {
+                initTicks++;
+            }
         }
         else {
             if (setSpeed) {
-                if (ticks > boostTicks.getInput()) {
-                    setSpeed = false;
+                if (ticks > motionTicks.getInput()) {
+                    stopModules = setSpeed = false;
                     ticks = 0;
                     return;
                 }
+                stopModules = true;
                 ticks++;
                 setSpeed();
             }
         }
-    }
-
-    private boolean holdingFireball() {
-        return mc.thePlayer.getHeldItem() != null && mc.thePlayer.getHeldItem().getItem() == Items.fire_charge;
     }
 
     public void onDisable() {
@@ -113,18 +128,13 @@ public class LongJump extends Module {
             mc.thePlayer.inventory.currentItem = lastSlot;
         }
         ticks = lastSlot = -1;
-        setSpeed = stopModules = placed = false;
-        waitTicks = 0;
+        setSpeed = stopModules = sentPlace = false;
+        initTicks = 0;
     }
 
     public void onEnable() {
         if (getFireball() == -1 && mode.getInput() == 1) {
             Utils.sendMessage("§cNo fireball found.");
-            this.disable();
-            return;
-        }
-        if (horizontalSpeed.getInput() == 0 && verticalSpeed.getInput() == 0) {
-            Utils.sendMessage("&cLong jump values are set to 0.");
             this.disable();
             return;
         }
@@ -134,11 +144,11 @@ public class LongJump extends Module {
     }
 
     private void setSpeed() {
-        if (verticalSpeed.getInput() != 0.0) {
-            mc.thePlayer.motionY = verticalSpeed.getInput() / 2.0 - Math.random() / 20.0;
+        if (verticalMotion.getInput() != 0.0 && addMotion.isToggled()) {
+            mc.thePlayer.motionY = verticalMotion.getInput();
         }
-        if (horizontalSpeed.getInput() != 0.0) {
-            Utils.setSpeed(horizontalSpeed.getInput());
+        if (horizontalBoost.getInput() != 0.0) {
+            Utils.setSpeed(horizontalBoost.getInput());
         }
     }
 

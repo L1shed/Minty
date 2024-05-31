@@ -19,7 +19,7 @@ import java.util.Iterator;
 
 public class ModuleComponent extends Component {
     private final int c2 = (new Color(154, 2, 255)).getRGB();
-    private final int hoverColor = (new Color(0, 0, 0, 80)).getRGB();
+    private final int hoverColor = (new Color(0, 0, 0, 110)).getRGB();
     private final int unsavedColor = new Color(114, 188, 250).getRGB();
     private final int invalidColor = new Color(255, 80, 80).getRGB();
     private final int enabledColor = new Color(24, 154, 255).getRGB();

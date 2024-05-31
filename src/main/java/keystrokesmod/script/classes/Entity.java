@@ -160,13 +160,6 @@ public class Entity {
         return new Vec3(entity.posX, entity.posY, entity.posZ);
     }
 
-    public Vec3 getPos() {
-        if (entity == null) {
-            return null;
-        }
-        return new Vec3(entity.posX, entity.posY, entity.posZ);
-    }
-
     public List<Object[]> getPotionEffects() {
         List<Object[]> potionEffects = new ArrayList<>();
         if (!(entity instanceof EntityLivingBase)) {

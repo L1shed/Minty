@@ -3,19 +3,14 @@ package keystrokesmod.module.impl.player;
 import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ButtonSetting;
-import keystrokesmod.utility.BlockUtils;
 import keystrokesmod.utility.RotationUtils;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockAir;
-import net.minecraft.block.BlockSign;
+import keystrokesmod.utility.Utils;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
-import net.minecraft.util.BlockPos;
 import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.util.Vec3;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 public class WaterBucket extends Module {
@@ -72,17 +67,6 @@ public class WaterBucket extends Module {
     }
 
     private int fallDistance() {
-        int fallDist = -1;
-        Vec3 pos = new Vec3(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
-        int y = (int) Math.floor(pos.yCoord);
-        if (pos.yCoord % 1 == 0) y--;
-        for (int i = y; i > -1; i--) {
-            Block block = BlockUtils.getBlock(new BlockPos((int) Math.floor(pos.xCoord), i, (int) Math.floor(pos.zCoord)));
-            if (!(block instanceof BlockAir) && !(block instanceof BlockSign)) {
-                fallDist = y - i;
-                break;
-            }
-        }
-        return fallDist;
+        return (int) Utils.getFallDistance(mc.thePlayer);
     }
 }

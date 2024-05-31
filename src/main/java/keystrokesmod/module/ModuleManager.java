@@ -43,11 +43,12 @@ public class ModuleManager {
     public static Module wTap;
     public static Potions potions;
     public static NoFall noFall;
-    public static Module playerESP;
+    public static PlayerESP playerESP;
     public static Module reduce;
-    public static Module safeWalk;
+    public static SafeWalk safeWalk;
     public static Module keepSprint;
     public static Module antiKnockback;
+    public static Tower tower;
     public static Module bedwars;
     public static BHop bHop;
     public static Scaffold scaffold;
@@ -59,6 +60,7 @@ public class ModuleManager {
         this.addModule(new Blink());
         this.addModule(new BurstClicker());
         this.addModule(new ClickAssist());
+        this.addModule(tower = new Tower());
         this.addModule(new DelayRemover());
         this.addModule(hitBox = new HitBox());
         this.addModule(new Radar());

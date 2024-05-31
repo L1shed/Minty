@@ -30,6 +30,7 @@ import net.minecraft.network.Packet;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.IChatComponent;
+import net.minecraft.util.MovingObjectPosition;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
@@ -136,12 +137,40 @@ public class ScriptDefaults {
             return ScriptManager.localPlayer;
         }
 
+        public static Object[] raycastBlock(double distance) {
+            return raycastBlock(distance, mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
+        }
+
+        public static Object[] raycastBlock(double distance, float yaw, float pitch) {
+            MovingObjectPosition hit = RotationUtils.rayCast(distance, yaw, pitch);
+            if (hit == null || hit.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) {
+                return null;
+            }
+            return new Object[]{Vec3.convert(hit.getBlockPos()), new Vec3(hit.hitVec.xCoord, hit.hitVec.yCoord, hit.hitVec.zCoord), hit.sideHit.name()};
+        }
+
+        public static Object[] raycastEntity(double distance) {
+            return raycastEntity(distance, mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
+        }
+
+        public static Object[] raycastEntity(double distance, float yaw, float pitch) {
+            MovingObjectPosition hit = RotationUtils.rayCast(distance, yaw, pitch);
+            if (hit == null || hit.typeOfHit != MovingObjectPosition.MovingObjectType.ENTITY) {
+                return null;
+            }
+            return new Object[]{new Entity(hit.entityHit), new Vec3(hit.hitVec.xCoord, hit.hitVec.yCoord, hit.hitVec.zCoord), mc.thePlayer.getDistanceSqToEntity(hit.entityHit)};
+        }
+
         public static Vec3 getMotion() {
             return new Vec3(mc.thePlayer.motionX, mc.thePlayer.motionY, mc.thePlayer.motionZ);
         }
 
         public static void ping() {
             mc.thePlayer.playSound("note.pling", 1.0f, 1.0f);
+        }
+
+        public static void playSound(String name, float volume, float pitch) {
+            mc.thePlayer.playSound(name, volume, pitch);
         }
 
         public static boolean isMoving() {
@@ -232,6 +261,10 @@ public class ScriptDefaults {
             return new int[]{scaledResolution.getScaledWidth(), scaledResolution.getScaledHeight()};
         }
 
+        public static float[] getRotationsToBlock(Vec3 position) {
+            return RotationUtils.getRotations(new BlockPos(position.x, position.y, position.z));
+        }
+
         public static void setSprinting(boolean sprinting) {
             mc.thePlayer.setSprinting(sprinting);
         }
@@ -258,18 +291,18 @@ public class ScriptDefaults {
 
         public static class inventory {
             public static void click(int slot, int button, int mode) {
-                mc.playerController.windowClick(mc.thePlayer.inventoryContainer.windowId, slot, button, mode, mc.thePlayer);
+                mc.playerController.windowClick(mc.thePlayer.openContainer.windowId, slot, button, mode, mc.thePlayer);
             }
 
             public static List<String> getBookContents() {
                 if (mc.currentScreen instanceof GuiScreenBook) {
                     try {
                         List<String> contents = new ArrayList<>();
-                        int lvt_9_2_ = Math.min(128 / mc.fontRendererObj.FONT_HEIGHT, ((List<IChatComponent>) Reflection.bookContents.get(mc.currentScreen)).size());
-                        for (int lvt_10_2_ = 0; lvt_10_2_ < lvt_9_2_; ++lvt_10_2_) {
-                            IChatComponent lvt_11_2_ = ((List<IChatComponent>) Reflection.bookContents.get(mc.currentScreen)).get(lvt_10_2_);
-                            contents.add(lvt_11_2_.getUnformattedText());
-                            Utils.sendMessage(lvt_11_2_.getUnformattedText());
+                        int max = Math.min(128 / mc.fontRendererObj.FONT_HEIGHT, ((List<IChatComponent>) Reflection.bookContents.get(mc.currentScreen)).size());
+                        for (int line = 0; line < max; ++line) {
+                            IChatComponent lineStr = ((List<IChatComponent>) Reflection.bookContents.get(mc.currentScreen)).get(line);
+                            contents.add(lineStr.getUnformattedText());
+                            Utils.sendMessage(lineStr.getUnformattedText());
                         }
                         if (!contents.isEmpty()) {
                             return contents;
@@ -543,10 +576,17 @@ public class ScriptDefaults {
 
         public Vec3 getBedAuraPosition() {
             BlockPos blockPos = ModuleManager.bedAura.currentBlock;
-            if (ModuleManager.bedAura == null || ModuleManager.bedAura.currentBlock == null) {
+            if (ModuleManager.bedAura == null || !ModuleManager.bedAura.isEnabled() || ModuleManager.bedAura.currentBlock == null) {
                 return null;
             }
             return new Vec3(blockPos.getX(), blockPos.getY(), blockPos.getZ());
+        }
+
+        public float[] getBedAuraProgress() {
+            if (ModuleManager.bedAura != null && ModuleManager.bedAura.isEnabled()) {
+                return new float[]{ModuleManager.bedAura.breakProgress, ModuleManager.bedAura.vanillaProgress};
+            }
+            return new float[]{0, 0};
         }
 
         public void registerButton(String name, boolean defaultValue) {

@@ -33,7 +33,7 @@ public class Velocity extends Module {
 
     @SubscribeEvent
     public void onLivingUpdate(LivingUpdateEvent ev) {
-        if (Utils.nullCheck() && !LongJump.stopModules) {
+        if (Utils.nullCheck() && !LongJump.stopModules && !ModuleManager.bedAura.cancelKnockback()) {
             if (ModuleManager.antiKnockback.isEnabled()) {
                 return;
             }

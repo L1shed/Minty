@@ -2,13 +2,12 @@ package keystrokesmod.utility;
 
 import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.module.impl.client.Settings;
+import net.minecraft.block.Block;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.MathHelper;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.*;
 
 public class RotationUtils {
     public static final Minecraft mc = Minecraft.getMinecraft();
@@ -64,8 +63,20 @@ public class RotationUtils {
         final float cos = MathHelper.cos(n2 - 3.1415927f);
         final float sin = MathHelper.sin(n2 - 3.1415927f);
         final float n4 = -MathHelper.cos(n3);
-        final Vec3 vec3 = new Vec3(sin * n4, MathHelper.sin(n3), (double)(cos * n4));
-        return BlockUtils.getBlock(blockPos).getCollisionBoundingBox(mc.theWorld, blockPos, BlockUtils.getBlockState(blockPos)).calculateIntercept(getPositionEyes, getPositionEyes.addVector(vec3.xCoord * n, vec3.yCoord * n, vec3.zCoord * n)) != null;
+        final Vec3 vec3 = new Vec3(sin * n4, MathHelper.sin(n3), cos * n4);
+        Block block = BlockUtils.getBlock(blockPos);
+        IBlockState blockState = BlockUtils.getBlockState(blockPos);
+        if (block != null && blockState != null) {
+            AxisAlignedBB boundingBox = block.getCollisionBoundingBox(mc.theWorld, blockPos, blockState);
+            if (boundingBox != null) {
+                Vec3 targetVec = getPositionEyes.addVector(vec3.xCoord * n, vec3.yCoord * n, vec3.zCoord * n);
+                MovingObjectPosition intercept = boundingBox.calculateIntercept(getPositionEyes, targetVec);
+                if (intercept != null) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public static float[] getRotations(final Entity entity) {
@@ -142,28 +153,22 @@ public class RotationUtils {
         return (float) (Math.atan2(n - mc.thePlayer.posX, n2 - mc.thePlayer.posZ) * 57.295780181884766 * -1.0);
     }
 
-    public static MovingObjectPosition rayCast(final double n, final float n2, final float n3) {
+    public static MovingObjectPosition rayCast(final double distance, final float yaw, final float pitch) {
         final Vec3 getPositionEyes = mc.thePlayer.getPositionEyes(1.0f);
-        final float n4 = -n2 * 0.017453292f;
-        final float n5 = -n3 * 0.017453292f;
+        final float n4 = -yaw * 0.017453292f;
+        final float n5 = -pitch * 0.017453292f;
         final float cos = MathHelper.cos(n4 - 3.1415927f);
         final float sin = MathHelper.sin(n4 - 3.1415927f);
         final float n6 = -MathHelper.cos(n5);
-        final Vec3 vec3 = new Vec3((double)(sin * n6), (double)MathHelper.sin(n5), (double)(cos * n6));
-        return mc.theWorld.rayTraceBlocks(getPositionEyes, getPositionEyes.addVector(vec3.xCoord * n, vec3.yCoord * n, vec3.zCoord * n), false, false, false);
+        final Vec3 vec3 = new Vec3(sin * n6, MathHelper.sin(n5), cos * n6);
+        return mc.theWorld.rayTraceBlocks(getPositionEyes, getPositionEyes.addVector(vec3.xCoord * distance, vec3.yCoord * distance, vec3.zCoord * distance), false, false, false);
     }
 
-    public static double direction(float rotationYaw, final double moveForward, final double moveStrafing) {
-        if (moveForward < 0F) rotationYaw += 180F;
-
-        float forward = 1F;
-
-        if (moveForward < 0F) forward = -0.5F;
-        else if (moveForward > 0F) forward = 0.5F;
-
-        if (moveStrafing > 0F) rotationYaw -= 90F * forward;
-        if (moveStrafing < 0F) rotationYaw += 90F * forward;
-
-        return Math.toRadians(rotationYaw);
+    public static Vec3 getVectorForRotation(float pitch, float yaw) {
+        float f = MathHelper.cos(-yaw * 0.017453292F - 3.1415927F);
+        float f1 = MathHelper.sin(-yaw * 0.017453292F - 3.1415927F);
+        float f2 = -MathHelper.cos(-pitch * 0.017453292F);
+        float f3 = MathHelper.sin(-pitch * 0.017453292F);
+        return new Vec3(f1 * f2, f3, f * f2);
     }
 }

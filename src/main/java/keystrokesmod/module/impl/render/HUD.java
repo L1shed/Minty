@@ -76,35 +76,40 @@ public class HUD extends Module {
         }
         int n = hudY;
         double n2 = 0.0;
-        for (Module module : ModuleManager.organizedModules) {
-            if (module.isEnabled() && module != this) {
-                if (module.isHidden()) {
-                    continue;
+        try {
+            for (Module module : ModuleManager.organizedModules) {
+                if (module.isEnabled() && module != this) {
+                    if (module.isHidden()) {
+                        continue;
+                    }
+                    if (module == ModuleManager.commandLine) {
+                        continue;
+                    }
+                    String moduleName = module.getName();
+                    if (showInfo.isToggled() && !module.getInfo().isEmpty()) {
+                        moduleName += " §7" + module.getInfo();
+                    }
+                    if (lowercase.isToggled()) {
+                        moduleName = moduleName.toLowerCase();
+                    }
+                    int e = Theme.getGradient((int) theme.getInput(), n2);
+                    if (theme.getInput() == 0) {
+                        n2 -= 120;
+                    } else {
+                        n2 -= 12;
+                    }
+                    int n3 = hudX;
+                    if (alignRight.isToggled()) {
+                        n3 -= mc.fontRendererObj.getStringWidth(moduleName);
+                    }
+                    mc.fontRendererObj.drawString(moduleName, n3, (float) n, e, dropShadow.isToggled());
+                    n += mc.fontRendererObj.FONT_HEIGHT + 2;
                 }
-                if (module == ModuleManager.commandLine) {
-                    continue;
-                }
-                String moduleName = module.getName();
-                if (showInfo.isToggled() && !module.getInfo().isEmpty()) {
-                    moduleName += " §7" + module.getInfo();
-                }
-                if (lowercase.isToggled()) {
-                    moduleName = moduleName.toLowerCase();
-                }
-                int e = Theme.getGradient((int) theme.getInput(), n2);
-                if (theme.getInput() == 0) {
-                    n2 -= 120;
-                }
-                else {
-                    n2 -= 12;
-                }
-                int n3 = hudX;
-                if (alignRight.isToggled()) {
-                    n3 -= mc.fontRendererObj.getStringWidth(moduleName);
-                }
-                mc.fontRendererObj.drawString(moduleName, n3, (float) n, e, dropShadow.isToggled());
-                n += mc.fontRendererObj.FONT_HEIGHT + 2;
             }
+        }
+        catch (Exception e) {
+            Utils.sendMessage("&cAn error occurred rendering HUD. check your logs");
+            e.printStackTrace();
         }
     }
 
@@ -142,6 +147,7 @@ public class HUD extends Module {
         int laY = 0;
         int lmX = 0;
         int lmY = 0;
+        int clickMinX = 0;
 
         public void initGui() {
             super.initGui();
@@ -156,16 +162,18 @@ public class HUD extends Module {
             int miY = this.aY;
             int maX = miX + 50;
             int maY = miY + 32;
-            int[] maxPos = this.d(this.mc.fontRendererObj, this.example);
+            int[] clickPos = this.d(this.mc.fontRendererObj, this.example);
             this.miX = miX;
             this.miY = miY;
-            if (maxPos == null) {
+            if (clickPos == null) {
                 this.maX = maX;
                 this.maY = maY;
+                this.clickMinX = miX;
             }
             else {
-                this.maX = maxPos[0];
-                this.maY = maxPos[1];
+                this.maX = clickPos[0];
+                this.maY = clickPos[1];
+                this.clickMinX = clickPos[2];
             }
             HUD.hudX = miX;
             HUD.hudY = miY;
@@ -230,7 +238,7 @@ public class HUD extends Module {
                         n += mc.fontRendererObj.FONT_HEIGHT + 2;
                     }
                 }
-                return new int[]{this.miX + longestModule, n};
+                return new int[]{this.miX + longestModule, n, this.miX - longestModule};
             }
             return null;
         }
@@ -241,7 +249,7 @@ public class HUD extends Module {
                 if (this.d) {
                     this.aX = this.laX + (mX - this.lmX);
                     this.aY = this.laY + (mY - this.lmY);
-                } else if (mX > this.miX && mX < this.maX && mY > this.miY && mY < this.maY) {
+                } else if (mX > this.clickMinX && mX < this.maX && mY > this.miY && mY < this.maY) {
                     this.d = true;
                     this.lmX = mX;
                     this.lmY = mY;

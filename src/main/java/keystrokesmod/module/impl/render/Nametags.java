@@ -25,6 +25,7 @@ public class Nametags extends Module { // skidded from raven source code as well
     private SliderSetting scale;
     private ButtonSetting autoScale;
     private ButtonSetting drawRect;
+    private ButtonSetting dropShadow;
     private ButtonSetting showDistance;
     private ButtonSetting showHealth;
     private ButtonSetting showHitsToKill;
@@ -41,6 +42,7 @@ public class Nametags extends Module { // skidded from raven source code as well
         this.registerSetting(scale = new SliderSetting("Scale", 1.0, 0.5, 5.0, 0.1));
         this.registerSetting(autoScale = new ButtonSetting("Auto-scale", true));
         this.registerSetting(drawRect = new ButtonSetting("Draw rect", true));
+        this.registerSetting(dropShadow = new ButtonSetting("Drop shadow", true));
         this.registerSetting(showDistance = new ButtonSetting("Show distance", false));
         this.registerSetting(showHealth = new ButtonSetting("Show health", true));
         this.registerSetting(showHitsToKill = new ButtonSetting("Show hits to kill", false));
@@ -155,7 +157,7 @@ public class Nametags extends Module { // skidded from raven source code as well
                 getInstance.draw();
             }
             GlStateManager.enableTexture2D();
-            mc.fontRendererObj.drawString(name, -n10, n9, -1);
+            mc.fontRendererObj.drawString(name, -n10, n9, -1, dropShadow.isToggled());
             if (showArmor.isToggled()) {
                 renderArmor(entityPlayer);
             }
@@ -210,7 +212,7 @@ public class Nametags extends Module { // skidded from raven source code as well
         int newYPos = yPos - 24;
         int remainingDurability = stack.getMaxDamage() - stack.getItemDamage();
         if (showDurability.isToggled() && stack.getItem() instanceof ItemArmor) {
-            mc.fontRendererObj.drawStringWithShadow(String.valueOf(remainingDurability), (float) (xPos * 2), (float) yPos, 16777215);
+            mc.fontRendererObj.drawString(String.valueOf(remainingDurability), (float) (xPos * 2), (float) yPos, 16777215, dropShadow.isToggled());
         }
         if (stack.getEnchantmentTagList() != null && stack.getEnchantmentTagList().tagCount() < 6 && showEnchants.isToggled()) {
             if (stack.getItem() instanceof ItemArmor) {
@@ -222,32 +224,32 @@ public class Nametags extends Module { // skidded from raven source code as well
                 int unbreakingLvl = EnchantmentHelper.getEnchantmentLevel(Enchantment.unbreaking.effectId, stack);
 
                 if (protection > 0) {
-                    mc.fontRendererObj.drawStringWithShadow("prot" + protection, (float) (xPos * 2), (float) newYPos, -1);
+                    mc.fontRendererObj.drawString("prot" + protection, (float) (xPos * 2), (float) newYPos, -1, dropShadow.isToggled());
                     newYPos += 8;
                 }
 
                 if (projectileProtection > 0) {
-                    mc.fontRendererObj.drawStringWithShadow("proj" + projectileProtection, (float) (xPos * 2), (float) newYPos, -1);
+                    mc.fontRendererObj.drawString("proj" + projectileProtection, (float) (xPos * 2), (float) newYPos, -1, dropShadow.isToggled());
                     newYPos += 8;
                 }
 
                 if (blastProtectionLvL > 0) {
-                    mc.fontRendererObj.drawStringWithShadow("bp" + blastProtectionLvL, (float) (xPos * 2), (float) newYPos, -1);
+                    mc.fontRendererObj.drawString("bp" + blastProtectionLvL, (float) (xPos * 2), (float) newYPos, -1, dropShadow.isToggled());
                     newYPos += 8;
                 }
 
                 if (fireProtection > 0) {
-                    mc.fontRendererObj.drawStringWithShadow("frp" + fireProtection, (float) (xPos * 2), (float) newYPos, -1);
+                    mc.fontRendererObj.drawString("frp" + fireProtection, (float) (xPos * 2), (float) newYPos, -1, dropShadow.isToggled());
                     newYPos += 8;
                 }
 
                 if (thornsLvl > 0) {
-                    mc.fontRendererObj.drawStringWithShadow("th" + thornsLvl, (float) (xPos * 2), (float) newYPos, -1);
+                    mc.fontRendererObj.drawString("th" + thornsLvl, (float) (xPos * 2), (float) newYPos, -1, dropShadow.isToggled());
                     newYPos += 8;
                 }
 
                 if (unbreakingLvl > 0) {
-                    mc.fontRendererObj.drawStringWithShadow("ub" + unbreakingLvl, (float) (xPos * 2), (float) newYPos, -1);
+                    mc.fontRendererObj.drawString("ub" + unbreakingLvl, (float) (xPos * 2), (float) newYPos, -1, dropShadow.isToggled());
                 }
             }
             else if (stack.getItem() instanceof ItemBow) {
@@ -256,22 +258,22 @@ public class Nametags extends Module { // skidded from raven source code as well
                 int flameLvl = EnchantmentHelper.getEnchantmentLevel(Enchantment.flame.effectId, stack);
                 int unbreakingLvl = EnchantmentHelper.getEnchantmentLevel(Enchantment.unbreaking.effectId, stack);
                 if (powerLvl > 0) {
-                    mc.fontRendererObj.drawStringWithShadow("pow" + powerLvl, (float) (xPos * 2), (float) newYPos, -1);
+                    mc.fontRendererObj.drawString("pow" + powerLvl, (float) (xPos * 2), (float) newYPos, -1, dropShadow.isToggled());
                     newYPos += 8;
                 }
 
                 if (punchLvl > 0) {
-                    mc.fontRendererObj.drawStringWithShadow("pun" + punchLvl, (float) (xPos * 2), (float) newYPos, -1);
+                    mc.fontRendererObj.drawString("pun" + punchLvl, (float) (xPos * 2), (float) newYPos, -1, dropShadow.isToggled());
                     newYPos += 8;
                 }
 
                 if (flameLvl > 0) {
-                    mc.fontRendererObj.drawStringWithShadow("flame" + flameLvl, (float) (xPos * 2), (float) newYPos, -1);
+                    mc.fontRendererObj.drawString("flame" + flameLvl, (float) (xPos * 2), (float) newYPos, -1, dropShadow.isToggled());
                     newYPos += 8;
                 }
 
                 if (unbreakingLvl > 0) {
-                    mc.fontRendererObj.drawStringWithShadow("ub" + unbreakingLvl, (float) (xPos * 2), (float) newYPos, -1);
+                    mc.fontRendererObj.drawString("ub" + unbreakingLvl, (float) (xPos * 2), (float) newYPos, -1, dropShadow.isToggled());
                 }
             }
             else if (stack.getItem() instanceof ItemSword) {
@@ -280,22 +282,22 @@ public class Nametags extends Module { // skidded from raven source code as well
                 int fireAspectLvl = EnchantmentHelper.getEnchantmentLevel(Enchantment.fireAspect.effectId, stack);
                 int unbreakingLvl = EnchantmentHelper.getEnchantmentLevel(Enchantment.unbreaking.effectId, stack);
                 if (sharpnessLvl > 0) {
-                    mc.fontRendererObj.drawStringWithShadow("sh" + sharpnessLvl, (float) (xPos * 2), (float) newYPos, -1);
+                    mc.fontRendererObj.drawString("sh" + sharpnessLvl, (float) (xPos * 2), (float) newYPos, -1, dropShadow.isToggled());
                     newYPos += 8;
                 }
 
                 if (knockbackLvl > 0) {
-                    mc.fontRendererObj.drawStringWithShadow("kb" + knockbackLvl, (float) (xPos * 2), (float) newYPos, -1);
+                    mc.fontRendererObj.drawString("kb" + knockbackLvl, (float) (xPos * 2), (float) newYPos, -1, dropShadow.isToggled());
                     newYPos += 8;
                 }
 
                 if (fireAspectLvl > 0) {
-                    mc.fontRendererObj.drawStringWithShadow("fire" + fireAspectLvl, (float) (xPos * 2), (float) newYPos, -1);
+                    mc.fontRendererObj.drawString("fire" + fireAspectLvl, (float) (xPos * 2), (float) newYPos, -1, dropShadow.isToggled());
                     newYPos += 8;
                 }
 
                 if (unbreakingLvl > 0) {
-                    mc.fontRendererObj.drawStringWithShadow("ub" + unbreakingLvl, (float) (xPos * 2), (float) newYPos, -1);
+                    mc.fontRendererObj.drawString("ub" + unbreakingLvl, (float) (xPos * 2), (float) newYPos, -1, dropShadow.isToggled());
                 }
             }
             else if (stack.getItem() instanceof ItemTool) {
@@ -304,27 +306,27 @@ public class Nametags extends Module { // skidded from raven source code as well
                 int fortuneLvl = EnchantmentHelper.getEnchantmentLevel(Enchantment.fortune.effectId, stack);
                 int silkTouchLvl = EnchantmentHelper.getEnchantmentLevel(Enchantment.silkTouch.effectId, stack);
                 if (efficiencyLvl > 0) {
-                    mc.fontRendererObj.drawStringWithShadow("eff" + efficiencyLvl, (float) (xPos * 2), (float) newYPos, -1);
+                    mc.fontRendererObj.drawString("eff" + efficiencyLvl, (float) (xPos * 2), (float) newYPos, -1, dropShadow.isToggled());
                     newYPos += 8;
                 }
 
                 if (fortuneLvl > 0) {
-                    mc.fontRendererObj.drawStringWithShadow("fo" + fortuneLvl, (float) (xPos * 2), (float) newYPos, -1);
+                    mc.fontRendererObj.drawString("fo" + fortuneLvl, (float) (xPos * 2), (float) newYPos, -1, dropShadow.isToggled());
                     newYPos += 8;
                 }
 
                 if (silkTouchLvl > 0) {
-                    mc.fontRendererObj.drawStringWithShadow("silk" + silkTouchLvl, (float) (xPos * 2), (float) newYPos, -1);
+                    mc.fontRendererObj.drawString("silk" + silkTouchLvl, (float) (xPos * 2), (float) newYPos, -1, dropShadow.isToggled());
                     newYPos += 8;
                 }
 
                 if (unbreakingLvl > 0) {
-                    mc.fontRendererObj.drawStringWithShadow("ub" + unbreakingLvl, (float) (xPos * 2), (float) newYPos, -1);
+                    mc.fontRendererObj.drawString("ub" + unbreakingLvl, (float) (xPos * 2), (float) newYPos, -1, dropShadow.isToggled());
                 }
             }
         }
         if (showStackSize.isToggled() && !(stack.getItem() instanceof ItemSword) && !(stack.getItem() instanceof ItemBow) && !(stack.getItem() instanceof ItemTool) && !(stack.getItem() instanceof ItemArmor)) {
-            mc.fontRendererObj.drawStringWithShadow(stack.stackSize + "x", (float) (xPos * 2), (float) yPos, -1);
+            mc.fontRendererObj.drawString(stack.stackSize + "x", (float) (xPos * 2), (float) yPos, -1, dropShadow.isToggled());
         }
     }
 }

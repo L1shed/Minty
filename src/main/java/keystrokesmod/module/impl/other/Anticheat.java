@@ -1,6 +1,7 @@
 package keystrokesmod.module.impl.other;
 
 import keystrokesmod.module.Module;
+import keystrokesmod.module.impl.world.AntiBot;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
@@ -10,14 +11,11 @@ import keystrokesmod.utility.Utils;
 import net.minecraft.block.BlockAir;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.event.ClickEvent;
-import net.minecraft.event.HoverEvent;
 import net.minecraft.item.ItemBlock;
-import net.minecraft.network.play.client.C03PacketPlayer;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatStyle;
 import net.minecraft.util.IChatComponent;
-import net.minecraftforge.event.ServerChatEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -25,14 +23,14 @@ import java.util.HashMap;
 import java.util.UUID;
 
 public class Anticheat extends Module {
-    private DescriptionSetting description;
     private SliderSetting interval;
     private ButtonSetting enemyAdd;
+    private ButtonSetting autoReport;
     private ButtonSetting ignoreTeammates;
     private ButtonSetting atlasSuspect;
     private ButtonSetting shouldPing;
-    private DescriptionSetting description2;
     private ButtonSetting autoBlock;
+    private ButtonSetting noFall;
     private ButtonSetting noSlow;
     private ButtonSetting scaffold;
     private ButtonSetting legitScaffold;
@@ -41,14 +39,16 @@ public class Anticheat extends Module {
     private long lastAlert;
     public Anticheat() {
         super("Anticheat", category.other);
-        this.registerSetting(description = new DescriptionSetting("Tries to detect cheaters."));
+        this.registerSetting(new DescriptionSetting("Tries to detect cheaters."));
         this.registerSetting(interval = new SliderSetting("Flag interval", 20.0, 0.0, 60.0, 1.0, " second"));
         this.registerSetting(enemyAdd = new ButtonSetting("Add cheaters as enemy", false));
+        this.registerSetting(autoReport = new ButtonSetting("Auto report", false));
         this.registerSetting(ignoreTeammates = new ButtonSetting("Ignore teammates", false));
         this.registerSetting(atlasSuspect = new ButtonSetting("Only atlas suspect", false));
         this.registerSetting(shouldPing = new ButtonSetting("Should ping", true));
-        this.registerSetting(description2 = new DescriptionSetting("Detected cheats"));
+        this.registerSetting(new DescriptionSetting("Detected cheats"));
         this.registerSetting(autoBlock = new ButtonSetting("Autoblock", true));
+        this.registerSetting(noFall = new ButtonSetting("NoFall", true));
         this.registerSetting(noSlow = new ButtonSetting("NoSlow", true));
         this.registerSetting(scaffold = new ButtonSetting("Scaffold", true));
         this.registerSetting(legitScaffold = new ButtonSetting("Legit scaffold", true));
@@ -90,6 +90,9 @@ public class Anticheat extends Module {
             mc.thePlayer.playSound("note.pling", 1.0f, 1.0f);
             lastAlert = currentTimeMillis;
         }
+        if (autoReport.isToggled()) {
+            mc.thePlayer.sendChatMessage("/wdr " + Utils.stripColor(entityPlayer.getGameProfile().getName()));
+        }
     }
 
     public void onUpdate() {
@@ -103,12 +106,16 @@ public class Anticheat extends Module {
             if (entityPlayer == mc.thePlayer) {
                 continue;
             }
+            if (AntiBot.isBot(entityPlayer)) {
+                continue;
+            }
             PlayerData data = players.get(entityPlayer.getUniqueID());
             if (data == null) {
                 data = new PlayerData();
             }
             data.update(entityPlayer);
             this.performCheck(entityPlayer, data);
+            data.updateServerPos(entityPlayer);
             data.updateSneak(entityPlayer);
             players.put(entityPlayer.getUniqueID(), data);
         }
@@ -128,31 +135,45 @@ public class Anticheat extends Module {
         lastAlert = 0L;
     }
 
-    private void performCheck(EntityPlayer entityPlayer, PlayerData ej) {
-        if (autoBlock.isToggled() && ej.d >= 10) {
+    private void performCheck(EntityPlayer entityPlayer, PlayerData playerData) {
+        if (autoBlock.isToggled() && playerData.autoBlockTicks >= 10) {
             alert(entityPlayer, autoBlock);
             return;
         }
-        if (legitScaffold.isToggled() && ej.h >= 3) {
+        if (legitScaffold.isToggled() && playerData.sneakTicks >= 3) {
             alert(entityPlayer, legitScaffold);
             return;
         }
-        if (noSlow.isToggled() && ej.i >= 11 && ej.a >= 0.08) {
+        if (noSlow.isToggled() && playerData.noSlowTicks >= 11 && playerData.speed >= 0.08) {
             alert(entityPlayer, noSlow);
             return;
         }
-        if (scaffold.isToggled() && entityPlayer.isSwingInProgress && entityPlayer.rotationPitch >= 70.0f && entityPlayer.getHeldItem() != null && entityPlayer.getHeldItem().getItem() instanceof ItemBlock && ej.c >= 20 && entityPlayer.ticksExisted - ej.f >= 30 && entityPlayer.ticksExisted - ej.b >= 20) {
-            boolean b = true;
+        if (scaffold.isToggled() && entityPlayer.isSwingInProgress && entityPlayer.rotationPitch >= 70.0f && entityPlayer.getHeldItem() != null && entityPlayer.getHeldItem().getItem() instanceof ItemBlock && playerData.fastTick >= 20 && entityPlayer.ticksExisted - playerData.lastSneakTick >= 30 && entityPlayer.ticksExisted - playerData.aboveVoidTicks >= 20) {
+            boolean overAir = true;
             BlockPos blockPos = entityPlayer.getPosition().down(2);
             for (int i = 0; i < 4; ++i) {
                 if (!(BlockUtils.getBlock(blockPos) instanceof BlockAir)) {
-                    b = false;
+                    overAir = false;
                     break;
                 }
                 blockPos = blockPos.down();
             }
-            if (b) {
+            if (overAir) {
                 alert(entityPlayer, scaffold);
+                return;
+            }
+        }
+        if (noFall.isToggled() && !entityPlayer.capabilities.isFlying) {
+            double serverPosX = entityPlayer.serverPosX / 32;
+            double serverPosY = entityPlayer.serverPosY / 32;
+            double serverPosZ= entityPlayer.serverPosZ / 32;
+            double deltaX = Math.abs(playerData.serverPosX - serverPosX);
+            double deltaY = playerData.serverPosY - serverPosY;
+            double deltaZ = Math.abs(playerData.serverPosZ - serverPosZ);
+            if (deltaY >= 5 && deltaX <= 10 && deltaZ <= 10 && deltaY <= 40) {
+                if (!Utils.overVoid(serverPosX, serverPosY, serverPosZ) && Utils.getFallDistance(entityPlayer) > 3) {
+                    alert(entityPlayer, noFall);
+                }
             }
         }
     }
