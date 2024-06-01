@@ -262,7 +262,7 @@ public class KillAura extends Module {
         setTarget(new float[]{e.getYaw(), e.getPitch()});
         if (target != null && rotationMode.getInput() == 1) {
             float[] rotations = RotationUtils.getRotations(target, e.getYaw(), e.getPitch());
-            if (rotationSmoothing.getInput() > 0) {
+            if (rotationSmoothing.getInput() >= 4) {
                 if (!startSmoothing) {
                     prevRotations = new float[]{mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch};
                     startSmoothing = true;
@@ -270,6 +270,12 @@ public class KillAura extends Module {
                 float[] speed = new float[]{(float) ((rotations[0] - prevRotations[0]) / ((rotationSmoothing.getInput()) * 0.262843)), (float) ((rotations[1] - prevRotations[1]) / ((rotationSmoothing.getInput()) * 0.1637))};
                 prevRotations[0] += speed[0];
                 prevRotations[1] += speed[1];
+                if (prevRotations[1] > 90) {
+                    prevRotations[1] = 90;
+                }
+                else if (prevRotations[1] < -90) {
+                    prevRotations[1] = -90;
+                }
                 e.setYaw(prevRotations[0]);
                 e.setPitch(prevRotations[1]);
             }
@@ -355,7 +361,7 @@ public class KillAura extends Module {
     }
 
     private boolean aimingEntity() {
-        if (rotationMode.getInput() > 0 && rotationSmoothing.getInput() > 0) {
+        if (rotationMode.getInput() > 0 && ((rotationSmoothing.getInput() >= 4 && rotationMode.getInput() == 1) || rotationSmoothing.getInput() > 0)) {
             Object[] raycast = Reach.getEntity(attackRange.getInput(), 0, rotationMode.getInput() == 1 ? prevRotations : null);
             if (raycast == null || raycast[0] != target) {
                 return false;
@@ -636,7 +642,7 @@ public class KillAura extends Module {
                 }
                 break;
             case 1:
-                if (rotationSmoothing.getInput() != 0) {
+                if ((rotationSmoothing.getInput() >= 4 && rotationMode.getInput() == 1) || rotationSmoothing.getInput() > 0) {
                     return RotationUtils.rayCast(attackRange.getInput(), prevRotations != null ? prevRotations[0] : mc.thePlayer.rotationYaw, prevRotations != null ? prevRotations[1] : mc.thePlayer.rotationPitch) != null;
                 }
                 return RotationUtils.rayCast(attackRange.getInput(), rotations[0], rotations[1]) != null;

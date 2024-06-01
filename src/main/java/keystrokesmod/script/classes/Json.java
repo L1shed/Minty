@@ -61,6 +61,9 @@ public class Json {
 
     public List<Json> array(String name) {
         List<Json> list = new ArrayList<>();
+        if (this.jsonObject.getAsJsonArray(name) == null) {
+            return list;
+        }
         for (JsonElement element : this.jsonObject.getAsJsonArray(name)) {
             list.add(new Json(element.getAsJsonObject(), 0));
         }
