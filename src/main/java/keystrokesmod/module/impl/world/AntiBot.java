@@ -1,24 +1,25 @@
 package keystrokesmod.module.impl.world;
 
+import com.mojang.authlib.GameProfile;
+import keystrokesmod.Raven;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.player.Freecam;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
-import keystrokesmod.utility.Utils;
 import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class AntiBot extends Module {
-    private static final HashMap<EntityPlayer, Long> entities = new HashMap();
+    private static final HashMap<EntityPlayer, Long> entities = new HashMap<>();
     private static ButtonSetting entitySpawnDelay;
     private static SliderSetting delay;
     private static ButtonSetting tablist;
@@ -98,14 +99,11 @@ public class AntiBot extends Module {
         return false;
     }
 
-    private static List<String> getTablist() {
-        List<String> tab = new ArrayList<>();
-        for (NetworkPlayerInfo networkPlayerInfo : Utils.getTablist()) {
-            if (networkPlayerInfo == null) {
-                continue;
-            }
-            tab.add(networkPlayerInfo.getGameProfile().getName());
-        }
-        return tab;
+    private static @NotNull List<String> getTablist() {
+        return Raven.mc.getNetHandler().getPlayerInfoMap().stream()
+                .map(NetworkPlayerInfo::getGameProfile)
+                .filter(profile -> profile.getId() != Raven.mc.thePlayer.getUniqueID())
+                .map(GameProfile::getName)
+                .collect(Collectors.toList());
     }
 }

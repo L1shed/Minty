@@ -97,6 +97,7 @@ public class CheckManager {
         }
 
         if (player.currentGameType == WorldSettings.GameType.CREATIVE || player.currentGameType == WorldSettings.GameType.SPECTATOR) return;
+        if (player.fabricPlayer.capabilities.isFlying) return;  // bro 1.8.9 is soooooooo special
         if (player.lastOnGround && !player.currentOnGround) onJump();
 
         if (EntityUtils.isOnPlaceBlock(player))
