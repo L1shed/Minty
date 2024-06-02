@@ -128,6 +128,10 @@ public abstract class MixinEntity {
     @Shadow
     public float rotationYaw;
 
+    /**
+     * @author strangerrs
+     * @reason mixin
+     */
     @Overwrite
     public void moveEntity(double x, double y, double z) {
         if (this.noClip) {

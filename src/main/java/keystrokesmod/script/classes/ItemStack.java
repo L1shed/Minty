@@ -1,11 +1,15 @@
 package keystrokesmod.script.classes;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
 public class ItemStack {
+    public static final ItemStack EMPTY = new ItemStack(null);
+
     public String type;
     public String name;
     public String displayName;
@@ -40,8 +44,20 @@ public class ItemStack {
 
     public static ItemStack convert(net.minecraft.item.ItemStack itemStack) {
         if (itemStack == null) {
-            return null;
+            return EMPTY;
         }
         return new ItemStack(itemStack);
+    }
+
+    public boolean is(Item item) {
+        return this.itemStack.getItem() == item;
+    }
+
+    public boolean is(@NotNull ItemStack itemStack) {
+        return is(itemStack.itemStack.getItem());
+    }
+
+    public int getCount() {
+        return itemStack.stackSize;
     }
 }
