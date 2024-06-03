@@ -1,4 +1,4 @@
-package keystrokesmod.module.impl.player;
+package keystrokesmod.module.impl.world;
 
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ButtonSetting;
@@ -18,7 +18,7 @@ public class AutoTool extends Module {
     private int ticksHovered;
     private BlockPos currentBlock;
     public AutoTool() {
-        super("AutoTool", category.player);
+        super("AutoTool", category.world);
         this.registerSetting(hoverDelay = new SliderSetting("Hover delay", 0.0, 0.0, 20.0, 1.0));
         this.registerSetting(rightDisable = new ButtonSetting("Disable while right click", true));
         this.registerSetting(requireMouse = new ButtonSetting("Require mouse down", true));

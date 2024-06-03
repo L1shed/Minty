@@ -1,8 +1,9 @@
-package keystrokesmod.module.impl.player;
+package keystrokesmod.module.impl.world;
 
 import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.event.PreUpdateEvent;
 import keystrokesmod.module.Module;
+import keystrokesmod.module.impl.player.InvManager;
 import keystrokesmod.module.impl.render.HUD;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
@@ -54,7 +55,7 @@ public class Scaffold extends Module { // from b4 :)
     private boolean down;
     private int add;
     public Scaffold() {
-        super("Scaffold", category.player);
+        super("Scaffold", category.world);
         this.registerSetting(motion = new SliderSetting("Motion", 1.0, 0.5, 1.2, 0.01));
         this.registerSetting(rotation = new SliderSetting("Rotation", rotationModes, 1));
         this.registerSetting(fastScaffold = new SliderSetting("Fast scaffold", fastScaffoldModes, 0));

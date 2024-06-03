@@ -1,4 +1,4 @@
-package keystrokesmod.module.impl.player;
+package keystrokesmod.module.impl.world;
 
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
@@ -17,7 +17,7 @@ public class FastPlace extends Module {
     public ButtonSetting blocksOnly, pitchCheck;
 
     public FastPlace() {
-        super("FastPlace", Module.category.player, 0);
+        super("FastPlace", Module.category.world, 0);
         this.registerSetting(tickDelay = new SliderSetting("Tick delay", 1.0, 1.0, 3.0, 1.0));
         this.registerSetting(blocksOnly = new ButtonSetting("Blocks only", true));
         this.registerSetting(pitchCheck = new ButtonSetting("Pitch check", false));

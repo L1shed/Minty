@@ -1,4 +1,4 @@
-package keystrokesmod.module.impl.player;
+package keystrokesmod.module.impl.world;
 
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ButtonSetting;
@@ -21,7 +21,7 @@ public class FastMine extends Module { // from b4 src
     private String[] modes = new String[]{"Pre", "Post", "Increment"};
 
     public FastMine() {
-        super("FastMine", category.player);
+        super("FastMine", category.world);
         this.registerSetting(description = new DescriptionSetting("Default is 5 delay & 1x speed."));
         this.registerSetting(delay = new SliderSetting("Break delay ticks", 5.0, 0.0, 5.0, 1.0));
         this.registerSetting(multiplier = new SliderSetting("Break speed multiplier", 1.0, 1.0, 2.0, 0.02, "x"));

@@ -14,13 +14,12 @@ import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
 import net.minecraft.network.play.server.S12PacketEntityVelocity;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import org.jetbrains.annotations.NotNull;
 
 public class LongJump extends Module {
     private final SliderSetting mode;
     private final SliderSetting horizontalBoost;
-    private final SliderSetting verticalMotion;
     private final SliderSetting motionTicks;
-    private final ButtonSetting addMotion;
     private final ButtonSetting invertYaw;
     private final ButtonSetting jump;
     private int lastSlot = -1;
@@ -35,15 +34,13 @@ public class LongJump extends Module {
         super("Long Jump", category.movement);
         this.registerSetting(mode = new SliderSetting("Mode", new String[]{"Fireball", "Fireball Auto"}, 0));
         this.registerSetting(horizontalBoost = new SliderSetting("Horizontal boost", 1.7, 0.0, 8.0, 0.1));
-        this.registerSetting(verticalMotion = new SliderSetting("Vertical motion", 0, 0.0, 1.0, 0.01));
         this.registerSetting(motionTicks = new SliderSetting("Motion ticks", 10, 1, 40, 1));
-        this.registerSetting(addMotion = new ButtonSetting("Add motion", false));
         this.registerSetting(invertYaw = new ButtonSetting("Invert yaw", true));
         this.registerSetting(jump = new ButtonSetting("Jump", false));
     }
 
     @SubscribeEvent
-    public void onSendPacket(SendPacketEvent e) {
+    public void onSendPacket(@NotNull SendPacketEvent e) {
         if (e.getPacket() instanceof C08PacketPlayerBlockPlacement && ((C08PacketPlayerBlockPlacement) e.getPacket()).getStack() != null && ((C08PacketPlayerBlockPlacement) e.getPacket()).getStack().getItem() instanceof ItemFireball) {
             threw = true;
             if (mc.thePlayer.onGround && jump.isToggled()) {
@@ -53,7 +50,7 @@ public class LongJump extends Module {
     }
 
     @SubscribeEvent
-    public void onReceivePacket(ReceivePacketEvent e) {
+    public void onReceivePacket(@NotNull ReceivePacketEvent e) {
         if (e.getPacket() instanceof S12PacketEntityVelocity && Utils.nullCheck()) {
             if (((S12PacketEntityVelocity) e.getPacket()).getEntityID() == mc.thePlayer.getEntityId() && threw) {
                 ticks = 0;
@@ -144,9 +141,7 @@ public class LongJump extends Module {
     }
 
     private void setSpeed() {
-        if (verticalMotion.getInput() != 0.0 && addMotion.isToggled()) {
-            mc.thePlayer.motionY = verticalMotion.getInput();
-        }
+        mc.thePlayer.motionY = 0.0;
         if (horizontalBoost.getInput() != 0.0) {
             Utils.setSpeed(horizontalBoost.getInput());
         }

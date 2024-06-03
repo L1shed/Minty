@@ -5,7 +5,7 @@ import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.event.PrePlayerInput;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.client.Settings;
-import keystrokesmod.module.impl.player.SafeWalk;
+import keystrokesmod.module.impl.world.SafeWalk;
 import keystrokesmod.utility.RotationUtils;
 import keystrokesmod.utility.Utils;
 import net.minecraft.block.Block;

@@ -15,7 +15,6 @@ import keystrokesmod.utility.Utils;
 import keystrokesmod.utility.profile.Manager;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 

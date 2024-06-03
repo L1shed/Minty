@@ -1,4 +1,4 @@
-package keystrokesmod.module.impl.player;
+package keystrokesmod.module.impl.world;
 
 import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.module.Module;
@@ -22,11 +22,11 @@ public class Tower extends Module {
     private int slowTicks;
     private boolean wasTowering;
     public Tower() {
-        super("Tower", category.player);
+        super("Tower", category.world);
         this.registerSetting(new DescriptionSetting("Works with Safewalk & Scaffold"));
         String[] modes = new String[]{"Vanilla", "Hypixel"};
         this.registerSetting(mode = new SliderSetting("Mode", modes, 0));
-        this.registerSetting(speed = new SliderSetting("Speed", 5, 0.5, 9, 0.01));
+        this.registerSetting(speed = new SliderSetting("Speed", 0.9, 0.5, 1, 0.01));
         this.registerSetting(diagonalSpeed = new SliderSetting("Diagonal speed", 5, 0, 10, 0.1));
         this.registerSetting(slowedSpeed = new SliderSetting("Slowed speed", 2, 0, 9, 0.1));
         this.registerSetting(slowedTicks = new SliderSetting("Slowed ticks", 1, 0, 20, 1));

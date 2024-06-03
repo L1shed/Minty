@@ -1,4 +1,4 @@
-package keystrokesmod.module.impl.player;
+package keystrokesmod.module.impl.world;
 
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
@@ -22,7 +22,7 @@ public class SafeWalk extends Module {
     private long b = 0L;
 
     public SafeWalk() {
-        super("SafeWalk", Module.category.player, 0);
+        super("SafeWalk", Module.category.world, 0);
         this.registerSetting(shiftDelay = new SliderSetting("Delay until next shift", 0.0, 0.0, 800.0, 10.0));
         this.registerSetting(motion = new SliderSetting("Motion", 1.0, 0.5, 1.2, 0.01));
         this.registerSetting(blocksOnly = new ButtonSetting("Blocks only", true));

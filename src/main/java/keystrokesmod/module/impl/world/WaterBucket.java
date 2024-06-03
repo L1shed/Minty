@@ -1,4 +1,4 @@
-package keystrokesmod.module.impl.player;
+package keystrokesmod.module.impl.world;
 
 import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.module.Module;
@@ -19,7 +19,7 @@ public class WaterBucket extends Module {
     private ButtonSetting switchToItem;
 
     public WaterBucket() {
-        super("Water bucket", category.player, 0);
+        super("Water bucket", category.world, 0);
         //this.registerSetting(pickup = new ButtonSetting("Pickup water", true));
         this.registerSetting(silentAim = new ButtonSetting("Silent aim", true));
         this.registerSetting(switchToItem = new ButtonSetting("Switch to item", true));

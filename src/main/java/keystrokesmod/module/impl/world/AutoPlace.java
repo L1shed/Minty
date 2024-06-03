@@ -1,4 +1,4 @@
-package keystrokesmod.module.impl.player;
+package keystrokesmod.module.impl.world;
 
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
@@ -36,7 +36,7 @@ public class AutoPlace extends Module {
     private BlockPos lp = null;
 
     public AutoPlace() {
-        super("AutoPlace", Module.category.player, 0);
+        super("AutoPlace", category.world, 0);
         this.registerSetting(description = new DescriptionSetting("Best with safewalk."));
         this.registerSetting(frameDelay = new SliderSetting("Frame delay", 8.0D, 0.0D, 30.0D, 1.0D));
         this.registerSetting(minPlaceDelay = new SliderSetting("Min place delay", 60.0, 25.0, 500.0, 5.0));

@@ -1,4 +1,4 @@
-package keystrokesmod.module.impl.player;
+package keystrokesmod.module.impl.world;
 
 import keystrokesmod.Raven;
 import keystrokesmod.event.PostUpdateEvent;
@@ -71,7 +71,7 @@ public class BedAura extends Module {
     private int defaultOutlineColor = new Color(226, 65, 65).getRGB();
 
     public BedAura() {
-        super("BedAura", category.player, 0);
+        super("BedAura", category.world, 0);
         this.registerSetting(mode = new SliderSetting("Break mode", modes, 0));
         this.registerSetting(breakSpeed = new SliderSetting("Break speed", 1, 0.8, 2, 0.01, "x"));
         this.registerSetting(fov = new SliderSetting("FOV", 360.0, 30.0, 360.0, 4.0));
