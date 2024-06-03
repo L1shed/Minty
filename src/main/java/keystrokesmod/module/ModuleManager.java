@@ -184,7 +184,7 @@ public class ModuleManager {
         if (HUD.alphabeticalSort.isToggled()) {
             organizedModules.sort(Comparator.comparing(Module::getName));
         } else {
-            organizedModules.sort((o1, o2) -> Utils.mc.fontRendererObj.getStringWidth(o2.getName() + (HUD.showInfo.isToggled() ? " " + o2.getInfo() : "")) - Utils.mc.fontRendererObj.getStringWidth(o1.getName() + (HUD.showInfo.isToggled() ? " " + o1.getInfo() : "")));
+            organizedModules.sort((o1, o2) -> Utils.mc.fontRendererObj.getStringWidth(o2.getName() + ((HUD.showInfo.isToggled() && !o2.getInfo().isEmpty()) ? " " + o2.getInfo() : "")) - Utils.mc.fontRendererObj.getStringWidth(o1.getName() + (HUD.showInfo.isToggled() && !(o1.getInfo().isEmpty()) ? " " + o1.getInfo() : "")));
         }
     }
 }
