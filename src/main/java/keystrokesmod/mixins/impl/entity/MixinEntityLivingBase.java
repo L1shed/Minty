@@ -14,9 +14,11 @@ import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeHooks;
+import net.minecraftforge.common.MinecraftForge;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -29,16 +31,17 @@ public abstract class MixinEntityLivingBase extends Entity {
         super(worldIn);
     }
 
-    private final Map<Integer, PotionEffect> activePotionsMap = Maps.<Integer, PotionEffect>newHashMap();
+    @Unique
+    private final Map<Integer, PotionEffect> raven_bS$activePotionsMap = Maps.<Integer, PotionEffect>newHashMap();
 
     @Shadow
     public PotionEffect getActivePotionEffect(Potion potionIn) {
-        return (PotionEffect) this.activePotionsMap.get(Integer.valueOf(potionIn.id));
+        return (PotionEffect) this.raven_bS$activePotionsMap.get(Integer.valueOf(potionIn.id));
     }
 
     @Shadow
     public boolean isPotionActive(Potion potionIn) {
-        return this.activePotionsMap.containsKey(Integer.valueOf(potionIn.id));
+        return this.raven_bS$activePotionsMap.containsKey(Integer.valueOf(potionIn.id));
     }
 
     @Shadow
@@ -50,6 +53,10 @@ public abstract class MixinEntityLivingBase extends Entity {
     @Shadow
     public float swingProgress;
 
+    /**
+     * @author strangerrs
+     * @reason mixin func110146f
+     */
     @Overwrite
     protected float func_110146_f(float p_1101461, float p_1101462) {
         float rotationYaw = this.rotationYaw;
@@ -91,10 +98,14 @@ public abstract class MixinEntityLivingBase extends Entity {
         return 0.42F;
     }
 
+    /**
+     * @author strangerrs
+     * @reason mixin jump
+     */
     @Overwrite
     protected void jump() {
         JumpEvent jumpEvent = new JumpEvent(this.getJumpUpwardsMotion(), this.rotationYaw);
-        net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(jumpEvent);
+        MinecraftForge.EVENT_BUS.post(jumpEvent);
         if (jumpEvent.isCanceled()) {
             return;
         }

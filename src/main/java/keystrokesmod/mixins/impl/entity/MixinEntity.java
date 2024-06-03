@@ -420,6 +420,10 @@ public abstract class MixinEntity {
         }
     }
 
+    /**
+     * @author strangerrs
+     * @reason moveFlying mixin
+     */
     @Overwrite
     public void moveFlying(float p_moveFlying_1_, float p_moveFlying_2_, float p_moveFlying_3_) {
         float yaw = this.rotationYaw;

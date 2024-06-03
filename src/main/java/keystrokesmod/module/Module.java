@@ -173,8 +173,10 @@ public class Module {
     public void toggle() {
         if (this.isEnabled()) {
             this.disable();
+            mc.thePlayer.playSound("keystrokesmod.toggle.disable", 1, 1);
         } else {
             this.enable();
+            mc.thePlayer.playSound("keystrokesmod.toggle.enable", 1, 1);
         }
 
     }

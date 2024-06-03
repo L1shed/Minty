@@ -16,6 +16,7 @@ import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.entity.projectile.EntityArrow;
 import net.minecraft.inventory.*;
 import net.minecraft.network.play.client.C02PacketUseEntity;
+import net.minecraft.network.play.client.C03PacketPlayer;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.MouseEvent;
@@ -50,6 +51,7 @@ public class Reflection {
     public static Field S08PacketPlayerPosLookYaw;
     public static Field S08PacketPlayerPosLookPitch;
     public static Field C02PacketUseEntityEntityId;
+    public static Field C03PacketPlayerOnGround;
     public static Field bookContents;
     public static HashMap<Class, Field> containerInventoryPlayer = new HashMap<>();
     private static List<Class> containerClasses = new ArrayList<>();
@@ -136,6 +138,11 @@ public class Reflection {
             C02PacketUseEntityEntityId = ReflectionHelper.findField(C02PacketUseEntity.class, "entityId", "field_149567_a");
             if (C02PacketUseEntityEntityId != null) {
                 C02PacketUseEntityEntityId.setAccessible(true);
+            }
+
+            C03PacketPlayerOnGround = ReflectionHelper.findField(C03PacketPlayer.class, "onGround", "field_149474_g");
+            if (C03PacketPlayerOnGround != null) {
+                C03PacketPlayerOnGround.setAccessible(true);
             }
 
             bookContents = ReflectionHelper.findField(GuiScreenBook.class, "field_175386_A");

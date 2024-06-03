@@ -10,17 +10,15 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class AimB extends Check {
-    public static final Set<Integer> STEP = new HashSet<>();
+    public static final Set<Integer> YAW_STEP = new HashSet<>();
+    public static final Set<Integer> PITCH_STEP = new HashSet<>();
     public AimB(@NotNull TRPlayer player) {
         super("AimB", player);
-        STEP.add(25);
-        STEP.add(40);
-        STEP.add(45);
-        STEP.add(60);
-        STEP.add(90);
-        STEP.add(120);
-        STEP.add(135);
-        STEP.add(180);
+        YAW_STEP.add(90);
+        PITCH_STEP.add(90);
+        YAW_STEP.add(135);
+        PITCH_STEP.add(135);
+        YAW_STEP.add(180);
     }
 
     @Override
@@ -28,16 +26,19 @@ public class AimB extends Check {
         boolean flagPitch = false;
         boolean flagYaw = false;
         float stepPitch = 0, stepYaw = 0;
-        for (int step : STEP) {
+        for (int step : PITCH_STEP) {
             if (Math.abs(Math.abs(player.lastRot.x - player.currentRot.x) - step) < AdvancedConfig.aimBMinDiffPitch) {
                 flagPitch = true;
                 stepPitch = player.lastRot.x - player.currentRot.x;
+                break;
             }
+        }
+        for (int step : YAW_STEP) {
             if (Math.abs(Math.abs(player.lastRot.y - player.currentRot.y) - step) < AdvancedConfig.aimBMinDiffYaw) {
                 flagYaw = true;
                 stepYaw = player.lastRot.y - player.currentRot.y;
+                break;
             }
-            if (flagPitch && flagYaw) break;
         }
 
         if (flagPitch && flagYaw) {
@@ -45,7 +46,7 @@ public class AimB extends Check {
         } else if (flagPitch) {
             flag(String.format("perfect pitch step aim. deltaPitch: %.1f", stepPitch));
         } else if (flagYaw) {
-            flag(String.format("perfect pitch step aim. deltaYaw: %.1f", stepYaw));
+            flag(String.format("perfect yaw step aim. deltaYaw: %.1f", stepYaw));
         }
     }
 

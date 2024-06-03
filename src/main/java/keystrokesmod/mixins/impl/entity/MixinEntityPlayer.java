@@ -3,7 +3,6 @@ package keystrokesmod.mixins.impl.entity;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.combat.Reduce;
 import keystrokesmod.module.impl.movement.KeepSprint;
-import net.minecraft.client.Minecraft;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.*;
 import net.minecraft.entity.boss.EntityDragonPart;
@@ -58,6 +57,10 @@ public abstract class MixinEntityPlayer extends EntityLivingBase {
     @Shadow
     public abstract boolean isUsingItem();
 
+    /**
+     * @author strangerrrs
+     * @reason mixin attack target entity with current item
+     */
     @Overwrite
     public void attackTargetEntityWithCurrentItem(Entity p_attackTargetEntityWithCurrentItem_1_) {
         if (ForgeHooks.onPlayerAttackTarget(((EntityPlayer) (Object) this), p_attackTargetEntityWithCurrentItem_1_)) {
@@ -169,10 +172,14 @@ public abstract class MixinEntityPlayer extends EntityLivingBase {
         }
     }
 
+    /**
+     * @author strangerrrs
+     * @reason mixin isBlocking
+     */
     @Overwrite
     public boolean isBlocking() {
-        if (ModuleManager.killAura != null && ModuleManager.killAura.isEnabled() && ModuleManager.killAura.block.get() && ((Object) this) == Minecraft.getMinecraft().thePlayer && (!ModuleManager.killAura.manualBlock.isToggled() || ModuleManager.killAura.rmbDown)) {
-            return true;
+        if (ModuleManager.killAura != null && ModuleManager.killAura.isEnabled()) {
+            ModuleManager.killAura.block.get();
         }
         return this.isUsingItem() && this.itemInUse.getItem().getItemUseAction(this.itemInUse) == EnumAction.BLOCK;
     }

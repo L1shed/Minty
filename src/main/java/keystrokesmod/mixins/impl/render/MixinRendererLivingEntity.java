@@ -13,12 +13,14 @@ import net.minecraft.client.renderer.entity.RendererLivingEntity;
 import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import org.jetbrains.annotations.NotNull;
 import org.lwjgl.opengl.EXTFramebufferObject;
 import org.lwjgl.opengl.EXTPackedDepthStencil;
 import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 
 import java.awt.*;
 
@@ -33,6 +35,10 @@ public abstract class MixinRendererLivingEntity<T extends EntityLivingBase> exte
         this.shadowSize = p_i46156_3_;
     }
 
+    /**
+     * @author strangerrrs
+     * @reason mixin render model
+     */
     @Overwrite
     protected void renderModel(T p_renderModel_1_, float p_renderModel_2_, float p_renderModel_3_, float p_renderModel_4_, float p_renderModel_5_, float p_renderModel_6_, float p_renderModel_7_) {
         boolean flag = !p_renderModel_1_.isInvisible();
@@ -65,19 +71,19 @@ public abstract class MixinRendererLivingEntity<T extends EntityLivingBase> exte
                     else {
                         color = (new Color((int) ModuleManager.playerESP.red.getInput(), (int) ModuleManager.playerESP.green.getInput(), (int) ModuleManager.playerESP.blue.getInput())).getRGB();
                     }
-                    glColor(color);
+                    raven_bS$glColor(color);
                     this.mainModel.render(p_renderModel_1_, p_renderModel_2_, p_renderModel_3_, p_renderModel_4_, p_renderModel_5_, p_renderModel_6_, p_renderModel_7_);
-                    renderOne();
-                    glColor(color);
+                    raven_bS$renderOne();
+                    raven_bS$glColor(color);
                     this.mainModel.render(p_renderModel_1_, p_renderModel_2_, p_renderModel_3_, p_renderModel_4_, p_renderModel_5_, p_renderModel_6_, p_renderModel_7_);
-                    renderTwo();
-                    glColor(color);
+                    raven_bS$renderTwo();
+                    raven_bS$glColor(color);
                     this.mainModel.render(p_renderModel_1_, p_renderModel_2_, p_renderModel_3_, p_renderModel_4_, p_renderModel_5_, p_renderModel_6_, p_renderModel_7_);
-                    renderThree();
-                    renderFour();
-                    glColor(color);
+                    raven_bS$renderThree();
+                    raven_bS$renderFour();
+                    raven_bS$glColor(color);
                     this.mainModel.render(p_renderModel_1_, p_renderModel_2_, p_renderModel_3_, p_renderModel_4_, p_renderModel_5_, p_renderModel_6_, p_renderModel_7_);
-                    renderFive();
+                    raven_bS$renderFive();
                     GL11.glColor4f(1, 1, 1, 1);
                     GlStateManager.popMatrix();
                 }
@@ -94,8 +100,9 @@ public abstract class MixinRendererLivingEntity<T extends EntityLivingBase> exte
 
     }
 
-    private void renderOne() {
-        checkSetupFBO();
+    @Unique
+    private void raven_bS$renderOne() {
+        raven_bS$checkSetupFBO();
         GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
         GL11.glDisable(GL11.GL_ALPHA_TEST);
         GL11.glDisable(GL11.GL_TEXTURE_2D);
@@ -112,20 +119,23 @@ public abstract class MixinRendererLivingEntity<T extends EntityLivingBase> exte
         GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
     }
 
-    private void renderTwo() {
+    @Unique
+    private void raven_bS$renderTwo() {
         GL11.glStencilFunc(GL11.GL_NEVER, 0, 0xF);
         GL11.glStencilOp(GL11.GL_REPLACE, GL11.GL_REPLACE, GL11.GL_REPLACE);
         GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
     }
 
-    private void renderThree() {
+    @Unique
+    private void raven_bS$renderThree() {
         GL11.glStencilFunc(GL11.GL_EQUAL, 1, 0xF);
         GL11.glStencilOp(GL11.GL_KEEP, GL11.GL_KEEP, GL11.GL_KEEP);
         GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
     }
 
-    private void renderFour() {
-        setColor(new Color(255, 255, 255));
+    @Unique
+    private void raven_bS$renderFour() {
+        raven_bS$setColor(new Color(255, 255, 255));
         GL11.glDepthMask(false);
         GL11.glDisable(GL11.GL_DEPTH_TEST);
         GL11.glEnable(GL11.GL_POLYGON_OFFSET_LINE);
@@ -133,7 +143,8 @@ public abstract class MixinRendererLivingEntity<T extends EntityLivingBase> exte
         OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240.0F, 240.0F);
     }
 
-    private void renderFive() {
+    @Unique
+    private void raven_bS$renderFive() {
         GL11.glPolygonOffset(1.0F, 2000000F);
         GL11.glDisable(GL11.GL_POLYGON_OFFSET_LINE);
         GL11.glEnable(GL11.GL_DEPTH_TEST);
@@ -148,20 +159,23 @@ public abstract class MixinRendererLivingEntity<T extends EntityLivingBase> exte
         GL11.glPopAttrib();
     }
 
-    private void setColor(Color c) {
+    @Unique
+    private void raven_bS$setColor(@NotNull Color c) {
         GL11.glColor4d(c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, c.getAlpha() / 255f);
     }
 
-    private void checkSetupFBO() {
+    @Unique
+    private void raven_bS$checkSetupFBO() {
         Framebuffer fbo = Minecraft.getMinecraft().getFramebuffer();
         if (fbo != null) {
             if (fbo.depthBuffer > -1) {
-                setupFBO(fbo);
+                raven_bS$setupFBO(fbo);
                 fbo.depthBuffer = -1;
             }
         }
     }
-    private void setupFBO(Framebuffer fbo) {
+    @Unique
+    private void raven_bS$setupFBO(@NotNull Framebuffer fbo) {
         EXTFramebufferObject.glDeleteRenderbuffersEXT(fbo.depthBuffer);
         int stencil_depth_buffer_ID = EXTFramebufferObject.glGenRenderbuffersEXT();
         EXTFramebufferObject.glBindRenderbufferEXT(EXTFramebufferObject.GL_RENDERBUFFER_EXT, stencil_depth_buffer_ID);
@@ -170,7 +184,8 @@ public abstract class MixinRendererLivingEntity<T extends EntityLivingBase> exte
         EXTFramebufferObject.glFramebufferRenderbufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, EXTFramebufferObject.GL_DEPTH_ATTACHMENT_EXT, EXTFramebufferObject.GL_RENDERBUFFER_EXT, stencil_depth_buffer_ID);
     }
 
-    private void glColor(int color) {
+    @Unique
+    private void raven_bS$glColor(int color) {
         GL11.glColor4ub((byte) (color >> 16 & 0xFF), (byte) (color >> 8 & 0xFF), (byte) (color & 0xFF), (byte) (color >> 24 & 0xFF));
     }
 }

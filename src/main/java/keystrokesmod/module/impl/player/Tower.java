@@ -11,22 +11,22 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.input.Keyboard;
 
 public class Tower extends Module {
-    private SliderSetting mode;
-    private SliderSetting speed;
-    private SliderSetting diagonalSpeed;
-    private SliderSetting slowedSpeed;
-    private SliderSetting slowedTicks;
-    private ButtonSetting disableWhileCollided;
-    private ButtonSetting disableWhileHurt;
-    private ButtonSetting sprintJumpForward;
-    private String[] modes = new String[]{"Vanilla"};
+    private final SliderSetting mode;
+    private final SliderSetting speed;
+    private final SliderSetting diagonalSpeed;
+    private final SliderSetting slowedSpeed;
+    private final SliderSetting slowedTicks;
+    private final ButtonSetting disableWhileCollided;
+    private final ButtonSetting disableWhileHurt;
+    private final ButtonSetting sprintJumpForward;
     private int slowTicks;
     private boolean wasTowering;
     public Tower() {
         super("Tower", category.player);
         this.registerSetting(new DescriptionSetting("Works with Safewalk & Scaffold"));
+        String[] modes = new String[]{"Vanilla", "Hypixel"};
         this.registerSetting(mode = new SliderSetting("Mode", modes, 0));
-        this.registerSetting(speed = new SliderSetting("Speed", 5, 0.5, 9, 0.1));
+        this.registerSetting(speed = new SliderSetting("Speed", 5, 0.5, 9, 0.01));
         this.registerSetting(diagonalSpeed = new SliderSetting("Diagonal speed", 5, 0, 10, 0.1));
         this.registerSetting(slowedSpeed = new SliderSetting("Slowed speed", 2, 0, 9, 0.1));
         this.registerSetting(slowedTicks = new SliderSetting("Slowed ticks", 1, 0, 20, 1));
@@ -40,14 +40,21 @@ public class Tower extends Module {
     public void onPreMotion(PreMotionEvent e) {
         if (canTower()) {
             wasTowering = true;
-            Utils.setSpeed(Math.max((diagonal() ? diagonalSpeed.getInput() : speed.getInput()) * 0.1 - 0.25, 0));
             switch ((int) mode.getInput()) {
                 case 0:
+                    Utils.setSpeed(Math.max((diagonal() ? diagonalSpeed.getInput() : speed.getInput()) * 0.1 - 0.25, 0));
                     mc.thePlayer.jump();
                     break;
+                case 1:
+                    if (mc.thePlayer.onGround) {
+                        mc.thePlayer.jump();
+                    }
+                    e.setSprinting(false);
+                    mc.thePlayer.motionX *= speed.getInput();
+                    mc.thePlayer.motionZ *= speed.getInput();
+                    break;
             }
-        }
-        else {
+        } else if (mode.getInput() == 0) {
             if (wasTowering && slowedTicks.getInput() > 0 && modulesEnabled()) {
                 if (slowTicks++ < slowedTicks.getInput()) {
                     Utils.setSpeed(Math.max(slowedSpeed.getInput() * 0.1 - 0.25, 0));

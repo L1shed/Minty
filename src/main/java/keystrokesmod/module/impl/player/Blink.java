@@ -12,6 +12,7 @@ import net.minecraft.network.handshake.client.C00Handshake;
 import net.minecraft.network.login.client.C00PacketLoginStart;
 import net.minecraft.network.login.client.C01PacketEncryptionResponse;
 import net.minecraft.network.play.client.C00PacketKeepAlive;
+import net.minecraft.network.play.client.C01PacketChatMessage;
 import net.minecraft.network.play.client.C0FPacketConfirmTransaction;
 import net.minecraft.network.status.client.C00PacketServerQuery;
 import net.minecraft.network.status.client.C01PacketPing;
@@ -27,7 +28,7 @@ import java.util.List;
 
 public class Blink extends Module {
     private ButtonSetting initialPosition;
-    private List<Packet> blinkedPackets = new ArrayList<>();
+    public List<Packet> blinkedPackets = new ArrayList<>();
     private Vec3 pos;
     private int color = new Color(0, 255, 0).getRGB();
     public Blink() {
@@ -61,7 +62,7 @@ public class Blink extends Module {
         if (packet.getClass().getSimpleName().startsWith("S")) {
             return;
         }
-        if (packet instanceof C00Handshake || packet instanceof C00PacketLoginStart || packet instanceof C00PacketServerQuery || packet instanceof C01PacketPing || packet instanceof C01PacketEncryptionResponse || packet instanceof C00PacketKeepAlive || packet instanceof C0FPacketConfirmTransaction) {
+        if (packet instanceof C00Handshake || packet instanceof C00PacketLoginStart || packet instanceof C00PacketServerQuery || packet instanceof C01PacketPing || packet instanceof C01PacketEncryptionResponse || packet instanceof C00PacketKeepAlive || packet instanceof C0FPacketConfirmTransaction || packet instanceof C01PacketChatMessage) {
             return;
         }
         blinkedPackets.add(packet);

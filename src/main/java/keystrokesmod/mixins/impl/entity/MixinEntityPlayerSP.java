@@ -95,6 +95,10 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
     @Shadow
     private int positionUpdateTicks;
 
+    /**
+     * @author strangerrrs
+     * @reason mixin on update
+     */
     @Overwrite
     public void onUpdate() {
         if (this.worldObj.isBlockLoaded(new BlockPos(this.posX, 0.0, this.posZ))) {
@@ -117,6 +121,10 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
 
     }
 
+    /**
+     * @author strangerrrs
+     * @reason mixin on update walking player
+     */
     @Overwrite
     public void onUpdateWalkingPlayer() {
         PreMotionEvent preMotionEvent = new PreMotionEvent(
@@ -203,6 +211,10 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
         net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new PostMotionEvent());
     }
 
+    /**
+     * @author strangerrrs
+     * @reason mixin on living update
+     */
     @Overwrite
     public void onLivingUpdate() {
         if (this.sprintingTicksLeft > 0) {

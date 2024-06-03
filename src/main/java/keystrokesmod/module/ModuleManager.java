@@ -22,6 +22,8 @@ import java.util.List;
 public class ModuleManager {
     static List<Module> modules = new ArrayList<>();
     public static List<Module> organizedModules = new ArrayList<>();
+    public static Module longJump;
+    public static Module blink;
     public static Module nameHider;
     public static Module fastPlace;
     public static MurderMystery murderMystery;
@@ -52,12 +54,16 @@ public class ModuleManager {
     public static Module bedwars;
     public static BHop bHop;
     public static Scaffold scaffold;
+    public static MotionSkidder motionSkidder;
+    public static MotionModifier motionModifier;
+    public static AntiVoid antiVoid;
+    public static Criticals criticals;
 
     public void register() {
         this.addModule(autoClicker = new AutoClicker());
-        this.addModule(new LongJump());
+        this.addModule(longJump = new LongJump());
         this.addModule(new AimAssist());
-        this.addModule(new Blink());
+        this.addModule(blink = new Blink());
         this.addModule(new BurstClicker());
         this.addModule(new ClickAssist());
         this.addModule(tower = new Tower());
@@ -138,8 +144,12 @@ public class ModuleManager {
         this.addModule(new AutoWho());
         this.addModule(new Gui());
         this.addModule(new Shaders());
+        this.addModule(motionSkidder = new MotionSkidder());
+        this.addModule(motionModifier = new MotionModifier());
+        this.addModule(antiVoid = new AntiVoid());
+        this.addModule(criticals = new Criticals());
         antiBot.enable();
-        Collections.sort(this.modules, Comparator.comparing(Module::getName));
+        modules.sort(Comparator.comparing(Module::getName));
     }
 
     public void addModule(Module m) {
@@ -173,9 +183,9 @@ public class ModuleManager {
 
     public static void sort() {
         if (HUD.alphabeticalSort.isToggled()) {
-            Collections.sort(organizedModules, Comparator.comparing(Module::getName));
+            organizedModules.sort(Comparator.comparing(Module::getName));
         } else {
-            Collections.sort(organizedModules, (o1, o2) -> Utils.mc.fontRendererObj.getStringWidth(o2.getName() + (HUD.showInfo.isToggled() ? " " + o2.getInfo() : "")) - Utils.mc.fontRendererObj.getStringWidth(o1.getName() + (HUD.showInfo.isToggled() ? " " + o1.getInfo() : "")));
+            organizedModules.sort((o1, o2) -> Utils.mc.fontRendererObj.getStringWidth(o2.getName() + (HUD.showInfo.isToggled() ? " " + o2.getInfo() : "")) - Utils.mc.fontRendererObj.getStringWidth(o1.getName() + (HUD.showInfo.isToggled() ? " " + o1.getInfo() : "")));
         }
     }
 }

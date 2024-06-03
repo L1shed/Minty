@@ -10,12 +10,12 @@ import net.minecraft.client.renderer.entity.layers.LayerCape;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EnumPlayerModelParts;
 import net.minecraft.util.MathHelper;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
-import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.*;
 
 @Mixin(priority = 995, value = LayerCape.class)
 public class MixinLayerCape {
+    @Mutable
+    @Final
     @Shadow
     private final RenderPlayer playerRenderer;
 
@@ -23,11 +23,15 @@ public class MixinLayerCape {
         this.playerRenderer = playerRendererIn;
     }
 
+    /**
+     * @author strangerrrs
+     * @reason mixin do render layer
+     */
     @Overwrite
     public void doRenderLayer(AbstractClientPlayer p_doRenderLayer_1_, float p_doRenderLayer_2_, float p_doRenderLayer_3_, float p_doRenderLayer_4_, float p_doRenderLayer_5_, float p_doRenderLayer_6_, float p_doRenderLayer_7_, float p_doRenderLayer_8_) {
-        if (p_doRenderLayer_1_.hasPlayerInfo() && !p_doRenderLayer_1_.isInvisible() && ((p_doRenderLayer_1_.isWearing(EnumPlayerModelParts.CAPE) && p_doRenderLayer_1_.getLocationCape() != null) || (p_doRenderLayer_1_ instanceof EntityPlayer && p_doRenderLayer_1_.equals(Minecraft.getMinecraft().thePlayer) && Settings.customCapes.getInput() > 0))) {
+        if (p_doRenderLayer_1_.hasPlayerInfo() && !p_doRenderLayer_1_.isInvisible() && (p_doRenderLayer_1_.isWearing(EnumPlayerModelParts.CAPE) && p_doRenderLayer_1_.getLocationCape() != null || p_doRenderLayer_1_.equals(Minecraft.getMinecraft().thePlayer) && Settings.customCapes.getInput() > 0)) {
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-            if (p_doRenderLayer_1_ instanceof EntityPlayer && p_doRenderLayer_1_.equals(Minecraft.getMinecraft().thePlayer) && Settings.customCapes.getInput() > 0) {
+            if (p_doRenderLayer_1_.equals(Minecraft.getMinecraft().thePlayer) && Settings.customCapes.getInput() > 0) {
                 this.playerRenderer.bindTexture(Settings.loadedCapes.get((int) (Settings.customCapes.getInput() - 1)));
             }
             else {
