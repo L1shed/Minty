@@ -19,7 +19,9 @@ import org.jetbrains.annotations.NotNull;
 public class LongJump extends Module {
     private final SliderSetting mode;
     private final SliderSetting horizontalBoost;
+    private final SliderSetting verticalMotion;
     private final SliderSetting motionTicks;
+    private final ButtonSetting addMotion;
     private final ButtonSetting invertYaw;
     private final ButtonSetting jump;
     private int lastSlot = -1;
@@ -34,7 +36,9 @@ public class LongJump extends Module {
         super("Long Jump", category.movement);
         this.registerSetting(mode = new SliderSetting("Mode", new String[]{"Fireball", "Fireball Auto"}, 0));
         this.registerSetting(horizontalBoost = new SliderSetting("Horizontal boost", 1.7, 0.0, 8.0, 0.1));
+        this.registerSetting(verticalMotion = new SliderSetting("Vertical motion", 0, 0.0, 1.0, 0.01));
         this.registerSetting(motionTicks = new SliderSetting("Motion ticks", 10, 1, 40, 1));
+        this.registerSetting(addMotion = new ButtonSetting("Add motion", false));
         this.registerSetting(invertYaw = new ButtonSetting("Invert yaw", true));
         this.registerSetting(jump = new ButtonSetting("Jump", false));
     }
@@ -141,7 +145,9 @@ public class LongJump extends Module {
     }
 
     private void setSpeed() {
-        mc.thePlayer.motionY = 0.0;
+        if (verticalMotion.getInput() != 0.0 && addMotion.isToggled()) {
+            mc.thePlayer.motionY = verticalMotion.getInput();
+        }
         if (horizontalBoost.getInput() != 0.0) {
             Utils.setSpeed(horizontalBoost.getInput());
         }
