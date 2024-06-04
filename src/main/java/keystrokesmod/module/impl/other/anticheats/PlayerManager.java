@@ -1,6 +1,7 @@
 package keystrokesmod.module.impl.other.anticheats;
 
 import keystrokesmod.module.impl.other.Anticheat;
+import keystrokesmod.module.impl.other.LatencyAlerts;
 import keystrokesmod.module.impl.other.anticheats.utils.alert.LogUtils;
 import keystrokesmod.module.impl.other.anticheats.utils.world.LevelUtils;
 import keystrokesmod.module.impl.world.AntiBot;
@@ -40,7 +41,6 @@ public class PlayerManager {
                     activeMap.remove(uuid);
                     continue;
                 }
-
                 if (!activeMap.containsKey(uuid)) {
                     final TRPlayer trPlayer;
                     if (client.thePlayer.equals(player)) {
@@ -55,6 +55,8 @@ public class PlayerManager {
                 // 更新
                 activeMap.replace(uuid, true);
                 try {
+                    if (System.currentTimeMillis() - LatencyAlerts.getLastAlert() < Anticheat.getLatency().getInput())
+                        continue;
                     dataMap.get(uuid).update(player);
                 } catch (Exception e) {
                     LogUtils.custom(Arrays.toString(e.getStackTrace()));

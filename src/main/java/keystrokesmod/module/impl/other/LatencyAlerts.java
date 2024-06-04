@@ -8,14 +8,18 @@ import keystrokesmod.utility.Utils;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 public class LatencyAlerts extends Module {
-    private DescriptionSetting description;
-    private SliderSetting interval;
-    private SliderSetting highLatency;
+    private final SliderSetting interval;
+    private final SliderSetting highLatency;
     private long lastPacket;
-    private long lastAlert;
+
+    public static long getLastAlert() {
+        return lastAlert;
+    }
+
+    private static long lastAlert = -1;
     public LatencyAlerts() {
         super("Latency Alerts", category.other);
-        this.registerSetting(description = new DescriptionSetting("Detects packet loss."));
+        this.registerSetting(new DescriptionSetting("Detects packet loss."));
         this.registerSetting(interval = new SliderSetting("Alert interval", 3.0, 0.0, 5.0, 0.1, " second"));
         this.registerSetting(highLatency = new SliderSetting("High latency", 0.5, 0.1, 5.0, 0.1, " second"));
     }
