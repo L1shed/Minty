@@ -1,8 +1,10 @@
 package keystrokesmod.module.impl.other.anticheats;
 
+import keystrokesmod.module.impl.other.Anticheat;
 import keystrokesmod.module.impl.other.anticheats.utils.alert.LogUtils;
 import keystrokesmod.module.impl.other.anticheats.utils.world.LevelUtils;
 import keystrokesmod.module.impl.world.AntiBot;
+import keystrokesmod.utility.Utils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import org.jetbrains.annotations.NotNull;
@@ -31,6 +33,10 @@ public class PlayerManager {
             for (AbstractClientPlayer player : LevelUtils.getPlayers()) {
                 final UUID uuid = player.getUniqueID();
                 if (AntiBot.isBot(player)) {
+                    activeMap.remove(uuid);
+                    continue;
+                }
+                if (!Anticheat.getCheckForTeammates().isToggled() && Utils.isTeamMate(player)) {
                     activeMap.remove(uuid);
                     continue;
                 }
