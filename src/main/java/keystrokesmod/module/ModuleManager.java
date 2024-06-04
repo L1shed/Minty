@@ -51,7 +51,7 @@ public class ModuleManager {
     public static Module antiKnockback;
     public static Tower tower;
     public static Module bedwars;
-    public static BHop bHop;
+    public static Speed speed;
     public static Scaffold scaffold;
     public static MotionSkidder motionSkidder;
     public static MotionModifier motionModifier;
@@ -73,7 +73,7 @@ public class ModuleManager {
         this.addModule(reach = new Reach());
         this.addModule(new RodAimbot());
         this.addModule(new Velocity());
-        this.addModule(bHop = new BHop());
+        this.addModule(speed = new Speed());
         this.addModule(new InvManager());
         this.addModule(scaffold = new Scaffold());
         this.addModule(new AntiAFK());
@@ -88,7 +88,6 @@ public class ModuleManager {
         this.addModule(bedAura = new BedAura());
         this.addModule(noSlow = new NoSlow());
         this.addModule(new Indicators());
-        this.addModule(new Speed());
         this.addModule(new LatencyAlerts());
         this.addModule(new Sprint());
         this.addModule(new StopMotion());

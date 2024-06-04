@@ -7,5 +7,4 @@ public class BlockUtils {
     public static boolean isFullBlock(@NotNull IBlockState blockState) {
         return blockState.getBlock().isFullBlock();
     }
-
 }

@@ -5,7 +5,6 @@ import keystrokesmod.module.Module;
 import keystrokesmod.module.impl.client.Settings;
 import keystrokesmod.module.impl.combat.Velocity;
 import keystrokesmod.module.impl.minigames.DuelsStats;
-import keystrokesmod.module.impl.movement.BHop;
 import keystrokesmod.module.impl.movement.Fly;
 import keystrokesmod.module.impl.movement.Speed;
 import keystrokesmod.module.impl.other.FakeChat;
@@ -26,7 +25,7 @@ public class Commands {
     private static final List<Integer> cs = Arrays.asList((new Color(170, 107, 148, 50)).getRGB(), (new Color(122, 158, 134, 50)).getRGB(), (new Color(16, 16, 16, 50)).getRGB(), (new Color(64, 114, 148, 50)).getRGB());
     private static int ccs = 0;
     private static int lccs = -1;
-    public static List<String> rs = new ArrayList();
+    public static List<String> rs = new ArrayList<>();
     private static final String invSyn = "&cInvalid syntax.";
     private static final String invCom = "&cInvalid command.";
 
@@ -172,9 +171,6 @@ public class Commands {
                     case "fly":
                         Fly.horizontalSpeed.setValueRaw(value);
                         break;
-                    case "bhop":
-                        BHop.speed.setValueRaw(value);
-                        break;
                     case "speed":
                         Speed.speed.setValueRaw(value);
                         break;
@@ -308,8 +304,6 @@ public class Commands {
                 boolean added = Utils.addEnemy(args[1]);
                 if (!added) {
                     print("&aRemoved enemy: " + args[1], 1);
-                } else {
-
                 }
             } else if (cm.startsWith("Debug".toLowerCase())) {
                 Raven.debugger = !Raven.debugger;
