@@ -8,7 +8,6 @@ import keystrokesmod.clickgui.components.impl.ModuleComponent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.impl.client.CommandLine;
 import keystrokesmod.module.impl.client.Gui;
-import keystrokesmod.module.setting.Setting;
 import keystrokesmod.utility.Commands;
 import keystrokesmod.utility.Timer;
 import keystrokesmod.utility.Utils;
@@ -29,7 +28,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 public class ClickGui extends GuiScreen {
-    private ScheduledFuture sf;
+    private ScheduledFuture<?> sf;
     private Timer aT;
     private Timer aL;
     private Timer aE;
@@ -40,7 +39,7 @@ public class ClickGui extends GuiScreen {
     public static ArrayList<CategoryComponent> categories;
 
     public ClickGui() {
-        categories = new ArrayList();
+        categories = new ArrayList<>();
         int y = 5;
         Module.category[] values;
         int length = (values = Module.category.values()).length;
@@ -58,9 +57,7 @@ public class ClickGui extends GuiScreen {
 
     public void initMain() {
         (this.aT = this.aE = this.aR = new Timer(500.0F)).start();
-        this.sf = Raven.getExecutor().schedule(() -> {
-            (this.aL = new Timer(650.0F)).start();
-        }, 650L, TimeUnit.MILLISECONDS);
+        this.sf = Raven.getExecutor().schedule(() -> (this.aL = new Timer(650.0F)).start(), 650L, TimeUnit.MILLISECONDS);
     }
 
     public void initGui() {
@@ -141,7 +138,7 @@ public class ClickGui extends GuiScreen {
     }
 
     public void mouseClicked(int x, int y, int m) throws IOException {
-        Iterator var4 = categories.iterator();
+        Iterator<CategoryComponent> var4 = categories.iterator();
 
         while (true) {
             CategoryComponent category;
@@ -156,7 +153,7 @@ public class ClickGui extends GuiScreen {
                         return;
                     }
 
-                    category = (CategoryComponent) var4.next();
+                    category = var4.next();
                     if (category.v(x, y) && !category.i(x, y) && !category.d(x, y) && m == 0) {
                         category.d(true);
                         category.xx = x - category.getX();
@@ -182,9 +179,7 @@ public class ClickGui extends GuiScreen {
 
     public void mouseReleased(int x, int y, int s) {
         if (s == 0) {
-            Iterator<CategoryComponent> iterator = categories.iterator();
-            while (iterator.hasNext()) {
-                CategoryComponent category = iterator.next();
+            for (CategoryComponent category : categories) {
                 category.d(false);
                 if (category.fv() && !category.getModules().isEmpty()) {
                     for (Component module : category.getModules()) {
@@ -200,10 +195,7 @@ public class ClickGui extends GuiScreen {
         if (k == Keyboard.KEY_ESCAPE && !binding()) {
             this.mc.displayGuiScreen(null);
         } else {
-            Iterator<CategoryComponent> iterator = categories.iterator();
-            while (iterator.hasNext()) {
-                CategoryComponent category = iterator.next();
-
+            for (CategoryComponent category : categories) {
                 if (category.fv() && !category.getModules().isEmpty()) {
                     for (Component module : category.getModules()) {
                         module.keyTyped(t, k);

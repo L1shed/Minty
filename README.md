@@ -6,3 +6,4 @@
 - Blink/NoGround NoFall
 - Blink AntiVoid
 - Client-side AntiCheat
+- Criticals
