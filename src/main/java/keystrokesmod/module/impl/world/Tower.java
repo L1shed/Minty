@@ -19,6 +19,8 @@ public class Tower extends Module {
     private final ButtonSetting disableWhileCollided;
     private final ButtonSetting disableWhileHurt;
     private final ButtonSetting sprintJumpForward;
+    private final ButtonSetting hypixelNoStrafe;
+    private final SliderSetting hypixelOffGroundSpeed;
     private int slowTicks;
     private boolean wasTowering;
     public Tower() {
@@ -26,13 +28,15 @@ public class Tower extends Module {
         this.registerSetting(new DescriptionSetting("Works with Safewalk & Scaffold"));
         String[] modes = new String[]{"Vanilla", "Hypixel"};
         this.registerSetting(mode = new SliderSetting("Mode", modes, 0));
-        this.registerSetting(speed = new SliderSetting("Speed", 0.9, 0.5, 1, 0.01));
+        this.registerSetting(speed = new SliderSetting("Speed", 0.95, 0.5, 1, 0.01));
         this.registerSetting(diagonalSpeed = new SliderSetting("Diagonal speed", 5, 0, 10, 0.1));
         this.registerSetting(slowedSpeed = new SliderSetting("Slowed speed", 2, 0, 9, 0.1));
         this.registerSetting(slowedTicks = new SliderSetting("Slowed ticks", 1, 0, 20, 1));
         this.registerSetting(disableWhileCollided = new ButtonSetting("Disable while collided", false));
         this.registerSetting(disableWhileHurt = new ButtonSetting("Disable while hurt", false));
-        this.registerSetting(sprintJumpForward = new ButtonSetting("Sprint jump forward", false));
+        this.registerSetting(sprintJumpForward = new ButtonSetting("Sprint jump forward", true));
+        this.registerSetting(hypixelNoStrafe = new ButtonSetting("Hypixel no strafe", false));
+        this.registerSetting(hypixelOffGroundSpeed = new SliderSetting("Hypixel off ground speed", 0.5, 0.0, 1.0, 0.01));
         this.canBeEnabled = false;
     }
 
@@ -50,8 +54,20 @@ public class Tower extends Module {
                         mc.thePlayer.jump();
                     }
                     e.setSprinting(false);
-                    mc.thePlayer.motionX *= speed.getInput();
-                    mc.thePlayer.motionZ *= speed.getInput();
+
+                    double moveSpeed = mc.thePlayer.onGround ? speed.getInput() : hypixelOffGroundSpeed.getInput();
+                    if (hypixelNoStrafe.isToggled()) {
+                        if (Math.abs(mc.thePlayer.motionX) >= Math.abs(mc.thePlayer.motionZ)) {
+                            mc.thePlayer.motionX *= moveSpeed;
+                            mc.thePlayer.motionZ = 0;
+                        } else {
+                            mc.thePlayer.motionZ *= moveSpeed;
+                            mc.thePlayer.motionX = 0;
+                        }
+                    } else {
+                        mc.thePlayer.motionX *= moveSpeed;
+                        mc.thePlayer.motionZ *= moveSpeed;
+                    }
                     break;
             }
         } else if (mode.getInput() == 0) {
@@ -87,10 +103,7 @@ public class Tower extends Module {
         else if (disableWhileCollided.isToggled() && mc.thePlayer.isCollidedHorizontally) {
             return false;
         }
-        else if (modulesEnabled()) {
-            return true;
-        }
-        return false;
+        else return modulesEnabled();
     }
 
     private boolean modulesEnabled() {

@@ -54,6 +54,7 @@ public class Scaffold extends Module { // from b4 :)
     private boolean forceStrict;
     private boolean down;
     private int add;
+    private ButtonSetting silentSwitch;
     public Scaffold() {
         super("Scaffold", category.world);
         this.registerSetting(motion = new SliderSetting("Motion", 1.0, 0.5, 1.2, 0.01));
@@ -68,6 +69,7 @@ public class Scaffold extends Module { // from b4 :)
         this.registerSetting(showBlockCount = new ButtonSetting("Show block count", true));
         this.registerSetting(silentSwing = new ButtonSetting("Silent swing", false));
         this.registerSetting(tower = new ButtonSetting("Tower", false));
+        this.registerSetting(silentSwitch = new ButtonSetting("Silent Switch", false));
     }
 
     public void onDisable() {
@@ -241,6 +243,9 @@ public class Scaffold extends Module { // from b4 :)
                 place(placeBlock, true);
             }
             place(placeBlock, false);
+        }
+        if (silentSwitch.isToggled()) {
+            mc.thePlayer.inventory.currentItem = lastSlot;
         }
     }
 

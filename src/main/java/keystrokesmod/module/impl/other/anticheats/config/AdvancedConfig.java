@@ -69,14 +69,14 @@ public class AdvancedConfig {
     public static int invalidPitchAlertBuffer = 1;
 
     public static boolean aimACheck = true;
-    public static int aimAAlertBuffer = 30;
+    public static int aimAAlertBuffer = 20;
     public static boolean aimAOnlyOnSwing = false;
     public static boolean aimAOnlyIfTargetIsMoving = true;
-    public static boolean aimAOnlyPlayer = false;
-    public static double aimAMinDiffYaw = 2;
-    public static double aimAMinDeltaYaw = 2;
-    public static double aimAMinDiffPitch = 2;
-    public static double aimAMinDeltaPitch = 2;
+    public static boolean aimAOnlyPlayer = true;
+    public static double aimAMinDiffYaw = 4;
+    public static double aimAMinDeltaYaw = 25;
+    public static double aimAMinDiffPitch = 4;
+    public static double aimAMinDeltaPitch = 25;
     public static double aimAMaxDistance = 6;
 
     public static boolean scaffoldACheck = true;
@@ -84,14 +84,19 @@ public class AdvancedConfig {
 
     public static boolean aimBCheck = true;
     public static int aimBAlertBuffer = 10;
-    public static double aimBMinDiffYaw = 2;
-    public static double aimBMinDiffPitch = 2;
+    public static double aimBMinDiffYaw = 1;
+    public static double aimBMinDiffPitch = 1;
 
     public static boolean scaffoldBCheck = true;
     public static int scaffoldBAlertBuffer = 10;
 
     public static boolean noFallACheck = true;
     public static int noFallAAlertBuffer = 3;
+
+    public static boolean aimCCheck = true;
+    public static int aimCAlertBuffer = 10;
+    public static double aimCMinDeltaYaw = 25;
+    public static double aimCMinDeltaPitch = 25;
 
     public static short getNoSlowAInJumpDisableTick() {
         return (short) noSlowAInJumpDisableTick;

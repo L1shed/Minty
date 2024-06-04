@@ -53,6 +53,10 @@ public class NoFall extends Module {
 
     @SubscribeEvent
     public void onPacketSend(@NotNull SendPacketEvent event) {
+        if (mc.thePlayer.capabilities.allowFlying) return;
+        if (ignoreVoid.isToggled() && isVoid()) {
+            return;
+        }
         try {
             if (event.getPacket() instanceof C03PacketPlayer) {
                 C03PacketPlayer packet = (C03PacketPlayer) event.getPacket();

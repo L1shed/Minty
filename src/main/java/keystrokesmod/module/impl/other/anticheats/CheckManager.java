@@ -48,9 +48,9 @@ public class CheckManager {
         normal.put(ReachA.class, new ReachA(player));
         normal.put(HitBoxA.class, new HitBoxA(player));
         normal.put(StrafeA.class, new StrafeA(player));
-        normal.put(InvalidPitch.class, new InvalidPitch(player));
         normal.put(AimA.class, new AimA(player));
         normal.put(AimB.class, new AimB(player));
+        normal.put(AimC.class, new AimC(player));
         normal.put(ScaffoldA.class, new ScaffoldA(player));
         normal.put(ScaffoldB.class, new ScaffoldB(player));
         normal.put(NoFallA.class, new NoFallA(player));
@@ -76,9 +76,9 @@ public class CheckManager {
         normal.put(ReachA.class, new ReachA(player));
         normal.put(HitBoxA.class, new HitBoxA(player));
         normal.put(StrafeA.class, new StrafeA(player));
-        normal.put(InvalidPitch.class, new InvalidPitch(player));
         normal.put(AimA.class, new AimA(player));
         normal.put(AimB.class, new AimB(player));
+        normal.put(AimC.class, new AimC(player));
         normal.put(ScaffoldA.class, new ScaffoldA(player));
         normal.put(ScaffoldB.class, new ScaffoldB(player));
         normal.put(NoFallA.class, new NoFallA(player));

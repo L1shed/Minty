@@ -23,6 +23,8 @@ public class AimB extends Check {
 
     @Override
     public void _onTick() {
+        if (Math.abs(player.currentRot.x) == 90) return;
+
         boolean flagPitch = false;
         boolean flagYaw = false;
         float stepPitch = 0, stepYaw = 0;

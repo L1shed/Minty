@@ -15,7 +15,7 @@ public class Speed extends Module {
     private final ButtonSetting stopMotion;
     private final String[] modes = new String[]{"Strafe", "Ground"};
     public boolean hopping;
-    public int offGroundTicks = 0;
+    private int offGroundTicks = 0;
 
     public Speed() {
         super("Speed", Module.category.movement);
