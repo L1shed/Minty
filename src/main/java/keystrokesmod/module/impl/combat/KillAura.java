@@ -43,7 +43,9 @@ public class KillAura extends Module {
     private final SliderSetting sortMode;
     private final SliderSetting switchDelay;
     private final SliderSetting targets;
-    private final ButtonSetting targetInvis;
+    private final ButtonSetting targetInvisible;
+    private final ButtonSetting targetPlayer;
+    private final ButtonSetting targetEntity;
     private final ButtonSetting disableInInventory;
     private final ButtonSetting disableWhileBlocking;
     private final ButtonSetting disableWhileMining;
@@ -96,7 +98,9 @@ public class KillAura extends Module {
         this.registerSetting(sortMode = new SliderSetting("Sort mode", sortModes, 0.0));
         this.registerSetting(switchDelay = new SliderSetting("Switch delay", 200.0, 50.0, 1000.0, 25.0, "ms"));
         this.registerSetting(targets = new SliderSetting("Targets", 3.0, 1.0, 10.0, 1.0));
-        this.registerSetting(targetInvis = new ButtonSetting("Target invis", true));
+        this.registerSetting(targetInvisible = new ButtonSetting("Target invisible", true));
+        this.registerSetting(targetPlayer = new ButtonSetting("Target player", true));
+        this.registerSetting(targetEntity = new ButtonSetting("Target entity", false));
         this.registerSetting(disableInInventory = new ButtonSetting("Disable in inventory", true));
         this.registerSetting(disableWhileBlocking = new ButtonSetting("Disable while blocking", false));
         this.registerSetting(disableWhileMining = new ButtonSetting("Disable while mining", false));
@@ -438,6 +442,7 @@ public class KillAura extends Module {
                 .filter(entity -> entity instanceof EntityLivingBase)
                 .filter(entity -> {
                     if (entity instanceof EntityPlayer) {
+                        if (!targetPlayer.isToggled()) return false;
                         if (Utils.isFriended((EntityPlayer) entity)) {
                             return false;
                         }
@@ -445,10 +450,9 @@ public class KillAura extends Module {
                             return false;
                         }
                         return !AntiBot.isBot(entity) && !(ignoreTeammates.isToggled() && Utils.isTeamMate(entity));
-                    }
-                    return true;
+                    } else return targetEntity.isToggled();
                 })
-                .filter(entity -> targetInvis.isToggled() || !entity.isInvisible())
+                .filter(entity -> targetInvisible.isToggled() || !entity.isInvisible())
                 .filter(entity -> hitThroughBlocks.isToggled() || !behindBlocks(rotations))
                 .filter(entity -> fov.getInput() == 360.0f || Utils.inFov((float) fov.getInput(), entity))
                 .map(entity -> new Pair<>(entity, mc.thePlayer.getDistanceSqToEntity(entity)))

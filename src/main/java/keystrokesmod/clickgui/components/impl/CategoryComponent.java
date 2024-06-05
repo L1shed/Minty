@@ -58,8 +58,8 @@ public class CategoryComponent {
         int tY = this.bh + 3;
         this.scale = new ScaledResolution(Minecraft.getMinecraft()).getScaleFactor();
 
-        for (Iterator var3 = Raven.getModuleManager().inCategory(this.categoryName).iterator(); var3.hasNext(); tY += 16) {
-            Module mod = (Module) var3.next();
+        for (Iterator<Module> var3 = Raven.getModuleManager().inCategory(this.categoryName).iterator(); var3.hasNext(); tY += 16) {
+            Module mod = var3.next();
             ModuleComponent b = new ModuleComponent(mod, this, tY);
             this.modules.add(b);
         }
@@ -133,8 +133,8 @@ public class CategoryComponent {
         int h = 0;
         if (!this.modules.isEmpty() && this.categoryOpened) {
             Component c;
-            for (Iterator var3 = this.modules.iterator(); var3.hasNext(); h += c.gh()) {
-                c = (Component) var3.next();
+            for (Iterator<ModuleComponent> var3 = this.modules.iterator(); var3.hasNext(); h += c.gh()) {
+                c = var3.next();
             }
             big = h;
         }
@@ -157,11 +157,9 @@ public class CategoryComponent {
             renderer.drawString(this.categoryOpened ? "-" : "+", (float) (this.x + 80), (float) ((double) this.y + 4.5D), this.categoryOpened ? categoryCloseColor : categoryOpenColor, false);
             GL11.glPopMatrix();
             if (this.categoryOpened && !this.modules.isEmpty()) {
-                Iterator var5 = this.modules.iterator();
 
-                while (var5.hasNext()) {
-                    Component c2 = (Component) var5.next();
-                    c2.render();
+                for (ModuleComponent module : this.modules) {
+                    module.render();
                 }
             }
 
@@ -174,8 +172,8 @@ public class CategoryComponent {
         int o = this.bh + 3;
 
         Component c;
-        for (Iterator var2 = this.modules.iterator(); var2.hasNext(); o += c.gh()) {
-            c = (Component) var2.next();
+        for (Iterator<ModuleComponent> var2 = this.modules.iterator(); var2.hasNext(); o += c.gh()) {
+            c = var2.next();
             c.so(o);
         }
 
@@ -198,11 +196,7 @@ public class CategoryComponent {
             this.x(x - this.xx);
             this.y(y - this.yy);
         }
-        if (overCategory(x, y)) {
-            hovering = true;
-        } else {
-            hovering = false;
-        }
+        hovering = overCategory(x, y);
     }
 
     public boolean i(int x, int y) {
