@@ -93,23 +93,26 @@ public class MotionSkidder extends Module {
         }
 
         if (includeRotation.isToggled()) {
-            moves.add(new MoveData(deltaMove, target.rotationYaw, target.rotationPitch));
+            moves.add(new MoveData(deltaMove, target.rotationYaw, target.rotationPitch, target.onGround));
         } else {
-            moves.add(new MoveData(deltaMove));
+            moves.add(new MoveData(deltaMove, target.onGround));
         }
     }
 
     public static class MoveData {
         private final Vec3 deltaMove;
         private final Vec2 rotation;
+        private final boolean onGround;
 
-        public MoveData(Vec3 deltaMove, float yaw, float pitch) {
+        public MoveData(Vec3 deltaMove, float yaw, float pitch, boolean onGround) {
             this.deltaMove = deltaMove;
             this.rotation = new Vec2(yaw, pitch);
+            this.onGround = onGround;
         }
-        public MoveData(Vec3 deltaMove) {
+        public MoveData(Vec3 deltaMove, boolean onGround) {
             this.deltaMove = deltaMove;
             this.rotation = null;
+            this.onGround = onGround;
         }
 
         public Vec3 getDeltaMove() {
@@ -120,6 +123,9 @@ public class MotionSkidder extends Module {
         }
         public float getPitch() {
             return rotation == null ? mc.thePlayer.rotationPitch : rotation.y;
+        }
+        public boolean isOnGround() {
+            return onGround;
         }
     }
 }

@@ -178,7 +178,7 @@ public class BedAura extends Module {
     public void onPreMotion(PreMotionEvent e) {
         if ((rotate || breakProgress >= 1 || breakProgress == 0) && currentBlock != null) {
             float[] rotations = RotationUtils.getRotations(currentBlock, e.getYaw(), e.getPitch());
-            if (!RotationUtils.inRange(currentBlock, range.getInput())) {
+            if (RotationUtils.notInRange(currentBlock, range.getInput())) {
                 return;
             }
             e.setYaw(rotations[0]);
@@ -261,7 +261,7 @@ public class BedAura extends Module {
                     if (Arrays.asList(positions).contains(offset)) {
                         continue;
                     }
-                    if (!RotationUtils.inRange(offset, range.getInput())) {
+                    if (RotationUtils.notInRange(offset, range.getInput())) {
                         continue;
                     }
 
@@ -276,7 +276,7 @@ public class BedAura extends Module {
                 }
             }
             else {
-                if (!RotationUtils.inRange(pos, range.getInput())) {
+                if (RotationUtils.notInRange(pos, range.getInput())) {
                     continue;
                 }
 
@@ -362,7 +362,7 @@ public class BedAura extends Module {
         if (fov != 360 && !Utils.inFov(fov, blockPos)) {
             return;
         }
-        if (!RotationUtils.inRange(blockPos, range.getInput())) {
+        if (RotationUtils.notInRange(blockPos, range.getInput())) {
             return;
         }
         if (onlyWhileVisible.isToggled() && (mc.objectMouseOver == null || mc.objectMouseOver.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK || !mc.objectMouseOver.getBlockPos().equals(blockPos))) {

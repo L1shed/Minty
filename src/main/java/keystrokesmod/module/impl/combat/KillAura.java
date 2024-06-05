@@ -1,15 +1,16 @@
 package keystrokesmod.module.impl.combat;
 
+import akka.japi.Pair;
 import keystrokesmod.Raven;
 import keystrokesmod.event.*;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
+import keystrokesmod.module.impl.other.anticheats.utils.world.LevelUtils;
 import keystrokesmod.module.impl.world.AntiBot;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.*;
 import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
@@ -31,32 +32,30 @@ import static net.minecraft.util.EnumFacing.DOWN;
 
 public class KillAura extends Module {
     public static EntityLivingBase target;
-    private SliderSetting aps;
+    private final SliderSetting aps;
     public SliderSetting autoBlockMode;
-    private SliderSetting fov;
-    private SliderSetting attackRange;
-    private SliderSetting swingRange;
-    private SliderSetting blockRange;
-    private SliderSetting rotationMode;
-    private SliderSetting rotationSmoothing;
-    private SliderSetting sortMode;
-    private SliderSetting switchDelay;
-    private SliderSetting targets;
-    private ButtonSetting targetInvis;
-    private ButtonSetting disableInInventory;
-    private ButtonSetting disableWhileBlocking;
-    private ButtonSetting disableWhileMining;
-    private ButtonSetting fixSlotReset;
-    private ButtonSetting hitThroughBlocks;
-    private ButtonSetting ignoreTeammates;
+    private final SliderSetting fov;
+    private final SliderSetting attackRange;
+    private final SliderSetting swingRange;
+    private final SliderSetting blockRange;
+    private final SliderSetting rotationMode;
+    private final SliderSetting rotationSmoothing;
+    private final SliderSetting sortMode;
+    private final SliderSetting switchDelay;
+    private final SliderSetting targets;
+    private final ButtonSetting targetInvis;
+    private final ButtonSetting disableInInventory;
+    private final ButtonSetting disableWhileBlocking;
+    private final ButtonSetting disableWhileMining;
+    private final ButtonSetting fixSlotReset;
+    private final ButtonSetting hitThroughBlocks;
+    private final ButtonSetting ignoreTeammates;
     public ButtonSetting manualBlock;
-    private ButtonSetting requireMouseDown;
-    private ButtonSetting silentSwing;
-    private ButtonSetting weaponOnly;
-    private String[] autoBlockModes = new String[]{"Manual", "Vanilla", "Post", "Swap", "Interact", "Fake", "Partial"};
-    private String[] rotationModes = new String[]{"None", "Silent", "Lock view"};
-    private String[] sortModes = new String[]{"Health", "Hurttime", "Distance", "Yaw"};
-    private List<EntityLivingBase> availableTargets = new ArrayList<>();
+    private final ButtonSetting requireMouseDown;
+    private final ButtonSetting silentSwing;
+    private final ButtonSetting weaponOnly;
+    private final String[] rotationModes = new String[]{"None", "Silent", "Lock view"};
+    private final List<EntityLivingBase> availableTargets = new ArrayList<>();
     public AtomicBoolean block = new AtomicBoolean();
     private long lastSwitched = System.currentTimeMillis();
     private boolean switchTargets;
@@ -79,19 +78,21 @@ public class KillAura extends Module {
     public boolean rmbDown;
     private float[] prevRotations;
     private boolean startSmoothing;
-    private ConcurrentLinkedQueue<Packet> blinkedPackets = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<Packet<?>> blinkedPackets = new ConcurrentLinkedQueue<>();
 
 
     public KillAura() {
         super("KillAura", category.combat);
         this.registerSetting(aps = new SliderSetting("APS", 16.0, 1.0, 20.0, 0.5));
+        String[] autoBlockModes = new String[]{"Manual", "Vanilla", "Post", "Swap", "Interact", "Fake", "Partial"};
         this.registerSetting(autoBlockMode = new SliderSetting("Autoblock", autoBlockModes, 0));
         this.registerSetting(fov = new SliderSetting("FOV", 360.0, 30.0, 360.0, 4.0));
-        this.registerSetting(attackRange = new SliderSetting("Range (attack)", 3.0, 3.0, 6.0, 0.05));
-        this.registerSetting(swingRange = new SliderSetting("Range (swing)", 3.3, 3.0, 8.0, 0.05));
-        this.registerSetting(blockRange = new SliderSetting("Range (block)", 6.0, 3.0, 12.0, 0.05));
+        this.registerSetting(attackRange = new SliderSetting("Attack range", 3.3, 3.0, 6.0, 0.1));
+        this.registerSetting(swingRange = new SliderSetting("Swing range", 3.3, 3.0, 8.0, 0.1));
+        this.registerSetting(blockRange = new SliderSetting("Block range", 6.0, 3.0, 12.0, 0.1));
         this.registerSetting(rotationMode = new SliderSetting("Rotation mode", rotationModes, 0));
         this.registerSetting(rotationSmoothing = new SliderSetting("Rotation smoothing", 0, 0, 100, 1));
+        String[] sortModes = new String[]{"Health", "Hurttime", "Distance", "Yaw"};
         this.registerSetting(sortMode = new SliderSetting("Sort mode", sortModes, 0.0));
         this.registerSetting(switchDelay = new SliderSetting("Switch delay", 200.0, 50.0, 1000.0, 25.0, "ms"));
         this.registerSetting(targets = new SliderSetting("Targets", 3.0, 1.0, 10.0, 1.0));
@@ -144,7 +145,7 @@ public class KillAura extends Module {
 
     @SubscribeEvent
     public void onPreUpdate(PreUpdateEvent e) {
-        if (!basicCondition() || !settingCondition()) {
+        if (gameNoAction() || playerNoAction()) {
             resetVariables();
             return;
         }
@@ -194,7 +195,7 @@ public class KillAura extends Module {
                     }
                     if (target != null && attack) {
                         attack = false;
-                        if (!aimingEntity()) {
+                        if (noAimToEntity()) {
                             return;
                         }
                         switchTargets = true;
@@ -218,7 +219,7 @@ public class KillAura extends Module {
                 } else {
                     if (target != null && attack) {
                         attack = false;
-                        if (!aimingEntity()) {
+                        if (noAimToEntity()) {
                             return;
                         }
                         switchTargets = true;
@@ -245,7 +246,7 @@ public class KillAura extends Module {
         if (attack) {
             resetBlinkState(true);
             attack = false;
-            if (!aimingEntity()) {
+            if (noAimToEntity()) {
                 return;
             }
             switchTargets = true;
@@ -255,7 +256,7 @@ public class KillAura extends Module {
 
     @SubscribeEvent(priority = EventPriority.LOW)
     public void onPreMotion(PreMotionEvent e) {
-        if (!basicCondition() || !settingCondition()) {
+        if (gameNoAction() || playerNoAction()) {
             resetVariables();
             return;
         }
@@ -305,7 +306,7 @@ public class KillAura extends Module {
         if (!Utils.nullCheck() || !blinking) {
             return;
         }
-        Packet packet = e.getPacket();
+        Packet<?> packet = e.getPacket();
         if (packet.getClass().getSimpleName().startsWith("S")) {
             return;
         }
@@ -315,7 +316,7 @@ public class KillAura extends Module {
 
     @SubscribeEvent
     public void onReceivePacket(ReceivePacketEvent e) {
-        if (!basicCondition() || !fixSlotReset.isToggled()) {
+        if (gameNoAction() || !fixSlotReset.isToggled()) {
             return;
         }
         if (Utils.holdingSword() && (mc.thePlayer.isBlocking() || block.get())) {
@@ -360,14 +361,12 @@ public class KillAura extends Module {
         return rotationModes[(int) rotationMode.getInput()];
     }
 
-    private boolean aimingEntity() {
+    private boolean noAimToEntity() {
         if (rotationMode.getInput() > 0 && ((rotationSmoothing.getInput() >= 4 && rotationMode.getInput() == 1) || rotationSmoothing.getInput() > 0)) {
             Object[] raycast = Reach.getEntity(attackRange.getInput(), 0, rotationMode.getInput() == 1 ? prevRotations : null);
-            if (raycast == null || raycast[0] != target) {
-                return false;
-            }
+            return raycast == null || raycast[0] != target;
         }
-        return true;
+        return false;
     }
 
     private void resetVariables() {
@@ -432,56 +431,44 @@ public class KillAura extends Module {
         availableTargets.clear();
         block.set(false);
         swing = false;
-        for (Entity entity : mc.theWorld.loadedEntityList) {
-            if (availableTargets.size() > targets.getInput()) {
-                continue;
-            }
-            if (entity == null) {
-                continue;
-            }
-            if (entity == mc.thePlayer) {
-                continue;
-            }
-            if (!(entity instanceof EntityLivingBase)) {
-                continue;
-            }
-            if (entity instanceof EntityPlayer) {
-                if (Utils.isFriended((EntityPlayer) entity)) {
-                    continue;
-                }
-                if (((EntityPlayer) entity).deathTime != 0) {
-                    continue;
-                }
-                if (AntiBot.isBot(entity) || (Utils.isTeamMate(entity) && ignoreTeammates.isToggled())) {
-                    continue;
-                }
-            }
-            else {
-                continue;
-            }
-            if (entity.isInvisible() && !targetInvis.isToggled()) {
-                continue;
-            }
-            if (!hitThroughBlocks.isToggled() && behindBlocks(rotations)) {
-                continue;
-            }
-            final float n = (float) fov.getInput();
-            if (n != 360.0f && !Utils.inFov(n, entity)) {
-                continue;
-            }
-            double distance = mc.thePlayer.getDistanceSqToEntity(entity); // need a more accurate distance check as this can ghost on hypixel
-            if (distance <= blockRange.getInput() * blockRange.getInput() && autoBlockMode.getInput() > 0) {
-                KeyBinding.setKeyBindState(mc.gameSettings.keyBindUseItem.getKeyCode(), false);
-                block.set(true);
-            }
-            if (distance <= swingRange.getInput() * swingRange.getInput()) {
-                swing = true;
-            }
-            if (distance > attackRange.getInput() * swingRange.getInput()) {
-                continue;
-            }
-            availableTargets.add((EntityLivingBase) entity);
-        }
+
+        mc.theWorld.loadedEntityList.stream()
+                .filter(Objects::nonNull)
+                .filter(entity -> entity != mc.thePlayer)
+                .filter(entity -> entity instanceof EntityLivingBase)
+                .filter(entity -> {
+                    if (entity instanceof EntityPlayer) {
+                        if (Utils.isFriended((EntityPlayer) entity)) {
+                            return false;
+                        }
+                        if (((EntityPlayer) entity).deathTime != 0) {
+                            return false;
+                        }
+                        return !AntiBot.isBot(entity) && !(ignoreTeammates.isToggled() && Utils.isTeamMate(entity));
+                    }
+                    return true;
+                })
+                .filter(entity -> targetInvis.isToggled() || !entity.isInvisible())
+                .filter(entity -> hitThroughBlocks.isToggled() || !behindBlocks(rotations))
+                .filter(entity -> fov.getInput() == 360.0f || Utils.inFov((float) fov.getInput(), entity))
+                .map(entity -> new Pair<>(entity, mc.thePlayer.getDistanceSqToEntity(entity)))
+                .sorted((p1, p2) -> p2.second().compareTo(p1.second()))
+                .forEach(pair -> {
+                    if (availableTargets.size() >= targets.getInput()) return;
+
+                    // need a more accurate distance check as this can ghost on hypixel
+                    if (pair.second() <= blockRange.getInput() * blockRange.getInput() && autoBlockMode.getInput() > 0) {
+                        KeyBinding.setKeyBindState(mc.gameSettings.keyBindUseItem.getKeyCode(), false);
+                        block.set(true);
+                    }
+                    if (pair.second() <= swingRange.getInput() * swingRange.getInput()) {
+                        swing = true;
+                    }
+                    if (pair.second() <= attackRange.getInput() * swingRange.getInput()) {
+                        availableTargets.add((EntityLivingBase) pair.first());
+                    }
+                });
+
         if (Math.abs(System.currentTimeMillis() - lastSwitched) > switchDelay.getInput() && switchTargets) {
             switchTargets = false;
             if (entityIndex < availableTargets.size() - 1) {
@@ -507,7 +494,7 @@ public class KillAura extends Module {
                     comparator = Comparator.comparingDouble(entity2 -> RotationUtils.distanceFromYaw(entity2, false));
                     break;
             }
-            Collections.sort(availableTargets, comparator);
+            availableTargets.sort(comparator);
             if (entityIndex > availableTargets.size() - 1) {
                 entityIndex = 0;
             }
@@ -517,30 +504,24 @@ public class KillAura extends Module {
         }
     }
 
-    private boolean basicCondition() {
+    private boolean gameNoAction() {
         if (!Utils.nullCheck()) {
-            return false;
+            return true;
         }
-        if (mc.thePlayer.isDead) {
-            return false;
-        }
-        return true;
+        return mc.thePlayer.isDead;
     }
 
-    private boolean settingCondition() {
+    private boolean playerNoAction() {
         if (!Mouse.isButtonDown(0) && requireMouseDown.isToggled()) {
-            return false;
+            return true;
         }
         else if (!Utils.holdingWeapon() && weaponOnly.isToggled()) {
-            return false;
+            return true;
         }
         else if (isMining() && disableWhileMining.isToggled()) {
-            return false;
+            return true;
         }
-        else if (mc.currentScreen != null && disableInInventory.isToggled()) {
-            return false;
-        }
-        return true;
+        else return mc.currentScreen != null && disableInInventory.isToggled();
     }
 
     private boolean isMining() {
@@ -563,7 +544,7 @@ public class KillAura extends Module {
 
     public void gd() {
         double c = aps.getInput() + 0.4D * this.rand.nextDouble();
-        long d = (long) ((int) Math.round(1000.0D / c));
+        long d = (int) Math.round(1000.0D / c);
         if (System.currentTimeMillis() > this.k) {
             if (!this.n && this.rand.nextInt(100) >= 85) {
                 this.n = true;
@@ -615,7 +596,7 @@ public class KillAura extends Module {
     private void releasePackets() {
         try {
             synchronized (blinkedPackets) {
-                for (Packet packet : blinkedPackets) {
+                for (Packet<?> packet : blinkedPackets) {
                     if (packet instanceof C09PacketHeldItemChange) {
                         Raven.badPacketsHandler.playerSlot = ((C09PacketHeldItemChange) packet).getSlotId();
                     }
@@ -636,16 +617,28 @@ public class KillAura extends Module {
             case 0:
                 if (mc.objectMouseOver != null) {
                     BlockPos p = mc.objectMouseOver.getBlockPos();
-                    if (p != null && mc.theWorld.getBlockState(p).getBlock() != Blocks.air) {
+                    if (p != null && mc.theWorld.getBlockState(p).getBlock().isFullBlock()) {
                         return true;
                     }
                 }
                 break;
             case 1:
-                if ((rotationSmoothing.getInput() >= 4 && rotationMode.getInput() == 1) || rotationSmoothing.getInput() > 0) {
-                    return RotationUtils.rayCast(attackRange.getInput(), prevRotations != null ? prevRotations[0] : mc.thePlayer.rotationYaw, prevRotations != null ? prevRotations[1] : mc.thePlayer.rotationPitch) != null;
+                try {
+                    return keystrokesmod.module.impl.other.anticheats.utils.world.BlockUtils.isFullBlock(
+                            LevelUtils.getClientLevel().getBlockState(
+                                    Objects.requireNonNull(rotationSmoothing.getInput() >= 4 && rotationMode.getInput() == 1 || rotationSmoothing.getInput() > 0 ?
+                                            RotationUtils.rayCast(
+                                                    attackRange.getInput(),
+                                                    prevRotations != null ? prevRotations[0] : mc.thePlayer.rotationYaw,
+                                                    prevRotations != null ? prevRotations[1] : mc.thePlayer.rotationPitch
+                                            )
+                                            : RotationUtils.rayCast(attackRange.getInput(), rotations[0], rotations[1])
+                                    ).getBlockPos()
+                            )
+                    );
+                } catch (NullPointerException e) {
+                    return false;
                 }
-                return RotationUtils.rayCast(attackRange.getInput(), rotations[0], rotations[1]) != null;
         }
         return false;
     }

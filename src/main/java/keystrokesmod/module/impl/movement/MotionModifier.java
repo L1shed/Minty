@@ -57,6 +57,7 @@ public class MotionModifier extends Module {
             mc.thePlayer.motionZ = motion.z();
             mc.thePlayer.rotationYaw = moveData.getYaw();
             mc.thePlayer.rotationPitch = moveData.getPitch();
+            mc.thePlayer.onGround = moveData.isOnGround();
         } catch (IndexOutOfBoundsException e) {
             disable();
             return;

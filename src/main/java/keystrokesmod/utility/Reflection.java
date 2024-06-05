@@ -12,12 +12,12 @@ import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.entity.projectile.EntityArrow;
 import net.minecraft.inventory.*;
 import net.minecraft.network.play.client.C02PacketUseEntity;
 import net.minecraft.network.play.client.C03PacketPlayer;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
+import net.minecraft.network.play.server.S12PacketEntityVelocity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.common.MinecraftForge;
@@ -52,6 +52,8 @@ public class Reflection {
     public static Field S08PacketPlayerPosLookPitch;
     public static Field C02PacketUseEntityEntityId;
     public static Field C03PacketPlayerOnGround;
+    public static Field S12PacketEntityVelocityXMotion;
+    public static Field S12PacketEntityVelocityZMotion;
     public static Field bookContents;
     public static HashMap<Class, Field> containerInventoryPlayer = new HashMap<>();
     private static List<Class> containerClasses = new ArrayList<>();
@@ -143,6 +145,16 @@ public class Reflection {
             C03PacketPlayerOnGround = ReflectionHelper.findField(C03PacketPlayer.class, "onGround", "field_149474_g");
             if (C03PacketPlayerOnGround != null) {
                 C03PacketPlayerOnGround.setAccessible(true);
+            }
+
+            S12PacketEntityVelocityXMotion = ReflectionHelper.findField(S12PacketEntityVelocity.class, "motionX", "field_149415_b");
+            if (S12PacketEntityVelocityXMotion != null) {
+                S12PacketEntityVelocityXMotion.setAccessible(true);
+            }
+
+            S12PacketEntityVelocityZMotion = ReflectionHelper.findField(S12PacketEntityVelocity.class, "motionZ", "field_149414_d");
+            if (S12PacketEntityVelocityZMotion != null) {
+                S12PacketEntityVelocityZMotion.setAccessible(true);
             }
 
             bookContents = ReflectionHelper.findField(GuiScreenBook.class, "field_175386_A");

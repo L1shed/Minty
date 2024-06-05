@@ -39,7 +39,7 @@ public class ModuleManager {
     public static Module reach;
     public static BedESP bedESP;
     public static HUD hud;
-    public static Module timer;
+    public static Timer timer;
     public static Module fly;
     public static Module wTap;
     public static Potions potions;
@@ -57,6 +57,7 @@ public class ModuleManager {
     public static MotionModifier motionModifier;
     public static AntiVoid antiVoid;
     public static Criticals criticals;
+    public static TimerRange timerRange;
 
     public void register() {
         this.addModule(autoClicker = new AutoClicker());
@@ -72,12 +73,10 @@ public class ModuleManager {
         this.addModule(new Settings());
         this.addModule(reach = new Reach());
         this.addModule(new RodAimbot());
-        this.addModule(new Velocity());
         this.addModule(speed = new Speed());
         this.addModule(new InvManager());
         this.addModule(scaffold = new Scaffold());
         this.addModule(new AntiAFK());
-        this.addModule(new Boost());
         this.addModule(new AutoTool());
         this.addModule(fly = new Fly());
         this.addModule(new InvMove());
@@ -100,7 +99,7 @@ public class ModuleManager {
         this.addModule(noFall = new NoFall());
         this.addModule(safeWalk = new SafeWalk());
         this.addModule(reduce = new Reduce());
-        this.addModule(antiKnockback = new AntiKnockback());
+        this.addModule(antiKnockback = new Velocity());
         this.addModule(antiBot = new AntiBot());
         this.addModule(antiShuffle = new AntiShuffle());
         this.addModule(new Chams());
@@ -146,6 +145,7 @@ public class ModuleManager {
         this.addModule(motionModifier = new MotionModifier());
         this.addModule(antiVoid = new AntiVoid());
         this.addModule(criticals = new Criticals());
+        this.addModule(timerRange = new TimerRange());
         antiBot.enable();
         modules.sort(Comparator.comparing(Module::getName));
     }

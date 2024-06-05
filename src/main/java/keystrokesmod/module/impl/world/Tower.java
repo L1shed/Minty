@@ -21,6 +21,7 @@ public class Tower extends Module {
     private final ButtonSetting sprintJumpForward;
     private final ButtonSetting hypixelNoStrafe;
     private final SliderSetting hypixelOffGroundSpeed;
+    private final SliderSetting hypixelJumpMotion;
     private int slowTicks;
     private boolean wasTowering;
     public Tower() {
@@ -35,8 +36,9 @@ public class Tower extends Module {
         this.registerSetting(disableWhileCollided = new ButtonSetting("Disable while collided", false));
         this.registerSetting(disableWhileHurt = new ButtonSetting("Disable while hurt", false));
         this.registerSetting(sprintJumpForward = new ButtonSetting("Sprint jump forward", true));
-        this.registerSetting(hypixelNoStrafe = new ButtonSetting("Hypixel no strafe", false));
         this.registerSetting(hypixelOffGroundSpeed = new SliderSetting("Hypixel off ground speed", 0.5, 0.0, 1.0, 0.01));
+        this.registerSetting(hypixelJumpMotion = new SliderSetting("Hypixel jump motion", 0.4, 0.2, 0.8, 0.01));
+        this.registerSetting(hypixelNoStrafe = new ButtonSetting("Hypixel no strafe", false));
         this.canBeEnabled = false;
     }
 
@@ -50,12 +52,12 @@ public class Tower extends Module {
                     mc.thePlayer.jump();
                     break;
                 case 1:
-                    if (mc.thePlayer.onGround) {
-                        mc.thePlayer.jump();
+                    if (e.isOnGround()) {
+                        mc.thePlayer.motionY = hypixelJumpMotion.getInput();
                     }
                     e.setSprinting(false);
 
-                    double moveSpeed = mc.thePlayer.onGround ? speed.getInput() : hypixelOffGroundSpeed.getInput();
+                    double moveSpeed = e.isOnGround() ? speed.getInput() : hypixelOffGroundSpeed.getInput();
                     if (hypixelNoStrafe.isToggled()) {
                         if (Math.abs(mc.thePlayer.motionX) >= Math.abs(mc.thePlayer.motionZ)) {
                             mc.thePlayer.motionX *= moveSpeed;

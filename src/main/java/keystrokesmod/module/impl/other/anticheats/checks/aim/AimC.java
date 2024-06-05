@@ -36,10 +36,11 @@ public class AimC extends Check {
     public void _onTick() {
         float deltaYaw = player.currentRot.y - player.lastRot.y;
         float deltaPitch = player.currentRot.x - player.lastRot.x;
+        if (equals(player.currentRot.y, player.lastRot.y)) return;
 
-        if (player.currentRot.x == 85) {
-            if (SCAFFOLD_YAW.contains(player.currentRot.y)) {
-                if (SCAFFOLD_YAW.contains(player.lastRot.y)) {
+        if (equals(player.currentRot.x, 85)) {
+            if (SCAFFOLD_YAW.stream().anyMatch(f -> equals(f, player.currentRot.y))) {
+                if (SCAFFOLD_YAW.stream().anyMatch(f -> equals(f, player.lastRot.y))) {
                     flag("Scaffold-like rotation. Type: RotateWithMovement");
                 } else {
                     if (deltaYaw < AdvancedConfig.aimCMinDeltaYaw || deltaPitch < AdvancedConfig.aimCMinDeltaPitch) return;
@@ -47,6 +48,10 @@ public class AimC extends Check {
                 }
             }
         }
+    }
+
+    private boolean equals(float f1, float f2) {
+        return Math.abs(f1 - f2) < 0.05;
     }
 
     @Override

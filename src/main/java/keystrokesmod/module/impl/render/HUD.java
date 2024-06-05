@@ -16,19 +16,22 @@ import net.minecraftforge.fml.client.config.GuiButtonExt;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.RenderTickEvent;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class HUD extends Module {
-    private DescriptionSetting description;
+    public static final String VERSION = "1";
     public static SliderSetting theme;
-    private ButtonSetting editPosition;
     public static ButtonSetting dropShadow;
     public static ButtonSetting alphabeticalSort;
     private static ButtonSetting alignRight;
     private static ButtonSetting lowercase;
     public static ButtonSetting showInfo;
+    public static ButtonSetting showWatermark;
     public static int hudX = 5;
     public static int hudY = 70;
     private boolean isAlphabeticalSort;
@@ -36,16 +39,15 @@ public class HUD extends Module {
 
     public HUD() {
         super("HUD", Module.category.render);
-        this.registerSetting(description = new DescriptionSetting("Right click bind to hide modules."));
+        this.registerSetting(new DescriptionSetting("Right click bind to hide modules."));
         this.registerSetting(theme = new SliderSetting("Theme", Theme.themes, 0));
-        this.registerSetting(editPosition = new ButtonSetting("Edit position", () -> {
-            mc.displayGuiScreen(new EditScreen());
-        }));
+        this.registerSetting(new ButtonSetting("Edit position", () -> mc.displayGuiScreen(new EditScreen())));
         this.registerSetting(alignRight = new ButtonSetting("Align right", false));
         this.registerSetting(alphabeticalSort = new ButtonSetting("Alphabetical sort", false));
         this.registerSetting(dropShadow = new ButtonSetting("Drop shadow", true));
         this.registerSetting(lowercase = new ButtonSetting("Lowercase", false));
         this.registerSetting(showInfo = new ButtonSetting("Show module info", true));
+        this.registerSetting(showWatermark = new ButtonSetting("Show Watermark", true));
     }
 
     public void onEnable() {
@@ -77,40 +79,63 @@ public class HUD extends Module {
         int n = hudY;
         double n2 = 0.0;
         try {
-            for (Module module : ModuleManager.organizedModules) {
-                if (module.isEnabled() && module != this) {
-                    if (module.isHidden()) {
-                        continue;
-                    }
-                    if (module == ModuleManager.commandLine) {
-                        continue;
-                    }
-                    String moduleName = module.getName();
-                    if (showInfo.isToggled() && !module.getInfo().isEmpty()) {
-                        moduleName += " §7" + module.getInfo();
-                    }
-                    if (lowercase.isToggled()) {
-                        moduleName = moduleName.toLowerCase();
-                    }
-                    int e = Theme.getGradient((int) theme.getInput(), n2);
-                    if (theme.getInput() == 0) {
-                        n2 -= 120;
-                    } else {
-                        n2 -= 12;
-                    }
-                    int n3 = hudX;
-                    if (alignRight.isToggled()) {
-                        n3 -= mc.fontRendererObj.getStringWidth(moduleName);
-                    }
-                    mc.fontRendererObj.drawString(moduleName, n3, (float) n, e, dropShadow.isToggled());
-                    n += mc.fontRendererObj.FONT_HEIGHT + 2;
+            List<String> texts = getDrawTexts();
+
+            for (String text : texts) {
+                int e = Theme.getGradient((int) theme.getInput(), n2);
+                if (theme.getInput() == 0) {
+                    n2 -= 120;
+                } else {
+                    n2 -= 12;
                 }
+                int n3 = hudX;
+                if (alignRight.isToggled()) {
+                    n3 -= mc.fontRendererObj.getStringWidth(text);
+                }
+                mc.fontRendererObj.drawString(text, n3, (float) n, e, dropShadow.isToggled());
+                n += mc.fontRendererObj.FONT_HEIGHT + 2;
             }
         }
         catch (Exception e) {
             Utils.sendMessage("&cAn error occurred rendering HUD. check your logs");
             e.printStackTrace();
         }
+    }
+
+    @NotNull
+    private List<String> getDrawTexts() {
+        List<Module> modules = ModuleManager.organizedModules;
+        List<String> texts = new ArrayList<>(modules.size());
+
+        if (showWatermark.isToggled()) {
+            String text = "§r§u§lRaven §bB§9s§e";
+            String text2 = "§r§7[§rxia__mc Forked§7]§r B" + VERSION;
+            if (lowercase.isToggled())
+                text = text.toLowerCase();
+            texts.add(text);
+
+            if (showInfo.isToggled()) {
+                if (lowercase.isToggled())
+                    text2 = text2.toLowerCase();
+                texts.add(text2);
+            }
+        }
+
+        for (Module module : modules) {
+            if (!module.isEnabled() || module == this) continue;
+            if (module.isHidden()) continue;
+            if (module == ModuleManager.commandLine) continue;
+
+            String text = module.getName();
+            if (showInfo.isToggled() && !module.getInfo().isEmpty()) {
+                text += " §7" + module.getInfo();
+            }
+            if (lowercase.isToggled()) {
+                text = text.toLowerCase();
+            }
+            texts.add(text);
+        }
+        return texts;
     }
 
     public static int getLongestModule(FontRenderer fr) {

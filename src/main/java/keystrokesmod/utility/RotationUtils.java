@@ -8,6 +8,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.*;
+import org.jetbrains.annotations.NotNull;
 
 public class RotationUtils {
     public static final Minecraft mc = Minecraft.getMinecraft();
@@ -39,10 +40,10 @@ public class RotationUtils {
         return old + (newFloat - old) * tickDelta;
     }
 
-    public static float[] getRotations(Entity entity, final float n, final float n2) {
+    public static float @NotNull [] getRotations(Entity entity, final float n, final float n2) {
         final float[] array = getRotations(entity);
         if (array == null) {
-            return null;
+            return new float[] { mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch };
         }
         return fixRotation(array[0], array[1], n, n2);
     }
@@ -55,7 +56,7 @@ public class RotationUtils {
         return (float)(Math.atan2(n - mc.thePlayer.posX, n2 - mc.thePlayer.posZ) * 57.295780181884766 * -1.0);
     }
 
-    public static boolean inRange(final BlockPos blockPos, final double n) {
+    public static boolean notInRange(final BlockPos blockPos, final double n) {
         final float[] array = RotationUtils.getRotations(blockPos);
         final Vec3 getPositionEyes = mc.thePlayer.getPositionEyes(1.0f);
         final float n2 = -array[0] * 0.017453292f;
@@ -71,12 +72,10 @@ public class RotationUtils {
             if (boundingBox != null) {
                 Vec3 targetVec = getPositionEyes.addVector(vec3.xCoord * n, vec3.yCoord * n, vec3.zCoord * n);
                 MovingObjectPosition intercept = boundingBox.calculateIntercept(getPositionEyes, targetVec);
-                if (intercept != null) {
-                    return true;
-                }
+                return intercept == null;
             }
         }
-        return false;
+        return true;
     }
 
     public static float[] getRotations(final Entity entity) {

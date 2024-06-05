@@ -15,8 +15,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class FakeLag extends Module {
-    private SliderSetting packetDelay;
-    private ConcurrentHashMap<Packet, Long> delayedPackets = new ConcurrentHashMap<>();
+    private final SliderSetting packetDelay;
+    private final ConcurrentHashMap<Packet<?>, Long> delayedPackets = new ConcurrentHashMap<>();
 
     public FakeLag() {
         super("Fake Lag", category.player);
@@ -24,7 +24,7 @@ public class FakeLag extends Module {
     }
 
     public String getInfo() {
-        return (int) packetDelay.getInput() + "ms";
+        return (int) packetDelay.getInput() + " ms";
     }
 
     public void onEnable() {
@@ -60,10 +60,10 @@ public class FakeLag extends Module {
 
     private void sendPacket(boolean delay) {
         try {
-            Iterator<Map.Entry<Packet, Long>> packets = delayedPackets.entrySet().iterator();
+            Iterator<Map.Entry<Packet<?>, Long>> packets = delayedPackets.entrySet().iterator();
             while (packets.hasNext()) {
-                Map.Entry<Packet, Long> entry = packets.next();
-                Packet packet = entry.getKey();
+                Map.Entry<Packet<?>, Long> entry = packets.next();
+                Packet<?> packet = entry.getKey();
                 if (packet == null) {
                     continue;
                 }
@@ -75,7 +75,7 @@ public class FakeLag extends Module {
                 }
             }
         }
-        catch (Exception e) {
+        catch (Exception ignored) {
         }
     }
 }
