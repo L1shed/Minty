@@ -4,7 +4,7 @@ import keystrokesmod.event.SendPacketEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.utility.PacketUtils;
-import keystrokesmod.utility.RenderUtils;
+import keystrokesmod.utility.render.RenderUtils;
 import keystrokesmod.utility.Utils;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.network.Packet;

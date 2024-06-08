@@ -2,6 +2,7 @@ package keystrokesmod.script.classes;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.MathHelper;
 import org.jetbrains.annotations.NotNull;
 
@@ -71,5 +72,14 @@ public class Vec3 {
 
     public Vec3 subtract(@NotNull Vec3 vec3) {
         return add(new Vec3(-vec3.x(), -vec3.y(), -vec3.z()));
+    }
+    
+    public double relative(EnumFacing.@NotNull Axis axis) {
+        switch (axis) {
+            case X: return x();
+            case Y: return y();
+            case Z: return z();
+        }
+        return 0;
     }
 }

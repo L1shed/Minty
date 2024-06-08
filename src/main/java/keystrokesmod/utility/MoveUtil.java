@@ -1,5 +1,6 @@
 package keystrokesmod.utility;
 
+import keystrokesmod.module.impl.movement.TargetStrafe;
 import net.minecraft.util.MathHelper;
 
 import static keystrokesmod.Raven.mc;
@@ -17,20 +18,12 @@ public class MoveUtil {
      * Makes the player strafe at the specified speed
      */
     public static void strafe(final double speed) {
-        if (!isMoving()) {
-            return;
-        }
-
         final double yaw = direction();
         mc.thePlayer.motionX = -MathHelper.sin((float) yaw) * speed;
         mc.thePlayer.motionZ = MathHelper.cos((float) yaw) * speed;
     }
 
     public static void strafe(final double speed, float yaw) {
-        if (!isMoving()) {
-            return;
-        }
-
         yaw = (float) Math.toRadians(yaw);
         mc.thePlayer.motionX = -MathHelper.sin(yaw) * speed;
         mc.thePlayer.motionZ = MathHelper.cos(yaw) * speed;
@@ -48,7 +41,7 @@ public class MoveUtil {
      * Gets the players' movement yaw
      */
     public static double direction() {
-        float rotationYaw = mc.thePlayer.rotationYaw;
+        float rotationYaw = TargetStrafe.getMovementYaw();
 
         if (mc.thePlayer.moveForward < 0) {
             rotationYaw += 180;

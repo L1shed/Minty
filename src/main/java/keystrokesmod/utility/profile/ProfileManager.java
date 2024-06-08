@@ -129,8 +129,12 @@ public class ProfileManager {
                 for (JsonElement moduleJson : modules) {
                     JsonObject moduleInformation = moduleJson.getAsJsonObject();
                     String moduleName = moduleInformation.get("name").getAsString();
+                    if (moduleName.equals("AntiKnockback"))
+                        moduleName = "Velocity";
+                    else if (moduleName.equals("Bhop"))
+                        moduleName = "Speed";
 
-                    if (moduleName == null || moduleName.isEmpty()) {
+                    if (moduleName.isEmpty()) {
                         continue;
                     }
 

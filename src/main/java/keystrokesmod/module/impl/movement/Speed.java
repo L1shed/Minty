@@ -1,11 +1,14 @@
 package keystrokesmod.module.impl.movement;
 
+import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.module.Module;
-import keystrokesmod.module.ModuleManager;
-import keystrokesmod.utility.MoveUtil;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.utility.MoveUtil;
 import keystrokesmod.utility.Utils;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+
+import static keystrokesmod.module.ModuleManager.scaffold;
 
 public class Speed extends Module {
     private final SliderSetting mode;
@@ -31,6 +34,13 @@ public class Speed extends Module {
         return modes[(int) mode.getInput()];
     }
 
+    @SubscribeEvent
+    public void onPreMotion(PreMotionEvent event) {
+        if ((int) mode.getInput() == 0) {
+            event.setSprinting(false);
+        }
+    }
+
     public void onUpdate() {
         if (mc.thePlayer.onGround) {
             offGroundTicks = 0;
@@ -41,7 +51,7 @@ public class Speed extends Module {
         if (((mc.thePlayer.isInWater()
                 || mc.thePlayer.isInLava()) && liquidDisable.isToggled())
                 || (mc.thePlayer.isSneaking() && sneakDisable.isToggled())
-                || ModuleManager.scaffold.isEnabled()
+                || scaffold.isEnabled()
         ) {
             return;
         }

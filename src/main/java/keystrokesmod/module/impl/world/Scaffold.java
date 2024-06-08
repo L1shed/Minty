@@ -7,7 +7,9 @@ import keystrokesmod.module.impl.player.InvManager;
 import keystrokesmod.module.impl.render.HUD;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import static keystrokesmod.script.ScriptDefaults.client;
 import keystrokesmod.utility.*;
+import keystrokesmod.utility.render.RenderUtils;
 import net.minecraft.block.BlockAir;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.settings.KeyBinding;
@@ -28,36 +30,38 @@ import java.util.Iterator;
 import java.util.Map;
 
 public class Scaffold extends Module { // from b4 :)
-    private SliderSetting motion;
-    private SliderSetting rotation;
-    private SliderSetting fastScaffold;
-    private ButtonSetting autoSwap;
-    private ButtonSetting fastOnRMB;
-    private ButtonSetting highlightBlocks;
-    private ButtonSetting multiPlace;
+    private final SliderSetting motion;
+    private final SliderSetting rotation;
+    private final SliderSetting fastScaffold;
+    private final ButtonSetting autoSwap;
+    private final ButtonSetting fastOnRMB;
+    private final ButtonSetting highlightBlocks;
+    private final ButtonSetting multiPlace;
     public ButtonSetting safeWalk;
-    private ButtonSetting showBlockCount;
+    private final ButtonSetting showBlockCount;
     private ButtonSetting delayOnJump;
-    private ButtonSetting silentSwing;
+    private final ButtonSetting silentSwing;
     public ButtonSetting tower;
+    public ButtonSetting fast;
     private MovingObjectPosition placeBlock;
     private int lastSlot;
-    private String[] rotationModes = new String[]{"None", "Backwards", "Strict", "Raytrace"};
-    private String[] fastScaffoldModes = new String[]{"Disabled", "Sprint", "Edge", "Jump", "Float"};
     public float placeYaw;
     public float placePitch;
     public int at;
     public int index;
     public boolean rmbDown;
     private double startPos = -1;
-    private Map<BlockPos, Timer> highlight = new HashMap<>();
+    private final Map<BlockPos, Timer> highlight = new HashMap<>();
     private boolean forceStrict;
     private boolean down;
     private int add;
+    private boolean speeded;
     public Scaffold() {
         super("Scaffold", category.world);
         this.registerSetting(motion = new SliderSetting("Motion", 1.0, 0.5, 1.2, 0.01));
+        String[] rotationModes = new String[]{"None", "Backwards", "Strict", "Raytrace"};
         this.registerSetting(rotation = new SliderSetting("Rotation", rotationModes, 1));
+        String[] fastScaffoldModes = new String[]{"Disabled", "Sprint", "Edge", "Jump", "Float"};
         this.registerSetting(fastScaffold = new SliderSetting("Fast scaffold", fastScaffoldModes, 0));
         //this.registerSetting(delayOnJump = new ButtonSetting("Delay on jump", true));
         this.registerSetting(autoSwap = new ButtonSetting("AutoSwap", true));
@@ -68,6 +72,7 @@ public class Scaffold extends Module { // from b4 :)
         this.registerSetting(showBlockCount = new ButtonSetting("Show block count", true));
         this.registerSetting(silentSwing = new ButtonSetting("Silent swing", false));
         this.registerSetting(tower = new ButtonSetting("Tower", false));
+        this.registerSetting(fast = new ButtonSetting("Fast", false));
     }
 
     public void onDisable() {
@@ -107,6 +112,24 @@ public class Scaffold extends Module { // from b4 :)
 
     @SubscribeEvent
     public void onPreUpdate(PreUpdateEvent e) { // place here
+        if (fast.isToggled()) {
+            if (client.isMouseDown(1) && !client.isKeyDown(57) && client.keybinds.isPressed("forward") && client.getPlayer().onGround()) {
+                client.keybinds.setPressed("use", false);
+                client.keybinds.setPressed("jump", false);
+                if (!isDiagonal() && !(client.keybinds.isPressed("right") || client.keybinds.isPressed("left"))) {
+                    client.setSpeed(0.5);
+                    client.setSprinting(false);
+                    client.jump();
+                } else if (isDiagonal() || (client.keybinds.isPressed("right") || client.keybinds.isPressed("left"))) {
+                    client.jump();
+                }
+                speeded = true;
+            } else if (!client.isMouseDown(1) && !client.isKeyDown(57) && speeded) {
+                client.setMotion(0, client.getMotion().y, 0);
+                speeded = false;
+            }
+        }
+
         final ItemStack heldItem = mc.thePlayer.getHeldItem();
         if (!autoSwap.isToggled() || getSlot() == -1) {
             if (heldItem == null || !(heldItem.getItem() instanceof ItemBlock)) {
@@ -185,7 +208,7 @@ public class Scaffold extends Module { // from b4 :)
         MovingObjectPosition rayCasted = null;
         double distance = -1.0;
         float searchYaw = 25;
-        float searchPitch[] = new float[]{70, 23};
+        float[] searchPitch = new float[]{70, 23};
         for (int i = 0; i < 2; i++) {
             if (i == 1 && Utils.overPlaceable(-1) && !keepYPosition()) {
                 searchYaw = 180;
@@ -211,12 +234,7 @@ public class Scaffold extends Module { // from b4 :)
                                         if (((ItemBlock) heldItem.getItem()).canPlaceBlockOnSide(mc.theWorld, raycast.getBlockPos(), raycast.sideHit, mc.thePlayer, heldItem)) {
                                             double squareDistanceTo = mc.thePlayer.getPositionVector().squareDistanceTo(raycast.hitVec);
                                             if (rayCasted == null || squareDistanceTo < distance) {
-                                                if ((forceStrict(checkYaw)) && i == 1) {
-                                                    forceStrict = true;
-                                                }
-                                                else {
-                                                    forceStrict = false;
-                                                }
+                                                forceStrict = (forceStrict(checkYaw)) && i == 1;
                                                 rayCasted = raycast;
                                                 distance = squareDistanceTo;
                                                 placeYaw = fixedYaw;
@@ -242,6 +260,17 @@ public class Scaffold extends Module { // from b4 :)
             }
             place(placeBlock, false);
         }
+    }
+
+    private boolean isDiagonal() {
+        float yaw = client.getPlayer().getYaw();
+        yaw = (yaw + 360) % 360;
+        final float threshold = 9;
+        boolean isNorth = Math.abs(yaw - 0) < threshold || Math.abs(yaw - 360) < threshold;
+        boolean isSouth = Math.abs(yaw - 180) < threshold;
+        boolean isEast = Math.abs(yaw - 90) < threshold;
+        boolean isWest = Math.abs(yaw - 270) < threshold;
+        return !(isNorth || isSouth || isEast || isWest);
     }
 
     @SubscribeEvent

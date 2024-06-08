@@ -5,13 +5,16 @@
   "compatibilityLevel": "JAVA_8",
   "mixins": [
     "entity.MixinEntity",
-    "render.MixinFontRenderer",
+    "entity.MixinEntityLivingBase",
+    "entity.MixinEntityPlayer",
     "entity.MixinEntityPlayerSP",
+    "network.MixinNetworkManager",
+    "render.MixinFontRenderer",
     "render.MixinLayerCape",
     "render.MixinModelBiped",
-    "entity.MixinEntityLivingBase",
-    "network.MixinNetworkManager",
-    "entity.MixinEntityPlayer",
     "render.MixinRendererLivingEntity"
+  ],
+  "client": [
+    "client.KeyBindingAccessor"
   ]
 }

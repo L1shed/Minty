@@ -5,10 +5,10 @@ import keystrokesmod.Raven;
 import keystrokesmod.event.*;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
-import keystrokesmod.module.impl.other.anticheats.utils.world.LevelUtils;
 import keystrokesmod.module.impl.world.AntiBot;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.script.classes.Vec3;
 import keystrokesmod.utility.*;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.EntityLivingBase;
@@ -17,11 +17,13 @@ import net.minecraft.init.Blocks;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.client.*;
 import net.minecraft.network.play.server.S2FPacketSetSlot;
-import net.minecraft.util.*;
+import net.minecraft.util.BlockPos;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import org.jetbrains.annotations.NotNull;
 import org.lwjgl.input.Mouse;
 
 import java.util.*;
@@ -336,7 +338,7 @@ public class KillAura extends Module {
     }
 
     @SubscribeEvent
-    public void onMouse(final MouseEvent mouseEvent) {
+    public void onMouse(final @NotNull MouseEvent mouseEvent) {
         if (mouseEvent.button == 0 && mouseEvent.buttonstate) {
             if (target != null || swing) {
                 mouseEvent.setCanceled(true);
@@ -628,20 +630,15 @@ public class KillAura extends Module {
                 break;
             case 1:
                 try {
-                    return keystrokesmod.module.impl.other.anticheats.utils.world.BlockUtils.isFullBlock(
-                            LevelUtils.getClientLevel().getBlockState(
-                                    Objects.requireNonNull(rotationSmoothing.getInput() >= 4 && rotationMode.getInput() == 1 || rotationSmoothing.getInput() > 0 ?
-                                            RotationUtils.rayCast(
-                                                    attackRange.getInput(),
-                                                    prevRotations != null ? prevRotations[0] : mc.thePlayer.rotationYaw,
-                                                    prevRotations != null ? prevRotations[1] : mc.thePlayer.rotationPitch
-                                            )
-                                            : RotationUtils.rayCast(attackRange.getInput(), rotations[0], rotations[1])
-                                    ).getBlockPos()
-                            )
-                    );
-                } catch (NullPointerException e) {
-                    return false;
+                    MovingObjectPosition hitResult = RotationUtils.rayCast(
+                            new keystrokesmod.script.classes.Vec3(target).add(new keystrokesmod.script.classes.Vec3(0, target.getEyeHeight(), 0))
+                                    .distanceTo(new keystrokesmod.script.classes.Vec3(mc.thePlayer).add(new Vec3(0, mc.thePlayer.getEyeHeight(), 0))), rotations[0], rotations[1]);
+                    if (hitResult != null) {
+                        if (keystrokesmod.module.impl.other.anticheats.utils.world.BlockUtils.isFullBlock(mc.theWorld.getBlockState(hitResult.getBlockPos()))) {
+                            return true;
+                        }
+                    }
+                } catch (NullPointerException ignored) {
                 }
         }
         return false;

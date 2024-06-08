@@ -5,7 +5,7 @@ import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
-import keystrokesmod.utility.RenderUtils;
+import keystrokesmod.utility.render.RenderUtils;
 import keystrokesmod.utility.Theme;
 import keystrokesmod.utility.Utils;
 import net.minecraft.client.gui.*;
@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HUD extends Module {
-    public static final String VERSION = "1.0.1";
+    public static final String VERSION = "1.1.0";
     public static SliderSetting theme;
     public static ButtonSetting dropShadow;
     public static ButtonSetting alphabeticalSort;
@@ -70,7 +70,7 @@ public class HUD extends Module {
             canShowInfo = showInfo.isToggled();
             ModuleManager.sort();
         }
-        if (!(mc.currentScreen instanceof GuiChat) || mc.gameSettings.showDebugInfo) {
+        if (mc.currentScreen != null && !(mc.currentScreen instanceof GuiChat) || mc.gameSettings.showDebugInfo) {
             return;
         }
         int n = hudY;

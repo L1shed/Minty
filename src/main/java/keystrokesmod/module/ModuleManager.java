@@ -58,6 +58,7 @@ public class ModuleManager {
     public static AntiVoid antiVoid;
     public static Criticals criticals;
     public static TimerRange timerRange;
+    public static TargetStrafe targetStrafe;
 
     public void register() {
         this.addModule(autoClicker = new AutoClicker());
@@ -146,6 +147,7 @@ public class ModuleManager {
         this.addModule(antiVoid = new AntiVoid());
         this.addModule(criticals = new Criticals());
         this.addModule(timerRange = new TimerRange());
+        this.addModule(targetStrafe = new TargetStrafe());
         antiBot.enable();
         modules.sort(Comparator.comparing(Module::getName));
     }

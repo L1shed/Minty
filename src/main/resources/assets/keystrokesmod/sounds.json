@@ -1,0 +1,14 @@
+{
+  "toggle.enable":{
+    "category": "player",
+    "sounds": [
+      "keystrokesmod:toggle/enable"
+    ]
+  },
+  "toggle.disable":{
+    "category": "player",
+    "sounds": [
+      "keystrokesmod:toggle/disable"
+    ]
+  }
+}

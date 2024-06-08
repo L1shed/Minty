@@ -1,6 +1,7 @@
-package keystrokesmod.utility;
+package keystrokesmod.utility.render;
 
 import keystrokesmod.module.impl.player.Freecam;
+import keystrokesmod.utility.Utils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.ScaledResolution;
