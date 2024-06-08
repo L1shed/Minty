@@ -76,20 +76,19 @@ public class NoSlow extends Module {
     }
 
     public static float getSlowed() {
+        if (!mc.thePlayer.isUsingItem()) return (100.0F - 0.0F) / 100.0F;
         if (mc.thePlayer.getHeldItem() == null || ModuleManager.noSlow == null || !ModuleManager.noSlow.isEnabled()) {
             return 0.2f;
-        } else {
-            if (swordOnly.isToggled() && !(mc.thePlayer.getHeldItem().getItem() instanceof ItemSword)) {
-                return 0.2f;
-            }
-            if (mc.thePlayer.getHeldItem().getItem() instanceof ItemBow && disableBow.isToggled()) {
-                return 0.2f;
-            } else if (mc.thePlayer.getHeldItem().getItem() instanceof ItemPotion && !ItemPotion.isSplash(mc.thePlayer.getHeldItem().getItemDamage()) && disablePotions.isToggled()) {
-                return 0.2f;
-            }
         }
-        float val = (100.0F - (float) slowed.getInput()) / 100.0F;
-        return val;
+        if (swordOnly.isToggled() && !(mc.thePlayer.getHeldItem().getItem() instanceof ItemSword)) {
+            return 0.2f;
+        }
+        if (mc.thePlayer.getHeldItem().getItem() instanceof ItemBow && disableBow.isToggled()) {
+            return 0.2f;
+        } else if (mc.thePlayer.getHeldItem().getItem() instanceof ItemPotion && !ItemPotion.isSplash(mc.thePlayer.getHeldItem().getItemDamage()) && disablePotions.isToggled()) {
+            return 0.2f;
+        }
+        return (100.0F - (float) slowed.getInput()) / 100.0F;
     }
 
     @Override

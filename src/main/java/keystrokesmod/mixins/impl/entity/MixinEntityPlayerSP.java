@@ -269,7 +269,7 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
         boolean flag2 = this.movementInput.moveForward >= f;
         this.movementInput.updatePlayerMoveState();
         boolean usingItemModified = this.isUsingItem() || (ModuleManager.killAura != null && ModuleManager.killAura.isEnabled() && ModuleManager.killAura.block.get() && ((Object) this) == Minecraft.getMinecraft().thePlayer && ModuleManager.killAura.rmbDown && ModuleManager.killAura.manualBlock.isToggled());
-        boolean stopSprint = ModuleManager.noSlow == null || !ModuleManager.noSlow.isEnabled() || NoSlow.slowed.getInput() == 80;
+        boolean stopSprint = this.isUsingItem() && ModuleManager.noSlow != null && ModuleManager.noSlow.isEnabled() && NoSlow.slowed.getInput() == 80;
         if (usingItemModified && !this.isRiding()) {
             MovementInput var10000 = this.movementInput;
             float slowed = NoSlow.getSlowed();
