@@ -431,10 +431,11 @@ public class BedAura extends Module {
         else if (mode.getInput() == 1) {
             stopAutoblock = true;
             rotate = true;
-            swing();
+            if (!silentSwing.isToggled()) {
+                swing();
+            }
             startBreak(blockPos);
             setSlot(Utils.getTool(block));
-            swing();
             stopBreak(blockPos);
         }
     }
