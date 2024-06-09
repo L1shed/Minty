@@ -2,32 +2,78 @@ package keystrokesmod.module.impl.player;
 
 import keystrokesmod.event.SendPacketEvent;
 import keystrokesmod.module.Module;
+import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.script.classes.Vec3;
 import keystrokesmod.utility.PacketUtils;
 import keystrokesmod.utility.Utils;
+import keystrokesmod.utility.render.RenderUtils;
+import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.network.Packet;
+import net.minecraft.network.handshake.client.C00Handshake;
+import net.minecraft.network.login.client.C00PacketLoginStart;
+import net.minecraft.network.login.client.C01PacketEncryptionResponse;
+import net.minecraft.network.play.client.C00PacketKeepAlive;
+import net.minecraft.network.play.client.C01PacketChatMessage;
+import net.minecraft.network.play.client.C0FPacketConfirmTransaction;
+import net.minecraft.network.status.client.C00PacketServerQuery;
+import net.minecraft.network.status.client.C01PacketPing;
+import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class FakeLag extends Module {
-    private final SliderSetting packetDelay;
+    private static final int color = new Color(72, 125, 227).getRGB();
+    private final SliderSetting mode;
+    private static final String[] MODES = new String[]{"Latency", "Dynamic"};
+    private final SliderSetting delay;
+    private final ButtonSetting debug;
+    private Vec3 realPos;
+    private final ButtonSetting visual;
+    private final ButtonSetting dynamicStopOnHurt;
+    private final SliderSetting dynamicStopOnHurtTime;
+    private final SliderSetting dynamicStartRange;
+    private final SliderSetting dynamicStopRange;
+    private final SliderSetting dynamicMaxTargetRange;
+    private long lastDisableTime = -1;
+    private boolean shouldBlink = false;
+    private boolean lastHurt = false;
+    private long lastStartBlinkTime = -1;
+    @Nullable
+    private AbstractClientPlayer target = null;
     private final ConcurrentHashMap<Packet<?>, Long> delayedPackets = new ConcurrentHashMap<>();
 
     public FakeLag() {
         super("Fake Lag", category.player);
-        this.registerSetting(packetDelay = new SliderSetting("Packet delay", 200, 25, 1000, 5, "ms"));
+        this.registerSetting(mode = new SliderSetting("Mode", MODES, 0));
+        this.registerSetting(delay = new SliderSetting("Delay", 200, 25, 1000, 5, "ms"));
+        this.registerSetting(debug = new ButtonSetting("Debug", false));
+        visual = new ButtonSetting("Visual", false);
+        this.registerSetting(dynamicStopOnHurt = new ButtonSetting("Dynamic Stop on hurt", false));
+        this.registerSetting(dynamicStopOnHurtTime = new SliderSetting("Dynamic Stop on hurt time", 500, 0, 1000, 5, "ms"));
+        this.registerSetting(dynamicStartRange = new SliderSetting("Dynamic Start range", 6.0, 3.0, 10.0, 0.1, "blocks"));
+        this.registerSetting(dynamicStopRange = new SliderSetting("Dynamic Stop range", 3.5, 1.0, 6.0, 0.1, "blocks"));
+        this.registerSetting(dynamicMaxTargetRange = new SliderSetting("Dynamic Max target range", 15.0, 6.0, 20.0, 0.5, "blocks"));
     }
 
     public String getInfo() {
-        return (int) packetDelay.getInput() + " ms";
+        return MODES[(int) mode.getInput()];
     }
 
     public void onEnable() {
+        realPos = new Vec3(mc.thePlayer);
+        lastDisableTime = -1;
+        shouldBlink = false;
+        lastHurt = false;
+        lastStartBlinkTime = -1;
         delayedPackets.clear();
     }
 
@@ -39,13 +85,82 @@ public class FakeLag extends Module {
     public void onRenderTick(TickEvent.RenderTickEvent ev) {
         if (!Utils.nullCheck()) {
             sendPacket(false);
+            lastDisableTime = System.currentTimeMillis();
+            shouldBlink = false;
+            lastStartBlinkTime = -1;
             return;
         }
-        sendPacket(true);
+
+        switch ((int) mode.getInput()) {
+            case 0:
+                sendPacket(true);
+                break;
+            case 1:
+                if (System.currentTimeMillis() - lastDisableTime <= dynamicStopOnHurtTime.getInput()) {
+                    sendPacket(false);
+                    break;
+                }
+                
+                if (shouldBlink) {
+                    if (System.currentTimeMillis() - lastStartBlinkTime > delay.getInput()) {
+                        if (debug.isToggled()) Utils.sendModuleMessage(this, "stop lag: time out.");
+                        lastStartBlinkTime = System.currentTimeMillis();
+                        sendPacket(false);
+                        shouldBlink = false;
+                    } else if (!lastHurt && mc.thePlayer.hurtTime > 0 && dynamicStopOnHurt.isToggled()) {
+                        if (debug.isToggled()) Utils.sendModuleMessage(this, "stop lag: hurt.");
+                        shouldBlink = false;
+                        lastDisableTime = System.currentTimeMillis();
+                        sendPacket(false);
+                    }
+                }
+
+                if (target != null) {
+                    double distance = new Vec3(mc.thePlayer).distanceTo(target);
+                    if (shouldBlink && distance < dynamicStopRange.getInput()) {
+                        if (debug.isToggled()) Utils.sendModuleMessage(this, "stop lag: too low range.");
+                        shouldBlink = false;
+                        sendPacket(false);
+                    } else if (!shouldBlink && distance > dynamicStopRange.getInput()
+                            && new Vec3(mc.thePlayer).distanceTo(target) < dynamicStartRange.getInput()) {
+                        if (debug.isToggled()) Utils.sendModuleMessage(this, "start lag: in range.");
+                        lastStartBlinkTime = System.currentTimeMillis();
+                        shouldBlink = true;
+                    } else if (shouldBlink && distance > dynamicStartRange.getInput()) {
+                        if (debug.isToggled()) Utils.sendModuleMessage(this, "stop lag: out of range.");
+                        shouldBlink = false;
+                        sendPacket(false);
+                    } else if (distance > dynamicMaxTargetRange.getInput()) {
+                        if (debug.isToggled()) Utils.sendModuleMessage(this, String.format("release target: %s", target.getName()));
+                        target = null;
+                        shouldBlink = false;
+                        sendPacket(false);
+                    }
+                } else shouldBlink = false;
+
+                lastHurt = mc.thePlayer.hurtTime > 0;
+                break;
+        }
+
+        if (visual.isToggled()) {
+            RenderUtils.renderBox(realPos.x(), realPos.y(), realPos.z(), 1.1, 2.1, 1.1, color, false, true);
+        }
+    }
+
+    @SubscribeEvent
+    public void onAttack(@NotNull AttackEntityEvent e) {
+        if (e.target instanceof AbstractClientPlayer) {
+            target = (AbstractClientPlayer) e.target;
+        }
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onSendPacket(SendPacketEvent e) {
+    public void onSendPacket(@NotNull SendPacketEvent e) {
+        if ((int) mode.getInput() == 1 && !shouldBlink) return;
+        final Packet<?> packet = e.getPacket();
+        if (packet instanceof C00Handshake || packet instanceof C00PacketLoginStart || packet instanceof C00PacketServerQuery || packet instanceof C01PacketPing || packet instanceof C01PacketEncryptionResponse || packet instanceof C00PacketKeepAlive || packet instanceof C0FPacketConfirmTransaction || packet instanceof C01PacketChatMessage) {
+            return;
+        }
         long receiveTime = System.currentTimeMillis();
         if (!Utils.nullCheck()) {
             sendPacket(false);
@@ -54,7 +169,7 @@ public class FakeLag extends Module {
         if (e.isCanceled()) {
             return;
         }
-        delayedPackets.put(e.getPacket(), receiveTime);
+        delayedPackets.put(packet, receiveTime);
         e.setCanceled(true);
     }
 
@@ -69,7 +184,8 @@ public class FakeLag extends Module {
                 }
                 long receiveTime = entry.getValue();
                 long ms = System.currentTimeMillis();
-                if (Utils.getDifference(ms, receiveTime) > packetDelay.getInput() || !delay) {
+                if (Utils.getDifference(ms, receiveTime) > this.delay.getInput() || !delay) {
+                    PacketUtils.getPos(packet).ifPresent(p -> realPos = p);
                     PacketUtils.sendPacketNoEvent(packet);
                     packets.remove();
                 }

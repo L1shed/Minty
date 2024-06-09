@@ -6,7 +6,7 @@ import keystrokesmod.event.PostUpdateEvent;
 import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.event.PreUpdateEvent;
 import keystrokesmod.module.ModuleManager;
-import keystrokesmod.module.impl.combat.WTap;
+import keystrokesmod.module.impl.combat.SuperKnockback;
 import keystrokesmod.module.impl.movement.NoSlow;
 import keystrokesmod.utility.RotationUtils;
 import net.minecraft.client.Minecraft;
@@ -298,9 +298,8 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
             this.setSprinting(true);
         }
 
-        if (this.isSprinting() && ((this.movementInput.moveForward < f || this.isCollidedHorizontally || !flag3) || (ModuleManager.scaffold != null && ModuleManager.scaffold.isEnabled() && !ModuleManager.scaffold.sprint() && !ModuleManager.tower.canSprint()) || (ModuleManager.wTap.isEnabled() && WTap.stopSprint))) {
+        if (this.isSprinting() && ((this.movementInput.moveForward < f || this.isCollidedHorizontally || !flag3) || (ModuleManager.scaffold != null && ModuleManager.scaffold.isEnabled() && !ModuleManager.scaffold.sprint() && !ModuleManager.tower.canSprint()))) {
             this.setSprinting(false);
-            WTap.stopSprint = false;
         }
 
         if (this.capabilities.allowFlying) {

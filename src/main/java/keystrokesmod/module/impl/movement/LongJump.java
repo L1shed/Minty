@@ -10,11 +10,13 @@ import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.MoveUtil;
 import keystrokesmod.utility.Reflection;
 import keystrokesmod.utility.Utils;
+import keystrokesmod.utility.render.RenderUtils;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.server.S12PacketEntityVelocity;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.jetbrains.annotations.NotNull;
 
 public class LongJump extends Module {
@@ -23,6 +25,7 @@ public class LongJump extends Module {
     private final SliderSetting horizonBoost;
     private final SliderSetting verticalMotion;
     private final ButtonSetting jumpAtEnd;
+    private final ButtonSetting showBPS;
     private int ticks = 0;
     private boolean start;
     private boolean done;
@@ -35,6 +38,18 @@ public class LongJump extends Module {
         this.registerSetting(horizonBoost = new SliderSetting("Horizon boost", 1.0, 0.5, 3.0, 0.05));
         this.registerSetting(verticalMotion = new SliderSetting("Vertical motion", 0.35, 0.01, 0.4, 0.01));
         this.registerSetting(jumpAtEnd = new ButtonSetting("Jump at end.", false));
+        this.registerSetting(showBPS = new ButtonSetting("Show BPS", false));
+    }
+
+    @SubscribeEvent
+    public void onRender(TickEvent.RenderTickEvent event) {
+        if (!showBPS.isToggled() || event.phase != TickEvent.Phase.END || !Utils.nullCheck()) {
+            return;
+        }
+        if (mc.currentScreen != null || mc.gameSettings.showDebugInfo) {
+            return;
+        }
+        RenderUtils.renderBPS(true, false);
     }
 
     @SubscribeEvent(priority = EventPriority.HIGH)

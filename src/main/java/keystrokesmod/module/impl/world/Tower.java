@@ -1,6 +1,7 @@
 package keystrokesmod.module.impl.world;
 
 import keystrokesmod.event.PreMotionEvent;
+import keystrokesmod.event.PreUpdateEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.setting.impl.ButtonSetting;
@@ -9,6 +10,8 @@ import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.Utils;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.input.Keyboard;
+
+import static keystrokesmod.module.ModuleManager.scaffold;
 
 public class Tower extends Module {
     private final SliderSetting mode;
@@ -24,10 +27,11 @@ public class Tower extends Module {
     private final SliderSetting hypixelJumpMotion;
     private int slowTicks;
     private boolean wasTowering;
+    private int offGroundTicks = 0;
     public Tower() {
         super("Tower", category.world);
         this.registerSetting(new DescriptionSetting("Works with Safewalk & Scaffold"));
-        String[] modes = new String[]{"Vanilla", "Hypixel"};
+        String[] modes = new String[]{"Vanilla", "Hypixel", "LowHop"};
         this.registerSetting(mode = new SliderSetting("Mode", modes, 0));
         this.registerSetting(speed = new SliderSetting("Speed", 0.95, 0.5, 1, 0.01));
         this.registerSetting(diagonalSpeed = new SliderSetting("Diagonal speed", 5, 0, 10, 0.1));
@@ -92,10 +96,43 @@ public class Tower extends Module {
         }
     }
 
+    @SubscribeEvent
+    public void onPreUpdate(PreUpdateEvent event) {
+        if (mc.thePlayer.onGround) {
+            offGroundTicks = 0;
+        } else {
+            offGroundTicks++;
+        }
+
+        if (canTower()) {
+            if (mode.getInput() == 2) {
+                switch (offGroundTicks) {
+                    case 0:
+                        mc.thePlayer.motionY = 0.4196;
+                        break;
+                    case 3:
+                    case 4:
+                        mc.thePlayer.motionY = 0;
+                        break;
+                    case 5:
+                        mc.thePlayer.motionY = 0.4191;
+                        break;
+                    case 6:
+                        mc.thePlayer.motionY = 0.3275;
+                        break;
+                    case 11:
+                        mc.thePlayer.motionY = -0.5;
+                        break;
+                }
+            }
+        }
+    }
+
     private void reset() {
     }
 
     private boolean canTower() {
+        if (scaffold.totalBlocks() == 0) return false;
         if (!Utils.nullCheck() || !Utils.jumpDown()) {
             return false;
         }
@@ -109,7 +146,7 @@ public class Tower extends Module {
     }
 
     private boolean modulesEnabled() {
-        return  ((ModuleManager.safeWalk.isEnabled() && ModuleManager.safeWalk.tower.isToggled() && SafeWalk.canSafeWalk()) || (ModuleManager.scaffold.isEnabled() && ModuleManager.scaffold.tower.isToggled()));
+        return  ((ModuleManager.safeWalk.isEnabled() && ModuleManager.safeWalk.tower.isToggled() && SafeWalk.canSafeWalk()) || (scaffold.isEnabled() && scaffold.tower.isToggled()));
     }
 
     public boolean canSprint() {

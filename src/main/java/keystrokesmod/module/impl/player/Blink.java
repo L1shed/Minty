@@ -20,6 +20,7 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import org.jetbrains.annotations.NotNull;
 import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
@@ -27,10 +28,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Blink extends Module {
-    private ButtonSetting initialPosition;
-    public List<Packet> blinkedPackets = new ArrayList<>();
+    private final ButtonSetting initialPosition;
+    public final List<Packet<?>> blinkedPackets = new ArrayList<>();
     private Vec3 pos;
-    private int color = new Color(0, 255, 0).getRGB();
+    private static final int color = new Color(72, 125, 227).getRGB();
     public Blink() {
         super("Blink", category.player);
         this.registerSetting(initialPosition = new ButtonSetting("Show initial position", true));
@@ -44,7 +45,7 @@ public class Blink extends Module {
 
     public void onDisable() {
         synchronized (blinkedPackets) {
-            for (Packet packet : blinkedPackets) {
+            for (Packet<?> packet : blinkedPackets) {
                 PacketUtils.sendPacketNoEvent(packet);
             }
         }
@@ -58,7 +59,7 @@ public class Blink extends Module {
             this.disable();
             return;
         }
-        Packet packet = e.getPacket();
+        Packet<?> packet = e.getPacket();
         if (packet.getClass().getSimpleName().startsWith("S")) {
             return;
         }
@@ -77,7 +78,7 @@ public class Blink extends Module {
         drawBox(pos);
     }
 
-    private void drawBox(Vec3 pos) {
+    private void drawBox(@NotNull Vec3 pos) {
         GlStateManager.pushMatrix();
         double x = pos.xCoord - mc.getRenderManager().viewerPosX;
         double y = pos.yCoord - mc.getRenderManager().viewerPosY;

@@ -41,7 +41,7 @@ public class ModuleManager {
     public static HUD hud;
     public static Timer timer;
     public static Module fly;
-    public static Module wTap;
+    public static Module superKnockback;
     public static Potions potions;
     public static NoFall noFall;
     public static PlayerESP playerESP;
@@ -59,6 +59,8 @@ public class ModuleManager {
     public static Criticals criticals;
     public static TimerRange timerRange;
     public static TargetStrafe targetStrafe;
+    public static AutoHeal autoHeal;
+    public static HitSelect hitSelect;
 
     public void register() {
         this.addModule(autoClicker = new AutoClicker());
@@ -111,7 +113,7 @@ public class ModuleManager {
         this.addModule(hud = new HUD());
         this.addModule(new Anticheat());
         this.addModule(new BreakProgress());
-        this.addModule(wTap = new WTap());
+        this.addModule(superKnockback = new SuperKnockback());
         this.addModule(new Xray());
         this.addModule(new BridgeInfo());
         this.addModule(new TargetHUD());
@@ -148,6 +150,8 @@ public class ModuleManager {
         this.addModule(criticals = new Criticals());
         this.addModule(timerRange = new TimerRange());
         this.addModule(targetStrafe = new TargetStrafe());
+        this.addModule(autoHeal = new AutoHeal());
+        this.addModule(hitSelect = new HitSelect());
         antiBot.enable();
         modules.sort(Comparator.comparing(Module::getName));
     }

@@ -38,7 +38,7 @@ public class Criticals extends Module {
     @SubscribeEvent
     public void onPreMotion(PreMotionEvent event) {
         if (!isEnabled()) return;
-        if (mc.thePlayer.ticksExisted <= 18 && mc.thePlayer.fallDistance < 1.3) {
+        if (ticksSinceVelocity <= 18 && mc.thePlayer.fallDistance < 1.3) {
             event.setOnGround(false);
         }
     }

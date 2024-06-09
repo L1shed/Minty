@@ -4,6 +4,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.MathHelper;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 public class Vec3 {
@@ -81,5 +82,10 @@ public class Vec3 {
             case Z: return z();
         }
         return 0;
+    }
+
+    @Contract("-> new")
+    public net.minecraft.util.Vec3 toVec3() {
+        return new net.minecraft.util.Vec3(x, y, z);
     }
 }

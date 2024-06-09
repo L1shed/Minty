@@ -444,18 +444,7 @@ public class Scaffold extends Module { // from b4 :)
     }
 
     private int getSlot() {
-        int slot = -1;
-        int highestStack = -1;
-        for (int i = 0; i < 9; ++i) {
-            final ItemStack itemStack = mc.thePlayer.inventory.mainInventory[i];
-            if (itemStack != null && itemStack.getItem() instanceof ItemBlock && InvManager.canBePlaced((ItemBlock) itemStack.getItem()) && itemStack.stackSize > 0) {
-                if (mc.thePlayer.inventory.mainInventory[i].stackSize > highestStack) {
-                    highestStack = mc.thePlayer.inventory.mainInventory[i].stackSize;
-                    slot = i;
-                }
-            }
-        }
-        return slot;
+        return ContainerUtils.getSlot(ItemBlock.class, InvManager::canBePlaced);
     }
 
     public int totalBlocks() {

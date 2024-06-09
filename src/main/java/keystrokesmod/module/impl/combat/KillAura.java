@@ -167,7 +167,7 @@ public class KillAura extends Module {
             return;
         }
         boolean swingWhileBlocking = !silentSwing.isToggled() || !block.get();
-        if (swing && attack) {
+        if (swing && attack && HitSelect.canSwing()) {
             if (swingWhileBlocking) {
                 mc.thePlayer.swingItem();
             }

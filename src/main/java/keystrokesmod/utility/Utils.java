@@ -6,6 +6,7 @@ import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.client.Settings;
 import keystrokesmod.module.impl.combat.AutoClicker;
+import keystrokesmod.module.impl.combat.HitSelect;
 import keystrokesmod.module.impl.minigames.DuelsStats;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import net.minecraft.block.Block;
@@ -161,12 +162,12 @@ public class Utils {
 
     public static void attackEntity(Entity e, boolean clientSwing, boolean silentSwing) {
         if (clientSwing) {
-            mc.thePlayer.swingItem();
+            if (HitSelect.canSwing()) mc.thePlayer.swingItem();
         }
         else if (silentSwing || (!silentSwing && !clientSwing)) {
-            mc.thePlayer.sendQueue.addToSendQueue(new C0APacketAnimation());
+            if (HitSelect.canSwing()) mc.thePlayer.sendQueue.addToSendQueue(new C0APacketAnimation());
         }
-        mc.playerController.attackEntity(mc.thePlayer, e);
+        if (HitSelect.canAttack()) mc.playerController.attackEntity(mc.thePlayer, e);
     }
 
     public static void sendRawMessage(String txt) {
@@ -592,7 +593,7 @@ public class Utils {
     }
 
     public static void sendModuleMessage(Module module, String s) {
-        sendRawMessage("&3" + module.getInfo() + "&7: &r" + s);
+        sendRawMessage("&3" + module.getName() + "&7: &r" + s);
     }
 
     public static EntityLivingBase raytrace(final int n) {

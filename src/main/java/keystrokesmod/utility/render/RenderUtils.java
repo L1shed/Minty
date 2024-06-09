@@ -42,6 +42,10 @@ public class RenderUtils {
     }
 
     public static void renderBox(int x, int y, int z, int color, boolean outline, boolean shade) {
+        renderBox(x, y, z, 1.0, 1.0, 1.0, color, outline, shade);
+    }
+
+    public static void renderBox(double x, double y, double z, double xSize, double ySize, double zSize, int color, boolean outline, boolean shade) {
         double xPos = x - mc.getRenderManager().viewerPosX;
         double yPos = y - mc.getRenderManager().viewerPosY;
         double zPos = z - mc.getRenderManager().viewerPosZ;
@@ -57,7 +61,7 @@ public class RenderUtils {
         float n10 = (color >> 8 & 0xFF) / 255.0f;
         float n11 = (color & 0xFF) / 255.0f;
         GL11.glColor4f(n9, n10, n11, n8);
-        AxisAlignedBB axisAlignedBB = new AxisAlignedBB(xPos, yPos, zPos, xPos + 1.0, yPos + 1.0, zPos + 1.0);
+        AxisAlignedBB axisAlignedBB = new AxisAlignedBB(xPos, yPos, zPos, xPos + xSize, yPos + ySize, zPos + zSize);
         if (outline) {
             RenderGlobal.drawSelectionBoundingBox(axisAlignedBB);
         }

@@ -57,7 +57,7 @@ public class BurstClicker extends Module {
                     }
 
                     this.disable();
-                } catch (InterruptedException var5) {
+                } catch (InterruptedException ignored) {
                 }
 
             });
