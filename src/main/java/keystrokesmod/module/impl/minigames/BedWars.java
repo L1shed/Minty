@@ -106,7 +106,12 @@ public class BedWars extends Module {
                     spawnPos = mc.thePlayer.getPosition();
                     check = false;
                 }
-                outsideSpawn = mc.thePlayer.getDistanceSq(spawnPos) > 800;
+                if (spawnPos == null) {
+                    outsideSpawn = true;
+                }
+                else {
+                    outsideSpawn = mc.thePlayer.getDistanceSq(spawnPos) > 800;
+                }
             }
             else {
                 outsideSpawn = true;
@@ -139,5 +144,4 @@ public class BedWars extends Module {
             mc.thePlayer.playSound("note.pling", 1.0f, 1.0f);
         }
     }
-
 }
