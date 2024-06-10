@@ -16,7 +16,7 @@
 
 Raven B4, but for those who can't afford it.
 
-![ScreenShot](https://github.com/xia-mc/Raven-bS/assets/108219418/3a731ca8-7655-4445-8a4b-b7fef5bb5654)
+![Screenshot](https://github.com/xia-mc/Raven-bS/assets/108219418/68b68ce7-2339-4cf3-8d54-622ef34aa3ba)
 
 ### ***More functionality while staying in sync with upstream branches.***
 </div>
