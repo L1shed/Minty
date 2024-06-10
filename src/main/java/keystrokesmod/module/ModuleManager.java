@@ -41,7 +41,7 @@ public class ModuleManager {
     public static HUD hud;
     public static Timer timer;
     public static Module fly;
-    public static Module superKnockback;
+    public static Module superKB;
     public static Potions potions;
     public static NoFall noFall;
     public static PlayerESP playerESP;
@@ -113,7 +113,7 @@ public class ModuleManager {
         this.addModule(hud = new HUD());
         this.addModule(new Anticheat());
         this.addModule(new BreakProgress());
-        this.addModule(superKnockback = new SuperKnockback());
+        this.addModule(superKB = new SuperKB());
         this.addModule(new Xray());
         this.addModule(new BridgeInfo());
         this.addModule(new TargetHUD());

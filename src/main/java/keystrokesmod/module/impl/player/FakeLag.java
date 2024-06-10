@@ -30,6 +30,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static keystrokesmod.module.ModuleManager.blink;
+
 public class FakeLag extends Module {
     private static final int color = new Color(72, 125, 227).getRGB();
     private final SliderSetting mode;
@@ -44,7 +46,6 @@ public class FakeLag extends Module {
     private final SliderSetting dynamicStopRange;
     private final SliderSetting dynamicMaxTargetRange;
     private long lastDisableTime = -1;
-    private boolean shouldBlink = false;
     private boolean lastHurt = false;
     private long lastStartBlinkTime = -1;
     @Nullable
@@ -71,7 +72,6 @@ public class FakeLag extends Module {
     public void onEnable() {
         realPos = new Vec3(mc.thePlayer);
         lastDisableTime = -1;
-        shouldBlink = false;
         lastHurt = false;
         lastStartBlinkTime = -1;
         delayedPackets.clear();
@@ -86,7 +86,6 @@ public class FakeLag extends Module {
         if (!Utils.nullCheck()) {
             sendPacket(false);
             lastDisableTime = System.currentTimeMillis();
-            shouldBlink = false;
             lastStartBlinkTime = -1;
             return;
         }
@@ -97,46 +96,41 @@ public class FakeLag extends Module {
                 break;
             case 1:
                 if (System.currentTimeMillis() - lastDisableTime <= dynamicStopOnHurtTime.getInput()) {
-                    sendPacket(false);
+                    blink.disable();
                     break;
                 }
                 
-                if (shouldBlink) {
+                if (blink.isEnabled()) {
                     if (System.currentTimeMillis() - lastStartBlinkTime > delay.getInput()) {
                         if (debug.isToggled()) Utils.sendModuleMessage(this, "stop lag: time out.");
                         lastStartBlinkTime = System.currentTimeMillis();
-                        sendPacket(false);
-                        shouldBlink = false;
+                        blink.disable();
                     } else if (!lastHurt && mc.thePlayer.hurtTime > 0 && dynamicStopOnHurt.isToggled()) {
                         if (debug.isToggled()) Utils.sendModuleMessage(this, "stop lag: hurt.");
-                        shouldBlink = false;
                         lastDisableTime = System.currentTimeMillis();
-                        sendPacket(false);
+                        blink.disable();
                     }
                 }
 
                 if (target != null) {
                     double distance = new Vec3(mc.thePlayer).distanceTo(target);
-                    if (shouldBlink && distance < dynamicStopRange.getInput()) {
+                    if (blink.isEnabled() && distance < dynamicStopRange.getInput()) {
                         if (debug.isToggled()) Utils.sendModuleMessage(this, "stop lag: too low range.");
-                        shouldBlink = false;
-                        sendPacket(false);
-                    } else if (!shouldBlink && distance > dynamicStopRange.getInput()
+                        blink.disable();
+                    } else if (!blink.isEnabled() && distance > dynamicStopRange.getInput()
                             && new Vec3(mc.thePlayer).distanceTo(target) < dynamicStartRange.getInput()) {
                         if (debug.isToggled()) Utils.sendModuleMessage(this, "start lag: in range.");
                         lastStartBlinkTime = System.currentTimeMillis();
-                        shouldBlink = true;
-                    } else if (shouldBlink && distance > dynamicStartRange.getInput()) {
+                        blink.enable();
+                    } else if (blink.isEnabled() && distance > dynamicStartRange.getInput()) {
                         if (debug.isToggled()) Utils.sendModuleMessage(this, "stop lag: out of range.");
-                        shouldBlink = false;
-                        sendPacket(false);
+                        blink.disable();
                     } else if (distance > dynamicMaxTargetRange.getInput()) {
                         if (debug.isToggled()) Utils.sendModuleMessage(this, String.format("release target: %s", target.getName()));
                         target = null;
-                        shouldBlink = false;
-                        sendPacket(false);
+                        blink.disable();
                     }
-                } else shouldBlink = false;
+                } else blink.disable();
 
                 lastHurt = mc.thePlayer.hurtTime > 0;
                 break;
@@ -156,7 +150,7 @@ public class FakeLag extends Module {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onSendPacket(@NotNull SendPacketEvent e) {
-        if ((int) mode.getInput() == 1 && !shouldBlink) return;
+        if ((int) mode.getInput() != 0) return;
         final Packet<?> packet = e.getPacket();
         if (packet instanceof C00Handshake || packet instanceof C00PacketLoginStart || packet instanceof C00PacketServerQuery || packet instanceof C01PacketPing || packet instanceof C01PacketEncryptionResponse || packet instanceof C00PacketKeepAlive || packet instanceof C0FPacketConfirmTransaction || packet instanceof C01PacketChatMessage) {
             return;

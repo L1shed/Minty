@@ -31,6 +31,7 @@ public class LongJump extends Module {
     private boolean done;
     public static boolean stopModules;
     private boolean waitForDamage = false;
+    private boolean aimed = false;
 
     public LongJump() {
         super("Long Jump", category.movement);
@@ -58,6 +59,7 @@ public class LongJump extends Module {
             case 1:
                 if (!waitForDamage) {
                     event.setPitch(90);
+                    aimed = true;
                 }
                 break;
             case 2:
@@ -88,8 +90,9 @@ public class LongJump extends Module {
                     }
                     break;
                 case 2:
-                    if (ticks >= 50)
+                    if (ticks == 50)
                         event.setCanceled(true);
+                    break;
             }
         }
     }
@@ -98,7 +101,7 @@ public class LongJump extends Module {
     public void onPreUpdate(PreUpdateEvent event) {
         switch ((int) mode.getInput()) {
             case 1:
-                if (!waitForDamage) {
+                if (!waitForDamage && aimed) {
                     int shouldSlot = getFireball();
                     if (shouldSlot != mc.thePlayer.inventory.currentItem) {
                         mc.thePlayer.inventory.currentItem = shouldSlot;
@@ -161,6 +164,7 @@ public class LongJump extends Module {
         start = false;
         done = false;
         waitForDamage = false;
+        aimed = false;
         ticks = 0;
         stopModules = false;
     }

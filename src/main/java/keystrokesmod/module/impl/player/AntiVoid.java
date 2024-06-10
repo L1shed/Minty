@@ -40,6 +40,7 @@ public class AntiVoid extends Module {
         if (mc.thePlayer.ticksExisted <= 50) return;
 
         if (scaffold.isEnabled() || longJump.isEnabled() || fly.isEnabled() || motionModifier.isEnabled()) {
+            blink.disable();
             return;
         }
 

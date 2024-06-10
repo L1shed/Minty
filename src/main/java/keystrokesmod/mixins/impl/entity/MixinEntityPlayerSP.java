@@ -6,7 +6,6 @@ import keystrokesmod.event.PostUpdateEvent;
 import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.event.PreUpdateEvent;
 import keystrokesmod.module.ModuleManager;
-import keystrokesmod.module.impl.combat.SuperKnockback;
 import keystrokesmod.module.impl.movement.NoSlow;
 import keystrokesmod.utility.RotationUtils;
 import net.minecraft.client.Minecraft;

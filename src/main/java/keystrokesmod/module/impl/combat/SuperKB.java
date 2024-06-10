@@ -15,7 +15,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.concurrent.TimeUnit;
 
-public class SuperKnockback extends Module {
+public class SuperKB extends Module {
     private final SliderSetting chance;
     private final SliderSetting delay;
     private final SliderSetting rePressDelay;
@@ -24,8 +24,8 @@ public class SuperKnockback extends Module {
     private final ButtonSetting sprintReset;
     private final ButtonSetting sneak;
 
-    public SuperKnockback() {
-        super("SuperKnockback", category.combat);
+    public SuperKB() {
+        super("SuperKB", category.combat);
         this.registerSetting(chance = new SliderSetting("Chance", 100, 0, 100, 1, "%"));
         this.registerSetting(delay = new SliderSetting("Delay", 500, 200, 750, 1, "ms"));
         this.registerSetting(rePressDelay = new SliderSetting("Re-press delay", 100, 1, 500, 1, "ms"));
@@ -57,5 +57,10 @@ public class SuperKnockback extends Module {
         }
 
         lastFinish = currentTimeMillis;
+    }
+
+    @Override
+    public String getInfo() {
+        return sprintReset.isToggled() && sneak.isToggled() ? "LegitFast" : sneak.isToggled() ? "LegitSneak" : "Legit";
     }
 }

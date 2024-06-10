@@ -23,6 +23,7 @@ public class Tower extends Module {
     private final ButtonSetting disableWhileHurt;
     private final ButtonSetting sprintJumpForward;
     private final ButtonSetting hypixelNoStrafe;
+    private final ButtonSetting hypixelLowHop;
     private final SliderSetting hypixelOffGroundSpeed;
     private final SliderSetting hypixelJumpMotion;
     private int slowTicks;
@@ -30,7 +31,7 @@ public class Tower extends Module {
     private int offGroundTicks = 0;
     public Tower() {
         super("Tower", category.world);
-        this.registerSetting(new DescriptionSetting("Works with Safewalk & Scaffold"));
+        this.registerSetting(new DescriptionSetting("Works with SafeWalk & Scaffold"));
         String[] modes = new String[]{"Vanilla", "Hypixel", "LowHop"};
         this.registerSetting(mode = new SliderSetting("Mode", modes, 0));
         this.registerSetting(speed = new SliderSetting("Speed", 0.95, 0.5, 1, 0.01));
@@ -43,6 +44,7 @@ public class Tower extends Module {
         this.registerSetting(hypixelOffGroundSpeed = new SliderSetting("Hypixel off ground speed", 0.5, 0.0, 1.0, 0.01));
         this.registerSetting(hypixelJumpMotion = new SliderSetting("Hypixel jump motion", 0.4, 0.2, 0.8, 0.01));
         this.registerSetting(hypixelNoStrafe = new ButtonSetting("Hypixel no strafe", false));
+        this.registerSetting(hypixelLowHop = new ButtonSetting("Hypixel low hop", false));
         this.canBeEnabled = false;
     }
 
@@ -104,26 +106,24 @@ public class Tower extends Module {
             offGroundTicks++;
         }
 
-        if (canTower()) {
-            if (mode.getInput() == 2) {
-                switch (offGroundTicks) {
-                    case 0:
-                        mc.thePlayer.motionY = 0.4196;
-                        break;
-                    case 3:
-                    case 4:
-                        mc.thePlayer.motionY = 0;
-                        break;
-                    case 5:
-                        mc.thePlayer.motionY = 0.4191;
-                        break;
-                    case 6:
-                        mc.thePlayer.motionY = 0.3275;
-                        break;
-                    case 11:
-                        mc.thePlayer.motionY = -0.5;
-                        break;
-                }
+        if (canTower() && hypixelLowHop.isToggled()) {
+            switch (offGroundTicks) {
+                case 0:
+                    mc.thePlayer.motionY = 0.4196;
+                    break;
+                case 3:
+                case 4:
+                    mc.thePlayer.motionY = 0;
+                    break;
+                case 5:
+                    mc.thePlayer.motionY = 0.4191;
+                    break;
+                case 6:
+                    mc.thePlayer.motionY = 0.3275;
+                    break;
+                case 11:
+                    mc.thePlayer.motionY = -0.5;
+                    break;
             }
         }
     }
