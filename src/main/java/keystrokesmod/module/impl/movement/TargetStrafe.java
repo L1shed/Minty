@@ -6,6 +6,7 @@ import keystrokesmod.module.impl.combat.KillAura;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.utility.RotationUtils;
+import keystrokesmod.utility.Utils;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -49,9 +50,11 @@ public class TargetStrafe extends Module {
 
         if (diff == 0) return;
 
-        input.setForward(1);
-        input.setStrafe(0);
-        input.setYaw(toTarget);
+        if (Utils.isMoving()) {
+            input.setForward(1);
+            input.setStrafe(0);
+            input.setYaw(toTarget);
+        }
         movementYaw = toTarget;
     }
 

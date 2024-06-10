@@ -19,10 +19,10 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import java.awt.*;
 
 public class TargetHUD extends Module {
-    private final SliderSetting theme;
-    private final ButtonSetting renderEsp;
-    private final ButtonSetting showStatus;
-    private final ButtonSetting healthColor;
+    private SliderSetting theme;
+    private ButtonSetting renderEsp;
+    private ButtonSetting showStatus;
+    private ButtonSetting healthColor;
     private Timer fadeTimer;
     private Timer healthBarTimer = null;
     private EntityLivingBase target;
@@ -69,7 +69,7 @@ public class TargetHUD extends Module {
             String playerInfo = target.getDisplayName().getFormattedText();
             double health = target.getHealth() / target.getMaxHealth();
             if (health != lastHealth) {
-                (healthBarTimer = new Timer(400)).start();
+                (healthBarTimer = new Timer(350)).start();
             }
             lastHealth = health;
             playerInfo += " " + Utils.getHealthStr(target);
@@ -102,17 +102,18 @@ public class TargetHUD extends Module {
         final int n9 = n5 + (mc.fontRendererObj.FONT_HEIGHT + 5) - 6 + n2;
         final int n10 = (cd == null) ? 255 : (255 - cd.getValueInt(0, 255, 1));
         if (n10 > 0) {
-            final int n11 = Math.min(n10, 110);
-            final int n12 = Math.min(n10, 210);
+            final int n11 = (n10 > 110) ? 110 : n10;
+            final int n12 = (n10 > 210) ? 210 : n10;
             final int[] array = Theme.getGradients((int) theme.getInput());
             RenderUtils.drawRoundedGradientOutlinedRectangle((float) n6, (float) n7, (float) n8, (float) (n9 + 13), 10.0f, Utils.merge(Color.black.getRGB(), n11), Utils.merge(array[0], n10), Utils.merge(array[1], n10)); // outline
             final int n13 = n6 + 6;
             final int n14 = n8 - 6;
-            RenderUtils.drawRoundedRectangle((float) n13, (float) n9, (float) n14, (float) (n9 + 5), 4.0f, Utils.merge(Color.black.getRGB(), n11)); // background
+            final int n15 = n9;
+            RenderUtils.drawRoundedRectangle((float) n13, (float) n15, (float) n14, (float) (n15 + 5), 4.0f, Utils.merge(Color.black.getRGB(), n11)); // background
             int k = Utils.merge(array[0], n12);
             int n16 = Utils.merge(array[1], n12);
-            float healthBar = (float) (int) (n14 + (n13 - n14) * (1.0 - (Math.max(health, 0.05))));
-            if (healthBar - n13 < 3) { // if it goes below, the rounded health bar glitches out
+            float healthBar = (float) (int) (n14 + (n13 - n14) * (1.0 - ((health < 0.05) ? 0.05 : health)));
+            if (healthBar - n13 < 3) { // if goes below, the rounded health bar glitches out
                 healthBar = n13 + 3;
             }
             if (healthBar != lastHealthBar && lastHealthBar - n13 >= 3 && healthBarTimer != null ) {
@@ -130,7 +131,7 @@ public class TargetHUD extends Module {
             if (healthColor.isToggled()) {
                 k = n16 = Utils.merge(Utils.getColorForHealth(health), n12);
             }
-            RenderUtils.drawRoundedGradientRect((float) n13, (float) n9, lastHealthBar, (float) (n9 + 5), 4.0f, k, k, k, n16); // health bar
+            RenderUtils.drawRoundedGradientRect((float) n13, (float) n15, lastHealthBar, (float) (n15 + 5), 4.0f, k, k, k, n16); // health bar
             GlStateManager.pushMatrix();
             GlStateManager.enableBlend();
             GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);

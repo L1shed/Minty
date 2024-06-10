@@ -11,14 +11,11 @@ import java.io.IOException;
 import java.net.URI;
 
 public class Manager extends Module {
-    private ButtonSetting loadScripts;
-    private ButtonSetting openFolder;
-    private ButtonSetting viewDocumentation;
     private long lastLoad;
     public final String documentationURL = "https://blowsy.gitbook.io/raven";
     public Manager() {
         super("Manager", category.scripts);
-        this.registerSetting(loadScripts = new ButtonSetting("Load scripts", () -> {
+        this.registerSetting(new ButtonSetting("Load scripts", () -> {
             if (Raven.scriptManager.compiler == null) {
                 Utils.sendMessage("&cCompiler error, JDK not found");
             }
@@ -39,7 +36,7 @@ public class Manager extends Module {
                 }
             }
         }));
-        this.registerSetting(openFolder = new ButtonSetting("Open folder", () -> {
+        this.registerSetting(new ButtonSetting("Open folder", () -> {
             try {
                 Desktop.getDesktop().open(Raven.scriptManager.directory);
             }
@@ -48,7 +45,7 @@ public class Manager extends Module {
                 Utils.sendMessage("&cError locating folder, recreated.");
             }
         }));
-        this.registerSetting(viewDocumentation = new ButtonSetting("View documentation", () -> {
+        this.registerSetting(new ButtonSetting("View documentation", () -> {
             try {
                 Desktop.getDesktop().browse(new URI(documentationURL));
             } catch (Throwable t) {

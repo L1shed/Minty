@@ -97,7 +97,7 @@ public class Indicators extends Module {
                     }
                     if (entityItem != null) {
                         GL11.glPushMatrix();
-                        int[] position = getPositionForCircle(yaw, radius.getInput());
+                        float[] position = getPositionForCircle(yaw, radius.getInput());
                         GL11.glTranslated(x + position[0], y + position[1], 0.0);
                         if (e instanceof EntityArrow) {
                             GL11.glRotatef(yaw, 0.0f, 0.0f, 1.0f);
@@ -110,7 +110,7 @@ public class Indicators extends Module {
                 }
 
                 GL11.glPushMatrix();
-                int[] position = getPositionForCircle(yaw, radius.getInput() + 21);
+                float[] position = getPositionForCircle(yaw, radius.getInput() + 21);
                 GL11.glTranslated(x + position[0], y + position[1], 0.0);
                 String distanceStr = (int) mc.thePlayer.getDistanceToEntity(e) + "m";
                 float textWidth = mc.fontRendererObj.getStringWidth(distanceStr);
@@ -164,18 +164,18 @@ public class Indicators extends Module {
         return false;
     }
 
-    public int[] getPositionForCircle(float angle, double radius) {
+    public float[] getPositionForCircle(float angle, double radius) {
         angle = angle % 360;
         if (angle < 0) {
             angle += 360;
         }
         float wrappedAngle = MathHelper.wrapAngleTo180_float(angle);
         float absAngle = Math.abs(wrappedAngle);
-        int[] position = null;
+        float[] position = null;
         if (absAngle >= 0 && absAngle <= 90) {
-            position = new int[]{(int) (Math.cos(Math.toRadians(90 - absAngle)) * radius), (int) (Math.sin(Math.toRadians(90 - absAngle)) * radius)};
+            position = new float[]{(float) (Math.cos(Math.toRadians(90 - absAngle)) * radius), (float) (Math.sin(Math.toRadians(90 - absAngle)) * radius)};
         } else if (absAngle > 90 && absAngle <= 180) {
-            position = new int[]{(int) (Math.cos(Math.toRadians(absAngle - 90)) * radius), (int) -(Math.sin(Math.toRadians(absAngle - 90)) * radius)};
+            position = new float[]{(float) (Math.cos(Math.toRadians(absAngle - 90)) * radius), (float) -(Math.sin(Math.toRadians(absAngle - 90)) * radius)};
         }
         if (position != null) {
             if (wrappedAngle <= 0) {

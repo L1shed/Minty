@@ -13,14 +13,12 @@ import static keystrokesmod.module.ModuleManager.hitSelect;
 
 public class HitSelect extends Module {
     private static long attackTime = -1;
-    private final SliderSetting delay;
     private final SliderSetting chance;
     private static boolean currentShouldAttack = false;
 
     public HitSelect() {
         super("HitSelect", category.combat);
         this.registerSetting(new DescriptionSetting("chooses the best time to hit."));
-        this.registerSetting(delay = new SliderSetting("Delay", 500, 200, 750, 1));
         this.registerSetting(chance = new SliderSetting("Chance", 80, 0, 100, 1));
     }
 
@@ -31,7 +29,7 @@ public class HitSelect extends Module {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onPreUpdate(PreUpdateEvent event) {
-        currentShouldAttack = Math.random() > hitSelect.chance.getInput() || System.currentTimeMillis() - HitSelect.attackTime >= hitSelect.delay.getInput();
+        currentShouldAttack = Math.random() > hitSelect.chance.getInput() || System.currentTimeMillis() - HitSelect.attackTime >= 400;
     }
 
     public static boolean canAttack() {

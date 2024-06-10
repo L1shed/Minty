@@ -7,9 +7,7 @@ import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.Utils;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.WorldRenderer;
+import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
@@ -21,27 +19,26 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.opengl.GL11;
 
 public class Nametags extends Module { // skidded from raven source code as well
-    private SliderSetting yOffset;
     private SliderSetting scale;
     private ButtonSetting autoScale;
-    private ButtonSetting drawRect;
+    private ButtonSetting drawBackground;
     private ButtonSetting dropShadow;
     private ButtonSetting showDistance;
     private ButtonSetting showHealth;
     private ButtonSetting showHitsToKill;
     private ButtonSetting showInvis;
     private ButtonSetting removeTags;
+    private ButtonSetting renderSelf;
     private ButtonSetting showArmor;
     private ButtonSetting showEnchants;
     private ButtonSetting showDurability;
     private ButtonSetting showStackSize;
-
     public Nametags() {
         super("Nametags", category.render, 0);
-        this.registerSetting(yOffset = new SliderSetting("Y-Offset", 0.0D, -40.0D, 40.0D, 1.0D));
         this.registerSetting(scale = new SliderSetting("Scale", 1.0, 0.5, 5.0, 0.1));
         this.registerSetting(autoScale = new ButtonSetting("Auto-scale", true));
-        this.registerSetting(drawRect = new ButtonSetting("Draw rect", true));
+        this.registerSetting(drawBackground = new ButtonSetting("Draw background", true));
+        this.registerSetting(renderSelf = new ButtonSetting("Render self", false));
         this.registerSetting(dropShadow = new ButtonSetting("Drop shadow", true));
         this.registerSetting(showDistance = new ButtonSetting("Show distance", false));
         this.registerSetting(showHealth = new ButtonSetting("Show health", true));
@@ -57,15 +54,14 @@ public class Nametags extends Module { // skidded from raven source code as well
 
     @SubscribeEvent
     public void onRenderLiving(RenderLivingEvent.Specials.Pre e) {
-        if (e.entity instanceof EntityPlayer && e.entity != mc.thePlayer && e.entity.deathTime == 0) {
+        if (e.entity instanceof EntityPlayer && (e.entity != mc.thePlayer || renderSelf.isToggled()) && e.entity.deathTime == 0) {
             final EntityPlayer entityPlayer = (EntityPlayer) e.entity;
             if (!showInvis.isToggled() && entityPlayer.isInvisible()) {
                 return;
             }
-            if (entityPlayer.getDisplayNameString().isEmpty() || AntiBot.isBot(entityPlayer)) {
+            if (entityPlayer.getDisplayNameString().isEmpty() || (entityPlayer != mc.thePlayer && AntiBot.isBot(entityPlayer))) {
                 return;
             }
-
             e.setCanceled(true);
             String name;
             if (removeTags.isToggled()) {
@@ -126,7 +122,6 @@ public class Nametags extends Module { // skidded from raven source code as well
             GlStateManager.disableDepth();
             GlStateManager.enableBlend();
             GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
-            final int n9 = (int) (-yOffset.getInput());
             final int n10 = mc.fontRendererObj.getStringWidth(name) / 2;
             GlStateManager.disableTexture2D();
             int d = 1;
@@ -139,7 +134,7 @@ public class Nametags extends Module { // skidded from raven source code as well
             if (d == 0 && d2 != 0 && !Utils.isEnemy(entityPlayer)) {
                 d2 = 0;
             }
-            if (drawRect.isToggled() || d != 0 || d2 != 0) {
+            if (drawBackground.isToggled() || d != 0 || d2 != 0) {
                 float n11 = 0.0f;
                 float n12 = 0.0f;
                 if (d != 0) {
@@ -150,14 +145,14 @@ public class Nametags extends Module { // skidded from raven source code as well
                 final Tessellator getInstance = Tessellator.getInstance();
                 final WorldRenderer getWorldRenderer = getInstance.getWorldRenderer();
                 getWorldRenderer.begin(7, DefaultVertexFormats.POSITION_COLOR);
-                getWorldRenderer.pos(-n10 - 1, -1 + n9, 0.0).color(n11, n12, 0.0f, 0.25f).endVertex();
-                getWorldRenderer.pos(-n10 - 1, 8 + n9, 0.0).color(n11, n12, 0.0f, 0.25f).endVertex();
-                getWorldRenderer.pos(n10 + 1, 8 + n9, 0.0).color(n11, n12, 0.0f, 0.25f).endVertex();
-                getWorldRenderer.pos(n10 + 1, -1 + n9, 0.0).color(n11, n12, 0.0f, 0.25f).endVertex();
+                getWorldRenderer.pos(-n10 - 1, -1, 0.0).color(n11, n12, 0.0f, 0.25f).endVertex();
+                getWorldRenderer.pos(-n10 - 1, 8, 0.0).color(n11, n12, 0.0f, 0.25f).endVertex();
+                getWorldRenderer.pos(n10 + 1, 8, 0.0).color(n11, n12, 0.0f, 0.25f).endVertex();
+                getWorldRenderer.pos(n10 + 1, -1, 0.0).color(n11, n12, 0.0f, 0.25f).endVertex();
                 getInstance.draw();
             }
             GlStateManager.enableTexture2D();
-            mc.fontRendererObj.drawString(name, -n10, n9, -1, dropShadow.isToggled());
+            mc.fontRendererObj.drawString(name, -n10, 0, -1, dropShadow.isToggled());
             if (showArmor.isToggled()) {
                 renderArmor(entityPlayer);
             }
@@ -183,13 +178,13 @@ public class Nametags extends Module { // skidded from raven source code as well
             if (item.hasEffect() && (item.getItem() instanceof ItemTool || item.getItem() instanceof ItemArmor)) {
                 item.stackSize = 1;
             }
-            renderItemStack(item, pos, (int) (-20 - yOffset.getInput()));
+            renderItemStack(item, pos, -20);
             pos += 16;
         }
         for (int i = 3; i >= 0; --i) {
             ItemStack stack = e.inventory.armorInventory[i];
             if (stack != null) {
-                renderItemStack(stack, pos, (int) (-20 - yOffset.getInput()));
+                renderItemStack(stack, pos, -20);
                 pos += 16;
             }
         }

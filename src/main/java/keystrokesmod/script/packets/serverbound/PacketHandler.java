@@ -2,11 +2,13 @@ package keystrokesmod.script.packets.serverbound;
 
 import keystrokesmod.script.packets.clientbound.S12;
 import keystrokesmod.script.packets.clientbound.S27;
+import keystrokesmod.script.packets.clientbound.S3E;
 import keystrokesmod.script.packets.clientbound.SPacket;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.client.*;
 import net.minecraft.network.play.server.S12PacketEntityVelocity;
 import net.minecraft.network.play.server.S27PacketExplosion;
+import net.minecraft.network.play.server.S3EPacketTeams;
 
 public class PacketHandler {
     public static CPacket convertServerBound(net.minecraft.network.Packet packet) {
@@ -67,6 +69,9 @@ public class PacketHandler {
             }
             else if (packet instanceof S27PacketExplosion) {
                 sPacket = new S27((S27PacketExplosion)packet);
+            }
+            else if (packet instanceof S3EPacketTeams) {
+                sPacket = new S3E((S3EPacketTeams) packet);
             }
             else {
                 sPacket = new SPacket(packet);

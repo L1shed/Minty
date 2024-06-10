@@ -20,6 +20,8 @@ import static keystrokesmod.module.ModuleManager.blink;
 public class InvMove extends Module {
     public static final String[] MODES = {"Normal", "Blink"};
     private final SliderSetting mode;
+    private final ButtonSetting allowSprint;
+    private final ButtonSetting allowSneak;
     private final ButtonSetting chestNameCheck;
     private boolean blinking = false;
     private String currentTitle = "";
@@ -27,6 +29,8 @@ public class InvMove extends Module {
         super("InvMove", category.movement);
         this.registerSetting(new DescriptionSetting("Allow you move in inventory."));
         this.registerSetting(mode = new SliderSetting("Mode", MODES, 0));
+        this.registerSetting(allowSprint = new ButtonSetting("Allow sprint", false));
+        this.registerSetting(allowSneak = new ButtonSetting("Allow sneak", false));
         this.registerSetting(chestNameCheck = new ButtonSetting("Chest name check", true));
     }
 
@@ -40,6 +44,12 @@ public class InvMove extends Module {
                 blinking = true;
             }
 
+            if (allowSprint.isToggled()) {
+                KeyBinding.setKeyBindState(mc.gameSettings.keyBindSprint.getKeyCode(), Keyboard.isKeyDown(mc.gameSettings.keyBindSprint.getKeyCode()));
+            }
+            if (allowSneak.isToggled()) {
+                KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), Keyboard.isKeyDown(mc.gameSettings.keyBindSneak.getKeyCode()));
+            }
             KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), Keyboard.isKeyDown(mc.gameSettings.keyBindForward.getKeyCode()));
             KeyBinding.setKeyBindState(mc.gameSettings.keyBindBack.getKeyCode(), Keyboard.isKeyDown(mc.gameSettings.keyBindBack.getKeyCode()));
             KeyBinding.setKeyBindState(mc.gameSettings.keyBindRight.getKeyCode(), Keyboard.isKeyDown(mc.gameSettings.keyBindRight.getKeyCode()));

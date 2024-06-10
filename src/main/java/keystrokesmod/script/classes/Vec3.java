@@ -88,4 +88,13 @@ public class Vec3 {
     public net.minecraft.util.Vec3 toVec3() {
         return new net.minecraft.util.Vec3(x, y, z);
     }
+
+    @Override
+    public String toString() {
+        return "Vec3{" +
+                "x=" + x +
+                ", y=" + y +
+                ", z=" + z +
+                '}';
+    }
 }

@@ -15,6 +15,7 @@
     "render.MixinRendererLivingEntity"
   ],
   "client": [
-    "client.KeyBindingAccessor"
+    "client.KeyBindingAccessor",
+    "render.MixinEntityRenderer"
   ]
 }

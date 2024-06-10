@@ -24,7 +24,11 @@ public class RenderUtils {
     public static boolean ring_c = false;
 
     public static void renderBlock(BlockPos blockPos, int color, boolean outline, boolean shade) {
-        renderBox(blockPos.getX(), blockPos.getY(), blockPos.getZ(), color, outline, shade);
+        renderBox(blockPos.getX(), blockPos.getY(), blockPos.getZ(), 1, 1, 1, color, outline, shade);
+    }
+
+    public static void renderBlock(BlockPos blockPos, int color, double y2, boolean outline, boolean shade) {
+        renderBox(blockPos.getX(), blockPos.getY(), blockPos.getZ(), 1, y2, 1, color, outline, shade);
     }
 
     public static void scissor(double x, double y, double width, double height) {
@@ -41,11 +45,57 @@ public class RenderUtils {
         GL11.glScissor((int) x, (int) (y - height), (int) width, (int) height);
     }
 
-    public static void renderBox(int x, int y, int z, int color, boolean outline, boolean shade) {
-        renderBox(x, y, z, 1.0, 1.0, 1.0, color, outline, shade);
+    public static void drawRect(double left, double top, double right, double bottom, int color) {
+        float f3 = (color >> 24 & 255) / 255.0F;
+        float f = (color >> 16 & 255) / 255.0F;
+        float f1 = (color >> 8 & 255) / 255.0F;
+        float f2 = (color & 255) / 255.0F;
+        Tessellator tessellator = Tessellator.getInstance();
+        WorldRenderer worldrenderer = tessellator.getWorldRenderer();
+        GlStateManager.enableBlend();
+        GlStateManager.disableTexture2D();
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+        GlStateManager.color(f, f1, f2, f3);
+        worldrenderer.begin(7, DefaultVertexFormats.POSITION);
+        worldrenderer.pos(left, bottom, 0.0D).endVertex();
+        worldrenderer.pos(right, bottom, 0.0D).endVertex();
+        worldrenderer.pos(right, top, 0.0D).endVertex();
+        worldrenderer.pos(left, top, 0.0D).endVertex();
+        tessellator.draw();
+        GlStateManager.enableTexture2D();
+        GlStateManager.disableBlend();
     }
 
-    public static void renderBox(double x, double y, double z, double xSize, double ySize, double zSize, int color, boolean outline, boolean shade) {
+    public static void drawOutline(float x, float y, float x2, float y2, float lineWidth, int color) {
+        float f5 = (float) ((color >> 24) & 255) / 255.0F;
+        float f6 = (float) ((color >> 16) & 255) / 255.0F;
+        float f7 = (float) ((color >> 8) & 255) / 255.0F;
+        float f8 = (float) (color & 255) / 255.0F;
+
+        GL11.glEnable(GL11.GL_BLEND);
+        GL11.glDisable(GL11.GL_TEXTURE_2D);
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        GL11.glEnable(GL11.GL_LINE_SMOOTH);
+        GL11.glPushMatrix();
+        GL11.glColor4f(f6, f7, f8, f5);
+        GL11.glLineWidth(lineWidth);
+        GL11.glBegin(1);
+        GL11.glVertex2d(x, y);
+        GL11.glVertex2d(x, y2);
+        GL11.glVertex2d(x2, y2);
+        GL11.glVertex2d(x2, y);
+        GL11.glVertex2d(x, y);
+        GL11.glVertex2d(x2, y);
+        GL11.glVertex2d(x, y2);
+        GL11.glVertex2d(x2, y2);
+        GL11.glEnd();
+        GL11.glPopMatrix();
+        GL11.glEnable(GL11.GL_TEXTURE_2D);
+        GL11.glDisable(GL11.GL_BLEND);
+        GL11.glDisable(GL11.GL_LINE_SMOOTH);
+    }
+
+    public static void renderBox(int x, int y, int z, double x2, double y2, double z2, int color, boolean outline, boolean shade) {
         double xPos = x - mc.getRenderManager().viewerPosX;
         double yPos = y - mc.getRenderManager().viewerPosY;
         double zPos = z - mc.getRenderManager().viewerPosZ;
@@ -61,7 +111,7 @@ public class RenderUtils {
         float n10 = (color >> 8 & 0xFF) / 255.0f;
         float n11 = (color & 0xFF) / 255.0f;
         GL11.glColor4f(n9, n10, n11, n8);
-        AxisAlignedBB axisAlignedBB = new AxisAlignedBB(xPos, yPos, zPos, xPos + xSize, yPos + ySize, zPos + zSize);
+        AxisAlignedBB axisAlignedBB = new AxisAlignedBB(xPos, yPos, zPos, xPos + x2, yPos + y2, zPos + z2);
         if (outline) {
             RenderGlobal.drawSelectionBoundingBox(axisAlignedBB);
         }
@@ -172,47 +222,26 @@ public class RenderUtils {
                     float r = (float) (color >> 16 & 255) / 255.0F;
                     float g = (float) (color >> 8 & 255) / 255.0F;
                     float b = (float) (color & 255) / 255.0F;
-                    if (type == 5) {
-                        GL11.glTranslated(x, y - 0.2D, z);
-                        GL11.glRotated((double) (-mc.getRenderManager().playerViewY), 0.0D, 1.0D, 0.0D);
-                        GlStateManager.disableDepth();
-                        GL11.glScalef(0.03F + d, 0.03F, 0.03F + d);
-                        d2p(0.0D, 95.0D, 10, 3, Color.black.getRGB());
-
-                        for (i = 0; i < 6; ++i) {
-                            d2p(0.0D, (double) (95 + (10 - i)), 3, 4, Color.black.getRGB());
-                        }
-
-                        for (i = 0; i < 7; ++i) {
-                            d2p(0.0D, (double) (95 + (10 - i)), 2, 4, color);
-                        }
-
-                        d2p(0.0D, 95.0D, 8, 3, color);
-                        GlStateManager.enableDepth();
-                    } else {
-                        AxisAlignedBB bbox = e.getEntityBoundingBox().expand(0.1D + expand, 0.1D + expand, 0.1D + expand);
-                        AxisAlignedBB axis = new AxisAlignedBB(bbox.minX - e.posX + x, bbox.minY - e.posY + y, bbox.minZ - e.posZ + z, bbox.maxX - e.posX + x, bbox.maxY - e.posY + y, bbox.maxZ - e.posZ + z);
-                        GL11.glBlendFunc(770, 771);
-                        GL11.glEnable(3042);
-                        GL11.glDisable(3553);
-                        GL11.glDisable(2929);
-                        GL11.glDepthMask(false);
-                        GL11.glLineWidth(2.0F);
-                        GL11.glColor4f(r, g, b, a);
-                        if (type == 1) {
-                            RenderGlobal.drawSelectionBoundingBox(axis);
-                        } else if (type == 2) {
-                            drawBoundingBox(axis, r, g, b);
-                        }
-
-                        GL11.glEnable(3553);
-                        GL11.glEnable(2929);
-                        GL11.glDepthMask(true);
-                        GL11.glDisable(3042);
+                    AxisAlignedBB bbox = e.getEntityBoundingBox().expand(0.1D + expand, 0.1D + expand, 0.1D + expand);
+                    AxisAlignedBB axis = new AxisAlignedBB(bbox.minX - e.posX + x, bbox.minY - e.posY + y, bbox.minZ - e.posZ + z, bbox.maxX - e.posX + x, bbox.maxY - e.posY + y, bbox.maxZ - e.posZ + z);
+                    GL11.glBlendFunc(770, 771);
+                    GL11.glEnable(3042);
+                    GL11.glDisable(3553);
+                    GL11.glDisable(2929);
+                    GL11.glDepthMask(false);
+                    GL11.glLineWidth(2.0F);
+                    GL11.glColor4f(r, g, b, a);
+                    if (type == 1) {
+                        RenderGlobal.drawSelectionBoundingBox(axis);
+                    } else if (type == 2) {
+                        drawBoundingBox(axis, r, g, b);
                     }
+                    GL11.glEnable(3553);
+                    GL11.glEnable(2929);
+                    GL11.glDepthMask(true);
+                    GL11.glDisable(3042);
                 }
             }
-
             GlStateManager.popMatrix();
         }
     }

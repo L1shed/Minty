@@ -61,6 +61,8 @@ public class ModuleManager {
     public static TargetStrafe targetStrafe;
     public static AutoHeal autoHeal;
     public static HitSelect hitSelect;
+    public static NoHurtCam noHurtCam;
+    public static NoCameraClip noCameraClip;
 
     public void register() {
         this.addModule(autoClicker = new AutoClicker());
@@ -152,6 +154,8 @@ public class ModuleManager {
         this.addModule(targetStrafe = new TargetStrafe());
         this.addModule(autoHeal = new AutoHeal());
         this.addModule(hitSelect = new HitSelect());
+        this.addModule(noHurtCam = new NoHurtCam());
+        this.addModule(noCameraClip = new NoCameraClip());
         antiBot.enable();
         modules.sort(Comparator.comparing(Module::getName));
     }
