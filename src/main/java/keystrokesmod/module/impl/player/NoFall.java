@@ -2,22 +2,22 @@ package keystrokesmod.module.impl.player;
 
 import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.event.ReceivePacketEvent;
-import keystrokesmod.event.SendPacketEvent;
 import keystrokesmod.module.Module;
-import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.other.anticheats.utils.world.PlayerMove;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
-import keystrokesmod.utility.Reflection;
+import keystrokesmod.utility.BlockUtils;
 import keystrokesmod.utility.Utils;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockAir;
 import net.minecraft.network.play.client.C03PacketPlayer;
 import net.minecraft.util.BlockPos;
-import net.minecraft.util.ChatComponentText;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.jetbrains.annotations.NotNull;
+
+import static keystrokesmod.module.ModuleManager.blink;
+import static keystrokesmod.module.ModuleManager.scaffold;
 
 public class NoFall extends Module {
     public final SliderSetting mode;
@@ -27,6 +27,9 @@ public class NoFall extends Module {
 
     // for blink noFall
     private boolean blinked = false;
+    private boolean prevOnGround = false;
+
+    // for alan34 noFall
     private int ticksSinceTeleport = 0;
 
     public NoFall() {
@@ -49,46 +52,12 @@ public class NoFall extends Module {
     }
 
     public void onUpdate() {
+        ticksSinceTeleport++;
         if (ignoreVoid.isToggled() && isVoid()) {
             return;
         }
         if (mode.getInput() == 1 && (mc.thePlayer.fallDistance > minFallDistance.getInput()|| minFallDistance.getInput() == 0)) {
             mc.thePlayer.sendQueue.addToSendQueue(new C03PacketPlayer(true));
-        }
-        ticksSinceTeleport++;
-    }
-
-    @SubscribeEvent
-    public void onPacketSend(@NotNull SendPacketEvent event) {
-        if (mc.thePlayer.capabilities.allowFlying) return;
-        if (ignoreVoid.isToggled() && isVoid()) {
-            return;
-        }
-        try {
-            if (event.getPacket() instanceof C03PacketPlayer) {
-                C03PacketPlayer packet = (C03PacketPlayer) event.getPacket();
-
-                switch ((int) mode.getInput()) {
-                    case 2:
-                        Reflection.C03PacketPlayerOnGround.set(packet, false);
-                        break;
-                    case 3:
-                        if (!packet.isOnGround() && mc.thePlayer.fallDistance >= minFallDistance.getInput()) {
-                            if (!blinked) {
-                                ModuleManager.blink.enable();
-                                blinked = true;
-                            }
-                            Reflection.C03PacketPlayerOnGround.set(packet, true);
-                        } else if (blinked && packet.isOnGround()) {
-                            ModuleManager.blink.disable();
-                            blinked = false;
-                        }
-                        break;
-                }
-            }
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-            mc.thePlayer.addChatMessage(new ChatComponentText("Exception in console."));
         }
     }
 
@@ -101,11 +70,41 @@ public class NoFall extends Module {
 
     @SubscribeEvent
     public void onPreMotionEvent(PreMotionEvent event) {
-        if (mode.getInput() != 4) return;
-        if (mc.thePlayer.fallDistance > 3.5 && !(blockRelativeToPlayer(PlayerMove.predictedMotion(mc.thePlayer.motionY, 1)) instanceof BlockAir) && ticksSinceTeleport > 50) {
-            mc.thePlayer.sendQueue.addToSendQueue(new C03PacketPlayer.C04PacketPlayerPosition(mc.thePlayer.posX, mc.thePlayer.posY + 50 - Math.random(), mc.thePlayer.posZ, false));
+        if (mc.thePlayer.capabilities.allowFlying) return;
+        if (ignoreVoid.isToggled() && isVoid()) {
+            return;
+        }
+        switch ((int) mode.getInput()) {
+            case 2:
+                event.setOnGround(false);
+                break;
+            case 3:
+                if (mc.thePlayer.onGround) {
+                    if (blinked) {
+                        blink.disable();
+                        blinked = false;
+                    }
 
-            mc.thePlayer.fallDistance = 0;
+                    this.prevOnGround = true;
+                } else if (this.prevOnGround) {
+                    if (shouldBlink()) {
+                        blink.enable();
+                        blinked = true;
+                    }
+
+                    prevOnGround = false;
+                } else if (BlockUtils.isBlockUnder() && blink.isEnabled() && mc.thePlayer.fallDistance >= minFallDistance.getInput()) {
+                    mc.thePlayer.sendQueue.addToSendQueue(new C03PacketPlayer(true));
+                    mc.thePlayer.fallDistance = 0.0F;
+                }
+                break;
+            case 4:
+                if (mc.thePlayer.fallDistance > 3.5 && !(blockRelativeToPlayer(PlayerMove.predictedMotion(mc.thePlayer.motionY, 1)) instanceof BlockAir) && ticksSinceTeleport > 50) {
+                    mc.thePlayer.sendQueue.addToSendQueue(new C03PacketPlayer.C04PacketPlayerPosition(mc.thePlayer.posX, mc.thePlayer.posY + 50 - Math.random(), mc.thePlayer.posZ, false));
+
+                    mc.thePlayer.fallDistance = 0;
+                }
+                break;
         }
     }
 
@@ -120,5 +119,9 @@ public class NoFall extends Module {
 
     private boolean isVoid() {
         return Utils.overVoid(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
+    }
+
+    private boolean shouldBlink() {
+        return !mc.thePlayer.onGround && !BlockUtils.isBlockUnder((int) Math.floor(minFallDistance.getInput())) && BlockUtils.isBlockUnder() && !scaffold.isEnabled();
     }
 }

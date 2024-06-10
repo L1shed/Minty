@@ -9,6 +9,7 @@ import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.potion.Potion;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 
 public class BlockUtils {
@@ -110,5 +111,30 @@ public class BlockUtils {
             return true;
         }
         return getBlock(blockPos).isReplaceable(mc.theWorld, blockPos);
+    }
+
+    public static boolean isBlockUnder() {
+        if (mc.thePlayer.posY < 0.0) {
+            return false;
+        } else {
+            for(int offset = 0; offset < (int)mc.thePlayer.posY + 2; offset += 2) {
+                AxisAlignedBB bb = mc.thePlayer.getEntityBoundingBox().offset(0.0, (double)(-offset), 0.0);
+                if (!mc.theWorld.getCollidingBoundingBoxes(mc.thePlayer, bb).isEmpty()) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
+    public static boolean isBlockUnder(int distance) {
+        for(int y = (int)mc.thePlayer.posY; y >= (int)mc.thePlayer.posY - distance; --y) {
+            if (!(mc.theWorld.getBlockState(new BlockPos(mc.thePlayer.posX, y, mc.thePlayer.posZ)).getBlock() instanceof BlockAir)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

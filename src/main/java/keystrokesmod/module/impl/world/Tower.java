@@ -32,7 +32,7 @@ public class Tower extends Module {
     public Tower() {
         super("Tower", category.world);
         this.registerSetting(new DescriptionSetting("Works with SafeWalk & Scaffold"));
-        String[] modes = new String[]{"Vanilla", "Hypixel", "LowHop"};
+        String[] modes = new String[]{"Vanilla", "Hypixel"};
         this.registerSetting(mode = new SliderSetting("Mode", modes, 0));
         this.registerSetting(speed = new SliderSetting("Speed", 0.95, 0.5, 1, 0.01));
         this.registerSetting(diagonalSpeed = new SliderSetting("Diagonal speed", 5, 0, 10, 0.1));

@@ -16,9 +16,13 @@ public class Speed extends Module {
     private final ButtonSetting liquidDisable;
     private final ButtonSetting sneakDisable;
     private final ButtonSetting stopMotion;
-    private final String[] modes = new String[]{"Strafe", "Ground"};
+    private final ButtonSetting stopSprint;
+    private final String[] modes = new String[]{"Strafe", "Ground", "LowHop"};
     public boolean hopping;
     private int offGroundTicks = 0;
+
+    boolean strafe, cooldown = false;
+    int cooldownTicks = 0;
 
     public Speed() {
         super("Speed", Module.category.movement);
@@ -27,6 +31,7 @@ public class Speed extends Module {
         this.registerSetting(liquidDisable = new ButtonSetting("Disable in liquid", true));
         this.registerSetting(sneakDisable = new ButtonSetting("Disable while sneaking", true));
         this.registerSetting(stopMotion = new ButtonSetting("Stop motion", false));
+        this.registerSetting(stopSprint = new ButtonSetting("Stop sprint", false));
     }
 
     @Override
@@ -36,7 +41,7 @@ public class Speed extends Module {
 
     @SubscribeEvent
     public void onPreMotion(PreMotionEvent event) {
-        if ((int) mode.getInput() == 0) {
+        if (stopSprint.isToggled()) {
             event.setSprinting(false);
         }
     }
@@ -94,6 +99,37 @@ public class Speed extends Module {
                     hopping = true;
                 }
                 break;
+            case 2:
+                if (!Utils.jumpDown() && Utils.isMoving() && mc.thePlayer.onGround && mc.currentScreen == null) {
+                    mc.thePlayer.jump();
+                    if (!strafe) {
+                        Utils.setSpeed(0.42);
+                    }
+                }
+
+                if (mc.thePlayer.hurtTime == 9 && !mc.thePlayer.onGround && !cooldown && Utils.isMoving() && mc.currentScreen == null) {
+                    strafe = true;
+                    Utils.setSpeed(Utils.getHorizontalSpeed() * 1.2);
+                    cooldown = true;
+                } else {
+                    strafe = false;
+                }
+
+                if (cooldown) {
+                    cooldownTicks++;
+                }
+                if (cooldownTicks == 11) {
+                    cooldown = false;
+//                    Utils.sendModuleMessage(this, "&aCooldown expired!");
+                    cooldownTicks = 0;
+                }
+
+                if (Utils.isMoving() && !mc.thePlayer.onGround && !strafe) {
+                    if (offGroundTicks == 11) {
+                        Utils.setSpeed(Utils.getHorizontalSpeed() * 1.2);
+                    }
+                }
+                break;
         }
     }
 
@@ -102,5 +138,8 @@ public class Speed extends Module {
             MoveUtil.stop();
         }
         hopping = false;
+        cooldownTicks = 0;
+        cooldown = false;
+        strafe = false;
     }
 }

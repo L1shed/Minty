@@ -7,7 +7,6 @@ import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.script.classes.Vec3;
 import keystrokesmod.utility.PacketUtils;
 import keystrokesmod.utility.Utils;
-import keystrokesmod.utility.render.RenderUtils;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.network.Packet;
 import net.minecraft.network.handshake.client.C00Handshake;
@@ -25,7 +24,6 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,13 +31,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import static keystrokesmod.module.ModuleManager.blink;
 
 public class FakeLag extends Module {
-    private static final int color = new Color(72, 125, 227).getRGB();
     private final SliderSetting mode;
     private static final String[] MODES = new String[]{"Latency", "Dynamic"};
     private final SliderSetting delay;
     private final ButtonSetting debug;
     private Vec3 realPos;
-    private final ButtonSetting visual;
     private final ButtonSetting dynamicStopOnHurt;
     private final SliderSetting dynamicStopOnHurtTime;
     private final SliderSetting dynamicStartRange;
@@ -57,7 +53,6 @@ public class FakeLag extends Module {
         this.registerSetting(mode = new SliderSetting("Mode", MODES, 0));
         this.registerSetting(delay = new SliderSetting("Delay", 200, 25, 1000, 5, "ms"));
         this.registerSetting(debug = new ButtonSetting("Debug", false));
-        visual = new ButtonSetting("Visual", false);
         this.registerSetting(dynamicStopOnHurt = new ButtonSetting("Dynamic Stop on hurt", false));
         this.registerSetting(dynamicStopOnHurtTime = new SliderSetting("Dynamic Stop on hurt time", 500, 0, 1000, 5, "ms"));
         this.registerSetting(dynamicStartRange = new SliderSetting("Dynamic Start range", 6.0, 3.0, 10.0, 0.1, "blocks"));
@@ -134,10 +129,6 @@ public class FakeLag extends Module {
 
                 lastHurt = mc.thePlayer.hurtTime > 0;
                 break;
-        }
-
-        if (visual.isToggled()) {
-            RenderUtils.renderBox(realPos.x(), realPos.y(), realPos.z(), 1.1, 2.1, 1.1, color, false, true);
         }
     }
 

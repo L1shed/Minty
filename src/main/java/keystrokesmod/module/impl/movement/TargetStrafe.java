@@ -48,32 +48,9 @@ public class TargetStrafe extends Module {
         float diff = toTarget - current;
 
         if (diff == 0) return;
-//        if (diff > -22.5 && diff < 22.5) {  // 0
-//            input.setForward(1);
-//            input.setStrafe(0);
-//        } else if (diff > 22.5 && diff < 67.5) {  // 45
-//            input.setForward(1);
-//            input.setStrafe(1);
-//        } else if (diff < -22.5 && diff > -67.5) {  // -45
-//            input.setForward(1);
-//            input.setStrafe(-1);
-//        } else if (diff > 67.5 && diff < 112.5) {  // 90
-//            input.setForward(0);
-//            input.setStrafe(1);
-//        } else if (diff < -67.5 && diff > -112.5) {  // -90
-//            input.setForward(0);
-//            input.setStrafe(-1);
-//        } else if (diff > 112.5 && diff < 157.5) {  // 135
-//            input.setForward(-1);
-//            input.setStrafe(1);
-//        } else if (diff < -112.5 && diff > -157.5) {  // -135
-//            input.setForward(-1);
-//            input.setStrafe(-1);
-//        } else if (diff > 157.5 || diff < -157.5) {  // 180
-//            input.setForward(-1);
-//            input.setStrafe(0);
-//        }
 
+        input.setForward(1);
+        input.setStrafe(0);
         input.setYaw(toTarget);
         movementYaw = toTarget;
     }

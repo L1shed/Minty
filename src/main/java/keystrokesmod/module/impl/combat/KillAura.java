@@ -514,6 +514,9 @@ public class KillAura extends Module {
         if (!Utils.nullCheck()) {
             return true;
         }
+        if (ModuleManager.bedAura.isEnabled() && !ModuleManager.bedAura.allowAura.isToggled() && ModuleManager.bedAura.currentBlock != null) {
+            return true;
+        }
         return mc.thePlayer.isDead;
     }
 
