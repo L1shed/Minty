@@ -34,7 +34,7 @@ public class Raven {
     public static Minecraft mc = Minecraft.getMinecraft();
     private static KeySrokeRenderer keySrokeRenderer;
     private static boolean isKeyStrokeConfigGuiToggled;
-    private static final ScheduledExecutorService ex = Executors.newScheduledThreadPool(2);
+    private static final ScheduledExecutorService ex = Executors.newScheduledThreadPool(4);
     public static ModuleManager moduleManager;
     public static ClickGui clickGui;
     public static ProfileManager profileManager;
@@ -48,7 +48,7 @@ public class Raven {
     }
 
     @EventHandler
-    public void init(FMLInitializationEvent e) {
+    public void init(FMLInitializationEvent ignored) {
         Runtime.getRuntime().addShutdownHook(new Thread(ex::shutdown));
         ClientCommandHandler.instance.registerCommand(new keystrokeCommand());
         FMLCommonHandler.instance().bus().register(this);
@@ -65,7 +65,7 @@ public class Raven {
         clickGui = new ClickGui();
         profileManager = new ProfileManager();
         profileManager.loadProfiles();
-        profileManager.loadProfile("default");
+        profileManager.loadProfile();
         Reflection.setKeyBindings();
         scriptManager.loadScripts();
         scriptManager.loadScripts();

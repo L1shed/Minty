@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HUD extends Module {
-    public static final String VERSION = "1.2.0";
+    public static final String VERSION = "1.3.0";
     public static SliderSetting theme;
     public static ButtonSetting dropShadow;
     public static ButtonSetting alphabeticalSort;

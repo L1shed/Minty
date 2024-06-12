@@ -15,8 +15,8 @@ import java.util.Iterator;
 
 public class Module {
     protected ArrayList<Setting> settings;
-    private String moduleName;
-    private Module.category moduleCategory;
+    private final String moduleName;
+    private final Module.category moduleCategory;
     private boolean enabled;
     private int keycode;
     protected static Minecraft mc;
@@ -32,11 +32,11 @@ public class Module {
         this.keycode = keycode;
         this.enabled = false;
         mc = Minecraft.getMinecraft();
-        this.settings = new ArrayList();
+        this.settings = new ArrayList<>();
     }
 
     public static Module getModule(Class<? extends Module> a) {
-        Iterator var1 = ModuleManager.modules.iterator();
+        Iterator<Module> var1 = ModuleManager.modules.iterator();
 
         Module module;
         do {
@@ -44,7 +44,7 @@ public class Module {
                 return null;
             }
 
-            module = (Module) var1.next();
+            module = var1.next();
         } while (module.getClass() != a);
 
         return module;
@@ -56,7 +56,7 @@ public class Module {
         this.keycode = 0;
         this.enabled = false;
         mc = Minecraft.getMinecraft();
-        this.settings = new ArrayList();
+        this.settings = new ArrayList<>();
     }
 
     public Module(Script script) {
@@ -198,7 +198,7 @@ public class Module {
         this.keycode = keybind;
     }
 
-    public static enum category {
+    public enum category {
         combat,
         movement,
         player,
@@ -209,6 +209,6 @@ public class Module {
         other,
         client,
         profiles,
-        scripts;
+        scripts
     }
 }

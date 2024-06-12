@@ -28,6 +28,7 @@ public class NoFall extends Module {
     // for blink noFall
     private boolean blinked = false;
     private boolean prevOnGround = false;
+    private double fallDistance;
 
     // for alan34 noFall
     private int ticksSinceTeleport = 0;
@@ -37,6 +38,19 @@ public class NoFall extends Module {
         this.registerSetting(mode = new SliderSetting("Mode", modes, 0));
         this.registerSetting(minFallDistance = new SliderSetting("Minimum fall distance", 3.0, 0.0, 8.0, 0.1));
         this.registerSetting(ignoreVoid = new ButtonSetting("Ignore void", true));
+    }
+
+    @Override
+    public void onEnable() {
+        this.fallDistance = mc.thePlayer.fallDistance;
+    }
+
+    @Override
+    public void onDisable() {
+        if (blinked) {
+            blink.disable();
+            blinked = false;
+        }
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -70,8 +84,18 @@ public class NoFall extends Module {
 
     @SubscribeEvent
     public void onPreMotionEvent(PreMotionEvent event) {
+        if (mc.thePlayer.onGround) {
+            this.fallDistance = 0.0;
+        } else if (mc.thePlayer.motionY < 0.0) {
+            this.fallDistance -= mc.thePlayer.motionY;
+        }
+
         if (mc.thePlayer.capabilities.allowFlying) return;
         if (ignoreVoid.isToggled() && isVoid()) {
+            if (blinked) {
+                blink.disable();
+                blinked = false;
+            }
             return;
         }
         switch ((int) mode.getInput()) {
@@ -93,9 +117,9 @@ public class NoFall extends Module {
                     }
 
                     prevOnGround = false;
-                } else if (BlockUtils.isBlockUnder() && blink.isEnabled() && mc.thePlayer.fallDistance >= minFallDistance.getInput()) {
+                } else if (BlockUtils.isBlockUnder() && blink.isEnabled() && fallDistance >= minFallDistance.getInput()) {
                     mc.thePlayer.sendQueue.addToSendQueue(new C03PacketPlayer(true));
-                    mc.thePlayer.fallDistance = 0.0F;
+                    fallDistance = 0.0F;
                 }
                 break;
             case 4:

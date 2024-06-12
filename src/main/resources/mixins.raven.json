@@ -15,7 +15,9 @@
     "render.MixinRendererLivingEntity"
   ],
   "client": [
+    "client.GuiConnectingAccessor",
     "client.KeyBindingAccessor",
+    "client.MixinGuiConnecting",
     "render.MixinEntityRenderer"
   ]
 }

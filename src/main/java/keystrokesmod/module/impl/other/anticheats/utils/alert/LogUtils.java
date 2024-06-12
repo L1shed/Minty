@@ -7,11 +7,11 @@ import net.minecraft.event.ClickEvent;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatStyle;
 import net.minecraft.util.IChatComponent;
-
-import java.util.logging.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class LogUtils {
-    public static final Logger LOGGER = Logger.getLogger("AntiCheat");
+    public static final Logger LOGGER = LogManager.getLogger("AntiCheat");
 
     public static void alert(String player, String module, String extraMsg) {
         if (check()) {

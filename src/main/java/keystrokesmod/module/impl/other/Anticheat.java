@@ -33,11 +33,11 @@ public class Anticheat extends Module {
     public Anticheat() {
         super("Anticheat", category.other);
         this.registerSetting(new DescriptionSetting("Tries to detect cheaters."));
-        this.registerSetting(latency = new SliderSetting("Latency compensation", 300.0, 0.0, 1000.0, 1.0, " ms"));
-        this.registerSetting(threshold = new SliderSetting("Movement threshold", 1.0, 0.0, 3.0, 0.01, " blocks"));
+        this.registerSetting(latency = new SliderSetting("Latency compensation", 300.0, 0.0, 1000.0, 1.0, "ms"));
+        this.registerSetting(threshold = new SliderSetting("Movement threshold", 1.0, 0.0, 3.0, 0.01, "blocks"));
         this.registerSetting(checkForSelf = new ButtonSetting("Check for self", true));
         this.registerSetting(checkForTeammates = new ButtonSetting("Check for teammates", true));
-        this.registerSetting(vlClearTime = new SliderSetting("VL clear time", 6000, -1, 12000, 1, " ticks"));
+        this.registerSetting(vlClearTime = new SliderSetting("VL clear time", 6000, -1, 12000, 1, "ticks"));
         this.registerSetting(noAlertBuffer = new ButtonSetting("Remove alert buffer", false));
         this.registerSetting(shouldPing = new ButtonSetting("Should ping", true));
         this.registerSetting(autoReport = new ButtonSetting("Auto report", false));

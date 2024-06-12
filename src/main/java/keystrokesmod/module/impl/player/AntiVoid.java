@@ -2,7 +2,6 @@ package keystrokesmod.module.impl.player;
 
 import keystrokesmod.event.PreUpdateEvent;
 import keystrokesmod.module.Module;
-import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
@@ -21,6 +20,7 @@ public class AntiVoid extends Module {
     private Vec3 position, motion;
     private boolean wasVoid, setBack;
     private int overVoidTicks;
+    private boolean disabledForLongJump = false;
 
     public AntiVoid() {
         super("AntiVoid", category.player);
@@ -39,7 +39,12 @@ public class AntiVoid extends Module {
         if (mc.thePlayer.capabilities.allowFlying) return;
         if (mc.thePlayer.ticksExisted <= 50) return;
 
-        if (scaffold.isEnabled() || longJump.isEnabled() || fly.isEnabled() || motionModifier.isEnabled()) {
+        if (disabledForLongJump && mc.thePlayer.onGround)
+            disabledForLongJump = false;
+
+        if (longJump.isEnabled())
+            disabledForLongJump = true;
+        if (scaffold.isEnabled() || fly.isEnabled() || motionModifier.isEnabled() || disabledForLongJump) {
             blink.disable();
             return;
         }

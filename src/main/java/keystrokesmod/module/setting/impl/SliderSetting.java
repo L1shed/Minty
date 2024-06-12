@@ -7,12 +7,12 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 public class SliderSetting extends Setting {
-    private String settingName;
+    private final String settingName;
     private String[] options = null;
     private double defaultValue;
-    private double max;
-    private double min;
-    private double intervals;
+    private final double max;
+    private final double min;
+    private final double intervals;
     public boolean isString;
     private String settingInfo = "";
 
@@ -49,7 +49,7 @@ public class SliderSetting extends Setting {
     }
 
     public String getInfo() {
-        return this.settingInfo;
+        return " " + this.settingInfo;
     }
 
     public String[] getOptions() {

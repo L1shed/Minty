@@ -2,8 +2,10 @@ package keystrokesmod.utility.profile;
 
 import com.google.gson.*;
 import keystrokesmod.Raven;
+import keystrokesmod.clickgui.ClickGui;
 import keystrokesmod.clickgui.components.impl.CategoryComponent;
 import keystrokesmod.module.Module;
+import keystrokesmod.module.impl.client.Gui;
 import keystrokesmod.module.impl.render.HUD;
 import keystrokesmod.module.setting.Setting;
 import keystrokesmod.module.setting.impl.ButtonSetting;
@@ -11,12 +13,12 @@ import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.script.Manager;
 import keystrokesmod.utility.Utils;
 import net.minecraft.client.Minecraft;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 public class ProfileManager {
@@ -66,9 +68,15 @@ public class ProfileManager {
             failedMessage("save", profile.getName());
             e.printStackTrace();
         }
+
+        try (FileWriter fileWriter = new FileWriter(new File(directory, "latest.json"))) {
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            gson.toJson(jsonObject, fileWriter);
+        } catch (Exception ignored) {
+        }
     }
 
-    private static JsonObject getJsonObject(Module module) {
+    private static @NotNull JsonObject getJsonObject(@NotNull Module module) {
         JsonObject moduleInformation = new JsonObject();
         moduleInformation.addProperty("name", (module.moduleCategory() == Module.category.scripts && !(module instanceof Manager)) ?  "sc-" + module.getName() :  module.getName());
         if (module.canBeEnabled) {
@@ -80,6 +88,20 @@ public class ProfileManager {
             moduleInformation.addProperty("posX", HUD.hudX);
             moduleInformation.addProperty("posY", HUD.hudY);
         }
+        if (module instanceof Gui) {
+            JsonArray jsonArray = new JsonArray();
+            for (CategoryComponent component : ClickGui.categories) {
+                JsonObject jsonObject = new JsonObject();
+                jsonObject.addProperty("name", component.categoryName.name());
+                jsonObject.addProperty("x", component.getX());
+                jsonObject.addProperty("y", component.getY());
+                jsonObject.addProperty("opened", component.fv());
+
+                jsonArray.add(jsonObject);
+            }
+
+            moduleInformation.add("catPos", jsonArray);
+        }
         for (Setting setting : module.getSettings()) {
             if (setting instanceof ButtonSetting && !((ButtonSetting) setting).isMethodButton) {
                 moduleInformation.addProperty(setting.getName(), ((ButtonSetting) setting).isToggled());
@@ -88,6 +110,14 @@ public class ProfileManager {
             }
         }
         return moduleInformation;
+    }
+
+    public void loadProfile() {
+        if (getProfileFiles().stream().anyMatch(file -> file.getName().equals("latest.json"))) {
+            loadProfile("latest");
+        } else {
+            loadProfile("default");
+        }
     }
 
     public void loadProfile(String name) {
@@ -129,10 +159,17 @@ public class ProfileManager {
                 for (JsonElement moduleJson : modules) {
                     JsonObject moduleInformation = moduleJson.getAsJsonObject();
                     String moduleName = moduleInformation.get("name").getAsString();
-                    if (moduleName.equals("AntiKnockback"))
-                        moduleName = "Velocity";
-                    else if (moduleName.equals("Bhop"))
-                        moduleName = "Speed";
+                    switch (moduleName) {
+                        case "AntiKnockback":
+                            moduleName = "Velocity";
+                            break;
+                        case "Bhop":
+                            moduleName = "Speed";
+                            break;
+                        case "SuperKB":
+                            moduleName = "MoreKB";
+                            break;
+                    }
 
                     if (moduleName.isEmpty()) {
                         continue;
@@ -181,11 +218,44 @@ public class ProfileManager {
                         }
                     }
 
+                    if (module.getName().equals("Gui")) {
+                        if (moduleInformation.has("catPos")) {
+                            ArrayList<CategoryComponent> movedCategories = new ArrayList<>(ClickGui.categories.size());
+                            for (JsonElement jsonElement : moduleInformation.get("catPos").getAsJsonArray()) {
+                                JsonObject jsonCat = jsonElement.getAsJsonObject();
+                                CategoryComponent component = ClickGui.categories.stream()
+                                        .filter(c -> c.categoryName.name().equals(jsonCat.get("name").getAsString()))
+                                        .findAny()
+                                        .orElse(new CategoryComponent(Module.category.valueOf(jsonCat.get("name").getAsString())));
+
+                                if (jsonCat.has("x")) {
+                                    component.x(jsonCat.get("x").getAsInt());
+                                }
+                                if (jsonCat.has("y")) {
+                                    component.y(jsonCat.get("y").getAsInt());
+                                }
+                                if (jsonCat.has("opened")) {
+                                    component.fv(jsonCat.get("opened").getAsBoolean());
+                                }
+
+                                movedCategories.add(component);
+                            }
+                            ClickGui.categories = movedCategories;
+                        }
+                    }
+
                     for (Setting setting : module.getSettings()) {
                         setting.loadProfile(moduleInformation);
                     }
 
                     Raven.currentProfile = getProfile(name);
+                }
+
+
+                try (FileWriter fileWriter = new FileWriter(new File(directory, "latest.json"))) {
+                    Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                    gson.toJson(profileJson, fileWriter);
+                } catch (Exception ignored) {
                 }
             } catch (Exception e) {
                 failedMessage("load", name);
@@ -195,13 +265,7 @@ public class ProfileManager {
     }
 
     public void deleteProfile(String name) {
-        Iterator<Profile> iterator = profiles.iterator();
-        while (iterator.hasNext()) {
-            Profile profile = iterator.next();
-            if (profile.getName().equals(name)) {
-                iterator.remove();
-            }
-        }
+        profiles.removeIf(profile -> profile.getName().equals(name));
         if (directory.exists()) {
             File[] files = directory.listFiles();
             for (File file : files) {
@@ -241,7 +305,7 @@ public class ProfileManager {
                 }
             }
 
-            for (CategoryComponent categoryComponent : Raven.clickGui.categories) {
+            for (CategoryComponent categoryComponent : ClickGui.categories) {
                 if (categoryComponent.categoryName == Module.category.profiles) {
                     categoryComponent.reloadModules(true);
                 }

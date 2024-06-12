@@ -1,8 +1,7 @@
 package keystrokesmod.module;
 
 import keystrokesmod.module.impl.client.CommandLine;
-import keystrokesmod.module.impl.client.Gui;
-import keystrokesmod.module.impl.client.Settings;
+import keystrokesmod.module.impl.client.*;
 import keystrokesmod.module.impl.combat.*;
 import keystrokesmod.module.impl.fun.Fun;
 import keystrokesmod.module.impl.minigames.*;
@@ -41,7 +40,7 @@ public class ModuleManager {
     public static HUD hud;
     public static Timer timer;
     public static Module fly;
-    public static Module superKB;
+    public static Module moreKB;
     public static Potions potions;
     public static NoFall noFall;
     public static PlayerESP playerESP;
@@ -63,6 +62,9 @@ public class ModuleManager {
     public static HitSelect hitSelect;
     public static NoHurtCam noHurtCam;
     public static NoCameraClip noCameraClip;
+    public static AutoPlay autoPlay;
+    public static SaveMoveKeys saveMoveKeys;
+    public static NyaProxy nyaProxy;
 
     public void register() {
         this.addModule(autoClicker = new AutoClicker());
@@ -115,7 +117,7 @@ public class ModuleManager {
         this.addModule(hud = new HUD());
         this.addModule(new Anticheat());
         this.addModule(new BreakProgress());
-        this.addModule(superKB = new SuperKB());
+        this.addModule(moreKB = new MoreKB());
         this.addModule(new Xray());
         this.addModule(new BridgeInfo());
         this.addModule(new TargetHUD());
@@ -156,6 +158,9 @@ public class ModuleManager {
         this.addModule(hitSelect = new HitSelect());
         this.addModule(noHurtCam = new NoHurtCam());
         this.addModule(noCameraClip = new NoCameraClip());
+        this.addModule(autoPlay = new AutoPlay());
+        this.addModule(saveMoveKeys = new SaveMoveKeys());
+        this.addModule(nyaProxy = new NyaProxy());
         antiBot.enable();
         modules.sort(Comparator.comparing(Module::getName));
     }

@@ -22,6 +22,7 @@ public class Tower extends Module {
     private final ButtonSetting disableWhileCollided;
     private final ButtonSetting disableWhileHurt;
     private final ButtonSetting sprintJumpForward;
+    private final ButtonSetting onlyWhileMoving;
     private final ButtonSetting hypixelNoStrafe;
     private final ButtonSetting hypixelLowHop;
     private final SliderSetting hypixelOffGroundSpeed;
@@ -41,6 +42,7 @@ public class Tower extends Module {
         this.registerSetting(disableWhileCollided = new ButtonSetting("Disable while collided", false));
         this.registerSetting(disableWhileHurt = new ButtonSetting("Disable while hurt", false));
         this.registerSetting(sprintJumpForward = new ButtonSetting("Sprint jump forward", true));
+        this.registerSetting(onlyWhileMoving = new ButtonSetting("Only while moving", false));
         this.registerSetting(hypixelOffGroundSpeed = new SliderSetting("Hypixel off ground speed", 0.5, 0.0, 1.0, 0.01));
         this.registerSetting(hypixelJumpMotion = new SliderSetting("Hypixel jump motion", 0.4, 0.2, 0.8, 0.01));
         this.registerSetting(hypixelNoStrafe = new ButtonSetting("Hypixel no strafe", false));
@@ -134,6 +136,9 @@ public class Tower extends Module {
     private boolean canTower() {
         if (scaffold.totalBlocks() == 0) return false;
         if (!Utils.nullCheck() || !Utils.jumpDown()) {
+            return false;
+        }
+        if (onlyWhileMoving.isToggled() && !Utils.isMoving()) {
             return false;
         }
         else if (disableWhileHurt.isToggled() && mc.thePlayer.hurtTime >= 9) {

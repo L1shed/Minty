@@ -17,6 +17,7 @@ import org.lwjgl.opengl.GL11;
 import java.awt.*;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class CategoryComponent {
@@ -84,6 +85,7 @@ public class CategoryComponent {
 
             if (isProfile) {
                 for (Profile profile : Raven.profileManager.profiles) {
+                    if (Objects.equals(profile.getName(), "latest")) continue;
                     tY += 16;
                     ModuleComponent b = new ModuleComponent(profile.getModule(), this, tY);
                     this.modules.add(b);
@@ -121,6 +123,10 @@ public class CategoryComponent {
 
     public boolean fv() {
         return this.categoryOpened;
+    }
+
+    public void fv(boolean open) {
+        this.categoryOpened = open;
     }
 
     public void mouseClicked(boolean on) {

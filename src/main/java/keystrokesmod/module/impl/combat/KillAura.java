@@ -95,8 +95,8 @@ public class KillAura extends Module {
         this.registerSetting(swingRange = new SliderSetting("Swing range", 3.3, 3.0, 8.0, 0.1));
         this.registerSetting(blockRange = new SliderSetting("Block range", 6.0, 3.0, 12.0, 0.1));
         this.registerSetting(rotationMode = new SliderSetting("Rotation mode", rotationModes, 0));
-        this.registerSetting(rotationSmoothing = new SliderSetting("Rotation smoothing", 0, 0, 100, 1));
-        String[] sortModes = new String[]{"Health", "Hurttime", "Distance", "Yaw"};
+        this.registerSetting(rotationSmoothing = new SliderSetting("Rotation smoothing", 0, 0, 15, 1));
+        String[] sortModes = new String[]{"Health", "HurtTime", "Distance", "Yaw"};
         this.registerSetting(sortMode = new SliderSetting("Sort mode", sortModes, 0.0));
         this.registerSetting(switchDelay = new SliderSetting("Switch delay", 200.0, 50.0, 1000.0, 25.0, "ms"));
         this.registerSetting(targets = new SliderSetting("Targets", 3.0, 1.0, 10.0, 1.0));

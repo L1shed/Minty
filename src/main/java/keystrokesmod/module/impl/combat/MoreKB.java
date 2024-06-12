@@ -12,10 +12,11 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import org.lwjgl.input.Keyboard;
 
 import java.util.concurrent.TimeUnit;
 
-public class SuperKB extends Module {
+public class MoreKB extends Module {
     private final SliderSetting chance;
     private final SliderSetting delay;
     private final SliderSetting rePressDelay;
@@ -24,8 +25,8 @@ public class SuperKB extends Module {
     private final ButtonSetting sprintReset;
     private final ButtonSetting sneak;
 
-    public SuperKB() {
-        super("SuperKB", category.combat);
+    public MoreKB() {
+        super("MoreKB", category.combat);
         this.registerSetting(chance = new SliderSetting("Chance", 100, 0, 100, 1, "%"));
         this.registerSetting(delay = new SliderSetting("Delay", 500, 200, 750, 1, "ms"));
         this.registerSetting(rePressDelay = new SliderSetting("Re-press delay", 100, 1, 500, 1, "ms"));
@@ -45,14 +46,14 @@ public class SuperKB extends Module {
 
         if (Math.random() > chance.getInput()) return;
         // code
-        if (sprintReset.isToggled() && mc.gameSettings.keyBindForward.isKeyDown()) {
+        if (sprintReset.isToggled()) {
             KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), false);
-            Raven.getExecutor().schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), true),
+            Raven.getExecutor().schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), Keyboard.isKeyDown(mc.gameSettings.keyBindForward.getKeyCode())),
                     (long) rePressDelay.getInput(), TimeUnit.MILLISECONDS);
         }
-        if (sneak.isToggled() && !mc.gameSettings.keyBindSneak.isKeyDown()) {
+        if (sneak.isToggled()) {
             KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), true);
-            Raven.getExecutor().schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), false),
+            Raven.getExecutor().schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), Keyboard.isKeyDown(mc.gameSettings.keyBindSneak.getKeyCode())),
                     (long) rePressDelay.getInput(), TimeUnit.MILLISECONDS);
         }
 

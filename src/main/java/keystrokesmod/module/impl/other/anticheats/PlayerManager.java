@@ -60,7 +60,7 @@ public class PlayerManager {
                     dataMap.get(uuid).update(player);
                 } catch (Exception e) {
                     LogUtils.custom(Arrays.toString(e.getStackTrace()));
-                    LogUtils.LOGGER.warning(String.format("遇到了异常，丢弃玩家 %s 数据。", player.getName()) + e.getLocalizedMessage());
+                    LogUtils.LOGGER.error("遇到了异常，丢弃玩家 {} 数据。{}", player, e.getLocalizedMessage());
                     activeMap.remove(uuid);
                 }
             }
