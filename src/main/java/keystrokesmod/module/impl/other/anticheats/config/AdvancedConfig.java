@@ -26,11 +26,11 @@ public class AdvancedConfig {
     public static int speedBAlertBuffer = 10;
 
     public static boolean groundSpoofACheck = true;
-    public static int groundSpoofAAlertBuffer = 6;
+    public static int groundSpoofAAlertBuffer = 15;
 
     
     public static boolean groundSpoofBCheck = true;
-    public static int groundSpoofBAlertBuffer = 6;
+    public static int groundSpoofBAlertBuffer = 15;
 
     
     public static boolean autoBlockACheck = false;

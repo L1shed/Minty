@@ -41,7 +41,7 @@ public class CheckManager {
         normal.put(BlinkA.class, new BlinkA(player));
         normal.put(SpeedA.class, new SpeedA(player));
         normal.put(SpeedB.class, new SpeedB(player));
-        normal.put(SpeedC.class, new SpeedC(player));
+//        normal.put(SpeedC.class, new SpeedC(player));
         normal.put(NoSlowA.class, new NoSlowA(player));
         normal.put(AutoBlockA.class, new AutoBlockA(player));
         normal.put(MotionA.class, new MotionA(player));
@@ -69,7 +69,7 @@ public class CheckManager {
         normal.put(BlinkA.class, new BlinkA(player));
         normal.put(SpeedA.class, new SpeedA(player));
         normal.put(SpeedB.class, new SpeedB(player));
-        normal.put(SpeedC.class, new SpeedC(player));
+//        normal.put(SpeedC.class, new SpeedC(player));
         normal.put(NoSlowA.class, new NoSlowA(player));
         normal.put(AutoBlockA.class, new AutoBlockA(player));
         normal.put(MotionA.class, new MotionA(player));

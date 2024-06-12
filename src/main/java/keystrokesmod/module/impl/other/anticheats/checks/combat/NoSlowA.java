@@ -1,4 +1,4 @@
-package keystrokesmod.module.impl.other.anticheats.checks.movement;
+package keystrokesmod.module.impl.other.anticheats.checks.combat;
 
 import keystrokesmod.module.impl.other.Anticheat;
 import keystrokesmod.module.impl.other.anticheats.Check;
@@ -56,6 +56,6 @@ public class NoSlowA extends Check {
 
     @Override
     public boolean isDisabled() {
-        return !Anticheat.getMovementCheck().isToggled();
+        return !Anticheat.getCombatCheck().isToggled();
     }
 }
