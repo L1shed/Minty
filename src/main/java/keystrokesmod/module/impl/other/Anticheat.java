@@ -33,7 +33,7 @@ public class Anticheat extends Module {
     public Anticheat() {
         super("Anticheat", category.other);
         this.registerSetting(new DescriptionSetting("Tries to detect cheaters."));
-        this.registerSetting(latency = new SliderSetting("Latency compensation", 300.0, 0.0, 1000.0, 1.0, "ms"));
+        this.registerSetting(latency = new SliderSetting("Latency compensation", 600.0, 0.0, 1000.0, 1.0, "ms"));
         this.registerSetting(threshold = new SliderSetting("Movement threshold", 1.0, 0.0, 3.0, 0.01, "blocks"));
         this.registerSetting(checkForSelf = new ButtonSetting("Check for self", true));
         this.registerSetting(checkForTeammates = new ButtonSetting("Check for teammates", true));
