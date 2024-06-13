@@ -7,6 +7,7 @@ import keystrokesmod.script.Script;
 import keystrokesmod.utility.Utils;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.common.FMLCommonHandler;
+import org.jetbrains.annotations.NotNull;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
@@ -16,6 +17,7 @@ import java.util.Iterator;
 public class Module {
     protected ArrayList<Setting> settings;
     private final String moduleName;
+    private String prettyName;
     private final Module.category moduleCategory;
     private boolean enabled;
     private int keycode;
@@ -28,6 +30,7 @@ public class Module {
 
     public Module(String moduleName, Module.category moduleCategory, int keycode) {
         this.moduleName = moduleName;
+        this.prettyName = moduleName;
         this.moduleCategory = moduleCategory;
         this.keycode = keycode;
         this.enabled = false;
@@ -52,6 +55,7 @@ public class Module {
 
     public Module(String name, Module.category moduleCategory) {
         this.moduleName = name;
+        this.prettyName = name;
         this.moduleCategory = moduleCategory;
         this.keycode = 0;
         this.enabled = false;
@@ -59,10 +63,11 @@ public class Module {
         this.settings = new ArrayList<>();
     }
 
-    public Module(Script script) {
+    public Module(@NotNull Script script) {
         super();
         this.enabled = false;
         this.moduleName = script.name;
+        this.prettyName = script.name;
         this.script = script;
         this.keycode = 0;
         this.moduleCategory = category.scripts;
@@ -148,12 +153,28 @@ public class Module {
         return this.moduleName;
     }
 
+    public String getPrettyName() {
+        return ModuleManager.customName.isEnabled() ? getRawPrettyName() : getName();
+    }
+
+    public String getRawPrettyName() {
+        return prettyName;
+    }
+
+    public void setPrettyName(String name) {
+        this.prettyName = name;
+    }
+
     public ArrayList<Setting> getSettings() {
         return this.settings;
     }
 
-    public void registerSetting(Setting Setting) {
-        this.settings.add(Setting);
+    public void registerSetting(Setting setting) {
+        this.settings.add(setting);
+    }
+
+    public void unregisterSetting(Setting setting) {
+        this.settings.remove(setting);
     }
 
     public Module.category moduleCategory() {

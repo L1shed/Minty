@@ -2,6 +2,7 @@ package keystrokesmod.utility;
 
 import keystrokesmod.Raven;
 import keystrokesmod.module.Module;
+import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.client.Settings;
 import keystrokesmod.module.impl.combat.Velocity;
 import keystrokesmod.module.impl.minigames.DuelsStats;
@@ -9,10 +10,14 @@ import keystrokesmod.module.impl.movement.Fly;
 import keystrokesmod.module.impl.movement.Speed;
 import keystrokesmod.module.impl.other.FakeChat;
 import keystrokesmod.module.impl.other.NameHider;
+import keystrokesmod.module.impl.render.HUD;
+import keystrokesmod.utility.font.Font;
 import keystrokesmod.utility.profile.Profile;
 import keystrokesmod.utility.render.RenderUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.gui.GuiChat;
+import org.jetbrains.annotations.NotNull;
 import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
@@ -30,25 +35,25 @@ public class Commands {
     private static final String invSyn = "&cInvalid syntax.";
     private static final String invCom = "&cInvalid command.";
 
-    public static void rCMD(String c) {
+    public static void rCMD(@NotNull String c) {
         if (!c.isEmpty()) {
             String cm = c.toLowerCase();
-            boolean hasArgs = c.contains(" ");
-            String[] args = hasArgs ? c.split(" ") : null;
+            List<String> args = Arrays.asList(c.split(" "));  // maybe bug
+            boolean hasArgs = args.size() > 1;
             String n;
-            if (cm.startsWith("setkey".toLowerCase())) {
+            if (args.get(0).equals("setkey")) {
                 if (!hasArgs) {
                     print(invSyn, 1);
                     return;
                 }
 
-                if (args.length != 2) {
+                if (args.size() != 2) {
                     print(invSyn, 1);
                     return;
                 }
 
                 print("Setting...", 1);
-                n = args[1];
+                n = args.get(1);
                 Raven.getExecutor().execute(() -> {
                     if (URLUtils.isHypixelKeyValid(n)) {
                         URLUtils.k = n;
@@ -58,40 +63,40 @@ public class Commands {
                     }
 
                 });
-            } else if (cm.startsWith("nick")) {
+            } else if (args.get(0).equals("nick")) {
                 if (!hasArgs) {
                     print(invSyn, 1);
                     return;
                 }
 
-                if (args.length != 2) {
+                if (args.size() != 2) {
                     print(invSyn, 1);
                     return;
                 }
 
-                if (args[1].equals("reset")) {
+                if (args.get(1).equals("reset")) {
                     print("&aNick reset.", 1);
                     return;
                 }
 
-                DuelsStats.nick = args[1];
+                DuelsStats.nick = args.get(1);
                 print("&aNick has been set to:", 1);
                 print("\"" + DuelsStats.nick + "\"", 0);
-            } else if (cm.startsWith("cname")) {
+            } else if (args.get(0).equals("cname")) {
                 if (!hasArgs) {
                     print(invSyn, 1);
                     return;
                 }
 
-                if (args.length != 2) {
+                if (args.size() != 2) {
                     print(invSyn, 1);
                     return;
                 }
 
-                NameHider.n = args[1];
+                NameHider.n = args.get(1);
                 print("&a" + Utils.uf("name") + "Nick has been set to:".substring(4), 1);
                 print("\"" + NameHider.n + "\"", 0);
-            } else if (cm.startsWith(FakeChat.command)) {
+            } else if (args.get(0).equals(FakeChat.command)) {
                 if (!hasArgs) {
                     print(invSyn, 1);
                     return;
@@ -105,24 +110,24 @@ public class Commands {
 
                 FakeChat.msg = n;
                 print("&aMessage set!", 1);
-            } else if (cm.startsWith("Duels".toLowerCase())) {
+            } else if (args.get(0).equals("duels")) {
                 if (!hasArgs) {
                     print(invSyn, 1);
                     return;
                 }
 
-                if (args.length != 2) {
+                if (args.size() != 2) {
                     print(invSyn, 1);
                     return;
                 }
 
                 if (URLUtils.k.isEmpty()) {
                     print("&cAPI Key is empty!", 1);
-                    print("Use \"setkey [api_key]\".", 0);
+                    print("Use \"setkey [api_key)\".", 0);
                     return;
                 }
 
-                n = args[1];
+                n = args.get(1);
                 print("Retrieving data...", 1);
                 Raven.getExecutor().execute(() -> {
                     int[] s = ProfileUtils.getHypixelStats(n, ProfileUtils.DM.OVERALL);
@@ -143,13 +148,13 @@ public class Commands {
                     }
 
                 });
-            } else if (cm.startsWith("setspeed")) {
+            } else if (args.get(0).equals("setspeed")) {
                 if (!hasArgs) {
                     print(invSyn, 1);
                     return;
                 }
 
-                if (args.length != 3) {
+                if (args.size() != 3) {
                     print(invSyn, 1);
                     return;
                 }
@@ -157,18 +162,18 @@ public class Commands {
                 double value;
 
                 try {
-                    value = Double.parseDouble(args[2]);
+                    value = Double.parseDouble(args.get(2));
                 } catch (Exception e) {
-                    print("&cInvalid value. [0 - 100]", 1);
+                    print("&cInvalid value. [0 - 100)", 1);
                     return;
                 }
 
                 if (value > 100 || value < 0) {
-                    print("&cInvalid value. [0 - 100]", 1);
+                    print("&cInvalid value. [0 - 100)", 1);
                     return;
                 }
 
-                switch (args[1]) {
+                switch (args.get(1)) {
                     case "fly":
                         Fly.horizontalSpeed.setValueRaw(value);
                         break;
@@ -180,14 +185,14 @@ public class Commands {
                         return;
                 }
                 print("&aSet speed to ", 1);
-                print(args[2], 0);
-            } else if (cm.startsWith("setvelocity")) {
+                print(args.get(2), 0);
+            } else if (args.get(0).equals("setvelocity")) {
                 if (!hasArgs) {
                     print(invSyn, 1);
                     return;
                 }
 
-                if (args.length != 3) {
+                if (args.size() != 3) {
                     print(invSyn, 1);
                     return;
                 }
@@ -195,18 +200,18 @@ public class Commands {
                 double value;
 
                 try {
-                    value = Double.parseDouble(args[2]);
+                    value = Double.parseDouble(args.get(2));
                 } catch (Exception e) {
-                    print("&cInvalid value. [-100 - 300]", 1);
+                    print("&cInvalid value. [-100 - 300)", 1);
                     return;
                 }
 
                 if (value > 300 || value < -100) {
-                    print("&cInvalid value. [-100 - 300]", 1);
+                    print("&cInvalid value. [-100 - 300)", 1);
                     return;
                 }
 
-                switch (args[1]) {
+                switch (args.get(1)) {
                     case "horizontal":
                     case "h":
                         Velocity.horizontal.setValueRaw(value);
@@ -220,96 +225,135 @@ public class Commands {
                         return;
                 }
 
-                print("&aSet " + args[1] + " velocity to ", 1);
-                print(args[2], 0);
-            } else if (cm.startsWith("ping")) {
+                print("&aSet " + args.get(1) + " velocity to ", 1);
+                print(args.get(2), 0);
+            } else if (args.get(0).equals("ping")) {
                 Ping.checkPing();
-            } else if (cm.startsWith("clear")) {
+            } else if (args.get(0).equals("clear")) {
                 rs.clear();
-            } else if (cm.startsWith("hide")) {
+            } else if (args.get(0).equals("hide")) {
                 if (!hasArgs) {
                     print(invSyn, 1);
                     return;
                 }
 
-                if (args.length != 2) {
+                if (args.size() != 2) {
                     print(invSyn, 1);
                     return;
                 }
 
                 for (Module module : Raven.getModuleManager().getModules()) {
                     String name = module.getName().toLowerCase().replace(" ", "");
-                    if (name.equals(args[1].toLowerCase())) {
+                    if (name.equals(args.get(1).toLowerCase())) {
                         module.setHidden(true);
                         print("&a" + module.getName() + " is now hidden in HUD", 1);
                     }
                 }
-            } else if (cm.startsWith("show")) {
+            } else if (args.get(0).equals("show")) {
                 if (!hasArgs) {
                     print(invSyn, 1);
                     return;
                 }
 
-                if (args.length != 2) {
+                if (args.size() != 2) {
                     print(invSyn, 1);
                     return;
                 }
 
                 for (Module module : Raven.getModuleManager().getModules()) {
                     String name = module.getName().toLowerCase().replace(" ", "");
-                    if (name.equals(args[1].toLowerCase())) {
+                    if (name.equals(args.get(1).toLowerCase())) {
                         module.setHidden(false);
                         print("&a" + module.getName() + " is now visible in HUD", 1);
                     }
                 }
-            } else if (cm.startsWith("friend") || cm.startsWith("f")) {
+            } else if (args.get(0).equals("rename")) {
                 if (!hasArgs) {
                     print(invSyn, 1);
                     return;
                 }
 
-                if (args.length != 2) {
+                if (args.size() != 3) {
                     print(invSyn, 1);
                     return;
                 }
 
-                if (args[1].equals("clear")) {
+                for (Module module : Raven.getModuleManager().getModules()) {
+                    String name = module.getName().toLowerCase().replace(" ", "");
+                    if (name.equals(args.get(1).toLowerCase())) {
+                        module.setPrettyName(args.get(2));
+                        print("&a" + module.getName() + " is now called " + module.getRawPrettyName(), 1);
+                    }
+                }
+            } else if (args.get(0).equals("say")) {
+                if (!hasArgs) {
+                    print(invSyn, 1);
+                    return;
+                }
+
+                mc.thePlayer.sendChatMessage(c.substring(args.get(0).length() + 1));
+            } else if (args.get(0).equals("setBName")) {
+                if (!hasArgs) {
+                    print(invSyn, 1);
+                    return;
+                }
+
+                if (args.size() != 2) {
+                    print(invSyn, 1);
+                    return;
+                }
+
+                HUD.bName = args.get(1);
+
+                print("&aSet BName to " + HUD.bName, 1);
+            } else if (args.get(0).equals("friend") || args.get(0).equals("f")) {
+                if (!hasArgs) {
+                    print(invSyn, 1);
+                    return;
+                }
+
+                if (args.size() != 2) {
+                    print(invSyn, 1);
+                    return;
+                }
+
+                if (args.get(1).equals("clear")) {
                     Utils.friends.clear();
                     print("&aFriends cleared.", 1);
                     return;
                 }
 
-                boolean added = Utils.addFriend(args[1]);
+                boolean added = Utils.addFriend(args.get(1));
                 if (added) {
-                    print("&aAdded friend: " + args[1], 1);
+                    print("&aAdded friend: " + args.get(1), 1);
                 } else {
-                    print("&aRemoved friend: " + args[1], 1);
+                    print("&aRemoved friend: " + args.get(1), 1);
                 }
-            } else if (cm.startsWith("enemy") || cm.startsWith("e")) {
+            } else if (args.get(0).equals("enemy") || args.get(0).equals("e")) {
                 if (!hasArgs) {
                     print(invSyn, 1);
                     return;
                 }
 
-                if (args.length != 2) {
+                if (args.size() != 2) {
                     print(invSyn, 1);
                     return;
                 }
 
-                if (args[1].equals("clear")) {
+                if (args.get(1).equals("clear")) {
                     Utils.enemies.clear();
                     print("&aEnemies cleared.", 1);
                     return;
                 }
 
-                boolean added = Utils.addEnemy(args[1]);
+                boolean added = Utils.addEnemy(args.get(1));
                 if (!added) {
-                    print("&aRemoved enemy: " + args[1], 1);
+                    print("&aRemoved enemy: " + args.get(1), 1);
                 }
-            } else if (cm.startsWith("Debug".toLowerCase())) {
+            } else if (args.get(0).equals("Debug".toLowerCase())) {
                 Raven.debugger = !Raven.debugger;
                 print("Debug " + (Raven.debugger ? "enabled" : "disabled") + ".", 1);
-            } else if (cm.startsWith("profiles") || cm.startsWith("p")) {
+            } else if (args.get(0).equals("profiles") || args.get(0).equals("p")) {
                 if (!hasArgs) {
                     print("&aAvailable profiles:", 1);
                     if (Raven.profileManager.profiles.isEmpty()) {
@@ -319,12 +363,12 @@ public class Commands {
                     for (int i = 0; i < Raven.profileManager.profiles.size(); ++i) {
                         print(i + 1 + ". " + Raven.profileManager.profiles.get(i).getName(), 0);
                     }
-                } else if (args[1].equals("save") || args[1].equals("s")) {
-                    if (args.length != 3) {
+                } else if (args.get(1).equals("save") || args.get(1).equals("s")) {
+                    if (args.size() != 3) {
                         print(invSyn, 1);
                         return;
                     }
-                    String name = args[2];
+                    String name = args.get(2);
                     if (name.length() < 2 || name.length() > 10 || !name.chars().allMatch(Character::isLetterOrDigit)) {
                         print("&cInvalid name.", 1);
                         return;
@@ -333,12 +377,12 @@ public class Commands {
                     print("&aSaved profile:", 1);
                     print(name, 0);
                     Raven.profileManager.loadProfiles();
-                } else if (args[1].equals("load") || args[1].equals("l")) {
-                    if (args.length != 3) {
+                } else if (args.get(1).equals("load") || args.get(1).equals("l")) {
+                    if (args.size() != 3) {
                         print(invSyn, 1);
                         return;
                     }
-                    String name = args[2];
+                    String name = args.get(2);
                     for (Profile profile : Raven.profileManager.profiles) {
                         if (profile.getName().equals(name)) {
                             Raven.profileManager.loadProfile(profile.getName());
@@ -351,12 +395,12 @@ public class Commands {
                         }
                     }
                     print("&cInvalid profile.", 1);
-                } else if (args[1].equals("remove") || args[1].equals("r")) {
-                    if (args.length != 3) {
+                } else if (args.get(1).equals("remove") || args.get(1).equals("r")) {
+                    if (args.size() != 3) {
                         print(invSyn, 1);
                         return;
                     }
-                    String name = args[2];
+                    String name = args.get(2);
                     for (Profile profile : Raven.profileManager.profiles) {
                         if (profile.getName().equals(name)) {
                             Raven.profileManager.deleteProfile(profile.getName());
@@ -368,8 +412,8 @@ public class Commands {
                     }
                     print("&cInvalid profile.", 1);
                 }
-            } else if (!cm.startsWith("help") && !cm.startsWith("?")) {
-                if (cm.startsWith("shoutout")) {
+            } else if (!args.get(0).equals("help") && !args.get(0).equals("?")) {
+                if (args.get(0).equals("shoutout")) {
                     print("&eCelebrities:", 1);
                     print("- hevex", 0);
                     print("- jc", 0);
@@ -386,6 +430,8 @@ public class Commands {
                 print("4 nick [name/reset]", 0);
                 print("5 ping", 0);
                 print("6 hide/show [module]", 0);
+                print("7 rename [module] [name]", 0);
+                print("8 say [message]", 0);
                 print("&eProfiles:", 0);
                 print("1 profiles", 0);
                 print("2 profiles save [profile]", 0);
@@ -396,24 +442,33 @@ public class Commands {
                 print("2 " + FakeChat.command + " [msg]", 0);
                 print("3 setspeed [fly/bhop/speed] [value]", 0);
                 print("4 setvelocity [h/v] [value]", 0);
+                print("5 setBName [name (default is 's')]", 0);
             }
 
         }
     }
 
     public static void print(String m, int t) {
-        if (t == 1 || t == 2) {
-            rs.add("");
+        if (ModuleManager.commandChat.isEnabled() && (mc.currentScreen instanceof GuiChat || mc.currentScreen == null)) {
+            if (t == 1 || t == 2) {
+                Utils.sendRawMessage("");
+            }
+            Utils.sendMessage(m);
+            if (t == 2 || t == 3) {
+                Utils.sendRawMessage("");
+            }
+        } else {
+            if (t == 1 || t == 2) {
+                rs.add("");
+            }
+            rs.add(m);
+            if (t == 2 || t == 3) {
+                rs.add("");
+            }
         }
-
-        rs.add(m);
-        if (t == 2 || t == 3) {
-            rs.add("");
-        }
-
     }
 
-    public static void rc(FontRenderer fr, int h, int w, int s) {
+    public static void rc(Font fr, int h, int w, int s) {
         int x = w - 195;
         int y = h - 130;
         int sY = h - 345;
@@ -426,7 +481,7 @@ public class Commands {
         GL11.glDisable(3089);
     }
 
-    private static void rss(FontRenderer fr, List<String> rs, int x, int y) {
+    private static void rss(Font fr, List<String> rs, int x, int y) {
         if (f) {
             f = false;
             print("Welcome,", 0);
@@ -449,7 +504,7 @@ public class Commands {
                 }
 
                 fr.drawString(s, x, y, c);
-                y -= fr.FONT_HEIGHT + 5;
+                y -= Math.round(fr.height() + 5);
             }
 
         }

@@ -42,6 +42,7 @@ public class ProfileManager {
 
     public void saveProfile(Profile profile) {
         JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("bName", HUD.bName);
         jsonObject.addProperty("keybind", profile.getModule().getKeycode());
         JsonArray jsonArray = new JsonArray();
         for (Module module : Raven.moduleManager.getModules()) {
@@ -66,9 +67,10 @@ public class ProfileManager {
             gson.toJson(jsonObject, fileWriter);
         } catch (Exception e) {
             failedMessage("save", profile.getName());
-            e.printStackTrace();
+            Utils.log.error(e);
         }
 
+        deleteProfile("latest");
         try (FileWriter fileWriter = new FileWriter(new File(directory, "latest.json"))) {
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
             gson.toJson(jsonObject, fileWriter);
@@ -79,6 +81,7 @@ public class ProfileManager {
     private static @NotNull JsonObject getJsonObject(@NotNull Module module) {
         JsonObject moduleInformation = new JsonObject();
         moduleInformation.addProperty("name", (module.moduleCategory() == Module.category.scripts && !(module instanceof Manager)) ?  "sc-" + module.getName() :  module.getName());
+        moduleInformation.addProperty("prettyName", module.getRawPrettyName());
         if (module.canBeEnabled) {
             moduleInformation.addProperty("enabled", module.isEnabled());
             moduleInformation.addProperty("hidden", module.isHidden());
@@ -90,7 +93,7 @@ public class ProfileManager {
         }
         if (module instanceof Gui) {
             JsonArray jsonArray = new JsonArray();
-            for (CategoryComponent component : ClickGui.categories) {
+            for (CategoryComponent component : ClickGui.categories.values()) {
                 JsonObject jsonObject = new JsonObject();
                 jsonObject.addProperty("name", component.categoryName.name());
                 jsonObject.addProperty("x", component.getX());
@@ -156,6 +159,10 @@ public class ProfileManager {
                     failedMessage("load", name);
                     return;
                 }
+                if (profileJson.has("bName")) {
+                    HUD.bName = profileJson.get("bName").getAsString();
+                }
+
                 for (JsonElement moduleJson : modules) {
                     JsonObject moduleInformation = moduleJson.getAsJsonObject();
                     String moduleName = moduleInformation.get("name").getAsString();
@@ -188,6 +195,10 @@ public class ProfileManager {
                         continue;
                     }
 
+                    if (moduleInformation.has("prettyName")) {
+                        module.setPrettyName(moduleInformation.get("prettyName").getAsString());
+                    }
+
                     if (module.canBeEnabled()) {
                         if (moduleInformation.has("enabled")) {
                             boolean enabled = moduleInformation.get("enabled").getAsBoolean();
@@ -209,12 +220,10 @@ public class ProfileManager {
 
                     if (module.getName().equals("HUD")) {
                         if (moduleInformation.has("posX")) {
-                            int hudX = moduleInformation.get("posX").getAsInt();
-                            HUD.hudX = hudX;
+                            HUD.hudX = moduleInformation.get("posX").getAsInt();
                         }
                         if (moduleInformation.has("posY")) {
-                            int hudY = moduleInformation.get("posY").getAsInt();
-                            HUD.hudY = hudY;
+                            HUD.hudY = moduleInformation.get("posY").getAsInt();
                         }
                     }
 
@@ -223,7 +232,7 @@ public class ProfileManager {
                             ArrayList<CategoryComponent> movedCategories = new ArrayList<>(ClickGui.categories.size());
                             for (JsonElement jsonElement : moduleInformation.get("catPos").getAsJsonArray()) {
                                 JsonObject jsonCat = jsonElement.getAsJsonObject();
-                                CategoryComponent component = ClickGui.categories.stream()
+                                CategoryComponent component = ClickGui.categories.values().stream()
                                         .filter(c -> c.categoryName.name().equals(jsonCat.get("name").getAsString()))
                                         .findAny()
                                         .orElse(new CategoryComponent(Module.category.valueOf(jsonCat.get("name").getAsString())));
@@ -240,7 +249,9 @@ public class ProfileManager {
 
                                 movedCategories.add(component);
                             }
-                            ClickGui.categories = movedCategories;
+                            for (CategoryComponent component : movedCategories) {
+                                ClickGui.categories.replace(component.categoryName, component);
+                            }
                         }
                     }
 
@@ -251,7 +262,7 @@ public class ProfileManager {
                     Raven.currentProfile = getProfile(name);
                 }
 
-
+                deleteProfile("latest");
                 try (FileWriter fileWriter = new FileWriter(new File(directory, "latest.json"))) {
                     Gson gson = new GsonBuilder().setPrettyPrinting().create();
                     gson.toJson(profileJson, fileWriter);
@@ -259,7 +270,7 @@ public class ProfileManager {
                 }
             } catch (Exception e) {
                 failedMessage("load", name);
-                e.printStackTrace();
+                Utils.log.error(e);
             }
         }
     }
@@ -305,7 +316,7 @@ public class ProfileManager {
                 }
             }
 
-            for (CategoryComponent categoryComponent : ClickGui.categories) {
+            for (CategoryComponent categoryComponent : ClickGui.categories.values()) {
                 if (categoryComponent.categoryName == Module.category.profiles) {
                     categoryComponent.reloadModules(true);
                 }

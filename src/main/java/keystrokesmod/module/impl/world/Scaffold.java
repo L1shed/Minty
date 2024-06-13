@@ -43,7 +43,7 @@ public class Scaffold extends Module { // from b4 :)
     private final ButtonSetting silentSwing;
     public ButtonSetting tower;
     public ButtonSetting fast;
-    private MovingObjectPosition placeBlock;
+    protected MovingObjectPosition placeBlock;
     private int lastSlot;
     public float placeYaw;
     public float placePitch;
@@ -68,7 +68,7 @@ public class Scaffold extends Module { // from b4 :)
         this.registerSetting(fastOnRMB = new ButtonSetting("Fast on RMB", false));
         this.registerSetting(highlightBlocks = new ButtonSetting("Highlight blocks", true));
         this.registerSetting(multiPlace = new ButtonSetting("Multi-place", false));
-        this.registerSetting(safeWalk = new ButtonSetting("Safewalk", true));
+        this.registerSetting(safeWalk = new ButtonSetting("SafeWalk", true));
         this.registerSetting(showBlockCount = new ButtonSetting("Show block count", true));
         this.registerSetting(silentSwing = new ButtonSetting("Silent swing", false));
         this.registerSetting(tower = new ButtonSetting("Tower", false));
@@ -424,7 +424,7 @@ public class Scaffold extends Module { // from b4 :)
         return mc.thePlayer.rotationYaw + n;
     }
 
-    private void place(MovingObjectPosition block, boolean extra) {
+    protected void place(MovingObjectPosition block, boolean extra) {
         ItemStack heldItem = mc.thePlayer.getHeldItem();
         if (heldItem == null || !(heldItem.getItem() instanceof ItemBlock)) {
             return;

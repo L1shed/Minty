@@ -4,13 +4,13 @@ import keystrokesmod.Raven;
 import keystrokesmod.clickgui.components.Component;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.impl.client.Gui;
+import keystrokesmod.utility.font.Font;
 import keystrokesmod.utility.render.RenderUtils;
 import keystrokesmod.utility.Timer;
 import keystrokesmod.utility.Utils;
 import keystrokesmod.utility.profile.Manager;
 import keystrokesmod.utility.profile.Profile;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.ScaledResolution;
 import org.lwjgl.opengl.GL11;
 
@@ -134,7 +134,7 @@ public class CategoryComponent {
         (this.smoothTimer = new Timer(150)).start();
     }
 
-    public void rf(FontRenderer renderer) {
+    public void rf(Font renderer) {
         this.k = 92;
         int h = 0;
         if (!this.modules.isEmpty() && this.categoryOpened) {

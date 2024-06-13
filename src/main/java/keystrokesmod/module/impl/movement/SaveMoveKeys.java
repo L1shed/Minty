@@ -22,8 +22,8 @@ public class SaveMoveKeys extends Module {
         this.registerSetting(delay = new SliderSetting("Delay", 0, 0, 1000, 10));
     }
 
-    @SubscribeEvent
-    public void onRender(TickEvent.RenderTickEvent event) {
+    @Override
+    public void onUpdate() {
         if (mc.currentScreen != null) {
             lastInGUI = true;
         } else {

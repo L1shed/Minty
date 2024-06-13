@@ -5,6 +5,7 @@ import keystrokesmod.module.Module;
 import keystrokesmod.module.impl.combat.KillAura;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
+import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.RotationUtils;
 import keystrokesmod.utility.Utils;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
@@ -14,6 +15,7 @@ import static keystrokesmod.module.ModuleManager.speed;
 
 public class TargetStrafe extends Module {
     private final ButtonSetting onlySpeed;
+    private final SliderSetting strafeMove;
 
     public static float getMovementYaw() {
         return movementYaw != null ? movementYaw : mc.thePlayer.rotationYaw;
@@ -25,6 +27,7 @@ public class TargetStrafe extends Module {
         super("TargetStrafe", category.movement);
         this.registerSetting(new DescriptionSetting("Strafes around the target."));
         this.registerSetting(onlySpeed = new ButtonSetting("Only Speed", true));
+        this.registerSetting(strafeMove = new SliderSetting("Strafe move", 0, -1, 1, 0.5));
     }
 
     private float normalize(float yaw) {
@@ -52,7 +55,7 @@ public class TargetStrafe extends Module {
 
         if (Utils.isMoving()) {
             input.setForward(1);
-            input.setStrafe(0);
+            input.setStrafe((float) strafeMove.getInput());
             input.setYaw(toTarget);
         }
         movementYaw = toTarget;

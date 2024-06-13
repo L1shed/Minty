@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(GuiConnecting.class)
-public class MixinGuiConnecting extends GuiScreen {
+public abstract class MixinGuiConnecting extends GuiScreen {
     @Shadow
     private NetworkManager networkManager;
 

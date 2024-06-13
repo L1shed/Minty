@@ -2,6 +2,7 @@ package keystrokesmod.utility.render;
 
 import keystrokesmod.module.impl.player.Freecam;
 import keystrokesmod.utility.Utils;
+import keystrokesmod.utility.font.Font;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.ScaledResolution;
@@ -416,7 +417,7 @@ public class RenderUtils {
         net.minecraft.client.gui.Gui.drawRect(0, 0, w, h, c);
     }
 
-    public static void dct(String text, char lineSplit, int x, int y, long s, long shift, boolean rect, FontRenderer fontRenderer) {
+    public static void dct(String text, char lineSplit, int x, int y, long s, long shift, boolean rect, Font fontRenderer) {
         int bX = x;
         int l = 0;
         long r = 0L;
@@ -426,7 +427,7 @@ public class RenderUtils {
             if (c == lineSplit) {
                 ++l;
                 x = bX;
-                y += fontRenderer.FONT_HEIGHT + 5;
+                y += Math.round(fontRenderer.height() + 5);
                 r = shift * (long) l;
             } else {
                 fontRenderer.drawString(String.valueOf(c), (float) x, (float) y, Utils.getChroma(s, r), rect);

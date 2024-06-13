@@ -138,7 +138,7 @@ public class ModuleComponent extends Component {
         if (this.mod.moduleCategory() == Module.category.profiles && !(this.mod instanceof Manager) && !((ProfileModule) this.mod).saved && Raven.currentProfile.getModule() == this.mod) {
             button_rgb = unsavedColor;
         }
-        Minecraft.getMinecraft().fontRendererObj.drawStringWithShadow(this.mod.getName(), (float) (this.categoryComponent.getX() + this.categoryComponent.gw() / 2 - Minecraft.getMinecraft().fontRendererObj.getStringWidth(this.mod.getName()) / 2), (float) (this.categoryComponent.getY() + this.o + 4), button_rgb);
+        Minecraft.getMinecraft().fontRendererObj.drawStringWithShadow(this.mod.getPrettyName(), (float) (this.categoryComponent.getX() + this.categoryComponent.gw() / 2 - Minecraft.getMinecraft().fontRendererObj.getStringWidth(this.mod.getPrettyName()) / 2), (float) (this.categoryComponent.getY() + this.o + 4), button_rgb);
         GL11.glPopMatrix();
         if (this.po && !this.settings.isEmpty()) {
             for (Component c : this.settings) {

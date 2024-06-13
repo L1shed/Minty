@@ -13,7 +13,7 @@ import net.minecraft.util.MathHelper;
 import org.spongepowered.asm.mixin.*;
 
 @Mixin(priority = 995, value = LayerCape.class)
-public class MixinLayerCape {
+public abstract class MixinLayerCape {
     @Mutable
     @Final
     @Shadow

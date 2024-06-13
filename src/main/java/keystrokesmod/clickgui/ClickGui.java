@@ -11,6 +11,8 @@ import keystrokesmod.module.impl.client.Gui;
 import keystrokesmod.utility.Commands;
 import keystrokesmod.utility.Timer;
 import keystrokesmod.utility.Utils;
+import keystrokesmod.utility.font.Font;
+import keystrokesmod.utility.font.FontManager;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
@@ -22,8 +24,8 @@ import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.*;
+import java.util.List;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -36,23 +38,25 @@ public class ClickGui extends GuiScreen {
     private ScaledResolution sr;
     private GuiButtonExt s;
     private GuiTextField c;
-    public static ArrayList<CategoryComponent> categories;
+    private final Font fontRendererObj = FontManager.getMinecraft();
+    public static Map<Module.category, CategoryComponent> categories;
+    public static List<Module.category> clickHistory;
 
     public ClickGui() {
-        categories = new ArrayList<>();
         int y = 5;
         Module.category[] values;
         int length = (values = Module.category.values()).length;
 
+        categories = new HashMap<>(length);
+        clickHistory = new ArrayList<>(length);
         for (int i = 0; i < length; ++i) {
             Module.category c = values[i];
             CategoryComponent f = new CategoryComponent(c);
             f.y(y);
-            categories.add(f);
+            categories.put(c, f);
+            clickHistory.add(c);
             y += 20;
         }
-
-
     }
 
     public void initMain() {
@@ -76,13 +80,13 @@ public class ClickGui extends GuiScreen {
             int h = this.height / 4;
             int wd = this.width / 2;
             int w_c = 30 - this.aT.getValueInt(0, 30, 3);
-            this.drawCenteredString(this.fontRendererObj, "r", wd + 1 - w_c, h - 25, Utils.getChroma(2L, 1500L));
-            this.drawCenteredString(this.fontRendererObj, "a", wd - w_c, h - 15, Utils.getChroma(2L, 1200L));
-            this.drawCenteredString(this.fontRendererObj, "v", wd - w_c, h - 5, Utils.getChroma(2L, 900L));
-            this.drawCenteredString(this.fontRendererObj, "e", wd - w_c, h + 5, Utils.getChroma(2L, 600L));
-            this.drawCenteredString(this.fontRendererObj, "n", wd - w_c, h + 15, Utils.getChroma(2L, 300L));
-            this.drawCenteredString(this.fontRendererObj, "bS", wd + 1 + w_c, h + 30, Utils.getChroma(2L, 0L));
-            this.drawCenteredString(this.fontRendererObj, "(xia__mc forked)", wd + 1 + w_c, h + 45, Utils.getChroma(2L, 0L));
+            this.fontRendererObj.drawCenteredString("r", wd + 1 - w_c, h - 25, Utils.getChroma(2L, 1500L));
+            this.fontRendererObj.drawCenteredString("a", wd - w_c, h - 15, Utils.getChroma(2L, 1200L));
+            this.fontRendererObj.drawCenteredString("v", wd - w_c, h - 5, Utils.getChroma(2L, 900L));
+            this.fontRendererObj.drawCenteredString("e", wd - w_c, h + 5, Utils.getChroma(2L, 600L));
+            this.fontRendererObj.drawCenteredString("n", wd - w_c, h + 15, Utils.getChroma(2L, 300L));
+            this.fontRendererObj.drawCenteredString("bS", wd + 1 + w_c, h + 30, Utils.getChroma(2L, 0L));
+            this.fontRendererObj.drawCenteredString("(xia__mc forked)", wd + 1 + w_c, h + 45, Utils.getChroma(2L, 0L));
             this.drawVerticalLine(wd - 10 - w_c, h - 30, h + 43, Color.white.getRGB());
             this.drawVerticalLine(wd + 10 + w_c, h - 30, h + 43, Color.white.getRGB());
             if (this.aL != null) {
@@ -92,7 +96,8 @@ public class ClickGui extends GuiScreen {
             }
         }
 
-        for (CategoryComponent c : categories) {
+        for (Module.category category : clickHistory) {
+            CategoryComponent c = categories.get(category);
             c.rf(this.fontRendererObj);
             c.up(x, y);
 
@@ -139,10 +144,12 @@ public class ClickGui extends GuiScreen {
     }
 
     public void mouseClicked(int x, int y, int m) throws IOException {
-        Iterator<CategoryComponent> var4 = categories.iterator();
+        Iterator<CategoryComponent> var4 = clickHistory.stream()
+                .map(category -> categories.get(category))
+                .iterator();
 
         while (true) {
-            CategoryComponent category;
+            CategoryComponent category = null;
             do {
                 do {
                     if (!var4.hasNext()) {
@@ -151,6 +158,10 @@ public class ClickGui extends GuiScreen {
                             super.mouseClicked(x, y, m);
                         }
 
+                        if (category != null) {
+                            clickHistory.remove(category.categoryName);
+                            clickHistory.add(category.categoryName);
+                        }
                         return;
                     }
 
@@ -174,13 +185,12 @@ public class ClickGui extends GuiScreen {
             for (Component c : category.getModules()) {
                 c.onClick(x, y, m);
             }
-
         }
     }
 
     public void mouseReleased(int x, int y, int s) {
         if (s == 0) {
-            for (CategoryComponent category : categories) {
+            for (CategoryComponent category : categories.values()) {
                 category.d(false);
                 if (category.fv() && !category.getModules().isEmpty()) {
                     for (Component module : category.getModules()) {
@@ -196,7 +206,7 @@ public class ClickGui extends GuiScreen {
         if (k == Keyboard.KEY_ESCAPE && !binding()) {
             this.mc.displayGuiScreen(null);
         } else {
-            for (CategoryComponent category : categories) {
+            for (CategoryComponent category : categories.values()) {
                 if (category.fv() && !category.getModules().isEmpty()) {
                     for (Component module : category.getModules()) {
                         module.keyTyped(t, k);
@@ -228,7 +238,7 @@ public class ClickGui extends GuiScreen {
             this.sf.cancel(true);
             this.sf = null;
         }
-        for (CategoryComponent c : categories) {
+        for (CategoryComponent c : categories.values()) {
             c.dragging = false;
             for (Component m : c.getModules()) {
                 m.onGuiClosed();
@@ -241,7 +251,7 @@ public class ClickGui extends GuiScreen {
     }
 
     private boolean binding() {
-        for (CategoryComponent c : categories) {
+        for (CategoryComponent c : categories.values()) {
             for (ModuleComponent m : c.getModules()) {
                 for (Component component : m.settings) {
                     if (component instanceof BindComponent && ((BindComponent) component).isBinding) {

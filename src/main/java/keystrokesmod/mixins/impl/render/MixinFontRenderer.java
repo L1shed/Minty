@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
 @Mixin(FontRenderer.class)
-public class MixinFontRenderer {
+public abstract class MixinFontRenderer {
     @ModifyVariable(method = "renderString", at = @At("HEAD"), require = 1, ordinal = 0, argsOnly = true)
     private String renderString(String string) {
         if (string == null)

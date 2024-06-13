@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ModelBiped.class)
-public class MixinModelBiped {
+public abstract class MixinModelBiped {
 
     @Shadow
     public ModelRenderer bipedRightArm;

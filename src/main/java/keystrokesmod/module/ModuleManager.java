@@ -65,6 +65,9 @@ public class ModuleManager {
     public static AutoPlay autoPlay;
     public static SaveMoveKeys saveMoveKeys;
     public static NyaProxy nyaProxy;
+    public static CustomName customName;
+    public static CommandChat commandChat;
+    public static Phase phase;
 
     public void register() {
         this.addModule(autoClicker = new AutoClicker());
@@ -159,10 +162,13 @@ public class ModuleManager {
         this.addModule(noHurtCam = new NoHurtCam());
         this.addModule(noCameraClip = new NoCameraClip());
         this.addModule(autoPlay = new AutoPlay());
-        this.addModule(saveMoveKeys = new SaveMoveKeys());
+//        this.addModule(saveMoveKeys = new SaveMoveKeys());
         this.addModule(nyaProxy = new NyaProxy());
+        this.addModule(customName = new CustomName());
+        this.addModule(commandChat = new CommandChat());
+        this.addModule(phase = new Phase());
         antiBot.enable();
-        modules.sort(Comparator.comparing(Module::getName));
+        modules.sort(Comparator.comparing(Module::getPrettyName));
     }
 
     public void addModule(Module m) {
@@ -196,9 +202,9 @@ public class ModuleManager {
 
     public static void sort() {
         if (HUD.alphabeticalSort.isToggled()) {
-            organizedModules.sort(Comparator.comparing(Module::getName));
+            organizedModules.sort(Comparator.comparing(Module::getPrettyName));
         } else {
-            organizedModules.sort((o1, o2) -> Utils.mc.fontRendererObj.getStringWidth(o2.getName() + ((HUD.showInfo.isToggled() && !o2.getInfo().isEmpty()) ? " " + o2.getInfo() : "")) - Utils.mc.fontRendererObj.getStringWidth(o1.getName() + (HUD.showInfo.isToggled() && !(o1.getInfo().isEmpty()) ? " " + o1.getInfo() : "")));
+            organizedModules.sort((o1, o2) -> Utils.mc.fontRendererObj.getStringWidth(o2.getPrettyName() + ((HUD.showInfo.isToggled() && !o2.getInfo().isEmpty()) ? " " + o2.getInfo() : "")) - Utils.mc.fontRendererObj.getStringWidth(o1.getPrettyName() + (HUD.showInfo.isToggled() && !(o1.getInfo().isEmpty()) ? " " + o1.getInfo() : "")));
         }
     }
 }

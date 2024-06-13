@@ -12,7 +12,8 @@
     "render.MixinFontRenderer",
     "render.MixinLayerCape",
     "render.MixinModelBiped",
-    "render.MixinRendererLivingEntity"
+    "render.MixinRendererLivingEntity",
+    "world.MixinBlock"
   ],
   "client": [
     "client.GuiConnectingAccessor",

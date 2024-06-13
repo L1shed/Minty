@@ -1,6 +1,7 @@
 package keystrokesmod.script;
 
 import keystrokesmod.Raven;
+import keystrokesmod.clickgui.ClickGui;
 import keystrokesmod.clickgui.components.impl.CategoryComponent;
 import keystrokesmod.module.Module;
 import keystrokesmod.script.classes.Entity;
@@ -97,11 +98,7 @@ public class ScriptManager {
         for (Module module : this.scripts.values()) {
             module.disable();
         }
-        for (CategoryComponent categoryComponent : Raven.clickGui.categories) {
-            if (categoryComponent.categoryName == Module.category.scripts) {
-                categoryComponent.reloadModules(false);
-            }
-        }
+        ClickGui.categories.get(Module.category.scripts).reloadModules(false);
     }
 
     private void parseFile(final File file) {

@@ -7,6 +7,7 @@ import keystrokesmod.utility.Utils;
 
 public class Gui extends Module {
     public static ButtonSetting removePlayerModel, translucentBackground, removeWatermark, rainBowOutlines;
+//    public static SliderSetting font;
 
     public Gui() {
         super("Gui", Module.category.client, 54);
@@ -14,6 +15,7 @@ public class Gui extends Module {
         this.registerSetting(removePlayerModel = new ButtonSetting("Remove player model", false));
         this.registerSetting(removeWatermark = new ButtonSetting("Remove watermark", false));
         this.registerSetting(translucentBackground = new ButtonSetting("Translucent background", true));
+//        this.registerSetting(font = new SliderSetting("Font", new String[]{"Minecraft", "Product Sans"}, 0));
     }
 
     public void onEnable() {

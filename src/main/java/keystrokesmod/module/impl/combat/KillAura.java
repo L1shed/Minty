@@ -88,7 +88,7 @@ public class KillAura extends Module {
     public KillAura() {
         super("KillAura", category.combat);
         this.registerSetting(aps = new SliderSetting("APS", 16.0, 1.0, 20.0, 0.5));
-        String[] autoBlockModes = new String[]{"Manual", "Vanilla", "Post", "Swap", "Interact", "Fake", "Partial"};
+        String[] autoBlockModes = new String[]{"Manual", "Vanilla", "Post", "Swap", "Interact", "Fake", "Partial", "Watchdog 1.12.2"};
         this.registerSetting(autoBlockMode = new SliderSetting("Autoblock", autoBlockModes, 0));
         this.registerSetting(fov = new SliderSetting("FOV", 360.0, 30.0, 360.0, 4.0));
         this.registerSetting(attackRange = new SliderSetting("Attack range", 3.3, 3.0, 6.0, 0.1));
@@ -419,6 +419,19 @@ public class KillAura extends Module {
                 KeyBinding.setKeyBindState(mc.gameSettings.keyBindUseItem.getKeyCode(), down);
                 Reflection.setButton(1, down);
                 blocking = down;
+                break;
+            case 7: // watchdog 1.12.2
+                setBlockState(block.get(), true, true);
+                PacketUtils.sendPacketNoEvent(new C0APacketAnimation());
+                /*
+                code from Acrimony 1.0.5.
+                I think it means: "send a swing packet" xd
+                    PacketWrapper useItem = PacketWrapper.create(29, (ByteBuf)null, (UserConnection)Via.getManager().getConnectionManager().getConnections().iterator().next());
+                    useItem.write(Type.VAR_INT, 1);
+                    com.viaversion.viarewind.utils.PacketUtil.sendToServer(useItem, Protocol1_8To1_9.class, true, true);
+                 */
+                blocking = true;
+                break;
         }
     }
 

@@ -16,6 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import org.lwjgl.input.Keyboard;
 
 import static keystrokesmod.module.ModuleManager.blink;
+import static keystrokesmod.module.ModuleManager.scaffold;
 
 public class InvMove extends Module {
     public static final String[] MODES = {"Normal", "Blink"};
@@ -36,7 +37,7 @@ public class InvMove extends Module {
 
     @Override
     public void onUpdate() {
-        if (mc.currentScreen instanceof GuiContainer && nameCheck()) {
+        if (mc.currentScreen instanceof GuiContainer && nameCheck() && !scaffold.isEnabled()) {
             if ((int) mode.getInput() == 1) {
                 if (!blinking) {
                     blink.enable();
