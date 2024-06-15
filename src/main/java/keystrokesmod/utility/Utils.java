@@ -2,6 +2,7 @@ package keystrokesmod.utility;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.mojang.realmsclient.gui.ChatFormatting;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.client.Settings;
@@ -34,6 +35,7 @@ import net.minecraft.util.*;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
@@ -770,5 +772,28 @@ public class Utils {
             }
         }
         return getAmount + EnchantmentHelper.getEnchantmentLevel(Enchantment.sharpness.effectId, itemStack) * 1.25;
+    }
+
+    public static @NotNull String getUnformatedString(@NotNull String s) {
+        StringBuilder stringbuilder = new StringBuilder();
+
+        boolean doIgnore = false;
+        forEach:
+        for (char c : s.toCharArray()) {
+            if (doIgnore) {
+                doIgnore = false;
+                for (ChatFormatting format : ChatFormatting.values())
+                    if (format.getChar() == c)
+                        continue forEach;
+            }
+            if (c == '§') {
+                doIgnore = true;
+                continue;
+            }
+
+            stringbuilder.append(c);
+        }
+
+        return stringbuilder.toString();
     }
 }

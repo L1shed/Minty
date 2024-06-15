@@ -20,6 +20,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class ProfileManager {
     public static Minecraft mc = Minecraft.getMinecraft();
@@ -35,7 +36,8 @@ public class ProfileManager {
                 return;
             }
         }
-        if (directory.listFiles().length == 0) { // if theres no profile in the folder upon launch, create new default profile
+        if (Objects.requireNonNull(directory.listFiles()).length == 0) { // if there's no profile in the folder upon launch,
+            // create a new default profile
             saveProfile(new Profile("default", 0));
         }
     }
@@ -262,11 +264,13 @@ public class ProfileManager {
                     Raven.currentProfile = getProfile(name);
                 }
 
-                deleteProfile("latest");
-                try (FileWriter fileWriter = new FileWriter(new File(directory, "latest.json"))) {
-                    Gson gson = new GsonBuilder().setPrettyPrinting().create();
-                    gson.toJson(profileJson, fileWriter);
-                } catch (Exception ignored) {
+                if (!Objects.equals(name, "latest")) {
+                    deleteProfile("latest");
+                    try (FileWriter fileWriter = new FileWriter(new File(directory, "latest.json"))) {
+                        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                        gson.toJson(profileJson, fileWriter);
+                    } catch (Exception ignored) {
+                    }
                 }
             } catch (Exception e) {
                 failedMessage("load", name);
@@ -279,6 +283,7 @@ public class ProfileManager {
         profiles.removeIf(profile -> profile.getName().equals(name));
         if (directory.exists()) {
             File[] files = directory.listFiles();
+            assert files != null;
             for (File file : files) {
                 if (file.getName().equals(name + ".json")) {
                     file.delete();
@@ -291,6 +296,7 @@ public class ProfileManager {
         profiles.clear();
         if (directory.exists()) {
             File[] files = directory.listFiles();
+            assert files != null;
             for (File file : files) {
                 try (FileReader fileReader = new FileReader(file)) {
                     JsonParser jsonParser = new JsonParser();
@@ -329,6 +335,7 @@ public class ProfileManager {
         List<File> profileFiles = new ArrayList<>();
         if (directory.exists()) {
             File[] files = directory.listFiles();
+            assert files != null;
             for (File file : files) {
                 if (!file.getName().endsWith(".json")) {
                     continue;

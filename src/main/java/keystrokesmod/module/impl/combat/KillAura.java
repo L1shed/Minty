@@ -17,12 +17,14 @@ import net.minecraft.init.Blocks;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.client.*;
 import net.minecraft.network.play.server.S2FPacketSetSlot;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.input.Mouse;
 
@@ -469,7 +471,7 @@ public class KillAura extends Module {
                 })
                 .filter(entity -> targetInvisible.isToggled() || !entity.isInvisible())
                 .filter(entity -> hitThroughBlocks.isToggled() || !behindBlocks(rotations))
-                .filter(entity -> fov.getInput() == 360.0f || Utils.inFov((float) fov.getInput(), entity))
+                .filter(entity -> fov.getInput() == 360 || Utils.inFov((float) fov.getInput(), entity))
                 .map(entity -> new Pair<>(entity, mc.thePlayer.getDistanceSqToEntity(entity)))
                 .sorted((p1, p2) -> p2.second().compareTo(p1.second()))
                 .forEach(pair -> {
@@ -635,6 +637,10 @@ public class KillAura extends Module {
 
     private boolean behindBlocks(float[] rotations) {
         switch ((int) rotationMode.getInput()) {
+            default:
+                if (mc.thePlayer.getCollisionBoundingBox().intersectsWith(target.getCollisionBoundingBox())) {
+                    return false;
+                }
             case 2:
             case 0:
                 if (mc.objectMouseOver != null) {
@@ -646,9 +652,11 @@ public class KillAura extends Module {
                 break;
             case 1:
                 try {
+                    Vec3 from = new Vec3(mc.thePlayer).add(new Vec3(0, mc.thePlayer.getEyeHeight(), 0));
                     MovingObjectPosition hitResult = RotationUtils.rayCast(
-                            new keystrokesmod.script.classes.Vec3(target).add(new keystrokesmod.script.classes.Vec3(0, target.getEyeHeight(), 0))
-                                    .distanceTo(new keystrokesmod.script.classes.Vec3(mc.thePlayer).add(new Vec3(0, mc.thePlayer.getEyeHeight(), 0))), rotations[0], rotations[1]);
+                            getNearestPoint(target.getCollisionBoundingBox(), from).distanceTo(from),
+                            rotations[0], rotations[1]
+                    );
                     if (hitResult != null) {
                         if (keystrokesmod.module.impl.other.anticheats.utils.world.BlockUtils.isFullBlock(mc.theWorld.getBlockState(hitResult.getBlockPos()))) {
                             return true;
@@ -658,5 +666,21 @@ public class KillAura extends Module {
                 }
         }
         return false;
+    }
+
+    @Contract("_, _ -> new")
+    private @NotNull Vec3 getNearestPoint(@NotNull AxisAlignedBB from, @NotNull Vec3 to) {
+        double pointX, pointY, pointZ;
+        if (to.x() >= from.maxX) {
+            pointX = from.maxX;
+        } else pointX = Math.max(to.x(), from.minX);
+        if (to.y() >= from.maxY) {
+            pointY = from.maxY;
+        } else pointY = Math.max(to.y(), from.minY);
+        if (to.z() >= from.maxZ) {
+            pointZ = from.maxZ;
+        } else pointZ = Math.max(to.z(), from.minZ);
+
+        return new Vec3(pointX, pointY, pointZ);
     }
 }

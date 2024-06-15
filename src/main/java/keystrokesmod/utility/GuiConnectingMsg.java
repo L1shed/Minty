@@ -73,11 +73,6 @@ public class GuiConnectingMsg {
             this.stringData = new StringBuilder(message);
         }
 
-        public void add(final String message) {
-            stringData.append("\n");
-            stringData.append(message);
-        }
-
         public void append(final String message) {
             stringData.append(message);
         }

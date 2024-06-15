@@ -31,7 +31,6 @@ public class Tower extends Module {
     private final ButtonSetting disableWhileCollided;
     private final ButtonSetting disableWhileHurt;
     private final ButtonSetting sprintJumpForward;
-    private final ButtonSetting onlyWhileMoving;
     private final ButtonSetting hypixelNoStrafe;
     private final ButtonSetting hypixelLowHop;
     private final SliderSetting hypixelOffGroundSpeed;
@@ -54,7 +53,6 @@ public class Tower extends Module {
         this.registerSetting(disableWhileCollided = new ButtonSetting("Disable while collided", false));
         this.registerSetting(disableWhileHurt = new ButtonSetting("Disable while hurt", false));
         this.registerSetting(sprintJumpForward = new ButtonSetting("Sprint jump forward", true));
-        this.registerSetting(onlyWhileMoving = new ButtonSetting("Only while moving", false));
         this.registerSetting(hypixelOffGroundSpeed = new SliderSetting("Hypixel off ground speed", 0.5, 0.0, 1.0, 0.01));
         this.registerSetting(hypixelNoStrafe = new ButtonSetting("Hypixel no strafe", false));
         this.registerSetting(hypixelLowHop = new ButtonSetting("Hypixel low hop", false));
@@ -93,11 +91,13 @@ public class Tower extends Module {
                                 toweredBlock = null;
                             }
                             if (toweredBlock != null) {
-                                Raven.getExecutor().schedule(() -> scaffold.place(new MovingObjectPosition(
-                                        new Vec3(toweredBlock.getX(), scaffold.placeBlock.hitVec.yCoord, scaffold.placeBlock.hitVec.zCoord),
-                                        EnumFacing.UP,
-                                        toweredBlock), true), (long) hypixelTowerDelay.getInput(), TimeUnit.MILLISECONDS);
-                                e.setOnGround(true);
+                                Raven.getExecutor().schedule(() -> {
+                                    if (scaffold.place(new MovingObjectPosition(
+                                            new Vec3(toweredBlock.getX() + 0.1, scaffold.placeBlock.hitVec.yCoord, scaffold.placeBlock.hitVec.zCoord),
+                                            EnumFacing.UP,
+                                            toweredBlock), true))
+                                        e.setOnGround(true);
+                                }, (long) hypixelTowerDelay.getInput(), TimeUnit.MILLISECONDS);
                                 mc.thePlayer.motionY = hypixelJumpMotion.getInput();
                             }
                         }

@@ -424,10 +424,10 @@ public class Scaffold extends Module { // from b4 :)
         return mc.thePlayer.rotationYaw + n;
     }
 
-    protected void place(MovingObjectPosition block, boolean extra) {
+    protected boolean place(MovingObjectPosition block, boolean extra) {
         ItemStack heldItem = mc.thePlayer.getHeldItem();
         if (heldItem == null || !(heldItem.getItem() instanceof ItemBlock)) {
-            return;
+            return false;
         }
         if (mc.playerController.onPlayerRightClick(mc.thePlayer, mc.theWorld, heldItem, block.getBlockPos(), block.sideHit, block.hitVec)) {
             if (silentSwing.isToggled()) {
@@ -440,7 +440,9 @@ public class Scaffold extends Module { // from b4 :)
             if (!extra) {
                 highlight.put(block.getBlockPos().offset(block.sideHit), null);
             }
+            return true;
         }
+        return false;
     }
 
     private int getSlot() {

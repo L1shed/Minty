@@ -5,9 +5,11 @@ import keystrokesmod.Raven;
 import keystrokesmod.event.PreConnectEvent;
 import keystrokesmod.mixins.impl.client.GuiConnectingAccessor;
 import keystrokesmod.module.Module;
+import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.GuiConnectingMsg;
+import keystrokesmod.utility.Utils;
 import net.minecraft.client.gui.GuiDisconnected;
 import net.minecraft.client.network.NetHandlerLoginClient;
 import net.minecraft.network.EnumConnectionState;
@@ -21,10 +23,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 public class NyaProxy extends Module {
     private final SliderSetting maxRetryTimes;
+    private final ButtonSetting autoFlushDns;
     private GuiConnectingMsg.Data guiData = new GuiConnectingMsg.Data();
     private short retry = 0;
 
@@ -32,6 +37,7 @@ public class NyaProxy extends Module {
         super("NyaProxy", category.client);
         this.registerSetting(new DescriptionSetting("work with NyaProxy server."));
         this.registerSetting(maxRetryTimes = new SliderSetting("Max retry times", 20, 0, 50, 1));
+        this.registerSetting(autoFlushDns = new ButtonSetting("Auto flush dns (Windows)", false));
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -47,7 +53,7 @@ public class NyaProxy extends Module {
         retry = 0;
         guiData = new GuiConnectingMsg.Data();
 
-        guiData.add(ChatFormatting.GRAY + "[" + ChatFormatting.AQUA + "NyaProxy" + ChatFormatting.GRAY + "] " + ChatFormatting.BLUE);
+        guiData.set(ChatFormatting.GRAY + "[" + ChatFormatting.AQUA + "NyaProxy" + ChatFormatting.GRAY + "] " + ChatFormatting.BLUE);
         switch (backend) {
             case SUQIAN1:
                 guiData.append("宿迁节点1");
@@ -74,6 +80,10 @@ public class NyaProxy extends Module {
                 return;
             }
 
+            if (autoFlushDns.isToggled()) {
+                Runtime.getRuntime().exec("ipConfig /flushDns");
+            }
+
             inetaddress = InetAddress.getByName(event.getIp());
             guiConnecting.setNetworkManager(NetworkManager.func_181124_a(inetaddress, event.getPort(), mc.gameSettings.func_181148_f()));
             guiConnecting.getNetworkManager().setNetHandler(new NetHandlerLoginClient(guiConnecting.getNetworkManager(), mc, guiConnecting.getPreviousGuiScreen()));
@@ -98,12 +108,19 @@ public class NyaProxy extends Module {
                 s = s.replaceAll(s1, "");
             }
 
-            if (retry >= maxRetryTimes.getInput()) {
+            String unformatted = Utils.getUnformatedString(s);
+            if (retry >= maxRetryTimes.getInput() || unformatted.startsWith("You are temporarily banned")) {
                 guiData = null;
                 retry = 0;
                 mc.displayGuiScreen(new GuiDisconnected(guiConnecting.getPreviousGuiScreen(), "connect.failed", new ChatComponentTranslation("disconnect.genericReason", s)));
             } else {
-                guiData.add("第" + (retry + 1) + "次失败：" + var6);
+                guiData.set("§c§l第§r§l " + (retry + 1) + " §c§l次失败§7: " +
+                        NYA_EXCEPTIONS.entrySet().stream()
+                                .filter(entry -> unformatted.startsWith(entry.getKey()))
+                                .map(Map.Entry::getValue)
+                                .findAny()
+                                .orElse("§r" + s)
+                );
                 event.getExtraMessage().update(guiData);
 
                 retry++;
@@ -137,5 +154,12 @@ public class NyaProxy extends Module {
         public String getIp() {
             return ip;
         }
+    }
+
+    public static final Map<String, String> NYA_EXCEPTIONS = new HashMap<>();
+
+    static {
+        NYA_EXCEPTIONS.put("java.net.ConnectException: Connection refused: no further information: ", "服务不可用。");
+        NYA_EXCEPTIONS.put("ZBProxy - Connection Rejected", "未开启计费/服务正在初始化。");
     }
 }

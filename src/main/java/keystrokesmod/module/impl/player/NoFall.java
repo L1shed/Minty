@@ -146,6 +146,6 @@ public class NoFall extends Module {
     }
 
     private boolean shouldBlink() {
-        return !mc.thePlayer.onGround && !BlockUtils.isBlockUnder((int) Math.floor(minFallDistance.getInput())) && BlockUtils.isBlockUnder() && !scaffold.isEnabled();
+        return !mc.thePlayer.onGround && !BlockUtils.isBlockUnder((int) Math.floor(minFallDistance.getInput())) && BlockUtils.isBlockUnder() && (!scaffold.isEnabled() || scaffold.totalBlocks() == 0);
     }
 }
