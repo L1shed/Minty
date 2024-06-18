@@ -21,6 +21,14 @@ public class World {
         return new Block(block);
     }
 
+    public Block getBlockAt(Vec3 pos) {
+        net.minecraft.block.Block block = BlockUtils.getBlock(new BlockPos(pos.x, pos.y, pos.z));
+        if (block == null) {
+            return new Block(Blocks.air);
+        }
+        return new Block(block);
+    }
+
     public String getDimension() {
         if (mc.theWorld == null) {
             return "";
@@ -63,12 +71,9 @@ public class World {
 
     public List<String> getScoreboard() {
         List<String> sidebarLines = Utils.getSidebarLines();
-
         if (sidebarLines.isEmpty()) {
             return null;
         }
-
-        Collections.reverse(sidebarLines);
         return sidebarLines;
     }
 

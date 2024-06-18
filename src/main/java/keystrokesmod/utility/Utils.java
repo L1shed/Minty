@@ -267,7 +267,7 @@ public class Utils {
     }
 
     public static boolean isHypixel() {
-        return !mc.isSingleplayer() && mc.getCurrentServerData().serverIP.toLowerCase().contains("hypixel.net");
+        return !mc.isSingleplayer() && mc.getCurrentServerData() != null && mc.getCurrentServerData().serverIP.contains("hypixel.net");
     }
 
     public static net.minecraft.util.Timer getTimer() {

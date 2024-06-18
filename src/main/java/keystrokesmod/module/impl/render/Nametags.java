@@ -6,6 +6,7 @@ import keystrokesmod.module.impl.world.AntiBot;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.utility.render.RenderUtils;
 import keystrokesmod.utility.Utils;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
@@ -17,6 +18,8 @@ import net.minecraft.util.MathHelper;
 import net.minecraftforge.client.event.RenderLivingEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.opengl.GL11;
+
+import java.awt.*;
 
 public class Nametags extends Module { // skidded from raven source code as well
     private SliderSetting scale;
@@ -33,6 +36,8 @@ public class Nametags extends Module { // skidded from raven source code as well
     private ButtonSetting showEnchants;
     private ButtonSetting showDurability;
     private ButtonSetting showStackSize;
+    private int friendColor = new Color(0, 255, 0, 255).getRGB();
+    private int enemyColor = new Color(255, 0, 0, 255).getRGB();
     public Nametags() {
         super("Nametags", category.render, 0);
         this.registerSetting(scale = new SliderSetting("Scale", 1.0, 0.5, 5.0, 0.1));
@@ -59,6 +64,7 @@ public class Nametags extends Module { // skidded from raven source code as well
             if (!showInvis.isToggled() && entityPlayer.isInvisible()) {
                 return;
             }
+
             if (entityPlayer.getDisplayNameString().isEmpty() || (entityPlayer != mc.thePlayer && AntiBot.isBot(entityPlayer))) {
                 return;
             }
@@ -97,7 +103,12 @@ public class Nametags extends Module { // skidded from raven source code as well
             GlStateManager.translate((float) e.x + 0.0f, (float) e.y + entityPlayer.height + 0.5f, (float) e.z);
             GL11.glNormal3f(0.0f, 1.0f, 0.0f);
             GlStateManager.rotate(-mc.getRenderManager().playerViewY, 0.0f, 1.0f, 0.0f);
-            GlStateManager.rotate(mc.getRenderManager().playerViewX, 1.0f, 0.0f, 0.0f);
+            if (entityPlayer == mc.thePlayer && mc.gameSettings.thirdPersonView == 2) {
+                GlStateManager.rotate(-mc.getRenderManager().playerViewX, 1.0f, 0.0f, 0.0f);
+            }
+            else {
+                GlStateManager.rotate(mc.getRenderManager().playerViewX, 1.0f, 0.0f, 0.0f);
+            }
             final float n = 0.02666667f;
             if (autoScale.isToggled()) {
                 final float renderPartialTicks = Utils.getTimer().renderPartialTicks;
@@ -124,24 +135,19 @@ public class Nametags extends Module { // skidded from raven source code as well
             GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
             final int n10 = mc.fontRendererObj.getStringWidth(name) / 2;
             GlStateManager.disableTexture2D();
-            int d = 1;
-            int d2 = 1;
+            int x1 = -n10 - 1;
+            int y1 = -1;
+            int x2 = n10 + 1;
+            int y2 = 8;
             if (Utils.isFriended(entityPlayer)) {
-                d2 = 0;
-            } else {
-                d = 0;
+                RenderUtils.drawOutline(x1, y1, x2, y2, 2, friendColor);
             }
-            if (d == 0 && d2 != 0 && !Utils.isEnemy(entityPlayer)) {
-                d2 = 0;
+            else if (Utils.isEnemy(entityPlayer)) {
+                RenderUtils.drawOutline(x1, y1, x2, y2, 2, enemyColor);
             }
-            if (drawBackground.isToggled() || d != 0 || d2 != 0) {
+            if (drawBackground.isToggled()) {
                 float n11 = 0.0f;
                 float n12 = 0.0f;
-                if (d != 0) {
-                    n12 = 1.0f;
-                } else if (d2 != 0) {
-                    n11 = 1.0f;
-                }
                 final Tessellator getInstance = Tessellator.getInstance();
                 final WorldRenderer getWorldRenderer = getInstance.getWorldRenderer();
                 getWorldRenderer.begin(7, DefaultVertexFormats.POSITION_COLOR);

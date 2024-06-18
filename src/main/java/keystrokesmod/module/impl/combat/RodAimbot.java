@@ -12,15 +12,17 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemFishingRod;
 import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import org.jetbrains.annotations.Nullable;
 
 public class RodAimbot extends Module {
-    private SliderSetting fov;
-    private SliderSetting predicatedTicks;
-    private SliderSetting distance;
-    private ButtonSetting aimInvis;
-    private ButtonSetting ignoreTeammates;
-    public static boolean canceled;
-    private static EntityPlayer entity;
+    private final SliderSetting fov;
+    private final SliderSetting predicatedTicks;
+    private final SliderSetting distance;
+    private final ButtonSetting aimInvis;
+    private final ButtonSetting ignoreTeammates;
+    public boolean rotate;
+    private boolean rightClick;
+    private EntityPlayer entity;
 
     public RodAimbot() {
         super("RodAimbot", Module.category.combat, 0);
@@ -32,7 +34,8 @@ public class RodAimbot extends Module {
     }
 
     public void onDisable() {
-        canceled = false;
+        rotate = false;
+        rightClick = false;
         entity = null;
     }
 
@@ -49,7 +52,8 @@ public class RodAimbot extends Module {
             return;
         }
         mouseEvent.setCanceled(true);
-        canceled = true;
+        rightClick = true;
+        rotate = true;
     }
 
     @SubscribeEvent
@@ -57,19 +61,24 @@ public class RodAimbot extends Module {
         if (!Utils.nullCheck()) {
             return;
         }
-        if (canceled) {
-            canceled = false;
-            Reflection.rightClick();
+        if (rightClick || rotate) {
             if (mc.thePlayer.getCurrentEquippedItem() == null || !(mc.thePlayer.getCurrentEquippedItem().getItem() instanceof ItemFishingRod)) {
                 return;
             }
             float[] rotations = RotationUtils.getRotationsPredicated(entity, (int)predicatedTicks.getInput());
             event.setYaw(rotations[0]);
             event.setPitch(rotations[1]);
+            if (!rightClick && rotate) {
+                rotate = false;
+            }
+            if (rightClick) {
+                Reflection.rightClick();
+                rightClick = false;
+            }
         }
     }
 
-    private EntityPlayer getEntity() {
+    private @Nullable EntityPlayer getEntity() {
         for (final EntityPlayer entityPlayer : mc.theWorld.playerEntities) {
             if (entityPlayer != mc.thePlayer) {
                 if (entityPlayer.deathTime != 0) {

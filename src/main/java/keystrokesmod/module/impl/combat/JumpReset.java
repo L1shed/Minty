@@ -25,6 +25,9 @@ public class JumpReset extends Module {
     @SubscribeEvent
     public void onLivingUpdate(LivingEvent.LivingUpdateEvent ev) {
         if (Utils.nullCheck()) {
+            if (chance.getInput() == 0) {
+                return;
+            }
             if (mc.thePlayer.maxHurtTime <= 0) {
                 jump = false;
                 return;

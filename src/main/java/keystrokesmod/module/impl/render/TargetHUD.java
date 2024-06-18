@@ -29,6 +29,7 @@ public class TargetHUD extends Module {
     private long lastAliveMS;
     private double lastHealth;
     private float lastHealthBar;
+    public EntityLivingBase renderEntity;
 
     public TargetHUD() {
         super("TargetHUD", category.render);
@@ -84,6 +85,8 @@ public class TargetHUD extends Module {
         }
         if (KillAura.target != null) {
             RenderUtils.renderEntity(KillAura.target, 2, 0.0, 0.0, Theme.getGradient((int) theme.getInput(), 0), false);
+        } else if (renderEntity != null) {
+            RenderUtils.renderEntity(renderEntity, 2, 0.0, 0.0, Theme.getGradient((int) theme.getInput(), 0), false);
         }
     }
 
@@ -149,5 +152,6 @@ public class TargetHUD extends Module {
         fadeTimer = null;
         target = null;
         healthBarTimer = null;
+        renderEntity = null;
     }
 }

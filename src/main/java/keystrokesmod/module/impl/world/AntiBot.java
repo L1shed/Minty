@@ -7,6 +7,7 @@ import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.player.Freecam;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.utility.Utils;
 import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -22,6 +23,7 @@ public class AntiBot extends Module {
     private static final HashMap<EntityPlayer, Long> entities = new HashMap<>();
     private static ButtonSetting entitySpawnDelay;
     private static SliderSetting delay;
+    private static ButtonSetting pitSpawn;
     private static ButtonSetting tablist;
 
     public AntiBot() {
@@ -29,6 +31,7 @@ public class AntiBot extends Module {
         this.registerSetting(entitySpawnDelay = new ButtonSetting("Entity spawn delay", false));
         this.registerSetting(delay = new SliderSetting("Delay", 7.0, 0.5, 15.0, 0.5, " second"));
         this.registerSetting(tablist = new ButtonSetting("Tab list", false));
+        this.registerSetting(pitSpawn = new ButtonSetting("Pit spawn", false));
     }
 
     @SubscribeEvent
@@ -40,7 +43,7 @@ public class AntiBot extends Module {
 
     public void onUpdate() {
         if (entitySpawnDelay.isToggled() && !entities.isEmpty()) {
-            entities.values().removeIf(n -> n < System.currentTimeMillis() - 7000L);
+            entities.values().removeIf(n -> n < System.currentTimeMillis() - delay.getInput());
         }
     }
 
@@ -73,6 +76,14 @@ public class AntiBot extends Module {
         }
         if (entityPlayer.getHealth() != 20.0f && entityPlayer.getName().startsWith("§c")) {
             return true;
+        }
+        if (pitSpawn.isToggled() && entityPlayer.posY >= 114 && entityPlayer.posY <= 130 && entityPlayer.getDistance(0, 114, 0) <= 25) {
+            if (Utils.isHypixel()) {
+                List<String> sidebarLines = Utils.getSidebarLines();
+                if (!sidebarLines.isEmpty() && Utils.stripColor(sidebarLines.get(0)).contains("THE HYPIXEL PIT")) {
+                    return true;
+                }
+            }
         }
         if (entityPlayer.maxHurtTime == 0) {
             if (entityPlayer.getHealth() == 20.0f) {

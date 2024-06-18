@@ -53,6 +53,11 @@ public class Blink extends Module {
         pos = null;
     }
 
+    @Override
+    public String getInfo() {
+        return String.valueOf(blinkedPackets.size());
+    }
+
     @SubscribeEvent
     public void onSendPacket(SendPacketEvent e) {
         if (!Utils.nullCheck()) {
