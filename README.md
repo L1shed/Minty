@@ -24,7 +24,7 @@ Raven B4, but for those who can't afford it.
 ## Additional Bypass for Hypixel (Compared to [Raven-Bs](https://github.com/Strangerrrs/Raven-bS))
 - TowerMove (Up Sprint Scaffold)
 - Fireball LongJump (Same as Raven B4)
-- Air Strafe Speed
+- Air Strafe Speed *(Patched)*
 - Blink/NoGround NoFall
 - Blink AntiVoid
 - Client-side AntiCheat
