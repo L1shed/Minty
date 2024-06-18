@@ -132,7 +132,7 @@ public class NoFall extends Module {
         }
     }
 
-    private Block blockRelativeToPlayer(final double offsetY) {
+    public static Block blockRelativeToPlayer(final double offsetY) {
         return mc.theWorld.getBlockState(new BlockPos(mc.thePlayer).add(0, offsetY, 0)).getBlock();
     }
 
@@ -146,6 +146,6 @@ public class NoFall extends Module {
     }
 
     private boolean shouldBlink() {
-        return !mc.thePlayer.onGround && !BlockUtils.isBlockUnder((int) Math.floor(minFallDistance.getInput())) && BlockUtils.isBlockUnder() && (!scaffold.isEnabled() || scaffold.totalBlocks() == 0);
+        return !mc.thePlayer.onGround && !BlockUtils.isBlockUnder((int) Math.floor(minFallDistance.getInput())) && BlockUtils.isBlockUnder() && !scaffold.isEnabled();
     }
 }

@@ -68,7 +68,11 @@ public class Vec3 {
     public double z() { return z; }
 
     public Vec3 add(@NotNull Vec3 vec3) {
-        return new Vec3(x() + vec3.x(), y() + vec3.y(), z() + vec3.z());
+        return add(vec3.x(), vec3.y(), vec3.z());
+    }
+
+    public Vec3 add(final double x, final double y, final double z) {
+        return new Vec3(x() + x, y() + y, z() + z);
     }
 
     public Vec3 subtract(@NotNull Vec3 vec3) {

@@ -17,6 +17,7 @@ import keystrokesmod.utility.render.RenderUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiChat;
+import net.minecraft.network.play.client.C01PacketChatMessage;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.opengl.GL11;
 
@@ -173,16 +174,11 @@ public class Commands {
                     return;
                 }
 
-                switch (args.get(1)) {
-                    case "fly":
-                        Fly.horizontalSpeed.setValueRaw(value);
-                        break;
-                    case "speed":
-                        Speed.speed.setValueRaw(value);
-                        break;
-                    default:
-                        print(invSyn, 1);
-                        return;
+                if (args.get(1).equals("fly")) {
+                    Fly.horizontalSpeed.setValueRaw(value);
+                } else {
+                    print(invSyn, 1);
+                    return;
                 }
                 print("&aSet speed to ", 1);
                 print(args.get(2), 0);
@@ -291,7 +287,7 @@ public class Commands {
                     return;
                 }
 
-                mc.thePlayer.sendChatMessage(c.substring(args.get(0).length() + 1));
+                PacketUtils.sendPacketNoEvent(new C01PacketChatMessage(c.substring(args.get(0).length() + 1)));
             } else if (args.get(0).equals("setBName")) {
                 if (!hasArgs) {
                     print(invSyn, 1);
@@ -440,7 +436,7 @@ public class Commands {
                 print("&eModule-specific:", 0);
                 print("1 cname [name]", 0);
                 print("2 " + FakeChat.command + " [msg]", 0);
-                print("3 setspeed [fly/bhop/speed] [value]", 0);
+                print("3 setspeed [fly] [value]", 0);
                 print("4 setvelocity [h/v] [value]", 0);
                 print("5 setBName [name (default is 's')]", 0);
             }

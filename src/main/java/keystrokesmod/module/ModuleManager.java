@@ -68,6 +68,7 @@ public class ModuleManager {
     public static CustomName customName;
     public static CommandChat commandChat;
     public static Phase phase;
+    public static PingSpoof pingSpoof;
 
     public void register() {
         this.addModule(autoClicker = new AutoClicker());
@@ -167,6 +168,7 @@ public class ModuleManager {
         this.addModule(customName = new CustomName());
         this.addModule(commandChat = new CommandChat());
         this.addModule(phase = new Phase());
+        this.addModule(pingSpoof = new PingSpoof());
         antiBot.enable();
         modules.sort(Comparator.comparing(Module::getPrettyName));
     }

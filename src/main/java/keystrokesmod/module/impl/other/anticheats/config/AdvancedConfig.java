@@ -34,7 +34,7 @@ public class AdvancedConfig {
 
     
     public static boolean autoBlockACheck = false;
-    public static int autoBlockAAlertBuffer = 4;
+    public static int autoBlockAAlertBuffer = 2;
 
     
     public static boolean speedCCheck = true;

@@ -604,6 +604,7 @@ public class KillAura extends Module {
     }
 
     public void resetBlinkState(boolean unblock) {
+        if (!Utils.nullCheck()) return;
         releasePackets();
         blocking = false;
         if (Raven.badPacketsHandler.playerSlot != mc.thePlayer.inventory.currentItem && swapped) {
@@ -652,9 +653,9 @@ public class KillAura extends Module {
                 break;
             case 1:
                 try {
-                    Vec3 from = new Vec3(mc.thePlayer).add(new Vec3(0, mc.thePlayer.getEyeHeight(), 0));
+                    Vec3 from = new Vec3(mc.thePlayer).add(0, mc.thePlayer.getEyeHeight(), 0);
                     MovingObjectPosition hitResult = RotationUtils.rayCast(
-                            getNearestPoint(target.getCollisionBoundingBox(), from).distanceTo(from),
+                            RotationUtils.getNearestPoint(target.getCollisionBoundingBox(), from).distanceTo(from),
                             rotations[0], rotations[1]
                     );
                     if (hitResult != null) {
@@ -666,21 +667,5 @@ public class KillAura extends Module {
                 }
         }
         return false;
-    }
-
-    @Contract("_, _ -> new")
-    private @NotNull Vec3 getNearestPoint(@NotNull AxisAlignedBB from, @NotNull Vec3 to) {
-        double pointX, pointY, pointZ;
-        if (to.x() >= from.maxX) {
-            pointX = from.maxX;
-        } else pointX = Math.max(to.x(), from.minX);
-        if (to.y() >= from.maxY) {
-            pointY = from.maxY;
-        } else pointY = Math.max(to.y(), from.minY);
-        if (to.z() >= from.maxZ) {
-            pointZ = from.maxZ;
-        } else pointZ = Math.max(to.z(), from.minZ);
-
-        return new Vec3(pointX, pointY, pointZ);
     }
 }

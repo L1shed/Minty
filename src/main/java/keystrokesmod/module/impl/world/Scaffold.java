@@ -39,7 +39,6 @@ public class Scaffold extends Module { // from b4 :)
     private final ButtonSetting multiPlace;
     public ButtonSetting safeWalk;
     private final ButtonSetting showBlockCount;
-    private ButtonSetting delayOnJump;
     private final ButtonSetting silentSwing;
     public ButtonSetting tower;
     public ButtonSetting fast;
@@ -58,7 +57,7 @@ public class Scaffold extends Module { // from b4 :)
     private boolean speeded;
     public Scaffold() {
         super("Scaffold", category.world);
-        this.registerSetting(motion = new SliderSetting("Motion", 1.0, 0.5, 1.2, 0.01));
+        this.registerSetting(motion = new SliderSetting("Motion", 0.95, 0.5, 1.2, 0.01));
         String[] rotationModes = new String[]{"None", "Backwards", "Strict", "Raytrace"};
         this.registerSetting(rotation = new SliderSetting("Rotation", rotationModes, 1));
         String[] fastScaffoldModes = new String[]{"Disabled", "Sprint", "Edge", "Jump", "Float"};

@@ -14,6 +14,7 @@ import keystrokesmod.utility.render.RenderUtils;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.server.S12PacketEntityVelocity;
+import net.minecraft.network.play.server.S14PacketEntity;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -24,22 +25,30 @@ public class LongJump extends Module {
     private final SliderSetting mode;
     private final SliderSetting horizonBoost;
     private final SliderSetting verticalMotion;
+    private final ButtonSetting reverseYaw;
+    private final SliderSetting pitch;
+    private final SliderSetting aimTicks;
     private final ButtonSetting jumpAtEnd;
     private final ButtonSetting showBPS;
+    private final ButtonSetting stopOnTeleport;
     private int ticks = 0;
     private boolean start;
     private boolean done;
     public static boolean stopModules;
     private boolean waitForDamage = false;
-    private boolean aimed = false;
+    private int aimedTicks = Integer.MAX_VALUE;
 
     public LongJump() {
         super("Long Jump", category.movement);
         this.registerSetting(mode = new SliderSetting("Mode", MODES, 0));
         this.registerSetting(horizonBoost = new SliderSetting("Horizon boost", 1.0, 0.5, 3.0, 0.05));
         this.registerSetting(verticalMotion = new SliderSetting("Vertical motion", 0.35, 0.01, 0.4, 0.01));
+        this.registerSetting(reverseYaw = new ButtonSetting("Reverse yaw", false));
+        this.registerSetting(pitch = new SliderSetting("Pitch", 90, 80, 90, 0.5));
+        this.registerSetting(aimTicks = new SliderSetting("Aim ticks", 2, 1, 10, 1));
         this.registerSetting(jumpAtEnd = new ButtonSetting("Jump at end.", false));
         this.registerSetting(showBPS = new ButtonSetting("Show BPS", false));
+        this.registerSetting(stopOnTeleport = new ButtonSetting("Stop on teleport", true));
     }
 
     @SubscribeEvent
@@ -58,8 +67,11 @@ public class LongJump extends Module {
         switch ((int) mode.getInput()) {
             case 1:
                 if (!waitForDamage) {
-                    event.setPitch(90);
-                    aimed = true;
+                    if (reverseYaw.isToggled()) {
+                        event.setYaw(-mc.thePlayer.rotationYaw);
+                    }
+                    event.setPitch((float) pitch.getInput());
+                    aimedTicks = mc.thePlayer.ticksExisted;
                 }
                 break;
             case 2:
@@ -95,13 +107,17 @@ public class LongJump extends Module {
                     break;
             }
         }
+        if (event.getPacket() instanceof S14PacketEntity && stopOnTeleport.isToggled()) {
+            Utils.sendModuleMessage(this, "Teleport!");
+            disable();
+        }
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void onPreUpdate(PreUpdateEvent event) {
         switch ((int) mode.getInput()) {
             case 1:
-                if (!waitForDamage && aimed) {
+                if (!waitForDamage && mc.thePlayer.ticksExisted - aimedTicks >= aimTicks.getInput()) {
                     int shouldSlot = getFireball();
                     if (shouldSlot != mc.thePlayer.inventory.currentItem) {
                         mc.thePlayer.inventory.currentItem = shouldSlot;
@@ -164,7 +180,7 @@ public class LongJump extends Module {
         start = false;
         done = false;
         waitForDamage = false;
-        aimed = false;
+        aimedTicks = Integer.MAX_VALUE;
         ticks = 0;
         stopModules = false;
     }

@@ -20,6 +20,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 
 public class ProfileManager {
@@ -233,23 +234,26 @@ public class ProfileManager {
                         if (moduleInformation.has("catPos")) {
                             ArrayList<CategoryComponent> movedCategories = new ArrayList<>(ClickGui.categories.size());
                             for (JsonElement jsonElement : moduleInformation.get("catPos").getAsJsonArray()) {
-                                JsonObject jsonCat = jsonElement.getAsJsonObject();
-                                CategoryComponent component = ClickGui.categories.values().stream()
-                                        .filter(c -> c.categoryName.name().equals(jsonCat.get("name").getAsString()))
-                                        .findAny()
-                                        .orElse(new CategoryComponent(Module.category.valueOf(jsonCat.get("name").getAsString())));
+                                try {
+                                    JsonObject jsonCat = jsonElement.getAsJsonObject();
+                                    CategoryComponent component = ClickGui.categories.values().stream()
+                                            .filter(c -> c.categoryName.name().equals(jsonCat.get("name").getAsString()))
+                                            .findAny()
+                                            .orElseThrow(NoSuchElementException::new);
 
-                                if (jsonCat.has("x")) {
-                                    component.x(jsonCat.get("x").getAsInt());
-                                }
-                                if (jsonCat.has("y")) {
-                                    component.y(jsonCat.get("y").getAsInt());
-                                }
-                                if (jsonCat.has("opened")) {
-                                    component.fv(jsonCat.get("opened").getAsBoolean());
-                                }
+                                    if (jsonCat.has("x")) {
+                                        component.x(jsonCat.get("x").getAsInt());
+                                    }
+                                    if (jsonCat.has("y")) {
+                                        component.y(jsonCat.get("y").getAsInt());
+                                    }
+                                    if (jsonCat.has("opened")) {
+                                        component.fv(jsonCat.get("opened").getAsBoolean());
+                                    }
 
-                                movedCategories.add(component);
+                                    movedCategories.add(component);
+                                } catch (NoSuchElementException ignored) {
+                                }
                             }
                             for (CategoryComponent component : movedCategories) {
                                 ClickGui.categories.replace(component.categoryName, component);
@@ -275,6 +279,9 @@ public class ProfileManager {
             } catch (Exception e) {
                 failedMessage("load", name);
                 Utils.log.error(e);
+                if (Objects.equals(name, "latest")) {
+                    loadProfile("default");
+                }
             }
         }
     }

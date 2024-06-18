@@ -55,9 +55,9 @@ public class PlayerManager {
                 // 更新
                 activeMap.replace(uuid, true);
                 try {
-                    if (System.currentTimeMillis() - LatencyAlerts.getLastAlert() < Anticheat.getLatency().getInput())
-                        continue;
-                    dataMap.get(uuid).update(player);
+                    if (!LatencyAlerts.isFreeze()) {
+                        dataMap.get(uuid).update(player);
+                    }
                 } catch (Exception e) {
                     LogUtils.custom(Arrays.toString(e.getStackTrace()));
                     LogUtils.LOGGER.error("遇到了异常，丢弃玩家 {} 数据。{}", player, e.getLocalizedMessage());

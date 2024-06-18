@@ -160,6 +160,7 @@ public class NyaProxy extends Module {
 
     static {
         NYA_EXCEPTIONS.put("java.net.ConnectException: Connection refused: no further information: ", "服务不可用。");
+//        NYA_EXCEPTIONS.put("java.net.ConnectException: Connection refused: 远程主机强迫关闭了一个现有的连接", "IP被NyaProxy暂时屏蔽。");
         NYA_EXCEPTIONS.put("ZBProxy - Connection Rejected", "未开启计费/服务正在初始化。");
     }
 }

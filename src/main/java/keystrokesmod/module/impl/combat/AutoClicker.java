@@ -28,7 +28,6 @@ import java.lang.reflect.Method;
 import java.util.Random;
 
 public class AutoClicker extends Module {
-    private DescriptionSetting bestWithDelayRemover;
     public SliderSetting minCPS;
     public SliderSetting maxCPS;
     public SliderSetting jitter;
@@ -51,7 +50,7 @@ public class AutoClicker extends Module {
 
     public AutoClicker() {
         super("AutoClicker", Module.category.combat, 0);
-        this.registerSetting(bestWithDelayRemover = new DescriptionSetting("Best with delay remover."));
+        this.registerSetting(new DescriptionSetting("Best with delay remover."));
         this.registerSetting(minCPS = new SliderSetting("Min CPS", 9.0, 1.0, 20.0, 0.5));
         this.registerSetting(maxCPS = new SliderSetting("Max CPS", 12.0, 1.0, 20.0, 0.5));
         this.registerSetting(jitter = new SliderSetting("Jitter", 0.0, 0.0, 3.0, 0.1));
@@ -203,7 +202,7 @@ public class AutoClicker extends Module {
 
     public void gd() {
         double c = Utils.getRandomValue(minCPS, maxCPS, this.rand) + 0.4D * this.rand.nextDouble();
-        long d = (long) ((int) Math.round(1000.0D / c));
+        long d = (int) Math.round(1000.0D / c);
         if (System.currentTimeMillis() > this.k) {
             if (!this.n && this.rand.nextInt(100) >= 85) {
                 this.n = true;

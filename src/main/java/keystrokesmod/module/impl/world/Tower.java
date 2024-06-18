@@ -58,7 +58,7 @@ public class Tower extends Module {
         this.registerSetting(hypixelLowHop = new ButtonSetting("Hypixel low hop", false));
         this.registerSetting(hypixelTowerTest = new ButtonSetting("Hypixel tower test", false));
         this.registerSetting(hypixelJumpMotion = new SliderSetting("Hypixel tower motion", 0.4, 0.2, 0.8, 0.01));
-        this.registerSetting(hypixelTowerDelay = new SliderSetting("Hypixel tower delay", 40, 0, 100, 5, "ms"));
+        this.registerSetting(hypixelTowerDelay = new SliderSetting("Hypixel tower delay", 100, 0, 1000, 10, "ms"));
         this.canBeEnabled = false;
     }
 
@@ -95,8 +95,9 @@ public class Tower extends Module {
                                     if (scaffold.place(new MovingObjectPosition(
                                             new Vec3(toweredBlock.getX() + 0.1, scaffold.placeBlock.hitVec.yCoord, scaffold.placeBlock.hitVec.zCoord),
                                             EnumFacing.UP,
-                                            toweredBlock), true))
-                                        e.setOnGround(true);
+                                            toweredBlock), true)) {
+//                                        e.setOnGround(true);
+                                    }
                                 }, (long) hypixelTowerDelay.getInput(), TimeUnit.MILLISECONDS);
                                 mc.thePlayer.motionY = hypixelJumpMotion.getInput();
                             }

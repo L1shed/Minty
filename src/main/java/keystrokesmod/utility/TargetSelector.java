@@ -1,7 +1,6 @@
 package keystrokesmod.utility;
 
 import keystrokesmod.module.impl.other.anticheats.utils.phys.Vec2;
-import keystrokesmod.module.impl.other.anticheats.utils.world.BlockUtils;
 import keystrokesmod.script.classes.Vec3;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -17,17 +16,10 @@ public class TargetSelector {
     private static int lastSwitchSince = Integer.MAX_VALUE;
     private static final Deque<EntityLivingBase> switchedTarget = new LinkedBlockingDeque<>();
 
-    public static Optional<TargetData> getTarget(double swingRange, double attackRange, double blockRange,
-                                                 double aps, double fov,
+    public static Optional<TargetData> getTarget(double swingRange, double attackRange, double blockRange, double fov,
                                                  boolean allowPlayer, boolean allowEntity, boolean allowTeammates,
                                                  SelectMode mode, boolean rayCast,
                                                  int switchTargets, int switchDelay) {
-        boolean canAttack = false;
-        if (aps >= 20) canAttack = true;
-        else if ((Math.random() - 1) + aps / 20 > 0) {
-            canAttack = true;
-        }
-
         lastSwitchSince++;
         if (attackRange > swingRange)
             return Optional.empty();
@@ -69,15 +61,17 @@ public class TargetSelector {
                 }
             }
             if (rayCast) {
-                MovingObjectPosition hitResult = RotationUtils.rayCast(attackRange, rotations[0], rotations[1]);
+                Vec3 from = new Vec3(mc.thePlayer).add(new Vec3(0, mc.thePlayer.getEyeHeight(), 0));
+                MovingObjectPosition hitResult = RotationUtils.rayCast(
+                        RotationUtils.getNearestPoint(entity.getCollisionBoundingBox(), from).distanceTo(from),
+                        rotations[0], rotations[1]
+                );
                 if (hitResult != null) {
-                    if (BlockUtils.isFullBlock(mc.theWorld.getBlockState(hitResult.getBlockPos()))) {
-                        continue;
-                    }
+                    continue;
                 }
             }
 
-            possibleTargets.add(new TargetData(entity, distance, new Vec2(rotations[0], rotations[1]), swing && canAttack, attack && canAttack, block));
+            possibleTargets.add(new TargetData(entity, distance, new Vec2(rotations[0], rotations[1]), swing, attack, block));
         }
 
         while (switchTargets > switchedTarget.size()) {

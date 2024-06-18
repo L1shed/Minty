@@ -9,7 +9,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.jetbrains.annotations.NotNull;
 
 public class Criticals extends Module {
-    public int ticksSinceVelocity = Integer.MAX_VALUE;
+    public static int ticksSinceVelocity = Integer.MAX_VALUE;
 
     public Criticals() {
         super("Criticals", category.combat);

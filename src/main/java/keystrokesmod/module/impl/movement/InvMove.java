@@ -5,6 +5,7 @@ import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.script.classes.Vec3;
 import keystrokesmod.utility.Utils;
 import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -15,8 +16,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.input.Keyboard;
 
-import static keystrokesmod.module.ModuleManager.blink;
-import static keystrokesmod.module.ModuleManager.scaffold;
+import static keystrokesmod.module.ModuleManager.*;
 
 public class InvMove extends Module {
     public static final String[] MODES = {"Normal", "Blink"};
@@ -24,6 +24,7 @@ public class InvMove extends Module {
     private final ButtonSetting allowSprint;
     private final ButtonSetting allowSneak;
     private final ButtonSetting chestNameCheck;
+    private final ButtonSetting targetNearbyCheck;
     private boolean blinking = false;
     private String currentTitle = "";
     public InvMove() {
@@ -33,11 +34,12 @@ public class InvMove extends Module {
         this.registerSetting(allowSprint = new ButtonSetting("Allow sprint", false));
         this.registerSetting(allowSneak = new ButtonSetting("Allow sneak", false));
         this.registerSetting(chestNameCheck = new ButtonSetting("Chest name check", true));
+        this.registerSetting(targetNearbyCheck = new ButtonSetting("Target nearby check", true));
     }
 
     @Override
     public void onUpdate() {
-        if (mc.currentScreen instanceof GuiContainer && nameCheck() && !scaffold.isEnabled()) {
+        if (mc.currentScreen instanceof GuiContainer && nameCheck() && targetNearbyCheck() && !scaffold.isEnabled()) {
             if ((int) mode.getInput() == 1) {
                 if (!blinking) {
                     blink.enable();
@@ -69,6 +71,13 @@ public class InvMove extends Module {
         if (!(mc.currentScreen instanceof GuiChest)) return true;
 
         return currentTitle.equals("Chest");
+    }
+
+    private boolean targetNearbyCheck() {
+        if (!targetNearbyCheck.isToggled()) return true;
+
+        return mc.theWorld.playerEntities.stream()
+                .anyMatch(target -> new Vec3(target).distanceTo(mc.thePlayer) < 6);
     }
 
     @SubscribeEvent(priority = EventPriority.HIGH)

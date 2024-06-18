@@ -1,6 +1,7 @@
 package keystrokesmod.module.impl.combat;
 
 import keystrokesmod.Raven;
+import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.impl.world.AntiBot;
 import keystrokesmod.module.setting.impl.ButtonSetting;
@@ -17,6 +18,8 @@ import org.lwjgl.input.Keyboard;
 import java.util.concurrent.TimeUnit;
 
 public class MoreKB extends Module {
+    private final String[] MODES = new String[]{"Legit", "Silent"};
+    private final SliderSetting mode;
     private final SliderSetting chance;
     private final SliderSetting delay;
     private final SliderSetting rePressDelay;
@@ -25,8 +28,12 @@ public class MoreKB extends Module {
     private final ButtonSetting sprintReset;
     private final ButtonSetting sneak;
 
+    private boolean silentNoSprint = false;
+    private boolean silentSneak = false;
+
     public MoreKB() {
         super("MoreKB", category.combat);
+        this.registerSetting(mode = new SliderSetting("Mode", MODES, 0));
         this.registerSetting(chance = new SliderSetting("Chance", 100, 0, 100, 1, "%"));
         this.registerSetting(delay = new SliderSetting("Delay", 500, 200, 750, 1, "ms"));
         this.registerSetting(rePressDelay = new SliderSetting("Re-press delay", 100, 1, 500, 1, "ms"));
@@ -35,7 +42,19 @@ public class MoreKB extends Module {
         this.registerSetting(sneak = new ButtonSetting("Sneak", false));
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGH)
+    @Override
+    public void onDisable() {
+        silentNoSprint = false;
+        silentSneak = false;
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public void onPreMotion(PreMotionEvent event) {
+        if (silentNoSprint) event.setSprinting(false);
+        if (silentSneak) event.setSneaking(true);
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     public void onAttack(AttackEntityEvent event) {
         final long currentTimeMillis = System.currentTimeMillis();
         if (!Utils.nullCheck() || event.entityPlayer != mc.thePlayer || currentTimeMillis - lastFinish < delay.getInput()) return;
@@ -46,15 +65,33 @@ public class MoreKB extends Module {
 
         if (Math.random() > chance.getInput()) return;
         // code
-        if (sprintReset.isToggled()) {
-            KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), false);
-            Raven.getExecutor().schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), Keyboard.isKeyDown(mc.gameSettings.keyBindForward.getKeyCode())),
-                    (long) rePressDelay.getInput(), TimeUnit.MILLISECONDS);
-        }
-        if (sneak.isToggled()) {
-            KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), true);
-            Raven.getExecutor().schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), Keyboard.isKeyDown(mc.gameSettings.keyBindSneak.getKeyCode())),
-                    (long) rePressDelay.getInput(), TimeUnit.MILLISECONDS);
+        switch ((int) mode.getInput()) {
+            case 0:
+                if (sprintReset.isToggled()) {
+                    KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), false);
+                    Raven.getExecutor().schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), Keyboard.isKeyDown(mc.gameSettings.keyBindForward.getKeyCode())),
+                            (long) rePressDelay.getInput(), TimeUnit.MILLISECONDS);
+                }
+                if (sneak.isToggled()) {
+                    KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), true);
+                    Raven.getExecutor().schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), Keyboard.isKeyDown(mc.gameSettings.keyBindSneak.getKeyCode())),
+                            (long) rePressDelay.getInput(), TimeUnit.MILLISECONDS);
+                }
+                break;
+            case 1:
+                if (sprintReset.isToggled()) {
+                    silentNoSprint = true;
+                    Raven.getExecutor().schedule(() -> {
+                        silentNoSprint = false;
+                        }, (long) rePressDelay.getInput(), TimeUnit.MILLISECONDS);
+                }
+                if (sneak.isToggled()) {
+                    silentSneak = true;
+                    Raven.getExecutor().schedule(() -> {
+                        silentSneak = false;
+                        }, (long) rePressDelay.getInput(), TimeUnit.MILLISECONDS);
+                }
+                break;
         }
 
         lastFinish = currentTimeMillis;
@@ -62,6 +99,6 @@ public class MoreKB extends Module {
 
     @Override
     public String getInfo() {
-        return sprintReset.isToggled() && sneak.isToggled() ? "LegitFast" : sneak.isToggled() ? "LegitSneak" : "Legit";
+        return MODES[(int) mode.getInput()];
     }
 }

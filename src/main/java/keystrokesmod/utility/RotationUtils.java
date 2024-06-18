@@ -2,12 +2,14 @@ package keystrokesmod.utility;
 
 import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.module.impl.client.Settings;
+import keystrokesmod.module.impl.other.anticheats.utils.world.PlayerRotation;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.*;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 public class RotationUtils {
@@ -162,12 +164,76 @@ public class RotationUtils {
         final Vec3 vec3 = new Vec3(sin * n6, MathHelper.sin(n5), cos * n6);
         return mc.theWorld.rayTraceBlocks(getPositionEyes, getPositionEyes.addVector(vec3.xCoord * distance, vec3.yCoord * distance, vec3.zCoord * distance), false, false, false);
     }
+    
+    public static boolean rayCast(final float yaw, final float pitch, @NotNull EntityLivingBase target) {
+        AxisAlignedBB targetBox = target.getCollisionBoundingBox();
+        keystrokesmod.script.classes.Vec3 fromPos = new keystrokesmod.script.classes.Vec3(mc.thePlayer).add(0, mc.thePlayer.getEyeHeight(), 0);
 
-    public static Vec3 getVectorForRotation(float pitch, float yaw) {
+        float minYaw = Float.MAX_VALUE;
+        float maxYaw = Float.MIN_VALUE;
+        float minPitch = Float.MAX_VALUE;
+        float maxPitch = Float.MIN_VALUE;
+
+        for (double x : new double[]{targetBox.minX, targetBox.maxX}) {
+            for (double y : new double[]{targetBox.minY, targetBox.maxY}) {
+                for (double z : new double[]{targetBox.minZ, targetBox.maxZ}) {
+                    final keystrokesmod.script.classes.Vec3 hitPos = new keystrokesmod.script.classes.Vec3(x, y, z);
+                    final double distance = getFarthestPoint(targetBox, fromPos).distanceTo(fromPos);
+                    final float yaw1 = PlayerRotation.getYaw(hitPos);
+                    final float pitch1 = PlayerRotation.getPitch(hitPos);
+
+                    MovingObjectPosition hitResult = rayCast(distance, yaw1, pitch1);
+                    if (hitResult == null) continue;
+
+                    if (minYaw > yaw1) minYaw = yaw1;
+                    if (maxYaw < yaw1) maxYaw = yaw1;
+                    if (minPitch > pitch1) minPitch = pitch1;
+                    if (maxPitch < pitch1) maxPitch = pitch1;
+                }
+            }
+        }
+
+        return yaw >= minYaw && yaw <= maxYaw && pitch >= minPitch && pitch <= maxPitch;
+    }
+
+    @Contract("_, _ -> new")
+    public static @NotNull Vec3 getVectorForRotation(float pitch, float yaw) {
         float f = MathHelper.cos(-yaw * 0.017453292F - 3.1415927F);
         float f1 = MathHelper.sin(-yaw * 0.017453292F - 3.1415927F);
         float f2 = -MathHelper.cos(-pitch * 0.017453292F);
         float f3 = MathHelper.sin(-pitch * 0.017453292F);
         return new Vec3(f1 * f2, f3, f * f2);
+    }
+
+    @Contract("_, _ -> new")
+    public static @NotNull keystrokesmod.script.classes.Vec3 getNearestPoint(@NotNull AxisAlignedBB from, @NotNull keystrokesmod.script.classes.Vec3 to) {
+        double pointX, pointY, pointZ;
+        if (to.x() >= from.maxX) {
+            pointX = from.maxX;
+        } else pointX = Math.max(to.x(), from.minX);
+        if (to.y() >= from.maxY) {
+            pointY = from.maxY;
+        } else pointY = Math.max(to.y(), from.minY);
+        if (to.z() >= from.maxZ) {
+            pointZ = from.maxZ;
+        } else pointZ = Math.max(to.z(), from.minZ);
+
+        return new keystrokesmod.script.classes.Vec3(pointX, pointY, pointZ);
+    }
+
+    @Contract("_, _ -> new")
+    public static @NotNull keystrokesmod.script.classes.Vec3 getFarthestPoint(@NotNull AxisAlignedBB from, @NotNull keystrokesmod.script.classes.Vec3 to) {
+        double pointX, pointY, pointZ;
+        if (to.x() < from.maxX) {
+            pointX = from.maxX;
+        } else pointX = Math.min(to.x(), from.minX);
+        if (to.y() < from.maxY) {
+            pointY = from.maxY;
+        } else pointY = Math.min(to.y(), from.minY);
+        if (to.z() < from.maxZ) {
+            pointZ = from.maxZ;
+        } else pointZ = Math.min(to.z(), from.minZ);
+
+        return new keystrokesmod.script.classes.Vec3(pointX, pointY, pointZ);
     }
 }

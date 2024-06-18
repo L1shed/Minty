@@ -44,7 +44,7 @@ public class AntiVoid extends Module {
 
         if (longJump.isEnabled())
             disabledForLongJump = true;
-        if ((scaffold.isEnabled() && scaffold.totalBlocks() == 0) || fly.isEnabled() || motionModifier.isEnabled() || disabledForLongJump) {
+        if (scaffold.isEnabled() || fly.isEnabled() || motionModifier.isEnabled() || disabledForLongJump) {
             blink.disable();
             return;
         }
