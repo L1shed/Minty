@@ -23,7 +23,7 @@ public class Speed extends Module {
     private final ButtonSetting sneakDisable;
     private final ButtonSetting stopMotion;
     private final ButtonSetting stopSprint;
-    private final String[] modes = new String[]{"Strafe (Deprecated)", "Ground", "LowHop", "Test"};
+    private final String[] modes = new String[]{"Strafe (Deprecated)", "Ground", "Damage", "Old Hypixel"};
     private int offGroundTicks = 0;
 
     boolean strafe, cooldown = false;
