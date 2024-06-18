@@ -68,10 +68,12 @@ public class LongJump extends Module {
             case 1:
                 if (!waitForDamage) {
                     if (reverseYaw.isToggled()) {
-                        event.setYaw(-mc.thePlayer.rotationYaw);
+                        event.setYaw(mc.thePlayer.rotationYaw + 180);
                     }
                     event.setPitch((float) pitch.getInput());
-                    aimedTicks = mc.thePlayer.ticksExisted;
+                    if (aimedTicks == Integer.MAX_VALUE){
+                        aimedTicks = mc.thePlayer.ticksExisted;
+                    }
                 }
                 break;
             case 2:
@@ -107,7 +109,9 @@ public class LongJump extends Module {
                     break;
             }
         }
-        if (event.getPacket() instanceof S14PacketEntity && stopOnTeleport.isToggled()) {
+        if (event.getPacket() instanceof S14PacketEntity
+                && ((S14PacketEntity) event.getPacket()).getEntity(mc.theWorld).equals(mc.thePlayer)
+                && stopOnTeleport.isToggled()) {
             Utils.sendModuleMessage(this, "Teleport!");
             disable();
         }
