@@ -2,6 +2,7 @@ package keystrokesmod.module.impl.render;
 
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
+import keystrokesmod.module.impl.player.InvManager;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
@@ -11,6 +12,7 @@ import keystrokesmod.utility.render.RenderUtils;
 import keystrokesmod.utility.Theme;
 import keystrokesmod.utility.Utils;
 import net.minecraft.client.gui.*;
+import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraftforge.fml.client.config.GuiButtonExt;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -25,7 +27,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class HUD extends Module {
-    public static final String VERSION = "1.5.0";
+    public static final String VERSION = "1.5.1";
     public static SliderSetting theme;
 //    public static SliderSetting font;
 //    public static SliderSetting fontSize;
@@ -79,7 +81,7 @@ public class HUD extends Module {
             canShowInfo = showInfo.isToggled();
             ModuleManager.sort();
         }
-        if (mc.currentScreen != null && !(mc.currentScreen instanceof GuiChat) || mc.gameSettings.showDebugInfo) {
+        if (mc.currentScreen != null && !(mc.currentScreen instanceof GuiChest && InvManager.noChestRender()) && !(mc.currentScreen instanceof GuiChat) || mc.gameSettings.showDebugInfo) {
             return;
         }
         int n = hudY;

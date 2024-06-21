@@ -41,8 +41,7 @@ public class TargetSelector {
                 continue;
             }
 
-            double distance = new Vec3(entity).add(new Vec3(0, entity.getEyeHeight(), 0))
-                    .distanceTo(new Vec3(mc.thePlayer).add(new Vec3(0, mc.thePlayer.getEyeHeight(), 0)));
+            double distance = Utils.getEyePos(entity).distanceTo(Utils.getEyePos());
             boolean swing = distance <= swingRange;
             boolean attack = distance <= attackRange;
             boolean block = distance <= blockRange;

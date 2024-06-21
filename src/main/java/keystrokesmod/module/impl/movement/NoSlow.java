@@ -16,21 +16,22 @@ import net.minecraft.util.BlockPos;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 public class NoSlow extends Module {
-    private DescriptionSetting defaultSlowed;
     public static SliderSetting mode;
     public static SliderSetting slowed;
     public static ButtonSetting disableBow;
+    public static ButtonSetting disableSword;
     public static ButtonSetting disablePotions;
     public static ButtonSetting swordOnly;
     public static ButtonSetting vanillaSword;
-    private String[] modes = new String[]{"Vanilla", "Pre", "Post", "Alpha"};
+    private final String[] modes = new String[]{"Vanilla", "Pre", "Post", "Alpha", "Test"};
     private boolean postPlace;
 
     public NoSlow() {
         super("NoSlow", Module.category.movement, 0);
-        this.registerSetting(defaultSlowed = new DescriptionSetting("Default is 80% motion reduction."));
+        this.registerSetting(new DescriptionSetting("Default is 80% motion reduction."));
         this.registerSetting(mode = new SliderSetting("Mode", modes, 0));
         this.registerSetting(slowed = new SliderSetting("Slow %", 80.0D, 0.0D, 80.0D, 1.0D));
+        this.registerSetting(disableSword = new ButtonSetting("Disable sword", false));
         this.registerSetting(disableBow = new ButtonSetting("Disable bow", false));
         this.registerSetting(disablePotions = new ButtonSetting("Disable potions", false));
         this.registerSetting(swordOnly = new ButtonSetting("Sword only", false));
@@ -62,6 +63,12 @@ public class NoSlow extends Module {
                 if (mc.thePlayer.ticksExisted % 3 == 0 && !Raven.badPacketsHandler.C07) {
                     mc.thePlayer.sendQueue.addToSendQueue(new C08PacketPlayerBlockPlacement(new BlockPos(-1, -1, -1), 1, null, 0, 0, 0));
                 }
+                break;
+            case 4:
+                if (mc.thePlayer.ticksExisted % 3 == 0 && !Raven.badPacketsHandler.C07) {
+                    mc.thePlayer.sendQueue.addToSendQueue(new C08PacketPlayerBlockPlacement());
+                }
+                break;
         }
     }
 
@@ -83,7 +90,9 @@ public class NoSlow extends Module {
         if (swordOnly.isToggled() && !(mc.thePlayer.getHeldItem().getItem() instanceof ItemSword)) {
             return 0.2f;
         }
-        if (mc.thePlayer.getHeldItem().getItem() instanceof ItemBow && disableBow.isToggled()) {
+        if (mc.thePlayer.getHeldItem().getItem() instanceof ItemSword && disableSword.isToggled()) {
+            return 0.2f;
+        } if (mc.thePlayer.getHeldItem().getItem() instanceof ItemBow && disableBow.isToggled()) {
             return 0.2f;
         } else if (mc.thePlayer.getHeldItem().getItem() instanceof ItemPotion && !ItemPotion.isSplash(mc.thePlayer.getHeldItem().getItemDamage()) && disablePotions.isToggled()) {
             return 0.2f;

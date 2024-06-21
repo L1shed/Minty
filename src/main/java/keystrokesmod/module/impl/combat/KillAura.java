@@ -19,6 +19,7 @@ import net.minecraft.network.play.client.*;
 import net.minecraft.network.play.server.S2FPacketSetSlot;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.MathHelper;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
@@ -43,7 +44,9 @@ public class KillAura extends Module {
     private final SliderSetting swingRange;
     private final SliderSetting blockRange;
     private final SliderSetting rotationMode;
-    private final SliderSetting rotationSmoothing;
+    private final SliderSetting rotationTarget;
+    private final SliderSetting rotationSimulator;
+    private final SliderSetting rotationSpeed;
     private final SliderSetting sortMode;
     private final SliderSetting switchDelay;
     private final SliderSetting targets;
@@ -82,8 +85,7 @@ public class KillAura extends Module {
     public boolean lag;
     private boolean swapped;
     public boolean rmbDown;
-    private float[] prevRotations;
-    private boolean startSmoothing;
+    private float[] rotations = new float[]{0, 0};
     private final ConcurrentLinkedQueue<Packet<?>> blinkedPackets = new ConcurrentLinkedQueue<>();
 
 
@@ -97,7 +99,11 @@ public class KillAura extends Module {
         this.registerSetting(swingRange = new SliderSetting("Swing range", 3.3, 3.0, 8.0, 0.1));
         this.registerSetting(blockRange = new SliderSetting("Block range", 6.0, 3.0, 12.0, 0.1));
         this.registerSetting(rotationMode = new SliderSetting("Rotation mode", rotationModes, 0));
-        this.registerSetting(rotationSmoothing = new SliderSetting("Rotation smoothing", 0, 0, 15, 1));
+        String[] rotationTargets = new String[]{"Head", "Nearest"};
+        this.registerSetting(rotationTarget = new SliderSetting("Rotation target", rotationTargets, 0));
+        String[] rotationSimulators = new String[]{"None", "Lazy", "Noise"};
+        this.registerSetting(rotationSimulator = new SliderSetting("Rotation simulator", rotationSimulators, 0));
+        this.registerSetting(rotationSpeed = new SliderSetting("Rotation speed", 5, 0, 5, 0.05));
         String[] sortModes = new String[]{"Health", "HurtTime", "Distance", "Yaw"};
         this.registerSetting(sortMode = new SliderSetting("Sort mode", sortModes, 0.0));
         this.registerSetting(switchDelay = new SliderSetting("Switch delay", 200.0, 50.0, 1000.0, 25.0, "ms"));
@@ -118,12 +124,38 @@ public class KillAura extends Module {
     }
 
     public void onEnable() {
+        this.rotations = new float[]{mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch};
         this.rand = new Random();
     }
 
     public void onDisable() {
         resetVariables();
+    }
 
+    private float @NotNull [] getRotations() {
+        boolean nearest = false, lazy = false, noise = false;
+
+        if ((int) rotationTarget.getInput() == 1) {
+            nearest = true;
+        }
+
+        switch ((int) rotationSimulator.getInput()) {
+            case 1:
+                lazy = true;
+                break;
+            case 2:
+                lazy = true;
+                noise = true;
+                break;
+        }
+
+        Pair<Float, Float> result = AimSimulator.getLegitAim(target, mc.thePlayer, nearest, lazy, noise, new Pair<>(0.5F, 0.75F), (long) (80 + Math.random() * 100));
+        if (rotationSpeed.getInput() == 5) return new float[]{result.first(), result.second()};
+
+        return new float[]{
+                AimSimulator.rotMove(result.first(), rotations[0], (float) rotationSpeed.getInput()),
+                AimSimulator.rotMove(result.second(), rotations[1], (float) rotationSpeed.getInput())
+        };
     }
 
     @SubscribeEvent
@@ -137,14 +169,9 @@ public class KillAura extends Module {
         if (canAttack()) {
             attack = true;
         }
-        if (target != null && rotationMode.getInput() == 2) {
-            float[] rotations = RotationUtils.getRotations(target, mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
-            if (rotationSmoothing.getInput() > 0) {
-                float[] speed = new float[]{(float) ((rotations[0] - mc.thePlayer.rotationYaw) / ((101 - rotationSmoothing.getInput()) * 3.634542)), (float) ((rotations[1] - mc.thePlayer.rotationPitch) / ((101 - rotationSmoothing.getInput()) * 5.1853))};
-                mc.thePlayer.rotationYaw += speed[0];
-                mc.thePlayer.rotationPitch += speed[1];
-            }
-            else {
+        if (target != null) {
+            rotations = getRotations();
+            if (rotationMode.getInput() == 2) {
                 mc.thePlayer.rotationYaw = rotations[0];
                 mc.thePlayer.rotationPitch = rotations[1];
             }
@@ -270,31 +297,8 @@ public class KillAura extends Module {
         }
         setTarget(new float[]{e.getYaw(), e.getPitch()});
         if (target != null && rotationMode.getInput() == 1) {
-            float[] rotations = RotationUtils.getRotations(target, e.getYaw(), e.getPitch());
-            if (rotationSmoothing.getInput() >= 4) {
-                if (!startSmoothing) {
-                    prevRotations = new float[]{mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch};
-                    startSmoothing = true;
-                }
-                float[] speed = new float[]{(float) ((rotations[0] - prevRotations[0]) / ((rotationSmoothing.getInput()) * 0.262843)), (float) ((rotations[1] - prevRotations[1]) / ((rotationSmoothing.getInput()) * 0.1637))};
-                prevRotations[0] += speed[0];
-                prevRotations[1] += speed[1];
-                if (prevRotations[1] > 90) {
-                    prevRotations[1] = 90;
-                }
-                else if (prevRotations[1] < -90) {
-                    prevRotations[1] = -90;
-                }
-                e.setYaw(prevRotations[0]);
-                e.setPitch(prevRotations[1]);
-            }
-            else {
-                e.setYaw(rotations[0]);
-                e.setPitch(rotations[1]);
-            }
-        }
-        else {
-            startSmoothing = false;
+            e.setYaw(rotations[0]);
+            e.setPitch(rotations[1]);
         }
         if (autoBlockMode.getInput() == 2 && block.get() && Utils.holdingSword()) {
             mc.thePlayer.sendQueue.addToSendQueue(new C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem % 8 + 1));
@@ -370,18 +374,16 @@ public class KillAura extends Module {
     }
 
     private boolean noAimToEntity() {
-        if (rotationMode.getInput() > 0 && ((rotationSmoothing.getInput() >= 4 && rotationMode.getInput() == 1) || rotationSmoothing.getInput() > 0)) {
-            Object[] raycast = Reach.getEntity(attackRange.getInput(), 0, rotationMode.getInput() == 1 ? prevRotations : null);
-            return raycast == null || raycast[0] != target;
-        }
-        return false;
+        if ((rotationMode.getInput() == 0)) return false;
+        // TODO i need to recode this..
+        Object[] rayCasted = Reach.getEntity(attackRange.getInput(), -0.05, rotationMode.getInput() == 1 ? rotations : null);
+        return rayCasted == null || rayCasted[0] != target;
     }
 
     private void resetVariables() {
         target = null;
         availableTargets.clear();
         block.set(false);
-        startSmoothing = false;
         swing = false;
         rmbDown = false;
         attack = false;
@@ -532,6 +534,7 @@ public class KillAura extends Module {
         if (ModuleManager.bedAura.isEnabled() && !ModuleManager.bedAura.allowAura.isToggled() && ModuleManager.bedAura.currentBlock != null) {
             return true;
         }
+        if (ModuleManager.blink.isEnabled()) return true;
         return mc.thePlayer.isDead;
     }
 
@@ -637,34 +640,18 @@ public class KillAura extends Module {
     }
 
     private boolean behindBlocks(float[] rotations) {
-        switch ((int) rotationMode.getInput()) {
-            default:
-                if (mc.thePlayer.getCollisionBoundingBox().intersectsWith(target.getCollisionBoundingBox())) {
-                    return false;
+        try {
+            Vec3 from = new Vec3(mc.thePlayer).add(0, mc.thePlayer.getEyeHeight(), 0);
+            MovingObjectPosition hitResult = RotationUtils.rayCast(
+                    RotationUtils.getNearestPoint(target.getEntityBoundingBox(), from).distanceTo(from),
+                    rotations[0], rotations[1]
+            );
+            if (hitResult != null) {
+                if (keystrokesmod.module.impl.other.anticheats.utils.world.BlockUtils.isFullBlock(mc.theWorld.getBlockState(hitResult.getBlockPos()))) {
+                    return true;
                 }
-            case 2:
-            case 0:
-                if (mc.objectMouseOver != null) {
-                    BlockPos p = mc.objectMouseOver.getBlockPos();
-                    if (p != null && mc.theWorld.getBlockState(p).getBlock().isFullBlock()) {
-                        return true;
-                    }
-                }
-                break;
-            case 1:
-                try {
-                    Vec3 from = new Vec3(mc.thePlayer).add(0, mc.thePlayer.getEyeHeight(), 0);
-                    MovingObjectPosition hitResult = RotationUtils.rayCast(
-                            RotationUtils.getNearestPoint(target.getCollisionBoundingBox(), from).distanceTo(from),
-                            rotations[0], rotations[1]
-                    );
-                    if (hitResult != null) {
-                        if (keystrokesmod.module.impl.other.anticheats.utils.world.BlockUtils.isFullBlock(mc.theWorld.getBlockState(hitResult.getBlockPos()))) {
-                            return true;
-                        }
-                    }
-                } catch (NullPointerException ignored) {
-                }
+            }
+        } catch (NullPointerException ignored) {
         }
         return false;
     }

@@ -1,9 +1,16 @@
 package keystrokesmod.module.impl.player;
 
+import keystrokesmod.Raven;
+import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.module.Module;
+import keystrokesmod.module.ModuleManager;
+import keystrokesmod.module.impl.other.anticheats.utils.phys.Vec2;
+import keystrokesmod.module.impl.other.anticheats.utils.world.PlayerRotation;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.script.classes.Vec3;
 import keystrokesmod.utility.BlockUtils;
+import keystrokesmod.utility.RotationUtils;
 import keystrokesmod.utility.Utils;
 import net.minecraft.block.*;
 import net.minecraft.enchantment.Enchantment;
@@ -14,51 +21,72 @@ import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.*;
+import net.minecraft.network.play.client.C0APacketAnimation;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
+import net.minecraft.util.BlockPos;
 import net.minecraft.util.DamageSource;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import org.jetbrains.annotations.NotNull;
 import org.lwjgl.input.Mouse;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 public class InvManager extends Module {
-    private ButtonSetting autoArmor;
-    private SliderSetting autoArmorDelay;
-    private ButtonSetting autoSort;
-    private SliderSetting sortDelay;
-    private ButtonSetting stealChests;
-    private ButtonSetting customChest;
-    private ButtonSetting autoClose;
-    private SliderSetting stealerDelay;
-    private ButtonSetting inventoryCleaner;
-    private ButtonSetting middleClickToClean;
-    private SliderSetting cleanerDelay;
-    private SliderSetting swordSlot;
-    private SliderSetting blocksSlot;
-    private SliderSetting goldenAppleSlot;
-    private SliderSetting projectileSlot;
-    private SliderSetting speedPotionSlot;
-    private SliderSetting pearlSlot;
-    private String[] ignoreItems = {"stick", "flesh", "string", "cake", "mushroom", "flint", "compass", "dyePowder", "feather", "shears", "anvil", "torch", "seeds", "leather", "skull", "record"};
+    private final ButtonSetting autoArmor;
+    private final SliderSetting autoArmorDelay;
+    private final ButtonSetting autoSort;
+    private final SliderSetting sortDelay;
+    private final ButtonSetting stealChests;
+    private static ButtonSetting customChest;
+    private static ButtonSetting silentSteal = null;
+    private final ButtonSetting autoClose;
+    private final SliderSetting stealerDelay;
+    private final ButtonSetting inventoryCleaner;
+    private final ButtonSetting middleClickToClean;
+    private final SliderSetting cleanerDelay;
+    private final SliderSetting swordSlot;
+    private final SliderSetting blocksSlot;
+    private final SliderSetting goldenAppleSlot;
+    private final SliderSetting projectileSlot;
+    private final SliderSetting speedPotionSlot;
+    private final SliderSetting pearlSlot;
+    private final String[] ignoreItems = {"stick", "flesh", "string", "cake", "mushroom", "flint", "compass", "dyePowder", "feather", "shears", "anvil", "torch", "seeds", "leather", "skull", "record"};
     private int lastStole;
+    private int lastAura;
     private int lastSort;
     private int lastArmor;
     private int lastClean;
 
+    private final Set<BlockPos> hasAuraChest = new HashSet<>();
+    private Vec2 auraRotation = null;
+    private boolean lastInContainer = false;
+
+    public static boolean noChestRender() {
+        return ModuleManager.invManager != null && ModuleManager.invManager.isEnabled()
+                && silentSteal != null && silentSteal.isToggled()
+                && (customChest.isToggled() || isChest());
+    }
+
     public InvManager() {
         super("InvManager", category.player);
         this.registerSetting(autoArmor = new ButtonSetting("Auto armor", false));
-        this.registerSetting(autoArmorDelay = new SliderSetting("Auto armor delay", 3, 1, 20, 1));
+        this.registerSetting(autoArmorDelay = new SliderSetting("Auto armor delay", 3, 0, 20, 1));
         this.registerSetting(autoSort = new ButtonSetting("Auto sort", false));
-        this.registerSetting(sortDelay = new SliderSetting("Sort delay", 3, 1, 20, 1));
+        this.registerSetting(sortDelay = new SliderSetting("Sort delay", 3, 0, 20, 1));
         this.registerSetting(stealChests = new ButtonSetting("Steal chests", false));
         this.registerSetting(customChest = new ButtonSetting("Custom chest", false));
+        this.registerSetting(silentSteal = new ButtonSetting("Silent steal", false));
         this.registerSetting(autoClose = new ButtonSetting("Close after stealing", false));
-        this.registerSetting(stealerDelay = new SliderSetting("Stealer delay", 3, 1, 20, 1));
+        this.registerSetting(stealerDelay = new SliderSetting("Stealer delay", 3, 0, 20, 1));
         this.registerSetting(inventoryCleaner = new ButtonSetting("Inventory cleaner", false));
         this.registerSetting(middleClickToClean = new ButtonSetting("Middle click to clean", false));
-        this.registerSetting(cleanerDelay = new SliderSetting("Cleaner delay", 5, 1, 20, 1));
+        this.registerSetting(cleanerDelay = new SliderSetting("Cleaner delay", 5, 0, 20, 1));
         this.registerSetting(swordSlot = new SliderSetting("Sword slot", 0, 0, 9, 1));
         this.registerSetting(blocksSlot = new SliderSetting("Blocks slot", 0, 0, 9, 1));
         this.registerSetting(goldenAppleSlot = new SliderSetting("Golden apple slot", 0, 0, 9, 1));
@@ -71,8 +99,26 @@ public class InvManager extends Module {
         resetDelay();
     }
 
+    @Override
+    public void onDisable() {
+        hasAuraChest.clear();
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOW)
+    public void onPreMotion(PreMotionEvent event) {
+        if (auraRotation == null) return;
+        if (lastAura <= 0 || lastInContainer) {
+            event.setYaw(auraRotation.x);
+            event.setYaw(auraRotation.y);
+        } else {
+            auraRotation = null;
+        }
+        lastInContainer = mc.thePlayer.openContainer instanceof ContainerChest;
+    }
+
     public void onUpdate() {
         if (Utils.inInventory()) {
+            armor:
             if (autoArmor.isToggled() && lastArmor++ >= autoArmorDelay.getInput()) {
                 for (int i = 0; i < 4; i++) {
                     int bestSlot = getBestArmor(i, null);
@@ -83,54 +129,56 @@ public class InvManager extends Module {
                         if (getItemStack(i + 5) != null) {
                             drop(i + 5);
                         } else {
-                            click(bestSlot, 0, true);
+                            click(bestSlot);
                             lastArmor = 0;
                         }
-                        return;
+                        if (lastArmor < autoArmorDelay.getInput()) break armor;
                     }
                 }
             }
+            sort:
             if (autoSort.isToggled() && ++lastSort >= sortDelay.getInput()) {
                 if (swordSlot.getInput() != 0) {
                     if (sort(getBestSword(null, (int) swordSlot.getInput()), (int) swordSlot.getInput())) {
                         lastSort = 0;
-                        return;
+                        if (lastSort < sortDelay.getInput()) break sort;
                     }
                 }
                 if (blocksSlot.getInput() != 0) {
                     if (sort(getMostBlocks(), (int) blocksSlot.getInput())) {
                         lastSort = 0;
-                        return;
+                        if (lastSort < sortDelay.getInput()) break sort;
                     }
                 }
                 if (goldenAppleSlot.getInput() != 0) {
                     if (sort(getBiggestStack(Items.golden_apple, (int) goldenAppleSlot.getInput()), (int) goldenAppleSlot.getInput())) {
                         lastSort = 0;
-                        return;
+                        if (lastSort < sortDelay.getInput()) break sort;
                     }
                 }
                 if (projectileSlot.getInput() != 0) {
                     if (sort(getMostProjectiles((int) projectileSlot.getInput()), (int) projectileSlot.getInput())) {
                         lastSort = 0;
-                        return;
+                        if (lastSort < sortDelay.getInput()) break sort;
                     }
                 }
                 if (speedPotionSlot.getInput() != 0) {
                     if (sort(getBestPotion((int) speedPotionSlot.getInput(), null), (int) speedPotionSlot.getInput())) {
                         lastSort = 0;
-                        return;
+                        if (lastSort < sortDelay.getInput()) break sort;
                     }
                 }
                 if (pearlSlot.getInput() != 0) {
                     if (sort(getBiggestStack(Items.ender_pearl, (int) pearlSlot.getInput()), (int) pearlSlot.getInput())) {
                         lastSort = 0;
-                        return;
+                        if (lastSort < sortDelay.getInput()) break sort;
                     }
                 }
             }
+            clean:
             if (inventoryCleaner.isToggled()) {
                 if (middleClickToClean.isToggled() && !Mouse.isButtonDown(2)) {
-                    return;
+                    break clean;
                 }
                 if (++lastClean >= cleanerDelay.getInput()) {
                     for (int i = 5; i < 45; i++) {
@@ -143,19 +191,15 @@ public class InvManager extends Module {
                         }
                         drop(i);
                         lastClean = 0;
-                        break;
+                        if (lastClean < cleanerDelay.getInput()) break clean;
                     }
                 }
             }
         }
-        else if (stealChests.isToggled() && mc.thePlayer.openContainer instanceof ContainerChest) {
+        else if (stealChests.isToggled() && (customChest.isToggled() || isChest())) {
             ContainerChest chest = (ContainerChest) mc.thePlayer.openContainer;
-            if (chest == null || inventoryFull()) {
+            if (inventoryFull()) {
                 autoClose();
-                return;
-            }
-            String name = chest.getLowerChestInventory().getName();
-            if (!customChest.isToggled() && !name.equals("Chest") && !name.equals("Ender Chest") && !name.equals("Large Chest")) {
                 return;
             }
             boolean notEmpty = false;
@@ -175,7 +219,7 @@ public class InvManager extends Module {
                     if (getBestSword(inventory, (int) swordSlot.getInput()) != i) {
                         continue;
                     }
-                    if (++lastStole >= stealerDelay.getInput()) {
+                    if (lastStole++ >= stealerDelay.getInput()) {
                         if (swordSlot.getInput() != 0) {
                             mc.playerController.windowClick(chest.windowId, i, (int) swordSlot.getInput() - 1, 2, mc.thePlayer);
                         }
@@ -190,14 +234,14 @@ public class InvManager extends Module {
                     if (!canBePlaced((ItemBlock) item.getItem())) {
                         continue;
                     }
-                    if (++lastStole >= stealerDelay.getInput()) {
+                    if (lastStole++ >= stealerDelay.getInput()) {
                         mc.playerController.windowClick(chest.windowId, i, 0, 1, mc.thePlayer);
                         lastStole = 0;
                     }
                     stolen = true;
                 }
                 else if (item.getItem() instanceof ItemAppleGold) {
-                    if (++lastStole >= stealerDelay.getInput()) {
+                    if (lastStole++ >= stealerDelay.getInput()) {
                         if (goldenAppleSlot.getInput() == 0) {
                             mc.playerController.windowClick(chest.windowId, i, 0, 1, mc.thePlayer);
                         }
@@ -209,7 +253,7 @@ public class InvManager extends Module {
                     stolen = true;
                 }
                 else if (item.getItem() instanceof ItemSnowball || item.getItem() instanceof ItemEgg) {
-                    if (++lastStole >= stealerDelay.getInput()) {
+                    if (lastStole++ >= stealerDelay.getInput()) {
                         if (projectileSlot.getInput() == 0) {
                             mc.playerController.windowClick(chest.windowId, i, 0, 1, mc.thePlayer);
                         }
@@ -221,7 +265,7 @@ public class InvManager extends Module {
                     stolen = true;
                 }
                 else if (item.getItem() instanceof ItemEnderPearl) {
-                    if (++lastStole >= stealerDelay.getInput()) {
+                    if (lastStole++ >= stealerDelay.getInput()) {
                         if (pearlSlot.getInput() == 0) {
                             mc.playerController.windowClick(chest.windowId, i, 0, 1, mc.thePlayer);
                         }
@@ -236,7 +280,7 @@ public class InvManager extends Module {
                     if (getBestArmor(((ItemArmor) item.getItem()).armorType, inventory) != i) {
                         continue;
                     }
-                    if (++lastStole >= stealerDelay.getInput()) {
+                    if (lastStole++ >= stealerDelay.getInput()) {
                         mc.playerController.windowClick(chest.windowId, i, 0, 1, mc.thePlayer);
                         lastStole = 0;
                     }
@@ -259,11 +303,11 @@ public class InvManager extends Module {
                     stolen = true;
                 }
                 else if (item.getItem() instanceof ItemTool) {
-                    if (++lastStole >= stealerDelay.getInput()) {
+                    if (lastStole++ >= stealerDelay.getInput()) {
                         if (getBestTool(item, inventory) != i) {
                             continue;
                         }
-                        if (++lastStole >= stealerDelay.getInput()) {
+                        if (lastStole++ >= stealerDelay.getInput()) {
                             mc.playerController.windowClick(chest.windowId, i, 0, 1, mc.thePlayer);
                             lastStole = 0;
                         }
@@ -271,11 +315,11 @@ public class InvManager extends Module {
                     stolen = true;
                 }
                 else if (item.getItem() instanceof ItemBow) {
-                    if (++lastStole >= stealerDelay.getInput()) {
+                    if (lastStole++ >= stealerDelay.getInput()) {
                         if (getBestBow(inventory) != i) {
                             continue;
                         }
-                        if (++lastStole >= stealerDelay.getInput()) {
+                        if (lastStole++ >= stealerDelay.getInput()) {
                             mc.playerController.windowClick(chest.windowId, i, 0, 1, mc.thePlayer);
                             lastStole = 0;
                         }
@@ -283,11 +327,11 @@ public class InvManager extends Module {
                     stolen = true;
                 }
                 else if (item.getItem() instanceof ItemFishingRod) {
-                    if (++lastStole >= stealerDelay.getInput()) {
+                    if (lastStole++ >= stealerDelay.getInput()) {
                         if (getBestRod(inventory) != i) {
                             continue;
                         }
-                        if (++lastStole >= stealerDelay.getInput()) {
+                        if (lastStole++ >= stealerDelay.getInput()) {
                             mc.playerController.windowClick(chest.windowId, i, 0, 1, mc.thePlayer);
                             lastStole = 0;
                         }
@@ -295,7 +339,7 @@ public class InvManager extends Module {
                     stolen = true;
                 }
                 else {
-                    if (++lastStole >= stealerDelay.getInput()) {
+                    if (lastStole++ >= stealerDelay.getInput()) {
                         mc.playerController.windowClick(chest.windowId, i, 0, 1, mc.thePlayer);
                         lastStole = 0;
                     }
@@ -312,12 +356,12 @@ public class InvManager extends Module {
         }
     }
 
-    private int getProtection(final ItemStack itemStack) {
+    private int getProtection(final @NotNull ItemStack itemStack) {
         return ((ItemArmor)itemStack.getItem()).damageReduceAmount + EnchantmentHelper.getEnchantmentModifierDamage(new ItemStack[] { itemStack }, DamageSource.generic);
     }
 
-    private void click(int slot, int mouseButton, boolean shiftClick) {
-        mc.playerController.windowClick(mc.thePlayer.inventoryContainer.windowId, slot, mouseButton, shiftClick ? 1 : 0, mc.thePlayer);
+    private void click(int slot) {
+        mc.playerController.windowClick(mc.thePlayer.inventoryContainer.windowId, slot, 0, 1, mc.thePlayer);
     }
 
     private boolean sort(int bestSlot, int desiredSlot) {
@@ -359,7 +403,7 @@ public class InvManager extends Module {
     }
 
     private void resetDelay() {
-        lastStole = lastArmor = lastClean = lastSort = 0;
+        lastStole = lastAura = lastArmor = lastClean = lastSort = 0;
     }
 
     private void autoClose() {
@@ -726,9 +770,15 @@ public class InvManager extends Module {
         if (block == null) {
             return false;
         }
-        if (BlockUtils.isInteractable(block) || block instanceof BlockLever || block instanceof BlockButton || block instanceof BlockSkull || block instanceof BlockLiquid || block instanceof BlockCactus || block instanceof BlockCarpet || block instanceof BlockTripWire || block instanceof BlockTripWireHook || block instanceof BlockTallGrass || block instanceof BlockFlower || block instanceof BlockFlowerPot || block instanceof BlockSign || block instanceof BlockLadder || block instanceof BlockTorch || block instanceof BlockRedstoneTorch || block instanceof BlockFence || block instanceof BlockPane || block instanceof BlockStainedGlassPane || block instanceof BlockGravel || block instanceof BlockClay || block instanceof BlockSand || block instanceof BlockSoulSand) {
-            return false;
+        return !BlockUtils.isInteractable(block) && !(block instanceof BlockLever) && !(block instanceof BlockButton) && !(block instanceof BlockSkull) && !(block instanceof BlockLiquid) && !(block instanceof BlockCactus) && !(block instanceof BlockCarpet) && !(block instanceof BlockTripWire) && !(block instanceof BlockTripWireHook) && !(block instanceof BlockTallGrass) && !(block instanceof BlockFlower) && !(block instanceof BlockFlowerPot) && !(block instanceof BlockSign) && !(block instanceof BlockLadder) && !(block instanceof BlockTorch) && !(block instanceof BlockRedstoneTorch) && !(block instanceof BlockFence) && !(block instanceof BlockPane) && !(block instanceof BlockStainedGlassPane) && !(block instanceof BlockGravel) && !(block instanceof BlockClay) && !(block instanceof BlockSand) && !(block instanceof BlockSoulSand);
+    }
+
+    public static boolean isChest() {
+        if (mc.thePlayer.openContainer instanceof ContainerChest) {
+            final String name = ((ContainerChest) mc.thePlayer.openContainer).getLowerChestInventory().getName();
+
+            return name.equals(Blocks.chest.getLocalizedName());
         }
-        return true;
+        return false;
     }
 }

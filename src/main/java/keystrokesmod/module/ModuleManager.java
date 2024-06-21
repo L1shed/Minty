@@ -51,6 +51,7 @@ public class ModuleManager {
     public static Tower tower;
     public static Module bedwars;
     public static Speed speed;
+    public static InvManager invManager;
     public static Scaffold scaffold;
     public static MotionSkidder motionSkidder;
     public static MotionModifier motionModifier;
@@ -69,6 +70,7 @@ public class ModuleManager {
     public static CommandChat commandChat;
     public static Phase phase;
     public static PingSpoof pingSpoof;
+    public static NoBackground noBackground;
 
     public void register() {
         this.addModule(autoClicker = new AutoClicker());
@@ -85,7 +87,7 @@ public class ModuleManager {
         this.addModule(reach = new Reach());
         this.addModule(new RodAimbot());
         this.addModule(speed = new Speed());
-        this.addModule(new InvManager());
+        this.addModule(invManager = new InvManager());
         this.addModule(scaffold = new Scaffold());
         this.addModule(new AntiAFK());
         this.addModule(new AutoTool());
@@ -169,6 +171,7 @@ public class ModuleManager {
         this.addModule(commandChat = new CommandChat());
         this.addModule(phase = new Phase());
         this.addModule(pingSpoof = new PingSpoof());
+        this.addModule(noBackground = new NoBackground());
         antiBot.enable();
         modules.sort(Comparator.comparing(Module::getPrettyName));
     }

@@ -1,19 +1,14 @@
 package keystrokesmod.module.impl.movement;
 
-import keystrokesmod.event.ReceivePacketEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.script.classes.Vec3;
 import keystrokesmod.utility.Utils;
-import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.network.play.server.S2DPacketOpenWindow;
-import net.minecraftforge.fml.common.eventhandler.EventPriority;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.inventory.ContainerChest;
 import org.lwjgl.input.Keyboard;
 
 import static keystrokesmod.module.ModuleManager.*;
@@ -26,7 +21,7 @@ public class InvMove extends Module {
     private final ButtonSetting chestNameCheck;
     private final ButtonSetting targetNearbyCheck;
     private boolean blinking = false;
-    private String currentTitle = "";
+
     public InvMove() {
         super("InvMove", category.movement);
         this.registerSetting(new DescriptionSetting("Allow you move in inventory."));
@@ -68,25 +63,15 @@ public class InvMove extends Module {
 
     private boolean nameCheck() {
         if (!chestNameCheck.isToggled()) return true;
-        if (!(mc.currentScreen instanceof GuiChest)) return true;
+        if (!(mc.thePlayer.openContainer instanceof ContainerChest)) return true;
 
-        return currentTitle.equals("Chest");
+        return ((ContainerChest) mc.thePlayer.openContainer).getLowerChestInventory().getName().equals("Chest");
     }
 
     private boolean targetNearbyCheck() {
         if (!targetNearbyCheck.isToggled()) return true;
 
-        return mc.theWorld.playerEntities.stream()
-                .anyMatch(target -> new Vec3(target).distanceTo(mc.thePlayer) < 6);
-    }
-
-    @SubscribeEvent(priority = EventPriority.HIGH)
-    public void onReceivePacket(@NotNull ReceivePacketEvent event) {
-        if (event.getPacket() instanceof S2DPacketOpenWindow) {
-            S2DPacketOpenWindow packet = (S2DPacketOpenWindow) event.getPacket();
-
-            this.currentTitle = packet.getWindowTitle().getUnformattedText();
-        }
+        return !Utils.isTargetNearby();
     }
 
     @Override

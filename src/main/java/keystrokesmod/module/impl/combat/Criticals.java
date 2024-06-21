@@ -23,7 +23,7 @@ public class Criticals extends Module {
 
     @Override
     public void onUpdate() {
-        ticksSinceVelocity++;
+        if (ticksSinceVelocity < Integer.MAX_VALUE) ticksSinceVelocity++;
     }
 
     @SubscribeEvent
@@ -37,7 +37,6 @@ public class Criticals extends Module {
 
     @SubscribeEvent
     public void onPreMotion(PreMotionEvent event) {
-        if (!isEnabled()) return;
         if (ticksSinceVelocity <= 18 && mc.thePlayer.fallDistance < 1.3) {
             event.setOnGround(false);
         }

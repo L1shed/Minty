@@ -109,11 +109,15 @@ public class LongJump extends Module {
                     break;
             }
         }
-        if (event.getPacket() instanceof S14PacketEntity
-                && ((S14PacketEntity) event.getPacket()).getEntity(mc.theWorld).equals(mc.thePlayer)
-                && stopOnTeleport.isToggled()) {
-            Utils.sendModuleMessage(this, "Teleport!");
-            disable();
+        try {
+            if (event.getPacket() instanceof S14PacketEntity
+                    && ((S14PacketEntity) event.getPacket()).getEntity(mc.theWorld).equals(mc.thePlayer)
+                    && stopOnTeleport.isToggled()) {
+                Utils.sendModuleMessage(this, "Teleport!");
+                disable();
+            }
+        } catch (Exception e) {
+            Utils.sendMessage(e.getLocalizedMessage());
         }
     }
 

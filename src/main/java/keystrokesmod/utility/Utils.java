@@ -796,4 +796,18 @@ public class Utils {
 
         return stringbuilder.toString();
     }
+
+    public static keystrokesmod.script.classes.Vec3 getEyePos(Entity entity) {
+        return new keystrokesmod.script.classes.Vec3(entity).add(new keystrokesmod.script.classes.Vec3(0, entity.getEyeHeight(), 0));
+    }
+
+    public static keystrokesmod.script.classes.Vec3 getEyePos() {
+        return getEyePos(mc.thePlayer);
+    }
+
+    public static boolean isTargetNearby() {
+        return mc.theWorld.playerEntities.stream()
+                .filter(target -> target != mc.thePlayer)
+                .anyMatch(target -> new keystrokesmod.script.classes.Vec3(target).distanceTo(mc.thePlayer) < 6);
+    }
 }

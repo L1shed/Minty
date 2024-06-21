@@ -2,7 +2,6 @@ package keystrokesmod.module.impl.movement;
 
 import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.module.Module;
-import keystrokesmod.module.impl.combat.Criticals;
 import keystrokesmod.module.impl.player.NoFall;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
@@ -25,6 +24,7 @@ public class Speed extends Module {
     private final ButtonSetting stopSprint;
     private final String[] modes = new String[]{"Strafe (Deprecated)", "Ground", "Damage", "Old Hypixel"};
     private int offGroundTicks = 0;
+    public static int ticksSinceVelocity = Integer.MAX_VALUE;
 
     boolean strafe, cooldown = false;
     int cooldownTicks = 0;
@@ -54,7 +54,14 @@ public class Speed extends Module {
         }
     }
 
+    @Override
+    public void onEnable() {
+        ticksSinceVelocity = Integer.MAX_VALUE;
+    }
+
     public void onUpdate() {
+        if (ticksSinceVelocity < Integer.MAX_VALUE) ticksSinceVelocity++;
+        
         if (mc.thePlayer.onGround) {
             offGroundTicks = 0;
         } else {
@@ -99,7 +106,7 @@ public class Speed extends Module {
 
                         double angle = Math.atan(mc.thePlayer.motionX / mc.thePlayer.motionZ) * (180 / Math.PI);
 
-                        if (Math.abs(lastAngle - angle) > 20 && Criticals.ticksSinceVelocity > 20) {
+                        if (Math.abs(lastAngle - angle) > 20 && ticksSinceVelocity > 20) {
                             int speed = mc.thePlayer.isPotionActive(Potion.moveSpeed) ? mc.thePlayer.getActivePotionEffect(Potion.moveSpeed).getAmplifier() + 1 : 0;
 
                             switch (speed) {
@@ -159,16 +166,16 @@ public class Speed extends Module {
             case 3:
                 if (Utils.jumpDown() || !Utils.isMoving() || mc.currentScreen != null) break;
                 if (!(NoFall.blockRelativeToPlayer(-1) instanceof BlockAir) || !(NoFall.blockRelativeToPlayer(-1.1) instanceof BlockAir)) {
-                    angle = MoveUtil.simulationStrafeAngle(angle, Criticals.ticksSinceVelocity < 40 ? 39.9f : 19.9f);
+                    angle = MoveUtil.simulationStrafeAngle(angle, ticksSinceVelocity < 40 ? 39.9f : 19.9f);
                 }
 
-                if (Criticals.ticksSinceVelocity <= 20 || mc.thePlayer.onGround) {
+                if (ticksSinceVelocity <= 20 || mc.thePlayer.onGround) {
                     angle = MoveUtil.simulationStrafeAngle(angle, 360);
                 }
 
                 mc.thePlayer.sendQueue.addToSendQueue(new C07PacketPlayerDigging(C07PacketPlayerDigging.Action.STOP_DESTROY_BLOCK, new BlockPos(mc.thePlayer), EnumFacing.UP));
 
-                if (Criticals.ticksSinceVelocity > 20) {
+                if (ticksSinceVelocity > 20) {
                     switch (offGroundTicks) {
                         case 1:
                             mc.thePlayer.motionY -= 0.005;
@@ -187,7 +194,7 @@ public class Speed extends Module {
 
                     double angle = Math.atan(mc.thePlayer.motionX / mc.thePlayer.motionZ) * (180 / Math.PI);
 
-                    if (Math.abs(lastAngle - angle) > 20 && Criticals.ticksSinceVelocity > 20) {
+                    if (Math.abs(lastAngle - angle) > 20 && ticksSinceVelocity > 20) {
                         int speed = mc.thePlayer.isPotionActive(Potion.moveSpeed) ? mc.thePlayer.getActivePotionEffect(Potion.moveSpeed).getAmplifier() + 1 : 0;
 
                         switch (speed) {

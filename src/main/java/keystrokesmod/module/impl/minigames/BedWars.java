@@ -94,7 +94,7 @@ public class BedWars extends Module {
                     RenderUtils.renderBlock(blockPos, obsidianColor, false, true);
                 }
             }
-            catch (Exception exception) {}
+            catch (Exception ignored) {}
         }
     }
 
@@ -110,53 +110,57 @@ public class BedWars extends Module {
     }
 
     public void onUpdate() {
-        if (Utils.getBedwarsStatus() == 2) {
-            if (diamondArmor.isToggled() || enderPearl.isToggled() || obsidian.isToggled()) {
-                for (EntityPlayer p : mc.theWorld.playerEntities) {
-                    if (p == null) {
-                        continue;
-                    }
-                    if (p == mc.thePlayer) {
-                        continue;
-                    }
-                    if (AntiBot.isBot(p)) {
-                        continue;
-                    }
-                    String name = p.getName();
-                    ItemStack item = p.getHeldItem();
-                    if (diamondArmor.isToggled()) {
-                        ItemStack leggings = p.inventory.armorInventory[1];
-                        if (!armoredPlayer.contains(name) && p.inventory != null && leggings != null && leggings.getItem() != null && leggings.getItem() == Items.diamond_leggings) {
-                            armoredPlayer.add(name);
-                            Utils.sendMessage("&eAlert: &r" + p.getDisplayName().getFormattedText() + " &7has purchased &bDiamond Armor");
-                            ping();
+        try {
+            if (Utils.getBedwarsStatus() == 2) {
+                if (diamondArmor.isToggled() || enderPearl.isToggled() || obsidian.isToggled()) {
+                    for (EntityPlayer p : mc.theWorld.playerEntities) {
+                        if (p == null) {
+                            continue;
                         }
-                    }
-                    if (item != null && !lastHeldMap.containsKey(name)) {
-                        String itemType = getItemType(item);
-                        if (itemType != null) {
-                            lastHeldMap.put(name, itemType);
-                            double distance = Math.round(mc.thePlayer.getDistanceToEntity(p));
-                            handleAlert(itemType, p.getDisplayName().getFormattedText(), Utils.isWholeNumber(distance) ? (int) distance + "" : String.valueOf(distance));
+                        if (p == mc.thePlayer) {
+                            continue;
                         }
-                    } else if (lastHeldMap.containsKey(name)) {
-                        String itemType = lastHeldMap.get(name);
-                        if (!itemType.equals(getItemType(item))) {
-                            lastHeldMap.remove(name);
+                        if (AntiBot.isBot(p)) {
+                            continue;
+                        }
+                        String name = p.getName();
+                        ItemStack item = p.getHeldItem();
+                        if (diamondArmor.isToggled()) {
+                            ItemStack leggings = p.inventory.armorInventory[1];
+                            if (!armoredPlayer.contains(name) && p.inventory != null && leggings != null && leggings.getItem() != null && leggings.getItem() == Items.diamond_leggings) {
+                                armoredPlayer.add(name);
+                                Utils.sendMessage("&eAlert: &r" + p.getDisplayName().getFormattedText() + " &7has purchased &bDiamond Armor");
+                                ping();
+                            }
+                        }
+                        if (item != null && !lastHeldMap.containsKey(name)) {
+                            String itemType = getItemType(item);
+                            if (itemType != null) {
+                                lastHeldMap.put(name, itemType);
+                                double distance = Math.round(mc.thePlayer.getDistanceToEntity(p));
+                                handleAlert(itemType, p.getDisplayName().getFormattedText(), Utils.isWholeNumber(distance) ? (int) distance + "" : String.valueOf(distance));
+                            }
+                        } else if (lastHeldMap.containsKey(name)) {
+                            String itemType = lastHeldMap.get(name);
+                            if (!itemType.equals(getItemType(item))) {
+                                lastHeldMap.remove(name);
+                            }
                         }
                     }
                 }
-            }
-            if (whitelistOwnBed.isToggled()) {
-                if (check) {
-                    spawnPos = mc.thePlayer.getPosition();
-                    check = false;
+                if (whitelistOwnBed.isToggled()) {
+                    if (check) {
+                        spawnPos = mc.thePlayer.getPosition();
+                        check = false;
+                    }
+                    outsideSpawn = mc.thePlayer.getDistanceSq(spawnPos) > 800;
                 }
-                outsideSpawn = mc.thePlayer.getDistanceSq(spawnPos) > 800;
+                else {
+                    outsideSpawn = true;
+                }
             }
-            else {
-                outsideSpawn = true;
-            }
+        } catch (Exception e) {
+            Utils.sendMessage(e.getLocalizedMessage());
         }
     }
 

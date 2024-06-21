@@ -1,7 +1,9 @@
 package keystrokesmod.utility;
 
+import keystrokesmod.script.classes.Vec3;
 import net.minecraft.block.*;
 import net.minecraft.block.material.Material;
+import net.minecraft.block.state.BlockState;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.enchantment.Enchantment;
@@ -11,6 +13,10 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.potion.Potion;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class BlockUtils {
     public static final Minecraft mc = Minecraft.getMinecraft();
@@ -136,5 +142,44 @@ public class BlockUtils {
         }
 
         return false;
+    }
+
+    public static @NotNull List<BlockPos> getAllInBox(@NotNull BlockPos from, @NotNull BlockPos to) {
+        final List<BlockPos> blocks = new ArrayList<>();
+
+        BlockPos min = new BlockPos(Math.min(from.getX(), to.getX()),
+                Math.min(from.getY(), to.getY()), Math.min(from.getZ(), to.getZ()));
+        BlockPos max = new BlockPos(Math.max(from.getX(), to.getX()),
+                Math.max(from.getY(), to.getY()), Math.max(from.getZ(), to.getZ()));
+
+        for (int x = min.getX(); x <= max.getX(); x++)
+            for (int y = min.getY(); y <= max.getY(); y++)
+                for (int z = min.getZ(); z <= max.getZ(); z++)
+                    blocks.add(new BlockPos(x, y, z));
+
+        return blocks;
+    }
+
+    public static @NotNull List<BlockPos> getAllInSphere(@NotNull Vec3 from, double distance) {
+        final int blockDistance = (int) Math.round(distance);
+        final List<BlockPos> blocks = new ArrayList<>();
+
+        for (BlockPos blockPos : getAllInBox(
+                new BlockPos(from.x() - blockDistance, from.y() - blockDistance, from.z() - blockDistance),
+                new BlockPos(from.x() + blockDistance, from.y() + blockDistance, from.z() + blockDistance)
+        )) {
+            final IBlockState blockState = getBlockState(blockPos);
+
+            if (RotationUtils.getNearestPoint(getCollisionBoundingBox(blockPos), from).distanceTo(from) <= distance)
+                blocks.add(blockPos);
+        }
+
+        return blocks;
+    }
+
+    public static AxisAlignedBB getCollisionBoundingBox(BlockPos blockPos) {
+        final IBlockState blockState = getBlockState(blockPos);
+
+        return blockState.getBlock().getCollisionBoundingBox(mc.theWorld, blockPos, blockState);
     }
 }
