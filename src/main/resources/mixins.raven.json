@@ -20,6 +20,7 @@
     "client.GuiConnectingAccessor",
     "client.KeyBindingAccessor",
     "client.MixinGuiConnecting",
+    "client.PlayerControllerMPAccessor",
     "render.MixinEntityRenderer",
     "render.MixinGuiContainer",
     "render.MixinGuiScreen"

@@ -450,6 +450,10 @@ public class Utils {
         return mc.thePlayer.moveForward != 0.0F || mc.thePlayer.moveStrafing != 0.0F;
     }
 
+    /**
+     * it's UNFAIR if pc == true!
+     * TODO we need a rotation system.
+     */
     public static void aim(Entity en, float ps, boolean pc) {
         if (en != null) {
             float[] t = gr(en);

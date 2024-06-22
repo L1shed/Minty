@@ -11,11 +11,12 @@ import net.minecraft.item.ItemStack;
 import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import org.jetbrains.annotations.NotNull;
 import org.lwjgl.input.Keyboard;
 
 public class SafeWalk extends Module {
-    private SliderSetting shiftDelay;
-    private SliderSetting motion;
+    private final SliderSetting shiftDelay;
+    private final SliderSetting motion;
     public static ButtonSetting shift, blocksOnly, pitchCheck, disableOnForward;
     public ButtonSetting tower;
     private boolean isSneaking;
@@ -46,11 +47,11 @@ public class SafeWalk extends Module {
     }
 
     @SubscribeEvent
-    public void onTick(TickEvent.PlayerTickEvent e) {
+    public void onTick(TickEvent.@NotNull PlayerTickEvent e) {
         if (e.phase != TickEvent.Phase.END) {
             return;
         }
-        if (!shift.isToggled() || !Utils.nullCheck()) {
+        if (!shift.isToggled() || Keyboard.isKeyDown(mc.gameSettings.keyBindSneak.getKeyCode()) || !Utils.nullCheck()) {
             return;
         }
         if (mc.thePlayer.onGround && Utils.overAir()) {

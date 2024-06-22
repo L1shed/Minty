@@ -20,6 +20,7 @@ import net.minecraft.util.BlockPos;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
 import net.minecraftforge.fml.common.gameevent.TickEvent.RenderTickEvent;
+import org.jetbrains.annotations.NotNull;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
@@ -96,7 +97,7 @@ public class AutoClicker extends Module {
     }
 
     @SubscribeEvent
-    public void onRenderTick(RenderTickEvent ev) {
+    public void onRenderTick(@NotNull RenderTickEvent ev) {
         if (ev.phase != Phase.END && Utils.nullCheck() && !mc.thePlayer.isEating() && HitSelect.canAttack()) {
             if (mc.currentScreen == null && mc.inGameHasFocus) {
                 if (weaponOnly.isToggled() && !Utils.holdingWeapon()) {

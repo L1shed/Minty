@@ -71,6 +71,8 @@ public class ModuleManager {
     public static Phase phase;
     public static PingSpoof pingSpoof;
     public static NoBackground noBackground;
+    public static BlockIn blockIn;
+    public static Backtrack backtrack;
 
     public void register() {
         this.addModule(autoClicker = new AutoClicker());
@@ -172,6 +174,8 @@ public class ModuleManager {
         this.addModule(phase = new Phase());
         this.addModule(pingSpoof = new PingSpoof());
         this.addModule(noBackground = new NoBackground());
+        this.addModule(blockIn = new BlockIn());
+        this.addModule(backtrack = new Backtrack());
         antiBot.enable();
         modules.sort(Comparator.comparing(Module::getPrettyName));
     }

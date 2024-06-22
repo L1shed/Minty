@@ -6,6 +6,7 @@ import net.minecraft.block.material.Material;
 import net.minecraft.block.state.BlockState;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.init.Blocks;
@@ -13,10 +14,14 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.potion.Potion;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.MathHelper;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class BlockUtils {
     public static final Minecraft mc = Minecraft.getMinecraft();
@@ -181,5 +186,29 @@ public class BlockUtils {
         final IBlockState blockState = getBlockState(blockPos);
 
         return blockState.getBlock().getCollisionBoundingBox(mc.theWorld, blockPos, blockState);
+    }
+
+
+    public static @NotNull Set<BlockPos> getSurroundBlocks(@NotNull AbstractClientPlayer target) {
+        AxisAlignedBB playerBox = target.getEntityBoundingBox();
+
+        int minX = MathHelper.floor_double(playerBox.minX) - 1;
+        int minY = MathHelper.floor_double(playerBox.minY) - 1;
+        int minZ = MathHelper.floor_double(playerBox.minZ) - 1;
+        int maxX = MathHelper.floor_double(playerBox.maxX) + 1;
+        int maxY = MathHelper.floor_double(playerBox.maxY) + 1;
+        int maxZ = MathHelper.floor_double(playerBox.maxZ) + 1;
+
+        return getAllInBox(new BlockPos(minX, minY, minZ), new BlockPos(maxX, maxY, maxZ))
+                .stream()
+                .filter(blockPos -> !playerBox.intersectsWith(new AxisAlignedBB(
+                        blockPos.getX(), blockPos.getY(), blockPos.getZ(),
+                        blockPos.getX() + 1, blockPos.getY() + 1, blockPos.getZ() + 1
+                )))
+                .filter(blockPos -> !((blockPos.getX() == minX || blockPos.getX() == maxX)
+                        && (blockPos.getZ() == minZ || blockPos.getZ() == maxZ)))
+                .filter(blockPos -> !((blockPos.getY() == minY || blockPos.getY() == maxY)
+                        && (blockPos.getX() == minX || blockPos.getX() == maxX || blockPos.getZ() == minZ || blockPos.getZ() == maxZ)))
+                .collect(Collectors.toSet());
     }
 }

@@ -1,29 +1,51 @@
 package keystrokesmod.module.impl.combat;
 
+import akka.japi.Pair;
 import keystrokesmod.Raven;
+import keystrokesmod.event.PrePlayerInput;
+import keystrokesmod.event.PreUpdateEvent;
+import keystrokesmod.mixins.impl.client.PlayerControllerMPAccessor;
 import keystrokesmod.module.Module;
+import keystrokesmod.module.impl.other.anticheats.utils.world.PlayerRotation;
 import keystrokesmod.module.impl.world.AntiBot;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.script.classes.Vec3;
+import keystrokesmod.utility.AimSimulator;
 import keystrokesmod.utility.Utils;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
-public class AimAssist extends Module {
-    private SliderSetting speed;
-    private SliderSetting fov;
-    private SliderSetting distance;
-    private ButtonSetting clickAim;
-    private ButtonSetting weaponOnly;
-    private ButtonSetting aimInvis;
-    private ButtonSetting blatantMode;
-    private ButtonSetting ignoreTeammates;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
+public class AimAssist extends Module {
+    private final SliderSetting horizonSpeed;
+    private final SliderSetting verticalSpeed;
+    private final SliderSetting fov;
+    private final SliderSetting distance;
+    private final ButtonSetting clickAim;
+    private final ButtonSetting stopOnTarget;
+    private final ButtonSetting breakBlocks;
+    private final ButtonSetting singleTarget;
+    private final ButtonSetting weaponOnly;
+    private final ButtonSetting aimInvis;
+    private final ButtonSetting blatantMode;
+    private final ButtonSetting ignoreTeammates;
+
+    private EntityPlayer target = null;
     public AimAssist() {
         super("AimAssist", category.combat, 0);
-        this.registerSetting(speed = new SliderSetting("Speed", 45.0D, 1.0D, 100.0D, 1.0D));
+        this.registerSetting(horizonSpeed = new SliderSetting("Horizon speed", 3, 0, 5, 0.05));
+        this.registerSetting(verticalSpeed = new SliderSetting("Vertical speed", 0, 0, 5, 0.05));
         this.registerSetting(fov = new SliderSetting("FOV", 90.0D, 15.0D, 180.0D, 1.0D));
         this.registerSetting(distance = new SliderSetting("Distance", 4.5D, 1.0D, 10.0D, 0.5D));
         this.registerSetting(clickAim = new ButtonSetting("Click aim", true));
+        this.registerSetting(stopOnTarget = new ButtonSetting("Stop on target", true));
+        this.registerSetting(breakBlocks = new ButtonSetting("Break blocks", false));
+        this.registerSetting(singleTarget = new ButtonSetting("Single target", false));
         this.registerSetting(weaponOnly = new ButtonSetting("Weapon only", false));
         this.registerSetting(aimInvis = new ButtonSetting("Aim invis", false));
         this.registerSetting(blatantMode = new ButtonSetting("Blatant mode", false));
@@ -31,33 +53,51 @@ public class AimAssist extends Module {
     }
 
     public void onUpdate() {
-        if (mc.currentScreen == null && mc.inGameHasFocus) {
-            if (!weaponOnly.isToggled() || Utils.holdingWeapon()) {
-                if (!clickAim.isToggled() || Utils.ilc()) {
-                    Entity en = this.getEnemy();
-                    if (en != null) {
-                        if (Raven.debugger) {
-                            Utils.sendMessage(this.getName() + " &e" + en.getName());
-                        }
-                        if (blatantMode.isToggled()) {
-                            Utils.aim(en, 0.0F, false);
-                        } else {
-                            double n = Utils.n(en);
-                            if (n > 1.0D || n < -1.0D) {
-                                float val = (float) (-(n / (101.0D - (speed.getInput()))));
-                                mc.thePlayer.rotationYaw += val;
-                            }
-                        }
-                    }
+        if (noAction()) {
+            target = null;
+            return;
+        }
 
-                }
+        target = getEnemy();
+        if (target != null) {
+            if (Raven.debugger) {
+                Utils.sendMessage(this.getName() + " &e" + target.getName());
+            }
+
+            if (stopOnTarget.isToggled() && mc.objectMouseOver.entityHit == target) return;
+
+            if (blatantMode.isToggled()) {
+                final Vec3 pos = Utils.getEyePos(target);
+                mc.thePlayer.rotationYaw = PlayerRotation.getYaw(pos);
+                mc.thePlayer.rotationPitch = PlayerRotation.getPitch(pos);
+            } else {
+                final Pair<Float, Float> pos = AimSimulator.getLegitAim(target, mc.thePlayer,
+                        false, true, false, null, 0);
+                if (horizonSpeed.getInput() > 0)
+                    mc.thePlayer.rotationYaw = AimSimulator.rotMove(pos.first(), mc.thePlayer.rotationYaw,
+                            (float) horizonSpeed.getInput());
+                if (verticalSpeed.getInput() > 0)
+                    mc.thePlayer.rotationPitch = AimSimulator.rotMove(pos.second(), mc.thePlayer.rotationPitch,
+                            (float) verticalSpeed.getInput());
             }
         }
     }
 
-    private Entity getEnemy() {
+    private boolean noAction() {
+        if (mc.currentScreen != null || !mc.inGameHasFocus) return true;
+        if (weaponOnly.isToggled() && !Utils.holdingWeapon()) return true;
+        if (clickAim.isToggled() && !Utils.ilc()) return true;
+        return breakBlocks.isToggled() && ((PlayerControllerMPAccessor) mc.playerController).isHittingBlock();
+    }
+
+    private @Nullable EntityPlayer getEnemy() {
         final int n = (int)fov.getInput();
-        for (final EntityPlayer entityPlayer : mc.theWorld.playerEntities) {
+
+        List<EntityPlayer> players = mc.theWorld.playerEntities;
+        if (target != null && singleTarget.isToggled() && players.contains(target)) {
+            return target;
+        }
+        for (final EntityPlayer entityPlayer : players) {
             if (entityPlayer != mc.thePlayer && entityPlayer.deathTime == 0) {
                 if (Utils.isFriended(entityPlayer)) {
                     continue;

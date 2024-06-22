@@ -44,4 +44,9 @@ public class PingSpoof extends Module {
             }
         }
     }
+
+    @Override
+    public String getInfo() {
+        return latency.getInput() + "ms";
+    }
 }

@@ -21,7 +21,7 @@ public class AimSimulator {
 
         final double yDiff = target.posY - player.posY;
         Vec3 targetPosition;
-        Vec3 targetEyePosition = Utils.getEyePos(target);
+        Vec3 targetEyePosition = new Vec3(target.prevPosX, target.prevPosY, target.prevPosZ).add(new Vec3(0, target.getEyeHeight(), 0));
         AxisAlignedBB targetBox = target.getEntityBoundingBox();
         if (yDiff >= 0 && lazy) {
             if (targetEyePosition.y() - yDiff > target.posY) {
@@ -64,6 +64,8 @@ public class AimSimulator {
     }
 
     public static float rotMove(float target, float current, float diff) {
+        diff *= (float) Math.min(Math.random() + diff * 0.2, diff);
+
         if (target > current)
             if (target - current > diff)
                 return current + diff;

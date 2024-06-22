@@ -1,9 +1,12 @@
 package keystrokesmod.module.impl.combat;
 
 import keystrokesmod.event.PreUpdateEvent;
+import keystrokesmod.event.SendPacketEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import net.minecraft.network.Packet;
+import net.minecraft.network.play.client.C02PacketUseEntity;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -35,13 +38,7 @@ public class HitSelect extends Module {
     }
 
     public static boolean canAttack() {
-        if (!hitSelect.isEnabled()) return true;
-        if (currentShouldAttack) {
-            HitSelect.attackTime = System.currentTimeMillis();
-            return true;
-        }
-
-        return false;
+        return canSwing();
     }
 
     public static boolean canSwing() {

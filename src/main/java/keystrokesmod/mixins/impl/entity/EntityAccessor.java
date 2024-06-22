@@ -9,4 +9,7 @@ public interface EntityAccessor {
 
     @Accessor("isInWeb")
     boolean isInWeb();
+
+    @Accessor("fire")
+    int getFire();
 }

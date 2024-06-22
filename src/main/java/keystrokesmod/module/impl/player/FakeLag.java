@@ -7,9 +7,7 @@ import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.script.classes.Vec3;
 import keystrokesmod.utility.PacketUtils;
 import keystrokesmod.utility.Utils;
-import keystrokesmod.utility.render.RenderUtils;
 import net.minecraft.client.entity.AbstractClientPlayer;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.network.Packet;
 import net.minecraft.network.handshake.client.C00Handshake;
 import net.minecraft.network.login.client.C00PacketLoginStart;
@@ -19,16 +17,13 @@ import net.minecraft.network.play.client.C01PacketChatMessage;
 import net.minecraft.network.play.client.C0FPacketConfirmTransaction;
 import net.minecraft.network.status.client.C00PacketServerQuery;
 import net.minecraft.network.status.client.C01PacketPing;
-import net.minecraft.util.AxisAlignedBB;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.lwjgl.opengl.GL11;
 
-import java.awt.*;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,12 +31,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import static keystrokesmod.module.ModuleManager.blink;
 
 public class FakeLag extends Module {
-    private static final int color = new Color(72, 125, 227).getRGB();
     private final SliderSetting mode;
     private static final String[] MODES = new String[]{"Latency", "Dynamic"};
     private final SliderSetting delay;
     private final ButtonSetting debug;
-    private Vec3 realPos;
+    private final ButtonSetting dynamicIgnoreTeammates;
     private final ButtonSetting dynamicStopOnHurt;
     private final SliderSetting dynamicStopOnHurtTime;
     private final SliderSetting dynamicStartRange;
@@ -59,6 +53,7 @@ public class FakeLag extends Module {
         this.registerSetting(mode = new SliderSetting("Mode", MODES, 0));
         this.registerSetting(delay = new SliderSetting("Delay", 200, 25, 1000, 5, "ms"));
         this.registerSetting(debug = new ButtonSetting("Debug", false));
+        this.registerSetting(dynamicIgnoreTeammates = new ButtonSetting("Dynamic Ignore teammates", true));
         this.registerSetting(dynamicStopOnHurt = new ButtonSetting("Dynamic Stop on hurt", true));
         this.registerSetting(dynamicStopOnHurtTime = new SliderSetting("Dynamic Stop on hurt time", 500, 0, 1000, 5, "ms"));
         this.registerSetting(dynamicStartRange = new SliderSetting("Dynamic Start range", 6.0, 3.0, 10.0, 0.1, "blocks"));
@@ -71,7 +66,6 @@ public class FakeLag extends Module {
     }
 
     public void onEnable() {
-        realPos = new Vec3(mc.thePlayer);
         lastDisableTime = -1;
         lastHurt = false;
         lastStartBlinkTime = -1;
@@ -80,13 +74,6 @@ public class FakeLag extends Module {
 
     public void onDisable() {
         sendPacket(true);
-    }
-
-    @Override
-    public void onUpdate() {
-        if (realPos != null) {
-            drawBox(realPos.toVec3());
-        }
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -148,6 +135,7 @@ public class FakeLag extends Module {
     @SubscribeEvent
     public void onAttack(@NotNull AttackEntityEvent e) {
         if (e.target instanceof AbstractClientPlayer) {
+            if (dynamicIgnoreTeammates.isToggled() && Utils.isTeamMate(e.target)) return;
             target = (AbstractClientPlayer) e.target;
         }
     }
@@ -183,7 +171,6 @@ public class FakeLag extends Module {
                 long receiveTime = entry.getValue();
                 long ms = System.currentTimeMillis();
                 if (Utils.getDifference(ms, receiveTime) > this.delay.getInput() || !delay) {
-                    PacketUtils.getPos(packet).ifPresent(p -> realPos = p);
                     PacketUtils.sendPacketNoEvent(packet);
                     packets.remove();
                 }
@@ -191,31 +178,5 @@ public class FakeLag extends Module {
         }
         catch (Exception ignored) {
         }
-    }
-
-    private void drawBox(@NotNull net.minecraft.util.Vec3 pos) {
-        GlStateManager.pushMatrix();
-        double x = pos.xCoord - mc.getRenderManager().viewerPosX;
-        double y = pos.yCoord - mc.getRenderManager().viewerPosY;
-        double z = pos.zCoord - mc.getRenderManager().viewerPosZ;
-        AxisAlignedBB bbox = mc.thePlayer.getEntityBoundingBox().expand(0.1D, 0.1, 0.1);
-        AxisAlignedBB axis = new AxisAlignedBB(bbox.minX - mc.thePlayer.posX + x, bbox.minY - mc.thePlayer.posY + y, bbox.minZ - mc.thePlayer.posZ + z, bbox.maxX - mc.thePlayer.posX + x, bbox.maxY - mc.thePlayer.posY + y, bbox.maxZ - mc.thePlayer.posZ + z);
-        float a = (float) (color >> 24 & 255) / 255.0F;
-        float r = (float) (color >> 16 & 255) / 255.0F;
-        float g = (float) (color >> 8 & 255) / 255.0F;
-        float b = (float) (color & 255) / 255.0F;
-        GL11.glBlendFunc(770, 771);
-        GL11.glEnable(3042);
-        GL11.glDisable(3553);
-        GL11.glDisable(2929);
-        GL11.glDepthMask(false);
-        GL11.glLineWidth(2.0F);
-        GL11.glColor4f(r, g, b, a);
-        RenderUtils.drawBoundingBox(axis, r, g, b);
-        GL11.glEnable(3553);
-        GL11.glEnable(2929);
-        GL11.glDepthMask(true);
-        GL11.glDisable(3042);
-        GlStateManager.popMatrix();
     }
 }

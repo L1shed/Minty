@@ -1,21 +1,34 @@
 package keystrokesmod.module.impl.combat;
 
+import keystrokesmod.Raven;
 import keystrokesmod.event.JumpEvent;
+import keystrokesmod.mixins.impl.entity.EntityAccessor;
 import keystrokesmod.module.Module;
+import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.Utils;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
+import java.util.concurrent.TimeUnit;
+
 public class JumpReset extends Module {
-    private SliderSetting chance;
-    private SliderSetting motion;
+    private final SliderSetting minDelay;
+    private final SliderSetting maxDelay;
+    private final SliderSetting chance;
+    private final SliderSetting motion;
+    private final SliderSetting maxFallDistance;
+    private final ButtonSetting ignoreFire;
     private boolean jump;
 
     public JumpReset() {
         super("Jump Reset", category.combat);
+        this.registerSetting(minDelay = new SliderSetting("Min delay", 0, 0, 150, 1, "ms"));
+        this.registerSetting(maxDelay = new SliderSetting("Max delay", 0, 0, 150, 1, "ms"));
         this.registerSetting(chance = new SliderSetting("Chance", 80, 0, 100, 1, "%"));
         this.registerSetting(motion = new SliderSetting("Jump motion", 0.42, 0, 1, 0.01));
+        this.registerSetting(maxFallDistance = new SliderSetting("Max fall distance", 3, 1, 8, 0.5));
+        this.registerSetting(ignoreFire = new ButtonSetting("Ignore fire", true));
     }
 
     public void onDisable() {
@@ -29,6 +42,14 @@ public class JumpReset extends Module {
                 return;
             }
             if (mc.thePlayer.maxHurtTime <= 0) {
+                jump = false;
+                return;
+            }
+            if (ignoreFire.isToggled() && ((EntityAccessor) mc.thePlayer).getFire() > 0) {
+                jump = false;
+                return;
+            }
+            if (mc.thePlayer.fallDistance > maxFallDistance.getInput()) {
                 jump = false;
                 return;
             }
@@ -46,7 +67,12 @@ public class JumpReset extends Module {
                 }
             }
             if (jump && mc.thePlayer.onGround) {
-                mc.thePlayer.jump();
+                long delay = (long) (Math.random() * (maxDelay.getInput() - minDelay.getInput()) + minDelay.getInput());
+                if (delay == 0) {
+                    mc.thePlayer.jump();
+                } else {
+                    Raven.getExecutor().schedule(() -> mc.thePlayer.jump(), delay, TimeUnit.MILLISECONDS);
+                }
                 jump = false;
             }
         }

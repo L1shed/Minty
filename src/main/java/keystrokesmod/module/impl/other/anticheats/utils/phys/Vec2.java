@@ -3,6 +3,8 @@ package keystrokesmod.module.impl.other.anticheats.utils.phys;
 import net.minecraft.util.MathHelper;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
+
 
 /**
  * copy from Minecraft 1.20.1 (officialMapping)
@@ -42,6 +44,19 @@ public class Vec2 {
 
     public boolean equals(@NotNull Vec2 vec2) {
         return this.x == vec2.x && this.y == vec2.y;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Vec2 vec2 = (Vec2) o;
+        return this.equals(vec2);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(x, y);
     }
 
     public Vec2 normalized() {

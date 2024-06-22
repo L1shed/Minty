@@ -49,6 +49,13 @@ public class Vec3 {
         return MathHelper.sqrt_double(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
     }
 
+    public double distanceTo(@NotNull net.minecraft.util.Vec3 vec3) {
+        double deltaX = this.x - vec3.xCoord;
+        double deltaY = this.y - vec3.yCoord;
+        double deltaZ = this.z - vec3.zCoord;
+        return MathHelper.sqrt_double(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
+    }
+
     public double distanceTo(@NotNull Entity entity) {
         double deltaX = this.x - entity.posX;
         double deltaY = this.y - entity.posY;
