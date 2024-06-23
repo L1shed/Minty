@@ -582,7 +582,7 @@ public class ScriptDefaults {
 
         public float[] getBedAuraProgress() {
             if (ModuleManager.bedAura != null && ModuleManager.bedAura.isEnabled()) {
-                return new float[]{ModuleManager.bedAura.breakProgress, ModuleManager.bedAura.vanillaProgress};
+                return new float[]{(float) ModuleManager.bedAura.breakProgress, ModuleManager.bedAura.vanillaProgress};
             }
             return new float[]{0, 0};
         }

@@ -16,7 +16,6 @@ public class JumpReset extends Module {
     private final SliderSetting minDelay;
     private final SliderSetting maxDelay;
     private final SliderSetting chance;
-    private final SliderSetting motion;
     private final SliderSetting maxFallDistance;
     private final ButtonSetting ignoreFire;
     private boolean jump;
@@ -26,7 +25,6 @@ public class JumpReset extends Module {
         this.registerSetting(minDelay = new SliderSetting("Min delay", 0, 0, 150, 1, "ms"));
         this.registerSetting(maxDelay = new SliderSetting("Max delay", 0, 0, 150, 1, "ms"));
         this.registerSetting(chance = new SliderSetting("Chance", 80, 0, 100, 1, "%"));
-        this.registerSetting(motion = new SliderSetting("Jump motion", 0.42, 0, 1, 0.01));
         this.registerSetting(maxFallDistance = new SliderSetting("Max fall distance", 3, 1, 8, 0.5));
         this.registerSetting(ignoreFire = new ButtonSetting("Ignore fire", true));
     }
@@ -66,14 +64,17 @@ public class JumpReset extends Module {
                     return;
                 }
             }
-            if (jump && mc.thePlayer.onGround) {
+            if (jump) {
                 long delay = (long) (Math.random() * (maxDelay.getInput() - minDelay.getInput()) + minDelay.getInput());
                 if (delay == 0) {
-                    mc.thePlayer.jump();
+                    if (mc.thePlayer.onGround) mc.thePlayer.jump();
+                    jump = false;
                 } else {
-                    Raven.getExecutor().schedule(() -> mc.thePlayer.jump(), delay, TimeUnit.MILLISECONDS);
+                    Raven.getExecutor().schedule(() -> {
+                        if (mc.thePlayer.onGround) mc.thePlayer.jump();
+                        jump = false;
+                    }, delay, TimeUnit.MILLISECONDS);
                 }
-                jump = false;
             }
         }
     }
@@ -82,9 +83,6 @@ public class JumpReset extends Module {
     public void onJump(JumpEvent e) {
         if (!Utils.nullCheck() || !jump) {
             return;
-        }
-        if (motion.getInput() != 0.42) {
-            e.setMotionY((float) motion.getInput());
         }
         jump = false;
     }

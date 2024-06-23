@@ -24,6 +24,7 @@ public class LongJump extends Module {
     public static final String[] MODES = {"Fireball", "Fireball Auto", "Self Damage"};
     private final SliderSetting mode;
     private final SliderSetting horizonBoost;
+    private final SliderSetting horizonMotionMultiplier;
     private final SliderSetting verticalMotion;
     private final ButtonSetting reverseYaw;
     private final SliderSetting pitch;
@@ -41,8 +42,9 @@ public class LongJump extends Module {
     public LongJump() {
         super("Long Jump", category.movement);
         this.registerSetting(mode = new SliderSetting("Mode", MODES, 0));
-        this.registerSetting(horizonBoost = new SliderSetting("Horizon boost", 1.0, 0.5, 3.0, 0.05));
-        this.registerSetting(verticalMotion = new SliderSetting("Vertical motion", 0.35, 0.01, 0.4, 0.01));
+        this.registerSetting(horizonBoost = new SliderSetting("Horizon boost", 1.0, 1.0, 1.5, 0.01));
+        this.registerSetting(horizonMotionMultiplier = new SliderSetting("Horizon motion multiplier", 1.0, 0.9, 1.1, 0.005));
+        this.registerSetting(verticalMotion = new SliderSetting("Vertical motion", 0.01, 0.01, 0.6, 0.01));
         this.registerSetting(reverseYaw = new ButtonSetting("Reverse yaw", false));
         this.registerSetting(pitch = new SliderSetting("Pitch", 90, 80, 90, 0.5));
         this.registerSetting(aimTicks = new SliderSetting("Aim ticks", 2, 1, 10, 1));
@@ -80,8 +82,8 @@ public class LongJump extends Module {
                 if (ticks < 40) {
                     event.setOnGround(false);
                     mc.thePlayer.motionX = mc.thePlayer.motionZ = 0;
-                    event.setPosZ(mc.thePlayer.prevPosZ);
-                    event.setPosX(mc.thePlayer.prevPosX);
+                    event.setPosZ(mc.thePlayer.lastTickPosZ);
+                    event.setPosX(mc.thePlayer.lastTickPosX);
                 } else if (ticks == 50) {
                     event.setOnGround(true);
                 }
@@ -144,6 +146,8 @@ public class LongJump extends Module {
                 }
 
                 if (ticks > 0 && ticks < 30) {
+                    mc.thePlayer.motionX *= horizonMotionMultiplier.getInput();
+                    mc.thePlayer.motionZ *= horizonMotionMultiplier.getInput();
                     mc.thePlayer.motionY = verticalMotion.getInput();
                 } else if (ticks >= 30) {
                     done = true;

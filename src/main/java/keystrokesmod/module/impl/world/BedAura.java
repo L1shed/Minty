@@ -8,8 +8,10 @@ import keystrokesmod.event.ReceivePacketEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.minigames.BedWars;
+import keystrokesmod.module.impl.render.HUD;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.script.classes.Vec3;
 import keystrokesmod.utility.*;
 import keystrokesmod.utility.render.RenderUtils;
 import net.minecraft.block.Block;
@@ -29,47 +31,46 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 public class BedAura extends Module {
     public SliderSetting mode;
-    private SliderSetting breakSpeed;
-    private SliderSetting fov;
-    private SliderSetting range;
-    private SliderSetting rate;
+    private final SliderSetting breakSpeed;
+    private final SliderSetting fov;
+    private final SliderSetting range;
+    private final SliderSetting rate;
     public ButtonSetting allowAura;
-    private ButtonSetting breakNearBlock;
-    private ButtonSetting cancelKnockback;
-    private ButtonSetting disableBreakEffects;
+    private final ButtonSetting breakNearBlock;
+    private final ButtonSetting cancelKnockback;
+    private final ButtonSetting disableBreakEffects;
     public ButtonSetting groundSpoof;
     public ButtonSetting ignoreSlow;
-    private ButtonSetting onlyWhileVisible;
-    private ButtonSetting renderOutline;
-    private ButtonSetting sendAnimations;
-    private ButtonSetting silentSwing;
-    private String[] modes = new String[]{"Legit", "Instant", "Swap"};
+    private final ButtonSetting onlyWhileVisible;
+    private final ButtonSetting renderOutline;
+    private final ButtonSetting sendAnimations;
+    private final ButtonSetting silentSwing;
+    private final String[] modes = new String[]{"Legit", "Instant", "Swap"};
     private BlockPos[] bedPos;
-    public float breakProgress;
+    public double breakProgress;
     private int currentSlot = -1;
     private int lastSlot = -1;
     private boolean rotate;
     public BlockPos currentBlock;
     private long lastCheck = 0;
     public boolean stopAutoblock;
-    private int outlineColor = new Color(226, 65, 65).getRGB();
-    private int breakTickDelay = 5;
     private int ticksAfterBreak = 0;
     private boolean delayStart;
     private BlockPos nearestBlock;
-    private Map<BlockPos, Float> breakProgressMap = new HashMap<>();
+    private final Map<BlockPos, Double> breakProgressMap = new HashMap<>();
     public double lastProgress;
     public float vanillaProgress;
-    private int defaultOutlineColor = new Color(226, 65, 65).getRGB();
+    private final int defaultOutlineColor = new Color(226, 65, 65).getRGB();
 
     public BedAura() {
         super("BedAura", category.world, 0);
@@ -80,7 +81,7 @@ public class BedAura extends Module {
         this.registerSetting(rate = new SliderSetting("Rate", 0.2, 0.05, 3.0, 0.05, " second"));
         this.registerSetting(allowAura = new ButtonSetting("Allow aura", true));
         this.registerSetting(breakNearBlock = new ButtonSetting("Break near block", false));
-        this.registerSetting(cancelKnockback = new ButtonSetting("Cancel knockback", false));
+        this.registerSetting(cancelKnockback = new ButtonSetting("Cancel knockBack", false));
         this.registerSetting(disableBreakEffects = new ButtonSetting("Disable break effects", false));
         this.registerSetting(groundSpoof = new ButtonSetting("Ground spoof", false));
         this.registerSetting(ignoreSlow = new ButtonSetting("Ignore slow", false));
@@ -104,6 +105,13 @@ public class BedAura extends Module {
     public void onPreUpdate(PreUpdateEvent e) {
         if (!Utils.nullCheck()) {
             return;
+        }
+        if (currentBlock != null) {
+            if (new Vec3(mc.thePlayer).distanceTo(Vec3.convert(currentBlock)) > Math.max(6, range.getInput())) {
+                currentBlock = null;
+                reset(true);
+                return;
+            }
         }
         if (ModuleManager.bedwars != null && ModuleManager.bedwars.isEnabled() && BedWars.whitelistOwnBed.isToggled() && !BedWars.outsideSpawn) {
             reset(true);
@@ -129,8 +137,10 @@ public class BedAura extends Module {
                 return;
             }
         }
+
         if (delayStart) {
             resetSlot();
+            int breakTickDelay = 0;
             if (ticksAfterBreak++ <= breakTickDelay) {
                 return;
             }
@@ -142,6 +152,7 @@ public class BedAura extends Module {
         else {
             ticksAfterBreak = 0;
         }
+
         if (breakNearBlock.isToggled() && isCovered(bedPos[0]) && isCovered(bedPos[1])) {
             if (nearestBlock == null) {
                 nearestBlock = getBestBlock(bedPos, true);
@@ -151,7 +162,8 @@ public class BedAura extends Module {
         else {
             nearestBlock = null;
             resetSlot();
-            breakBlock(getBestBlock(bedPos, false) != null ? getBestBlock(bedPos, false) : bedPos[0]);
+            BlockPos bestBlock = getBestBlock(bedPos, false);
+            breakBlock(bestBlock != null ? bestBlock : bedPos[0]);
         }
     }
 
@@ -196,11 +208,12 @@ public class BedAura extends Module {
         if (!renderOutline.isToggled() || currentBlock == null || !Utils.nullCheck()) {
             return;
         }
+        int outlineColor;
         if (ModuleManager.bedESP != null && ModuleManager.bedESP.isEnabled()) {
             outlineColor = Theme.getGradient((int) ModuleManager.bedESP.theme.getInput(), 0);
         }
         else if (ModuleManager.hud != null && ModuleManager.hud.isEnabled()) {
-            outlineColor = Theme.getGradient((int) ModuleManager.hud.theme.getInput(), 0);
+            outlineColor = Theme.getGradient((int) HUD.theme.getInput(), 0);
         }
         else {
             outlineColor = defaultOutlineColor;
@@ -213,7 +226,7 @@ public class BedAura extends Module {
             setPacketSlot(mc.thePlayer.inventory.currentItem);
         }
         else if (lastSlot != -1) {
-            lastSlot = mc.thePlayer.inventory.currentItem = lastSlot;
+            mc.thePlayer.inventory.currentItem = lastSlot;
         }
     }
 
@@ -221,24 +234,24 @@ public class BedAura extends Module {
         return this.isEnabled() && this.currentBlock != null && this.cancelKnockback.isToggled();
     }
 
-    private BlockPos[] getBedPos() {
-        int range;
-        priority:
-        for (int n = range = (int) this.range.getInput(); range >= -n; --range) {
-            for (int j = -n; j <= n; ++j) {
-                for (int k = -n; k <= n; ++k) {
-                    final BlockPos blockPos = new BlockPos(mc.thePlayer.posX + j, mc.thePlayer.posY + range, mc.thePlayer.posZ + k);
-                    final IBlockState getBlockState = mc.theWorld.getBlockState(blockPos);
-                    if (getBlockState.getBlock() == Blocks.bed && getBlockState.getValue((IProperty) BlockBed.PART) == BlockBed.EnumPartType.FOOT) {
-                        float fov = (float) this.fov.getInput();
-                        if (fov != 360 && !Utils.inFov(fov, blockPos)) {
-                            continue priority;
-                        }
-                        return new BlockPos[]{blockPos, blockPos.offset((EnumFacing) getBlockState.getValue((IProperty) BlockBed.FACING))};
-                    }
+    private BlockPos @Nullable [] getBedPos() {
+        final int range = (int) Math.round(this.range.getInput());
+        final List<BlockPos> blocks = BlockUtils.getAllInBox(
+                mc.thePlayer.getPosition().add(-range, -range, -range),
+                mc.thePlayer.getPosition().add(range, range, range)
+        );
+
+        for (BlockPos blockPos : blocks) {
+            final IBlockState getBlockState = mc.theWorld.getBlockState(blockPos);
+            if (getBlockState.getBlock() == Blocks.bed && getBlockState.getValue((IProperty<?>) BlockBed.PART) == BlockBed.EnumPartType.FOOT) {
+                float fov = (float) this.fov.getInput();
+                if (fov != 360 && !Utils.inFov(fov, blockPos)) {
+                    continue;
                 }
+                return new BlockPos[]{blockPos, blockPos.offset((EnumFacing) getBlockState.getValue((IProperty<?>) BlockBed.FACING))};
             }
         }
+
         return null;
     }
 
@@ -360,7 +373,7 @@ public class BedAura extends Module {
             return;
         }
         float fov = (float) this.fov.getInput();
-        if (fov != 360 && !Utils.inFov(fov, blockPos)) {
+        if (fov < 360 && !Utils.inFov(fov, blockPos)) {
             return;
         }
         if (RotationUtils.notInRange(blockPos, range.getInput())) {
@@ -395,13 +408,7 @@ public class BedAura extends Module {
                 reset(false);
                 stopAutoblock = true;
                 delayStart = true;
-                Iterator<Map.Entry<BlockPos, Float>> iterator = breakProgressMap.entrySet().iterator();
-                while (iterator.hasNext()) {
-                    Map.Entry<BlockPos, Float> entry = iterator.next();
-                    if (entry.getKey().equals(blockPos)) {
-                        iterator.remove();
-                    }
-                }
+                breakProgressMap.entrySet().removeIf(entry -> entry.getKey().equals(blockPos));
                 if (!disableBreakEffects.isToggled()) {
                     mc.playerController.onPlayerDestroyBlock(blockPos, EnumFacing.UP);
                 }

@@ -1,6 +1,7 @@
 package keystrokesmod.mixins.impl.entity;
 
 import keystrokesmod.module.ModuleManager;
+import keystrokesmod.module.impl.combat.HitSelect;
 import keystrokesmod.module.impl.combat.Reduce;
 import keystrokesmod.module.impl.movement.KeepSprint;
 import net.minecraft.enchantment.EnchantmentHelper;
@@ -106,6 +107,9 @@ public abstract class MixinEntityPlayer extends EntityLivingBase {
                             else if (ModuleManager.keepSprint != null && ModuleManager.keepSprint.isEnabled()) {
                                 KeepSprint.keepSprint(p_attackTargetEntityWithCurrentItem_1_);
                             }
+//                            else if (ModuleManager.hitSelect != null && ModuleManager.hitSelect.isEnabled()) {
+//                                HitSelect.hitSelect(p_attackTargetEntityWithCurrentItem_1_);
+//                            }
                             else {
                                 this.motionX *= 0.6D;
                                 this.motionZ *= 0.6D;

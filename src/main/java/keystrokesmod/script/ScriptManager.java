@@ -2,10 +2,8 @@ package keystrokesmod.script;
 
 import keystrokesmod.Raven;
 import keystrokesmod.clickgui.ClickGui;
-import keystrokesmod.clickgui.components.impl.CategoryComponent;
 import keystrokesmod.module.Module;
 import keystrokesmod.script.classes.Entity;
-import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 
 import javax.tools.JavaCompiler;
@@ -23,7 +21,6 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class ScriptManager {
     protected static Entity localPlayer;
-    private Minecraft mc = Minecraft.getMinecraft();
     public HashMap<Script, Module> scripts = new LinkedHashMap<>();
     public JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
     public boolean d = true;
@@ -33,7 +30,7 @@ public class ScriptManager {
     public String b = ((String[])ScriptManager.class.getProtectionDomain().getCodeSource().getLocation().getPath().split("\\.jar!"))[0].substring(5) + ".jar";
 
     public ScriptManager() {
-        directory = new File(mc.mcDataDir + File.separator + "keystrokes", "scripts");
+        directory = new File(Raven.mc.mcDataDir + File.separator + "keystrokes", "scripts");
     }
 
     public void onEnable(Script dv) {

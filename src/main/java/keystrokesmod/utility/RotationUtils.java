@@ -59,25 +59,13 @@ public class RotationUtils {
     }
 
     public static boolean notInRange(final BlockPos blockPos, final double n) {
-        final float[] array = RotationUtils.getRotations(blockPos);
-        final Vec3 getPositionEyes = mc.thePlayer.getPositionEyes(1.0f);
-        final float n2 = -array[0] * 0.017453292f;
-        final float n3 = -array[1] * 0.017453292f;
-        final float cos = MathHelper.cos(n2 - 3.1415927f);
-        final float sin = MathHelper.sin(n2 - 3.1415927f);
-        final float n4 = -MathHelper.cos(n3);
-        final Vec3 vec3 = new Vec3(sin * n4, MathHelper.sin(n3), cos * n4);
-        Block block = BlockUtils.getBlock(blockPos);
-        IBlockState blockState = BlockUtils.getBlockState(blockPos);
-        if (block != null && blockState != null) {
-            AxisAlignedBB boundingBox = block.getCollisionBoundingBox(mc.theWorld, blockPos, blockState);
-            if (boundingBox != null) {
-                Vec3 targetVec = getPositionEyes.addVector(vec3.xCoord * n, vec3.yCoord * n, vec3.zCoord * n);
-                MovingObjectPosition intercept = boundingBox.calculateIntercept(getPositionEyes, targetVec);
-                return intercept == null;
-            }
+        AxisAlignedBB box = BlockUtils.getCollisionBoundingBox(blockPos);
+        keystrokesmod.script.classes.Vec3 eyePos = Utils.getEyePos();
+        if (box == null) {
+            return eyePos.distanceTo(keystrokesmod.script.classes.Vec3.convert(blockPos)) > n;
+        } else {
+            return eyePos.distanceTo(getNearestPoint(box, eyePos)) > n;
         }
-        return true;
     }
 
     public static float[] getRotations(final Entity entity) {

@@ -169,7 +169,7 @@ public class Utils {
         else if (silentSwing || (!silentSwing && !clientSwing)) {
             if (HitSelect.canSwing()) mc.thePlayer.sendQueue.addToSendQueue(new C0APacketAnimation());
         }
-        if (HitSelect.canAttack()) mc.playerController.attackEntity(mc.thePlayer, e);
+        if (HitSelect.canAttack(e)) mc.playerController.attackEntity(mc.thePlayer, e);
     }
 
     public static void sendRawMessage(String txt) {

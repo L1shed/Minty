@@ -19,7 +19,7 @@ public class BreakProgress extends Module {
     private ButtonSetting manual;
     private ButtonSetting bedAura;
     private String[] modes = new String[]{"Percentage", "Second", "Decimal"};
-    private float progress;
+    private double progress;
     private BlockPos block;
     private String progressStr;
 
@@ -76,7 +76,7 @@ public class BreakProgress extends Module {
             return;
         }
         if (bedAura.isToggled() && ModuleManager.bedAura != null && ModuleManager.bedAura.isEnabled() && ModuleManager.bedAura.breakProgress != 0.0f && ModuleManager.bedAura.currentBlock != null && !(BlockUtils.getBlock(ModuleManager.bedAura.currentBlock) instanceof BlockBed)) {
-            this.progress = Math.min(1.0f, ModuleManager.bedAura.breakProgress);
+            this.progress = Math.min(1.0, ModuleManager.bedAura.breakProgress);
             this.block = ModuleManager.bedAura.currentBlock;
             if (this.block == null) {
                 return;

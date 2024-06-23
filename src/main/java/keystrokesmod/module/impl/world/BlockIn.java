@@ -1,6 +1,5 @@
 package keystrokesmod.module.impl.world;
 
-import akka.japi.Pair;
 import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.impl.other.anticheats.utils.phys.Vec2;
@@ -21,6 +20,7 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import org.apache.commons.lang3.tuple.Triple;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -39,7 +39,7 @@ public class BlockIn extends Module {
     public BlockIn() {
         super("Block-In", category.world);
         this.registerSetting(new DescriptionSetting("make you block in."));
-        this.registerSetting(rotationMode = new SliderSetting("Rotation mode", rotationModes, 1));
+        this.registerSetting(rotationMode = new SliderSetting("Rotation mode", rotationModes, 2));
         this.registerSetting(aimSpeed = new SliderSetting("Aim speed", 5, 0, 5, 0.05));
         this.registerSetting(lookView = new ButtonSetting("Look view", false));
         this.registerSetting(placeDelay = new SliderSetting("Place delay", 50, 0, 500, 1, "ms"));
@@ -88,18 +88,14 @@ public class BlockIn extends Module {
             if (currentTime - lastPlace < placeDelay.getInput()) return;
             if (!BlockUtils.replaceable(blockPos)) continue;
 
-            Pair<BlockPos, EnumFacing> placeSideBlock;
+            Triple<BlockPos, EnumFacing, Vec3> placeSideBlock;
             try {
                 placeSideBlock = getPlaceSide(blockPos).orElseThrow(NoSuchElementException::new);
             } catch (NoSuchElementException e) {
                 continue;
             }
 
-            Vec3 hitPos = new Vec3(
-                    placeSideBlock.first().getX() + 0.5,
-                    placeSideBlock.first().getY() + 1,
-                    placeSideBlock.first().getZ() + 0.5
-            );
+            Vec3 hitPos = placeSideBlock.getRight();
             Vec2 rotation = new Vec2(PlayerRotation.getYaw(hitPos), PlayerRotation.getPitch(hitPos));
 
             if ((int) rotationMode.getInput() == 2) {
@@ -132,7 +128,7 @@ public class BlockIn extends Module {
                 mc.playerController.onPlayerRightClick(
                         mc.thePlayer, mc.theWorld,
                         mc.thePlayer.getHeldItem(),
-                        placeSideBlock.first(), placeSideBlock.second(),
+                        placeSideBlock.getLeft(), placeSideBlock.getMiddle(),
                         hitPos.toVec3()
                 );
 
@@ -151,20 +147,10 @@ public class BlockIn extends Module {
     }
 
     private @NotNull Set<BlockPos> getBlockInBlocks() {
-        Set<BlockPos> surroundBlocks = BlockUtils.getSurroundBlocks(mc.thePlayer);
-
-        int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE, maxZ = Integer.MIN_VALUE;
-        for (BlockPos block : surroundBlocks) {
-            maxX = Math.max(block.getX(), maxX);
-            maxY = Math.max(block.getY(), maxY);
-            maxZ = Math.max(block.getZ(), maxZ);
-        }
-
-        surroundBlocks.add(new BlockPos(maxX - 1, maxY, maxZ));
-        return surroundBlocks;
+        return BlockUtils.getSurroundBlocks(mc.thePlayer);
     }
 
-    private @NotNull Optional<Pair<BlockPos, EnumFacing>> getPlaceSide(@NotNull BlockPos blockPos) {
+    private @NotNull Optional<Triple<BlockPos, EnumFacing, Vec3>> getPlaceSide(@NotNull BlockPos blockPos) {
         final List<BlockPos> possible = Arrays.asList(
                 blockPos.down(), blockPos.east(), blockPos.west(),
                 blockPos.north(), blockPos.south(), blockPos.up()
@@ -173,14 +159,28 @@ public class BlockIn extends Module {
         for (BlockPos pos : possible) {
             if (BlockUtils.getBlockState(pos).getBlock().isFullBlock()) {
                 EnumFacing facing;
-                if (pos.getY() < blockPos.getY()) facing = EnumFacing.UP;
-                else if (pos.getX() > blockPos.getX()) facing = EnumFacing.EAST;
-                else if (pos.getX() < blockPos.getX()) facing = EnumFacing.WEST;
-                else if (pos.getZ() < blockPos.getZ()) facing = EnumFacing.NORTH;
-                else if (pos.getZ() > blockPos.getZ()) facing = EnumFacing.SOUTH;
-                else facing = EnumFacing.DOWN;
+                Vec3 hitPos;
+                if (pos.getY() < blockPos.getY()) {
+                    facing = EnumFacing.UP;
+                    hitPos = new Vec3(pos.getX() + 0.5, pos.getY() + 1, pos.getZ() + 0.5);
+                } else if (pos.getX() > blockPos.getX()) {
+                    facing = EnumFacing.WEST;
+                    hitPos = new Vec3(pos.getX(), pos.getY() + 0.5, pos.getZ() + 0.5);
+                } else if (pos.getX() < blockPos.getX()) {
+                    facing = EnumFacing.EAST;
+                    hitPos = new Vec3(pos.getX() + 1, pos.getY() + 0.5, pos.getZ() + 0.5);
+                } else if (pos.getZ() < blockPos.getZ()) {
+                    facing = EnumFacing.SOUTH;
+                    hitPos = new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 1);
+                } else if (pos.getZ() > blockPos.getZ()) {
+                    facing = EnumFacing.NORTH;
+                    hitPos = new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ());
+                } else {
+                    facing = EnumFacing.DOWN;
+                    hitPos = new Vec3(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
+                }
 
-                return Optional.of(new Pair<>(pos, facing));
+                return Optional.of(Triple.of(pos, facing, hitPos));
             }
         }
         return Optional.empty();

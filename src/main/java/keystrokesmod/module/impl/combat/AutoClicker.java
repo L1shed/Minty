@@ -98,7 +98,7 @@ public class AutoClicker extends Module {
 
     @SubscribeEvent
     public void onRenderTick(@NotNull RenderTickEvent ev) {
-        if (ev.phase != Phase.END && Utils.nullCheck() && !mc.thePlayer.isEating() && HitSelect.canAttack()) {
+        if (ev.phase != Phase.END && Utils.nullCheck() && !mc.thePlayer.isEating() && mc.objectMouseOver != null && HitSelect.canAttack(mc.objectMouseOver.entityHit)) {
             if (mc.currentScreen == null && mc.inGameHasFocus) {
                 if (weaponOnly.isToggled() && !Utils.holdingWeapon()) {
                     return;
