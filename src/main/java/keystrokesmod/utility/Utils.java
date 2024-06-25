@@ -10,6 +10,7 @@ import keystrokesmod.module.impl.combat.AutoClicker;
 import keystrokesmod.module.impl.combat.HitSelect;
 import keystrokesmod.module.impl.minigames.DuelsStats;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.utility.clicks.CPSCalculator;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockAir;
 import net.minecraft.block.BlockSign;
@@ -447,6 +448,7 @@ public class Utils {
     }
 
     public static boolean isMoving() {
+        if (!Utils.nullCheck()) return false;
         return mc.thePlayer.moveForward != 0.0F || mc.thePlayer.moveStrafing != 0.0F;
     }
 

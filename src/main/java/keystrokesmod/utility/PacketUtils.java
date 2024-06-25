@@ -24,9 +24,25 @@ public class PacketUtils {
         Raven.mc.thePlayer.sendQueue.addToSendQueue(packet);
     }
 
+    public static void sendPacket(Packet<?> packet) {
+        if (packet == null || packet.getClass().getSimpleName().startsWith("S")) {
+            return;
+        }
+        Raven.mc.thePlayer.sendQueue.addToSendQueue(packet);
+    }
+
     public static void receivePacketNoEvent(Packet<NetHandlerPlayClient> packet) {
         try {
             skipReceiveEvent.add(packet);
+            packet.processPacket(Raven.mc.getNetHandler());
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void receivePacket(Packet<NetHandlerPlayClient> packet) {
+        try {
             packet.processPacket(Raven.mc.getNetHandler());
         }
         catch (Exception e) {

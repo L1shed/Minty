@@ -2,8 +2,6 @@ package keystrokesmod.module.impl.combat;
 
 import akka.japi.Pair;
 import keystrokesmod.Raven;
-import keystrokesmod.event.PrePlayerInput;
-import keystrokesmod.event.PreUpdateEvent;
 import keystrokesmod.mixins.impl.client.PlayerControllerMPAccessor;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.impl.other.anticheats.utils.world.PlayerRotation;
@@ -14,9 +12,6 @@ import keystrokesmod.script.classes.Vec3;
 import keystrokesmod.utility.AimSimulator;
 import keystrokesmod.utility.Utils;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraftforge.fml.common.eventhandler.EventPriority;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -33,6 +28,7 @@ public class AimAssist extends Module {
     private final ButtonSetting weaponOnly;
     private final ButtonSetting aimInvis;
     private final ButtonSetting blatantMode;
+    private final ButtonSetting aimNearest;
     private final ButtonSetting ignoreTeammates;
 
     private EntityPlayer target = null;
@@ -49,6 +45,7 @@ public class AimAssist extends Module {
         this.registerSetting(weaponOnly = new ButtonSetting("Weapon only", false));
         this.registerSetting(aimInvis = new ButtonSetting("Aim invis", false));
         this.registerSetting(blatantMode = new ButtonSetting("Blatant mode", false));
+        this.registerSetting(aimNearest = new ButtonSetting("Aim nearest", false));
         this.registerSetting(ignoreTeammates = new ButtonSetting("Ignore teammates", false));
     }
 
@@ -71,13 +68,13 @@ public class AimAssist extends Module {
                 mc.thePlayer.rotationYaw = PlayerRotation.getYaw(pos);
                 mc.thePlayer.rotationPitch = PlayerRotation.getPitch(pos);
             } else {
-                final Pair<Float, Float> pos = AimSimulator.getLegitAim(target, mc.thePlayer,
-                        false, true, false, null, 0);
+                final Pair<Float, Float> rot = AimSimulator.getLegitAim(target, mc.thePlayer,
+                        aimNearest.isToggled(), true, false, null, 0);
                 if (horizonSpeed.getInput() > 0)
-                    mc.thePlayer.rotationYaw = AimSimulator.rotMove(pos.first(), mc.thePlayer.rotationYaw,
+                    mc.thePlayer.rotationYaw = AimSimulator.rotMove(rot.first(), mc.thePlayer.rotationYaw,
                             (float) horizonSpeed.getInput());
                 if (verticalSpeed.getInput() > 0)
-                    mc.thePlayer.rotationPitch = AimSimulator.rotMove(pos.second(), mc.thePlayer.rotationPitch,
+                    mc.thePlayer.rotationPitch = AimSimulator.rotMove(rot.second(), mc.thePlayer.rotationPitch,
                             (float) verticalSpeed.getInput());
             }
         }
@@ -97,6 +94,8 @@ public class AimAssist extends Module {
         if (target != null && singleTarget.isToggled() && players.contains(target)) {
             return target;
         }
+        EntityPlayer target = null;
+        double targetDist = Double.MAX_VALUE;
         for (final EntityPlayer entityPlayer : players) {
             if (entityPlayer != mc.thePlayer && entityPlayer.deathTime == 0) {
                 if (Utils.isFriended(entityPlayer)) {
@@ -117,9 +116,13 @@ public class AimAssist extends Module {
                 if (!blatantMode.isToggled() && n != 360 && !Utils.inFov((float)n, entityPlayer)) {
                     continue;
                 }
-                return entityPlayer;
+                double dist = new Vec3(entityPlayer).distanceTo(mc.thePlayer);
+                if (dist < targetDist) {
+                    target = entityPlayer;
+                    targetDist = dist;
+                }
             }
         }
-        return null;
+        return target;
     }
 }

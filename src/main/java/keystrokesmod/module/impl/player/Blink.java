@@ -31,7 +31,7 @@ public class Blink extends Module {
     private final ButtonSetting initialPosition;
     public final List<Packet<?>> blinkedPackets = new ArrayList<>();
     private Vec3 pos;
-    private static final int color = new Color(72, 125, 227).getRGB();
+    public static final int color = new Color(72, 125, 227).getRGB();
     public Blink() {
         super("Blink", category.player);
         this.registerSetting(initialPosition = new ButtonSetting("Show initial position", true));
@@ -83,7 +83,7 @@ public class Blink extends Module {
         drawBox(pos);
     }
 
-    private void drawBox(@NotNull Vec3 pos) {
+    public static void drawBox(@NotNull Vec3 pos) {
         GlStateManager.pushMatrix();
         double x = pos.xCoord - mc.getRenderManager().viewerPosX;
         double y = pos.yCoord - mc.getRenderManager().viewerPosY;

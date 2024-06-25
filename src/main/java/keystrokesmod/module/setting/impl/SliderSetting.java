@@ -2,6 +2,7 @@ package keystrokesmod.module.setting.impl;
 
 import com.google.gson.JsonObject;
 import keystrokesmod.module.setting.Setting;
+import org.jetbrains.annotations.NotNull;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -10,7 +11,7 @@ public class SliderSetting extends Setting {
     private final String settingName;
     private String[] options = null;
     private double defaultValue;
-    private final double max;
+    private double max;
     private final double min;
     private final double intervals;
     public boolean isString;
@@ -54,6 +55,11 @@ public class SliderSetting extends Setting {
 
     public String[] getOptions() {
         return options;
+    }
+
+    public void setOptions(String @NotNull [] options) {
+        this.options = options;
+        this.max = options.length - 1;
     }
 
     public String getName() {

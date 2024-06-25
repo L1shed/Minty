@@ -21,7 +21,7 @@ public class AimSimulator {
 
         final double yDiff = target.posY - player.posY;
         Vec3 targetPosition;
-        Vec3 targetEyePosition = new Vec3(target.prevPosX, target.prevPosY, target.prevPosZ).add(new Vec3(0, target.getEyeHeight(), 0));
+        Vec3 targetEyePosition = new Vec3(target.prevPosX, target.prevPosY, target.prevPosZ).add(new Vec3(0, target.getEyeHeight() - 0.11, 0));
         AxisAlignedBB targetBox = target.getEntityBoundingBox();
         if (yDiff >= 0 && lazy) {
             if (targetEyePosition.y() - yDiff > target.posY) {

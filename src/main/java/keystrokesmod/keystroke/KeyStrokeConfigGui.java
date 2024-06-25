@@ -2,7 +2,7 @@ package keystrokesmod.keystroke;
 
 import java.io.IOException;
 
-import keystrokesmod.utility.CPSCalculator;
+import keystrokesmod.utility.clicks.CPSCalculator;
 import keystrokesmod.Raven;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;

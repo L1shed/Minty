@@ -163,6 +163,7 @@ public class Module {
 
     public void setPrettyName(String name) {
         this.prettyName = name;
+        ModuleManager.sort();
     }
 
     public ArrayList<Setting> getSettings() {

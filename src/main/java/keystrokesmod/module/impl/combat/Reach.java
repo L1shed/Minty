@@ -16,7 +16,9 @@ import net.minecraft.util.BlockPos;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.MouseEvent;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import org.jetbrains.annotations.NotNull;
 import org.lwjgl.input.Mouse;
 
 import java.util.List;
@@ -43,9 +45,9 @@ public class Reach extends Module {
         Utils.correctValue(min, max);
     }
 
-    @SubscribeEvent
-    public void e(MouseEvent ev) {
-        if (ev.button >= 0 && ev.buttonstate && Utils.nullCheck() && (!ModuleManager.autoClicker.isEnabled() || !AutoClicker.leftClick.isToggled() || !Mouse.isButtonDown(0))) {
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public void e(@NotNull MouseEvent ev) {
+        if (ev.button >= 0 && ev.buttonstate && Utils.nullCheck()) {
             call();
         }
     }

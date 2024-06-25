@@ -1,144 +1,228 @@
 package keystrokesmod.module.impl.player;
 
-import com.mojang.realmsclient.gui.ChatFormatting;
-import keystrokesmod.Raven;
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
+import keystrokesmod.event.PreTickEvent;
+import keystrokesmod.event.PreUpdateEvent;
 import keystrokesmod.event.ReceivePacketEvent;
+import keystrokesmod.mixins.impl.network.S14PacketEntityAccessor;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.script.classes.Vec3;
+import keystrokesmod.utility.PacketUtils;
 import keystrokesmod.utility.Utils;
-import keystrokesmod.utility.render.RenderUtils;
-import net.minecraft.client.entity.AbstractClientPlayer;
+import keystrokesmod.utility.backtrack.TimedPacket;
 import net.minecraft.client.network.NetHandlerPlayClient;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.network.Packet;
-import net.minecraft.network.play.client.C0FPacketConfirmTransaction;
+import net.minecraft.network.play.server.*;
+import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
-import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 public class Backtrack extends Module {
-    private final SliderSetting latency;
-    private final SliderSetting delayBetweenBacktracks;
-    private final SliderSetting startRange;
-    private final SliderSetting stopRange;
-    private final SliderSetting stopOnHurtTime;
-    private final ButtonSetting onlyIfTargetGoesAway;
-    private final ButtonSetting ignoreTransaction;
+    public static final Color color = new Color(72, 125, 227);
 
-    private AbstractClientPlayer target = null;
-    private long startTime = -1;
-    private long stopTime = -1;
-    private final Map<Packet<?>, Long> unReceivePackets = new ConcurrentHashMap<>();
+    private final SliderSetting minLatency = new SliderSetting("Min latency", 50, 1, 1000, 1);
+    private final SliderSetting maxLatency = new SliderSetting("Max latency", 100, 1, 1000, 1);
+    private final SliderSetting minDistance = new SliderSetting("Min distance", 2.0, 0.0, 6.0, 0.1);
+    private final SliderSetting maxDistance = new SliderSetting("Max distance", 5.0, 0.0, 10.0, 0.1);
+    private final SliderSetting stopOnTargetHurtTime = new SliderSetting("Stop on target HurtTime", -1, -1, 10, 1);
+    private final SliderSetting stopOnSelfHurtTime = new SliderSetting("Stop on self HurtTime", -1, -1, 10, 1);
+    private final ButtonSetting onlyIfTargetGoesAway = new ButtonSetting("Only if target goes away", false);
+
+    private final Queue<TimedPacket> packetQueue = new ConcurrentLinkedQueue<>();
     private final List<Packet<?>> skipPackets = new ArrayList<>();
+    private Vec3 vec3;
+    private EntityPlayer target;
+
+    private int currentLatency = 0;
 
     public Backtrack() {
         super("Backtrack", category.player);
         this.registerSetting(new DescriptionSetting("Allows you to hit past opponents."));
-        this.registerSetting(latency = new SliderSetting("Latency", 50, 0, 500, 1));
-        this.registerSetting(delayBetweenBacktracks = new SliderSetting("Delay between backtracks", 200, 0, 1000, 10));
-        this.registerSetting(startRange = new SliderSetting("Start range", 6, 1, 6, 0.1));
-        this.registerSetting(stopRange = new SliderSetting("Stop range", 3, 0, 6, 0.1));
-        this.registerSetting(stopOnHurtTime = new SliderSetting("Stop on HurtTime", -1, -1, 10, 1));
-        this.registerSetting(onlyIfTargetGoesAway = new ButtonSetting("Only if target goes away", true));
-        this.registerSetting(ignoreTransaction = new ButtonSetting("Ignore transaction", false));
+        this.registerSetting(minLatency);
+        this.registerSetting(maxLatency);
+        this.registerSetting(minDistance);
+        this.registerSetting(maxDistance);
+        this.registerSetting(stopOnTargetHurtTime);
+        this.registerSetting(stopOnSelfHurtTime);
+        this.registerSetting(onlyIfTargetGoesAway);
+    }
+
+    @Override
+    public String getInfo() {
+        return (currentLatency == 0 ? (int) maxLatency.getInput() : currentLatency) + "ms";
+    }
+
+    @Override
+    public void guiUpdate() {
+        Utils.correctValue(minLatency, maxLatency);
+        Utils.correctValue(minDistance, maxDistance);
     }
 
     @Override
     public void onEnable() {
-        Utils.sendMessage(ChatFormatting.RED + this.getName() + " still under development! It may result in BANNED.");
+        packetQueue.clear();
+        skipPackets.clear();
+        vec3 = null;
+        target = null;
     }
 
     @Override
     public void onDisable() {
-        receivePacket(false);
-        target = null;
-        startTime = -1;
-        stopTime = -1;
-        unReceivePackets.clear();
-        skipPackets.clear();
-    }
-
-    @SubscribeEvent(priority = EventPriority.HIGH)
-    public void onAttack(@NotNull AttackEntityEvent event) {
-        if (event.target instanceof AbstractClientPlayer) {
-            target = (AbstractClientPlayer) event.target;
-        }
-    }
-
-    @SubscribeEvent(priority = EventPriority.LOW)
-    public void onRender(TickEvent.RenderTickEvent event) {
-        receivePacket(true);
-    }
-
-    @Override
-    public void onUpdate() {
-        if (target != null && stopOnHurtTime.getInput() != -1) {
-            if (target.hurtTime == stopOnHurtTime.getInput())
-                receivePacket(false);
-        }
-    }
-
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onReceivePacket(@NotNull ReceivePacketEvent event) {
-        if (skipPackets.contains(event.getPacket())) {
-            skipPackets.remove(event.getPacket());
+        super.onDisable();
+        if (mc.thePlayer == null)
             return;
-        }
-        if (event.getPacket() instanceof C0FPacketConfirmTransaction && ignoreTransaction.isToggled()) return;
 
-        final long currentTime = System.currentTimeMillis();
-        if (target != null && shouldBacktrack()) {
-            event.setCanceled(true);
-            unReceivePackets.put(event.getPacket(), currentTime);
-        } else {
-            receivePacket(false);
-        }
+        releaseAll();
     }
 
-    private boolean shouldBacktrack() {
-        final long currentTime = System.currentTimeMillis();
-        if (stopTime != -1 && currentTime - stopTime < delayBetweenBacktracks.getInput()) return false;
-        if (startTime != -1 && currentTime - startTime > latency.getInput()) return false;
-
-        final double distance = new Vec3(target).distanceTo(mc.thePlayer);
-        if (distance > startRange.getInput() || distance < stopRange.getInput()) return false;
-        if (onlyIfTargetGoesAway.isToggled()) {
-            final double lastDistance = new Vec3(target.lastTickPosX, target.lastTickPosY, target.lastTickPosZ).distanceTo(mc.thePlayer);
-            return lastDistance <= distance;
-        }
-        return true;
-    }
-
-    private void receivePacket(boolean delay) {
+    @SubscribeEvent
+    public void onPreUpdate(PreUpdateEvent e) {
         try {
-            Iterator<Map.Entry<Packet<?>, Long>> packets = unReceivePackets.entrySet().iterator();
-            while (packets.hasNext()) {
-                Map.Entry<Packet<?>, Long> entry = packets.next();
-                Packet<?> packet = entry.getKey();
-                if (packet == null) {
-                    continue;
+            final double distance = vec3.distanceTo(mc.thePlayer);
+            if (distance > maxDistance.getInput()
+                    || distance < minDistance.getInput()
+                    || (onlyIfTargetGoesAway.isToggled() && distance <= new Vec3(target).distanceTo(mc.thePlayer))
+            ) {
+                target = null;
+                vec3 = null;
+            }
+
+        } catch (NullPointerException ignored) {
+        }
+
+    }
+
+    @SubscribeEvent
+    public void onPreTick(PreTickEvent e) {
+        while (!packetQueue.isEmpty()) {
+            try {
+                if (packetQueue.element().getCold().getCum(currentLatency)) {
+                    Packet<NetHandlerPlayClient> packet = (Packet<NetHandlerPlayClient>) packetQueue.remove().getPacket();
+                    skipPackets.add(packet);
+                    PacketUtils.receivePacket(packet);
+                } else {
+                    break;
                 }
-                long receiveTime = entry.getValue();
-                long ms = System.currentTimeMillis();
-                if (Utils.getDifference(ms, receiveTime) > this.latency.getInput() || !delay) {
-                    final Packet<NetHandlerPlayClient> netHandlerPlayClientPacket = (Packet<NetHandlerPlayClient>) packet;
-                    skipPackets.add(netHandlerPlayClientPacket);
-                    netHandlerPlayClientPacket.processPacket(Raven.mc.getNetHandler());
-                    packets.remove();
-                }
+            } catch (NullPointerException ignored) {
             }
         }
-        catch (Exception ignored) {
+
+        if (packetQueue.isEmpty() && target != null) {
+            vec3 = new Vec3(target.getPositionVector());
         }
     }
+
+    @SubscribeEvent
+    public void onRender(RenderWorldLastEvent e) {
+        if (target == null)
+            return;
+
+        Blink.drawBox(vec3.toVec3());
+    }
+
+    @SubscribeEvent
+    public void onAttack(@NotNull AttackEntityEvent e) {
+        if (e.target instanceof EntityPlayer) {
+
+            if (target != null && e.target == target)
+                return;
+
+            target = (EntityPlayer) e.target;
+            vec3 = new Vec3(e.target.getPositionVector());
+        }
+
+        currentLatency = (int) (Math.random() * (maxLatency.getInput() - minLatency.getInput()) + minLatency.getInput());
+    }
+
+    @SubscribeEvent
+    public void onReceivePacket(@NotNull ReceivePacketEvent e) {
+        Packet<?> p = e.getPacket();
+        if (skipPackets.contains(p)) {
+            skipPackets.remove(p);
+            return;
+        }
+
+        if (target != null && stopOnTargetHurtTime.getInput() != -1 && target.hurtTime == stopOnTargetHurtTime.getInput()) {
+            releaseAll();
+            return;
+        }
+        if (stopOnSelfHurtTime.getInput() != -1 && mc.thePlayer.hurtTime == stopOnSelfHurtTime.getInput()) {
+            releaseAll();
+            return;
+        }
+
+        try {
+            if (mc.thePlayer == null || mc.thePlayer.ticksExisted < 20) {
+                packetQueue.clear();
+                return;
+            }
+
+            if (target == null) {
+                releaseAll();
+                return;
+            }
+
+            if (e.isCanceled())
+                return;
+
+            if (p instanceof S19PacketEntityStatus || p instanceof S02PacketChat || p instanceof S0BPacketAnimation)
+                return;
+
+            if (p instanceof S08PacketPlayerPosLook || p instanceof S40PacketDisconnect) {
+                releaseAll();
+                target = null;
+                vec3 = null;
+                return;
+
+            } else if (p instanceof S13PacketDestroyEntities) {
+                S13PacketDestroyEntities wrapper = (S13PacketDestroyEntities) p;
+                for (int id : wrapper.getEntityIDs()) {
+                    if (id == target.getEntityId()) {
+                        target = null;
+                        vec3 = null;
+                        releaseAll();
+                        return;
+                    }
+                }
+            } else if (p instanceof S14PacketEntity) {
+                S14PacketEntity wrapper = (S14PacketEntity) p;
+                if (((S14PacketEntityAccessor) wrapper).getEntityId() == target.getEntityId()) {
+                    vec3 = vec3.add(wrapper.func_149062_c() / 32.0D, wrapper.func_149061_d() / 32.0D,
+                            wrapper.func_149064_e() / 32.0D);
+                }
+            } else if (p instanceof S18PacketEntityTeleport) {
+                S18PacketEntityTeleport wrapper = (S18PacketEntityTeleport) p;
+                if (wrapper.getEntityId() == target.getEntityId()) {
+                    vec3 = new Vec3(wrapper.getX() / 32.0D, wrapper.getY() / 32.0D, wrapper.getZ() / 32.0D);
+                }
+            }
+
+            packetQueue.add(new TimedPacket(p));
+            e.setCanceled(true);
+        } catch (NullPointerException ignored) {
+
+        }
+    }
+
+    private void releaseAll() {
+        if (!packetQueue.isEmpty()) {
+            for (TimedPacket timedPacket : packetQueue) {
+                Packet<NetHandlerPlayClient> packet = (Packet<NetHandlerPlayClient>) timedPacket.getPacket();
+                skipPackets.add(packet);
+                PacketUtils.receivePacket(packet);
+            }
+            packetQueue.clear();
+        }
+    }
+
 }

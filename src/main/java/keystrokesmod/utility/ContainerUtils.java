@@ -8,7 +8,7 @@ import java.util.function.Predicate;
 import static keystrokesmod.Raven.mc;
 
 public class ContainerUtils {
-    public static  <T extends Item> int getSlot(Class<T> item, Predicate<T> predicate) {
+    public static <T extends Item> int getSlot(Class<T> item, Predicate<T> predicate) {
         int slot = -1;
         int highestStack = -1;
         for (int i = 0; i < 9; ++i) {
@@ -23,7 +23,7 @@ public class ContainerUtils {
         return slot;
     }
 
-    public static  <T extends Item> int getSlot(Class<T> item) {
+    public static int getSlot(Class<? extends Item> item) {
         return getSlot(item, t -> true);
     }
 }

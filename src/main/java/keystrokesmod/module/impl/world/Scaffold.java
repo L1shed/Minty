@@ -2,6 +2,7 @@ package keystrokesmod.module.impl.world;
 
 import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.event.PreUpdateEvent;
+import keystrokesmod.mixins.impl.client.KeyBindingAccessor;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.impl.player.InvManager;
 import keystrokesmod.module.impl.render.HUD;
@@ -37,11 +38,13 @@ public class Scaffold extends Module { // from b4 :)
     private final ButtonSetting fastOnRMB;
     private final ButtonSetting highlightBlocks;
     private final ButtonSetting multiPlace;
-    public ButtonSetting safeWalk;
+    public final ButtonSetting safeWalk;
     private final ButtonSetting showBlockCount;
     private final ButtonSetting silentSwing;
-    public ButtonSetting tower;
-    public ButtonSetting fast;
+    public final ButtonSetting tower;
+    public final ButtonSetting fast;
+    public final ButtonSetting onlyOffGround;
+
     protected MovingObjectPosition placeBlock;
     private int lastSlot;
     public float placeYaw;
@@ -72,6 +75,7 @@ public class Scaffold extends Module { // from b4 :)
         this.registerSetting(silentSwing = new ButtonSetting("Silent swing", false));
         this.registerSetting(tower = new ButtonSetting("Tower", false));
         this.registerSetting(fast = new ButtonSetting("Fast", false));
+        this.registerSetting(onlyOffGround = new ButtonSetting("Only offGround", false));
     }
 
     public void onDisable() {
@@ -111,21 +115,20 @@ public class Scaffold extends Module { // from b4 :)
 
     @SubscribeEvent
     public void onPreUpdate(PreUpdateEvent e) { // place here
+        if (onlyOffGround.isToggled() && mc.thePlayer.onGround) return;
+
         if (fast.isToggled()) {
-            if (client.isMouseDown(1) && !client.isKeyDown(57) && client.keybinds.isPressed("forward") && client.getPlayer().onGround()) {
-                client.keybinds.setPressed("use", false);
-                client.keybinds.setPressed("jump", false);
-                if (!isDiagonal() && !(client.keybinds.isPressed("right") || client.keybinds.isPressed("left"))) {
+            if (mc.gameSettings.keyBindForward.isKeyDown() && client.getPlayer().onGround()) {
+                ((KeyBindingAccessor) mc.gameSettings.keyBindUseItem).setPressed(true);
+                ((KeyBindingAccessor) mc.gameSettings.keyBindJump).setPressed(true);
+                if (!isDiagonal() && !(mc.gameSettings.keyBindRight.isKeyDown() || mc.gameSettings.keyBindLeft.isKeyDown())) {
                     client.setSpeed(0.5);
                     client.setSprinting(false);
                     client.jump();
-                } else if (isDiagonal() || (client.keybinds.isPressed("right") || client.keybinds.isPressed("left"))) {
+                } else if (isDiagonal() || (mc.gameSettings.keyBindRight.isKeyDown() || mc.gameSettings.keyBindLeft.isKeyDown())) {
                     client.jump();
                 }
                 speeded = true;
-            } else if (!client.isMouseDown(1) && !client.isKeyDown(57) && speeded) {
-                client.setMotion(0, client.getMotion().y, 0);
-                speeded = false;
             }
         }
 

@@ -9,7 +9,9 @@
     "entity.MixinEntityLivingBase",
     "entity.MixinEntityPlayer",
     "entity.MixinEntityPlayerSP",
+    "network.C02PacketUseEntityAccessor",
     "network.MixinNetworkManager",
+    "network.S14PacketEntityAccessor",
     "render.MixinFontRenderer",
     "render.MixinLayerCape",
     "render.MixinModelBiped",
@@ -19,9 +21,10 @@
   "client": [
     "client.GuiConnectingAccessor",
     "client.KeyBindingAccessor",
-    "client.MixinGuiConnecting",
+    "client.MixinMinecraft",
     "client.PlayerControllerMPAccessor",
     "render.MixinEntityRenderer",
+    "render.MixinGuiConnecting",
     "render.MixinGuiContainer",
     "render.MixinGuiScreen"
   ]

@@ -57,7 +57,7 @@ public class HitSelect extends Module {
 
     public static boolean canAttack(Entity target) {
         if (target instanceof EntityLivingBase)
-            if (hitSelect.smart.isToggled() && ((EntityLivingBase) target).hurtTime == 0)
+            if (hitSelect.smart.isToggled() && ((EntityLivingBase) target).hurtTime == 0 && Math.random() <= hitSelect.chance.getInput())
                 return true;
 
         return canSwing();

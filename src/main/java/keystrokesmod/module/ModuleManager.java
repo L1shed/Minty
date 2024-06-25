@@ -73,6 +73,9 @@ public class ModuleManager {
     public static NoBackground noBackground;
     public static BlockIn blockIn;
     public static Backtrack backtrack;
+    public static Particles particles;
+    public static RecordClick recordClick;
+    public static ClickRecorder clickRecorder;
 
     public void register() {
         this.addModule(autoClicker = new AutoClicker());
@@ -176,6 +179,9 @@ public class ModuleManager {
         this.addModule(noBackground = new NoBackground());
         this.addModule(blockIn = new BlockIn());
         this.addModule(backtrack = new Backtrack());
+        this.addModule(particles = new Particles());
+        this.addModule(recordClick = new RecordClick());
+        this.addModule(clickRecorder = new ClickRecorder());
         antiBot.enable();
         modules.sort(Comparator.comparing(Module::getPrettyName));
     }

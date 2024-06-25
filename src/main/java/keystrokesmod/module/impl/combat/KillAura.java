@@ -96,7 +96,7 @@ public class KillAura extends Module {
         this.registerSetting(swingRange = new SliderSetting("Swing range", 3.3, 3.0, 8.0, 0.1));
         this.registerSetting(blockRange = new SliderSetting("Block range", 6.0, 3.0, 12.0, 0.1));
         this.registerSetting(rotationMode = new SliderSetting("Rotation mode", rotationModes, 0));
-        String[] rotationTargets = new String[]{"Head", "Nearest"};
+        String[] rotationTargets = new String[]{"Head", "Nearest", "Constant"};
         this.registerSetting(rotationTarget = new SliderSetting("Rotation target", rotationTargets, 0));
         String[] rotationSimulators = new String[]{"None", "Lazy", "Noise"};
         this.registerSetting(rotationSimulator = new SliderSetting("Rotation simulator", rotationSimulators, 0));
@@ -125,6 +125,11 @@ public class KillAura extends Module {
         this.rand = new Random();
     }
 
+    @Override
+    public void guiUpdate() {
+        Utils.correctValue(attackRange, swingRange);
+    }
+
     public void onDisable() {
         resetVariables();
     }
@@ -132,8 +137,15 @@ public class KillAura extends Module {
     private float @NotNull [] getRotations() {
         boolean nearest = false, lazy = false, noise = false;
 
-        if ((int) rotationTarget.getInput() == 1) {
-            nearest = true;
+        switch ((int) rotationTarget.getInput()) {
+            case 1:
+                nearest = true;
+                break;
+            case 2:
+                nearest = true;
+                if (RotationUtils.rayCastIgnoreWall(rotations[0], rotations[1], swingRange.getInput(), target))
+                    return rotations;
+                break;
         }
 
         switch ((int) rotationSimulator.getInput()) {
@@ -296,6 +308,8 @@ public class KillAura extends Module {
         if (target != null && rotationMode.getInput() == 1) {
             e.setYaw(rotations[0]);
             e.setPitch(rotations[1]);
+        } else {
+            this.rotations = new float[]{mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch};
         }
         if (autoBlockMode.getInput() == 2 && block.get() && Utils.holdingSword()) {
             mc.thePlayer.sendQueue.addToSendQueue(new C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem % 8 + 1));

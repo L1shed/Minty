@@ -123,7 +123,7 @@ public class LongJump extends Module {
         }
     }
 
-    @SubscribeEvent(priority = EventPriority.LOWEST)
+    @SubscribeEvent
     public void onPreUpdate(PreUpdateEvent event) {
         switch ((int) mode.getInput()) {
             case 1:

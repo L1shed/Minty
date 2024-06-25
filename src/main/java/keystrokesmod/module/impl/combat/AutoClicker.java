@@ -1,8 +1,8 @@
 package keystrokesmod.module.impl.combat;
 
-import akka.actor.Kill;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
+import keystrokesmod.module.impl.other.RecordClick;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
@@ -29,6 +29,7 @@ import java.lang.reflect.Method;
 import java.util.Random;
 
 public class AutoClicker extends Module {
+    public SliderSetting mode;
     public SliderSetting minCPS;
     public SliderSetting maxCPS;
     public SliderSetting jitter;
@@ -41,8 +42,8 @@ public class AutoClicker extends Module {
     public ButtonSetting blocksOnly;
     private Random rand = null;
     private Method gs;
-    private long i;
-    private long j;
+    private long nextReleaseClickTime;
+    private long nextClickTime;
     private long k;
     private long l;
     private double m;
@@ -52,6 +53,7 @@ public class AutoClicker extends Module {
     public AutoClicker() {
         super("AutoClicker", Module.category.combat, 0);
         this.registerSetting(new DescriptionSetting("Best with delay remover."));
+        this.registerSetting(mode = new SliderSetting("Mode", new String[]{"CPS", "Record"}, 0));
         this.registerSetting(minCPS = new SliderSetting("Min CPS", 9.0, 1.0, 20.0, 0.5));
         this.registerSetting(maxCPS = new SliderSetting("Max CPS", 12.0, 1.0, 20.0, 0.5));
         this.registerSetting(jitter = new SliderSetting("Jitter", 0.0, 0.0, 3.0, 0.1));
@@ -68,7 +70,7 @@ public class AutoClicker extends Module {
         } catch (Exception var4) {
             try {
                 this.gs = GuiScreen.class.getDeclaredMethod("mouseClicked", Integer.TYPE, Integer.TYPE, Integer.TYPE);
-            } catch (Exception var3) {
+            } catch (Exception ignored) {
             }
         }
 
@@ -87,8 +89,8 @@ public class AutoClicker extends Module {
     }
 
     public void onDisable() {
-        this.i = 0L;
-        this.j = 0L;
+        this.nextReleaseClickTime = 0L;
+        this.nextClickTime = 0L;
         this.hol = false;
     }
 
@@ -112,15 +114,15 @@ public class AutoClicker extends Module {
                     }
                     this.dc(mc.gameSettings.keyBindUseItem.getKeyCode(), 1);
                 } else {
-                    this.i = 0L;
-                    this.j = 0L;
+                    this.nextReleaseClickTime = 0L;
+                    this.nextClickTime = 0L;
                 }
             } else if (inventoryFill.isToggled() && mc.currentScreen instanceof GuiInventory) {
                 if (!Mouse.isButtonDown(0) || !Keyboard.isKeyDown(54) && !Keyboard.isKeyDown(42)) {
-                    this.i = 0L;
-                    this.j = 0L;
-                } else if (this.i != 0L && this.j != 0L) {
-                    if (System.currentTimeMillis() > this.j) {
+                    this.nextReleaseClickTime = 0L;
+                    this.nextClickTime = 0L;
+                } else if (this.nextReleaseClickTime != 0L && this.nextClickTime != 0L) {
+                    if (System.currentTimeMillis() > this.nextClickTime) {
                         this.gd();
                         this.inventoryClick(mc.currentScreen);
                     }
@@ -174,10 +176,11 @@ public class AutoClicker extends Module {
             }
         }
 
-        if (this.j > 0L && this.i > 0L) {
+        if (this.nextClickTime > 0L && this.nextReleaseClickTime > 0L) {
             double c = blockHitChance.getInput();
-            if (System.currentTimeMillis() > this.j && KillAura.target == null && !ModuleManager.killAura.swing) {
+            if (System.currentTimeMillis() > this.nextClickTime && KillAura.target == null && !ModuleManager.killAura.swing) {
                 KeyBinding.setKeyBindState(key, true);
+                RecordClick.click();
                 KeyBinding.onTick(key);
                 Reflection.setButton(mouse, true);
                 if (mouse == 0 && c > 0.0 && Mouse.isButtonDown(1) && Math.random() >= (100.0 - c) / 100.0) {
@@ -187,7 +190,7 @@ public class AutoClicker extends Module {
                     Reflection.setButton(1, true);
                 }
                 this.gd();
-            } else if (System.currentTimeMillis() > this.i) {
+            } else if (System.currentTimeMillis() > this.nextReleaseClickTime) {
                 KeyBinding.setKeyBindState(key, false);
                 Reflection.setButton(mouse, false);
                 if (mouse == 0 && c > 0.0 && Math.random() >= (100.0 - c) / 100.0) {
@@ -202,42 +205,51 @@ public class AutoClicker extends Module {
     }
 
     public void gd() {
-        double c = Utils.getRandomValue(minCPS, maxCPS, this.rand) + 0.4D * this.rand.nextDouble();
-        long d = (int) Math.round(1000.0D / c);
-        if (System.currentTimeMillis() > this.k) {
-            if (!this.n && this.rand.nextInt(100) >= 85) {
-                this.n = true;
-                this.m = 1.1D + this.rand.nextDouble() * 0.15D;
-            } else {
-                this.n = false;
-            }
+        switch ((int) mode.getInput()) {
+            case 0:
+                double c = Utils.getRandomValue(minCPS, maxCPS, this.rand) + 0.4D * this.rand.nextDouble();
+                long d = (int) Math.round(1000.0D / c);
+                if (System.currentTimeMillis() > this.k) {
+                    if (!this.n && this.rand.nextInt(100) >= 85) {
+                        this.n = true;
+                        this.m = 1.1D + this.rand.nextDouble() * 0.15D;
+                    } else {
+                        this.n = false;
+                    }
 
-            this.k = System.currentTimeMillis() + 500L + (long) this.rand.nextInt(1500);
+                    this.k = System.currentTimeMillis() + 500L + (long) this.rand.nextInt(1500);
+                }
+
+                if (this.n) {
+                    d = (long) ((double) d * this.m);
+                }
+
+                if (System.currentTimeMillis() > this.l) {
+                    if (this.rand.nextInt(100) >= 80) {
+                        d += 50L + (long) this.rand.nextInt(100);
+                    }
+
+                    this.l = System.currentTimeMillis() + 500L + (long) this.rand.nextInt(1500);
+                }
+
+                this.nextClickTime = System.currentTimeMillis() + d;
+                this.nextReleaseClickTime = System.currentTimeMillis() + d / 2L - (long) this.rand.nextInt(10);
+                break;
+            case 1:
+                this.nextClickTime = RecordClick.getNextClickTime();
+                this.nextReleaseClickTime = this.nextClickTime + 1;
+                break;
         }
-
-        if (this.n) {
-            d = (long) ((double) d * this.m);
-        }
-
-        if (System.currentTimeMillis() > this.l) {
-            if (this.rand.nextInt(100) >= 80) {
-                d += 50L + (long) this.rand.nextInt(100);
-            }
-
-            this.l = System.currentTimeMillis() + 500L + (long) this.rand.nextInt(1500);
-        }
-
-        this.j = System.currentTimeMillis() + d;
-        this.i = System.currentTimeMillis() + d / 2L - (long) this.rand.nextInt(10);
     }
 
-    private void inventoryClick(GuiScreen s) {
+    private void inventoryClick(@NotNull GuiScreen s) {
         int x = Mouse.getX() * s.width / mc.displayWidth;
         int y = s.height - Mouse.getY() * s.height / mc.displayHeight - 1;
 
         try {
             this.gs.invoke(s, x, y, 0);
-        } catch (IllegalAccessException | InvocationTargetException var5) {
+            RecordClick.click();
+        } catch (IllegalAccessException | InvocationTargetException ignored) {
         }
 
     }

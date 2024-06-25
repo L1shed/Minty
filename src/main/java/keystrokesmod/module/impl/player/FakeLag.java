@@ -65,6 +65,12 @@ public class FakeLag extends Module {
         return MODES[(int) mode.getInput()];
     }
 
+    @Override
+    public void guiUpdate() {
+        Utils.correctValue(dynamicStopRange, dynamicStartRange);
+        Utils.correctValue(dynamicStartRange, dynamicMaxTargetRange);
+    }
+
     public void onEnable() {
         lastDisableTime = -1;
         lastHurt = false;

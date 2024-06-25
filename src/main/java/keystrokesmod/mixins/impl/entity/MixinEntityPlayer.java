@@ -4,6 +4,7 @@ import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.combat.HitSelect;
 import keystrokesmod.module.impl.combat.Reduce;
 import keystrokesmod.module.impl.movement.KeepSprint;
+import keystrokesmod.module.impl.render.Particles;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.*;
 import net.minecraft.entity.boss.EntityDragonPart;
@@ -125,11 +126,11 @@ public abstract class MixinEntityPlayer extends EntityLivingBase {
                             p_attackTargetEntityWithCurrentItem_1_.motionZ = d2;
                         }
 
-                        if (flag) {
+                        for (int criticals = 0; criticals < Particles.getCriticalsMultiplier(flag); criticals++) {
                             this.onCriticalHit(p_attackTargetEntityWithCurrentItem_1_);
                         }
 
-                        if (f1 > 0.0F) {
+                        for (int sharpness = 0; sharpness < Particles.getSharpnessMultiplier(f1 > 0.0F); sharpness++) {
                             this.onEnchantmentCritical(p_attackTargetEntityWithCurrentItem_1_);
                         }
 

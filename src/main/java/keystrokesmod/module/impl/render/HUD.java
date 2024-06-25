@@ -27,7 +27,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class HUD extends Module {
-    public static final String VERSION = "1.5.3";
+    public static final String VERSION = "1.6.0-Dev";
     public static SliderSetting theme;
 //    public static SliderSetting font;
 //    public static SliderSetting fontSize;

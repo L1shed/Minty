@@ -8,10 +8,7 @@ import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.script.classes.Vec3;
-import keystrokesmod.utility.AimSimulator;
-import keystrokesmod.utility.BlockUtils;
-import keystrokesmod.utility.RotationUtils;
-import keystrokesmod.utility.Utils;
+import keystrokesmod.utility.*;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.network.play.client.C0APacketAnimation;
 import net.minecraft.util.BlockPos;
@@ -32,9 +29,12 @@ public class BlockIn extends Module {
     private final ButtonSetting lookView;
     private final SliderSetting placeDelay;
     private final ButtonSetting silentSwing;
+    private final ButtonSetting autoSwitch;
 
     private Vec2 currentRot = null;
     private long lastPlace = 0;
+
+    private int lastSlot = -1;
 
     public BlockIn() {
         super("Block-In", category.world);
@@ -44,15 +44,20 @@ public class BlockIn extends Module {
         this.registerSetting(lookView = new ButtonSetting("Look view", false));
         this.registerSetting(placeDelay = new SliderSetting("Place delay", 50, 0, 500, 1, "ms"));
         this.registerSetting(silentSwing = new ButtonSetting("Silent swing", false));
+        this.registerSetting(autoSwitch = new ButtonSetting("Auto switch", true));
     }
 
     @Override
     public void onDisable() {
         currentRot = null;
         lastPlace = 0;
+        if (autoSwitch.isToggled() && lastSlot != -1) {
+            mc.thePlayer.inventory.currentItem = lastSlot;
+        }
+        lastSlot = -1;
     }
 
-    @SubscribeEvent(priority = EventPriority.LOWEST)
+    @SubscribeEvent
     public void onPreMotion(PreMotionEvent event) {
         if (currentRot == null) return;
         if (rotationMode.getInput() == 0) {
@@ -65,8 +70,14 @@ public class BlockIn extends Module {
         }
     }
 
-    @SubscribeEvent(priority = EventPriority.LOWEST)
+    @SubscribeEvent
     public void onRender(TickEvent.RenderTickEvent event) {
+        if (autoSwitch.isToggled() && lastSlot == -1) {
+            int slot = ContainerUtils.getSlot(ItemBlock.class);
+            lastSlot = mc.thePlayer.inventory.currentItem;
+            mc.thePlayer.inventory.currentItem = slot;
+        }
+
         try {
             if (!(mc.thePlayer.getHeldItem().getItem() instanceof ItemBlock)) {
                 Utils.sendMessage("No blocks found.");

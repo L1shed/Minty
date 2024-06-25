@@ -54,6 +54,14 @@ public enum Theme {
         return new int[]{0, 0};
     }
 
+    public Color getFirstGradient() {
+        return firstGradient;
+    }
+
+    public Color getSecondGradient() {
+        return secondGradient;
+    }
+
     //public static String[] themes = new String[]{"Rainbow", "Cherry", "Cotton candy", "Flare", "Flower", "Grayscale", "Royal", "Sky"};
-    public static String[] themes = new String[]{"Rainbow", "Cherry", "Cotton candy", "Flare", "Flower", "Gold", "Grayscale", "Royal", "Sky", "Vine"};
+    public static final String[] themes = new String[]{"Rainbow", "Cherry", "Cotton candy", "Flare", "Flower", "Gold", "Grayscale", "Royal", "Sky", "Vine"};
 }

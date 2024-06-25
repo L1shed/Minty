@@ -22,6 +22,7 @@ public class TimerRange extends Module {
     private final SliderSetting delay;
     private final SliderSetting fov;
     private final ButtonSetting ignoreTeammates;
+    private final ButtonSetting onlyOnGround;
 
     private int hasLag = 0;
     private long lastTimerTime = 0;
@@ -36,6 +37,7 @@ public class TimerRange extends Module {
         this.registerSetting(delay = new SliderSetting("Delay", 500, 0, 4000, 1));
         this.registerSetting(fov = new SliderSetting("Fov", 180, 0, 360, 30));
         this.registerSetting(ignoreTeammates = new ButtonSetting("Ignore teammates", true));
+        this.registerSetting(onlyOnGround = new ButtonSetting("Only onGround", false));
     }
 
     @SubscribeEvent
@@ -68,6 +70,7 @@ public class TimerRange extends Module {
     }
 
     private boolean shouldStart() {
+        if (onlyOnGround.isToggled() && !mc.thePlayer.onGround) return false;
         if (!Utils.isMoving()) return false;
         if (fov.getInput() == 0) return false;
         if (System.currentTimeMillis() - lastTimerTime < delay.getInput()) return false;

@@ -18,10 +18,12 @@ public class Vec3 {
         this.z = z;
     }
 
+    public Vec3(net.minecraft.util.@NotNull Vec3 vec3) {
+        this(vec3.xCoord, vec3.yCoord, vec3.zCoord);
+    }
+
     public Vec3(@NotNull Entity entity) {
-        this.x = entity.posX;
-        this.y = entity.posY;
-        this.z = entity.posZ;
+        this(entity.posX, entity.posY, entity.posZ);
     }
 
     public boolean equals(Vec3 vector2) {

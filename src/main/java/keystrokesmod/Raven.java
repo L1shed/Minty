@@ -11,6 +11,7 @@ import keystrokesmod.clickgui.ClickGui;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.script.ScriptManager;
 import keystrokesmod.utility.*;
+import keystrokesmod.utility.clicks.CPSCalculator;
 import keystrokesmod.utility.profile.Profile;
 import keystrokesmod.utility.profile.ProfileManager;
 import net.minecraft.client.Minecraft;

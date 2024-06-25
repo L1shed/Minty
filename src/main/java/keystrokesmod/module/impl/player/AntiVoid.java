@@ -1,109 +1,192 @@
 package keystrokesmod.module.impl.player;
 
+import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.event.PreUpdateEvent;
+import keystrokesmod.event.SendPacketEvent;
+import keystrokesmod.mixins.impl.entity.MixinEntityPlayerSP;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.utility.ContainerUtils;
+import keystrokesmod.utility.PacketUtils;
+import net.minecraft.item.ItemSword;
 import net.minecraft.network.Packet;
+import net.minecraft.network.play.client.C02PacketUseEntity;
 import net.minecraft.network.play.client.C03PacketPlayer;
+import net.minecraft.network.play.client.C0BPacketEntityAction;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Queue;
 
 import static keystrokesmod.module.ModuleManager.*;
 
 public class AntiVoid extends Module {
-
+    private static final String[] MODES = new String[]{"Hypixel", "AirStuck", "Remiaft"};
+    private final SliderSetting mode;
     private final SliderSetting distance;
     private final ButtonSetting toggleScaffold;
+
     private Vec3 position, motion;
     private boolean wasVoid, setBack;
     private int overVoidTicks;
     private boolean disabledForLongJump = false;
 
+    private boolean airStuck = false;
+    private double airStuck$posX, airStuck$posY, airStuck$posZ;
+    private float airStuck$yaw, airStuck$pitch;
+
+    private int lastSlot = -1;
+    private int delayed = -1;
+
     public AntiVoid() {
         super("AntiVoid", category.player);
         this.registerSetting(new DescriptionSetting("Prevent you from falling into the void."));
+        this.registerSetting(mode = new SliderSetting("Mode", MODES, 0));
         this.registerSetting(distance = new SliderSetting("Distance", 5, 0, 10, 1));
         this.registerSetting(toggleScaffold = new ButtonSetting("Toggle scaffold", false));
     }
 
     @Override
     public void onDisable() {
-        blink.disable();
+        if (mode.getInput() == 0)
+            blink.disable();
     }
 
     @SubscribeEvent
     public void onPreUpdate(PreUpdateEvent event) {
-        if (mc.thePlayer.capabilities.allowFlying) return;
-        if (mc.thePlayer.ticksExisted <= 50) return;
+        switch ((int) mode.getInput()) {
+            case 0:
+                if (mc.thePlayer.capabilities.allowFlying) return;
+                if (mc.thePlayer.ticksExisted <= 50) return;
 
-        if (disabledForLongJump && mc.thePlayer.onGround)
-            disabledForLongJump = false;
+                if (disabledForLongJump && mc.thePlayer.onGround)
+                    disabledForLongJump = false;
 
-        if (longJump.isEnabled())
-            disabledForLongJump = true;
-        if (scaffold.isEnabled() || fly.isEnabled() || motionModifier.isEnabled() || disabledForLongJump) {
-            blink.disable();
-            return;
-        }
+                if (longJump.isEnabled())
+                    disabledForLongJump = true;
+                if (scaffold.isEnabled() || fly.isEnabled() || motionModifier.isEnabled() || disabledForLongJump) {
+                    blink.disable();
+                    return;
+                }
 
-        boolean overVoid = !mc.thePlayer.onGround && !isBlockUnder();
+                boolean overVoid = !mc.thePlayer.onGround && noBlockUnder();
 
-        if (overVoid) {
-            overVoidTicks++;
-        } else if (mc.thePlayer.onGround) {
-            overVoidTicks = 0;
-        }
+                if (overVoid) {
+                    overVoidTicks++;
+                } else if (mc.thePlayer.onGround) {
+                    overVoidTicks = 0;
+                }
 
-        if (overVoid && position != null && motion != null && overVoidTicks < 30 + distance.getInput() * 20) {
-            if (!setBack) {
-                wasVoid = true;
+                if (overVoid && position != null && motion != null && overVoidTicks < 30 + distance.getInput() * 20) {
+                    if (!setBack) {
+                        wasVoid = true;
 
-                blink.enable();
+                        blink.enable();
 
-                if (mc.thePlayer.fallDistance > distance.getInput() || setBack) {
-                    sendNoEvent(new C03PacketPlayer.C04PacketPlayerPosition(position.xCoord, position.yCoord - 0.1 - Math.random(), position.zCoord, false));
-                    if (this.toggleScaffold.isToggled()) {
-                        scaffold.enable();
+                        if (mc.thePlayer.fallDistance > distance.getInput() || setBack) {
+                            sendNoEvent(new C03PacketPlayer.C04PacketPlayerPosition(position.xCoord, position.yCoord - 0.1 - Math.random(), position.zCoord, false));
+                            if (this.toggleScaffold.isToggled()) {
+                                scaffold.enable();
+                            }
+
+                            ((Blink) blink).blinkedPackets.clear();
+
+                            mc.thePlayer.fallDistance = 0;
+
+                            setBack = true;
+                        }
+                    } else {
+                        blink.disable();
+                    }
+                } else {
+
+                    setBack = false;
+
+                    if (wasVoid) {
+                        blink.disable();
+                        wasVoid = false;
                     }
 
-                    ((Blink) blink).blinkedPackets.clear();
-
-                    mc.thePlayer.fallDistance = 0;
-
-                    setBack = true;
+                    motion = new Vec3(mc.thePlayer.motionX, mc.thePlayer.motionY, mc.thePlayer.motionZ);
+                    position = new Vec3(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
                 }
-            } else {
-                blink.disable();
-            }
-        } else {
+                break;
+            case 2:
+                if (airStuck) {
+                    if (delayed == -1) {
+                        delayed = 5;
+                    }
+                    if (delayed > 0) delayed--;
 
-            setBack = false;
-
-            if (wasVoid) {
-                blink.disable();
-                wasVoid = false;
-            }
-
-            motion = new Vec3(mc.thePlayer.motionX, mc.thePlayer.motionY, mc.thePlayer.motionZ);
-            position = new Vec3(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
+                    if (delayed == 0) {
+                        int slot;
+                        if ((slot = ContainerUtils.getSlot(ItemSword.class)) != -1) {
+                            lastSlot = mc.thePlayer.inventory.currentItem;
+                            mc.thePlayer.inventory.currentItem = slot;
+                            mc.playerController.sendUseItem(mc.thePlayer, mc.theWorld, mc.thePlayer.getHeldItem());
+                        }
+                    }
+                } else {
+                    if (lastSlot != -1) {
+                        mc.thePlayer.inventory.currentItem = lastSlot;
+                        lastSlot = -1;
+                    }
+                    delayed = -1;
+                }
+            case 1:
+                if (!mc.thePlayer.onGround && noBlockUnder() && mc.thePlayer.fallDistance > distance.getInput()) {
+                    if (!airStuck) {
+                        airStuck$posX = mc.thePlayer.posX;
+                        airStuck$posY = mc.thePlayer.posY;
+                        airStuck$posZ = mc.thePlayer.posZ;
+                        airStuck$yaw = mc.thePlayer.rotationYaw;
+                        airStuck$pitch = mc.thePlayer.rotationPitch;
+                    }
+                    airStuck = true;
+                } else {
+                    airStuck = false;
+                }
+                break;
         }
     }
 
-    private boolean isBlockUnder() {
+    @SubscribeEvent
+    public void onPreMotion(PreMotionEvent event) {
+        if ((mode.getInput() == 1 || mode.getInput() == 2) && airStuck) {
+            mc.thePlayer.posX = airStuck$posX;
+            mc.thePlayer.posY = airStuck$posY;
+            mc.thePlayer.posZ = airStuck$posZ;
+            mc.thePlayer.motionX = mc.thePlayer.motionY = mc.thePlayer.motionZ = 0;
+            event.setYaw(airStuck$yaw);
+            event.setPitch(airStuck$pitch);
+        }
+    }
+
+    @SubscribeEvent
+    public void onSendPacket(@NotNull SendPacketEvent event) {
+        if (!(event.getPacket() instanceof C03PacketPlayer)) return;
+
+        if ((mode.getInput() == 1 || mode.getInput() == 2) && airStuck) {
+            event.setCanceled(true);
+        }
+    }
+
+    private boolean noBlockUnder() {
         for (int offset = 0; offset < (double) 30; offset += 2) {
             final AxisAlignedBB bb = mc.thePlayer.getEntityBoundingBox().offset(0, -offset, 0);
 
             if (!mc.theWorld.getCollidingBoundingBoxes(mc.thePlayer, bb).isEmpty()) {
-                return true;
+                return false;
             }
         }
-        return false;
+        return true;
     }
 
     private void sendNoEvent(final Packet<?> packet) {
-        mc.getNetHandler().addToSendQueue(packet);
+        PacketUtils.sendPacketNoEvent(packet);
     }
 }

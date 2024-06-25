@@ -1,8 +1,9 @@
-package keystrokesmod.utility;
+package keystrokesmod.utility.clicks;
 
 import keystrokesmod.Raven;
 import keystrokesmod.module.impl.client.Settings;
 import keystrokesmod.module.impl.world.AntiBot;
+import keystrokesmod.utility.Utils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;

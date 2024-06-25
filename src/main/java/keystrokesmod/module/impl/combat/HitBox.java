@@ -16,6 +16,7 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.opengl.GL11;
 
@@ -27,7 +28,6 @@ public class HitBox extends Module {
     public ButtonSetting showHitbox;
     public ButtonSetting playersOnly;
     public ButtonSetting weaponOnly;
-    private Entity pointedEntity;
     private MovingObjectPosition mv;
 
     public HitBox() {
@@ -43,7 +43,7 @@ public class HitBox extends Module {
         return ((int) multiplier.getInput() == multiplier.getInput() ? (int) multiplier.getInput() + "" : multiplier.getInput()) + multiplier.getInfo();
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void m(MouseEvent e) {
         if (Utils.nullCheck()) {
             if (e.button != 0 || !e.buttonstate || !Utils.nullCheck() || multiplier.getInput() == 1 || mc.thePlayer.isBlocking() || mc.currentScreen != null) {
@@ -85,7 +85,7 @@ public class HitBox extends Module {
     public EntityLivingBase getEntity(float partialTicks) {
         if (mc.getRenderViewEntity() != null && mc.theWorld != null) {
             mc.pointedEntity = null;
-            pointedEntity = null;
+            Entity pointedEntity = null;
             double d0 = mc.playerController.extendedReach() ? 6.0 : (ModuleManager.reach.isEnabled() ? Utils.getRandomValue(Reach.min, Reach.max, Utils.getRandom()) : 3.0);
             mv = mc.getRenderViewEntity().rayTrace(d0, partialTicks);
             double d2 = d0;
@@ -99,7 +99,7 @@ public class HitBox extends Module {
             Vec3 vec5 = vec3.addVector(vec4.xCoord * d0, vec4.yCoord * d0, vec4.zCoord * d0);
             Vec3 vec6 = null;
             float f1 = 1.0F;
-            List list = mc.theWorld.getEntitiesWithinAABBExcludingEntity(mc.getRenderViewEntity(), mc.getRenderViewEntity().getEntityBoundingBox().addCoord(vec4.xCoord * d0, vec4.yCoord * d0, vec4.zCoord * d0).expand((double) f1, (double) f1, (double) f1));
+            List<Entity> list = mc.theWorld.getEntitiesWithinAABBExcludingEntity(mc.getRenderViewEntity(), mc.getRenderViewEntity().getEntityBoundingBox().addCoord(vec4.xCoord * d0, vec4.yCoord * d0, vec4.zCoord * d0).expand((double) f1, (double) f1, (double) f1));
             double d3 = d2;
 
             for (Object o : list) {
