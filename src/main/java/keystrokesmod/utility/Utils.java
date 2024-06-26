@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import com.mojang.realmsclient.gui.ChatFormatting;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
+import keystrokesmod.module.impl.client.NyaProxy;
 import keystrokesmod.module.impl.client.Settings;
 import keystrokesmod.module.impl.combat.AutoClicker;
 import keystrokesmod.module.impl.combat.HitSelect;
@@ -164,13 +165,14 @@ public class Utils {
     }
 
     public static void attackEntity(Entity e, boolean clientSwing, boolean silentSwing) {
+        boolean attack = HitSelect.canAttack(e);
         if (clientSwing) {
-            if (HitSelect.canSwing()) mc.thePlayer.swingItem();
+            if (attack || HitSelect.canSwing()) mc.thePlayer.swingItem();
         }
-        else if (silentSwing || (!silentSwing && !clientSwing)) {
-            if (HitSelect.canSwing()) mc.thePlayer.sendQueue.addToSendQueue(new C0APacketAnimation());
+        else {
+            if (attack || HitSelect.canSwing()) mc.thePlayer.sendQueue.addToSendQueue(new C0APacketAnimation());
         }
-        if (HitSelect.canAttack(e)) mc.playerController.attackEntity(mc.thePlayer, e);
+        if (attack) mc.playerController.attackEntity(mc.thePlayer, e);
     }
 
     public static void sendRawMessage(String txt) {
@@ -268,7 +270,9 @@ public class Utils {
     }
 
     public static boolean isHypixel() {
-        return !mc.isSingleplayer() && mc.getCurrentServerData() != null && mc.getCurrentServerData().serverIP.contains("hypixel.net");
+        return !mc.isSingleplayer() && mc.getCurrentServerData() != null
+                && (mc.getCurrentServerData().serverIP.contains("hypixel.net")
+                || NyaProxy.isNyaProxy(mc.getCurrentServerData().serverIP).isPresent());
     }
 
     public static net.minecraft.util.Timer getTimer() {

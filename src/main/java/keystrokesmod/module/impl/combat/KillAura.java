@@ -466,6 +466,7 @@ public class KillAura extends Module {
         block.set(false);
         swing = false;
 
+        final Vec3 eyePos = Utils.getEyePos();
         mc.theWorld.loadedEntityList.stream()
                 .filter(Objects::nonNull)
                 .filter(entity -> entity != mc.thePlayer)
@@ -485,20 +486,19 @@ public class KillAura extends Module {
                 .filter(entity -> targetInvisible.isToggled() || !entity.isInvisible())
                 .filter(entity -> hitThroughBlocks.isToggled() || !behindBlocks(rotations))
                 .filter(entity -> fov.getInput() == 360 || Utils.inFov((float) fov.getInput(), entity))
-                .map(entity -> new Pair<>(entity, mc.thePlayer.getDistanceSqToEntity(entity)))
-                .sorted((p1, p2) -> p2.second().compareTo(p1.second()))
+                .map(entity -> new Pair<>(entity, eyePos.distanceTo(entity)))
                 .forEach(pair -> {
                     if (availableTargets.size() >= targets.getInput()) return;
 
                     // need a more accurate distance check as this can ghost on hypixel
-                    if (pair.second() <= blockRange.getInput() * blockRange.getInput() && autoBlockMode.getInput() > 0) {
+                    if (pair.second() <= blockRange.getInput() && autoBlockMode.getInput() > 0) {
                         KeyBinding.setKeyBindState(mc.gameSettings.keyBindUseItem.getKeyCode(), false);
                         block.set(true);
                     }
-                    if (pair.second() <= swingRange.getInput() * swingRange.getInput()) {
+                    if (pair.second() <= swingRange.getInput()) {
                         swing = true;
                     }
-                    if (pair.second() <= attackRange.getInput() * swingRange.getInput()) {
+                    if (pair.second() <= attackRange.getInput() || pair.second() <= swingRange.getInput()) {
                         availableTargets.add((EntityLivingBase) pair.first());
                     }
                 });

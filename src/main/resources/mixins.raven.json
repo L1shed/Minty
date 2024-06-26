@@ -21,6 +21,7 @@
   "client": [
     "client.GuiConnectingAccessor",
     "client.KeyBindingAccessor",
+    "client.MinecraftAccessor",
     "client.MixinMinecraft",
     "client.PlayerControllerMPAccessor",
     "render.MixinEntityRenderer",

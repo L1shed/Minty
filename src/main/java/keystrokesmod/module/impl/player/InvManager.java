@@ -1,27 +1,23 @@
 package keystrokesmod.module.impl.player;
 
-import keystrokesmod.Raven;
 import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.other.anticheats.utils.phys.Vec2;
-import keystrokesmod.module.impl.other.anticheats.utils.world.PlayerRotation;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
-import keystrokesmod.script.classes.Vec3;
 import keystrokesmod.utility.BlockUtils;
-import keystrokesmod.utility.RotationUtils;
 import keystrokesmod.utility.Utils;
 import net.minecraft.block.*;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
+import net.minecraft.inventory.Container;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.*;
-import net.minecraft.network.play.client.C0APacketAnimation;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.BlockPos;
@@ -35,7 +31,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 public class InvManager extends Module {
     private final ButtonSetting autoArmor;
@@ -196,7 +191,8 @@ public class InvManager extends Module {
                 }
             }
         }
-        else if (stealChests.isToggled() && (customChest.isToggled() || isChest())) {
+        else if (stealChests.isToggled() && (customChest.isToggled() || isChest())
+                && mc.thePlayer.openContainer instanceof ContainerChest) {
             ContainerChest chest = (ContainerChest) mc.thePlayer.openContainer;
             if (inventoryFull()) {
                 autoClose();

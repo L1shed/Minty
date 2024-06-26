@@ -6,20 +6,16 @@ import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.RotationUtils;
 import keystrokesmod.utility.Utils;
-import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItemFrame;
-import net.minecraft.init.Blocks;
 import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.BlockPos;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.jetbrains.annotations.NotNull;
-import org.lwjgl.input.Mouse;
 
 import java.util.List;
 
@@ -52,41 +48,34 @@ public class Reach extends Module {
         }
     }
 
-    public static boolean call() {
-        if (!Utils.nullCheck()) {
-            return false;
-        } else if (weaponOnly.isToggled() && !Utils.holdingWeapon()) {
-            return false;
-        } else if (movingOnly.isToggled() && (double) mc.thePlayer.moveForward == 0.0D && (double) mc.thePlayer.moveStrafing == 0.0D) {
-            return false;
-        } else if (sprintOnly.isToggled() && !mc.thePlayer.isSprinting()) {
-            return false;
-        } else {
-            if (!hitThroughBlocks.isToggled() && mc.objectMouseOver != null) {
-                BlockPos p = mc.objectMouseOver.getBlockPos();
-                if (p != null && mc.theWorld.getBlockState(p).getBlock() != Blocks.air) {
-                    return false;
-                }
-            }
+    public static void call() {
+        if (!ModuleManager.reach.isEnabled()) return;
+        if (Utils.nullCheck()
+                && (!weaponOnly.isToggled() || Utils.holdingWeapon())
+                && (!movingOnly.isToggled() || Utils.isMoving())
+                && (!sprintOnly.isToggled() || mc.thePlayer.isSprinting())) {
 
             double r = Utils.getRandomValue(min, max, Utils.getRandom());
-            Object[] o = getEntity(r, 0.0D);
-            if (o == null) {
-                return false;
-            } else {
+            Object[] o = getEntity(r);
+
+            if (o != null) {
+                if (!RotationUtils.rayCastIgnoreWall(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch, r, (EntityLivingBase) o[0]))
+                    return;
+                if (!hitThroughBlocks.isToggled() && RotationUtils.rayCast(r, mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch) != null)
+                    return;
+
                 Entity en = (Entity) o[0];
                 mc.objectMouseOver = new MovingObjectPosition(en, (Vec3) o[1]);
                 mc.pointedEntity = en;
-                return true;
             }
         }
     }
 
-    private static Object[] getEntity(double reach, double expand) {
+    private static Object[] getEntity(double reach) {
         if (!ModuleManager.reach.isEnabled()) {
             reach = mc.playerController.extendedReach() ? 6.0D : 3.0D;
         }
-        return getEntity(reach, expand, null);
+        return getEntity(reach, 0.0, null);
     }
 
     public static Object[] getEntity(double reach, double expand, float[] rotations) {

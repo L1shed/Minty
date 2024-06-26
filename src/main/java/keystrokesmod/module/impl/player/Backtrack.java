@@ -11,7 +11,6 @@ import keystrokesmod.event.PreUpdateEvent;
 import keystrokesmod.event.ReceivePacketEvent;
 import keystrokesmod.mixins.impl.network.S14PacketEntityAccessor;
 import keystrokesmod.module.Module;
-import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.script.classes.Vec3;
@@ -32,11 +31,10 @@ public class Backtrack extends Module {
 
     private final SliderSetting minLatency = new SliderSetting("Min latency", 50, 1, 1000, 1);
     private final SliderSetting maxLatency = new SliderSetting("Max latency", 100, 1, 1000, 1);
-    private final SliderSetting minDistance = new SliderSetting("Min distance", 2.0, 0.0, 6.0, 0.1);
-    private final SliderSetting maxDistance = new SliderSetting("Max distance", 5.0, 0.0, 10.0, 0.1);
+    private final SliderSetting minDistance = new SliderSetting("Min distance", 0.0, 0.0, 3.0, 0.1);
+    private final SliderSetting maxDistance = new SliderSetting("Max distance", 6.0, 0.0, 10.0, 0.1);
     private final SliderSetting stopOnTargetHurtTime = new SliderSetting("Stop on target HurtTime", -1, -1, 10, 1);
     private final SliderSetting stopOnSelfHurtTime = new SliderSetting("Stop on self HurtTime", -1, -1, 10, 1);
-    private final ButtonSetting onlyIfTargetGoesAway = new ButtonSetting("Only if target goes away", false);
 
     private final Queue<TimedPacket> packetQueue = new ConcurrentLinkedQueue<>();
     private final List<Packet<?>> skipPackets = new ArrayList<>();
@@ -54,7 +52,6 @@ public class Backtrack extends Module {
         this.registerSetting(maxDistance);
         this.registerSetting(stopOnTargetHurtTime);
         this.registerSetting(stopOnSelfHurtTime);
-        this.registerSetting(onlyIfTargetGoesAway);
     }
 
     @Override
@@ -91,7 +88,6 @@ public class Backtrack extends Module {
             final double distance = vec3.distanceTo(mc.thePlayer);
             if (distance > maxDistance.getInput()
                     || distance < minDistance.getInput()
-                    || (onlyIfTargetGoesAway.isToggled() && distance <= new Vec3(target).distanceTo(mc.thePlayer))
             ) {
                 target = null;
                 vec3 = null;

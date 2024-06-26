@@ -26,9 +26,9 @@ import java.util.List;
 public class HitBox extends Module {
     public static SliderSetting multiplier;
     public ButtonSetting showHitbox;
-    public ButtonSetting playersOnly;
-    public ButtonSetting weaponOnly;
-    private MovingObjectPosition mv;
+    public static ButtonSetting playersOnly;
+    public static ButtonSetting weaponOnly;
+    private static MovingObjectPosition mv;
 
     public HitBox() {
         super("HitBox", category.combat, 0);
@@ -46,25 +46,30 @@ public class HitBox extends Module {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void m(MouseEvent e) {
         if (Utils.nullCheck()) {
-            if (e.button != 0 || !e.buttonstate || !Utils.nullCheck() || multiplier.getInput() == 1 || mc.thePlayer.isBlocking() || mc.currentScreen != null) {
+            if (e.button != 0 || !e.buttonstate || multiplier.getInput() == 1 || mc.thePlayer.isBlocking() || mc.currentScreen != null) {
                 return;
             }
-            if (weaponOnly.isToggled() && !Utils.holdingWeapon()) {
-                return;
-            }
-            EntityLivingBase c = getEntity(1.0F);
-            if (c == null) {
-                return;
-            }
-            if (c instanceof EntityPlayer) {
-                if (Utils.isFriended((EntityPlayer) c)) {
-                    return;
-                }
-            } else if (playersOnly.isToggled()) {
-                return;
-            }
-            mc.objectMouseOver = mv;
+            call();
         }
+    }
+
+    public static void call() {
+        if (!ModuleManager.hitBox.isEnabled()) return;
+        if (weaponOnly.isToggled() && !Utils.holdingWeapon()) {
+            return;
+        }
+        EntityLivingBase c = getEntity(1.0F);
+        if (c == null) {
+            return;
+        }
+        if (c instanceof EntityPlayer) {
+            if (Utils.isFriended((EntityPlayer) c)) {
+                return;
+            }
+        } else if (playersOnly.isToggled()) {
+            return;
+        }
+        mc.objectMouseOver = mv;
     }
 
     @SubscribeEvent
@@ -82,7 +87,7 @@ public class HitBox extends Module {
         return multiplier.getInput();
     }
 
-    public EntityLivingBase getEntity(float partialTicks) {
+    public static EntityLivingBase getEntity(float partialTicks) {
         if (mc.getRenderViewEntity() != null && mc.theWorld != null) {
             mc.pointedEntity = null;
             Entity pointedEntity = null;

@@ -59,7 +59,7 @@ public class ClickRecorder extends Module {
     public void onMouseEvent(@NotNull MouseEvent event) {
         long time = System.currentTimeMillis();
 
-        if (!event.buttonstate || mc.currentScreen != null) return;
+        if (!event.buttonstate || mc.currentScreen != null || !Utils.nullCheck()) return;
 
         if (lastClick != -1) {
             delays.add((int) (time - lastClick));

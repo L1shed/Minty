@@ -1,5 +1,6 @@
 package keystrokesmod.module.impl.minigames;
 
+import com.mojang.realmsclient.gui.ChatFormatting;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.impl.world.AntiBot;
 import keystrokesmod.module.setting.impl.ButtonSetting;
@@ -27,17 +28,17 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class BedWars extends Module {
     public static ButtonSetting whitelistOwnBed;
-    private ButtonSetting diamondArmor;
-    private ButtonSetting enderPearl;
-    private ButtonSetting obsidian;
-    private ButtonSetting shouldPing;
+    private final ButtonSetting diamondArmor;
+    private final ButtonSetting enderPearl;
+    private final ButtonSetting obsidian;
+    private final ButtonSetting shouldPing;
     private BlockPos spawnPos;
     private boolean check;
     public static boolean outsideSpawn = true;
-    private List<String> armoredPlayer = new ArrayList<>();
-    private Map<String, String> lastHeldMap = new ConcurrentHashMap<>();
-    private Set<BlockPos> obsidianPos = new HashSet<>();
-    private int obsidianColor = new Color(0, 0,0).getRGB();
+    private final List<String> armoredPlayer = new ArrayList<>();
+    private final Map<String, String> lastHeldMap = new ConcurrentHashMap<>();
+    private final Set<BlockPos> obsidianPos = new HashSet<>();
+    private final int obsidianColor = new Color(0, 0,0).getRGB();
 
     public BedWars() {
         super("Bed Wars", category.minigames);
@@ -104,6 +105,9 @@ public class BedWars extends Module {
             return;
         }
         if (e.entity == mc.thePlayer) {
+            if (!Utils.isHypixel()) {
+                Utils.sendMessage(this.getPrettyName() + ChatFormatting.RED + " is made for Hypixel. It may won't work on others server!");
+            }
             armoredPlayer.clear();
             lastHeldMap.clear();
         }
@@ -127,7 +131,7 @@ public class BedWars extends Module {
                         ItemStack item = p.getHeldItem();
                         if (diamondArmor.isToggled()) {
                             ItemStack leggings = p.inventory.armorInventory[1];
-                            if (!armoredPlayer.contains(name) && p.inventory != null && leggings != null && leggings.getItem() != null && leggings.getItem() == Items.diamond_leggings) {
+                            if (!armoredPlayer.contains(name) && leggings != null && leggings.getItem() != null && leggings.getItem() == Items.diamond_leggings) {
                                 armoredPlayer.add(name);
                                 Utils.sendMessage("&eAlert: &r" + p.getDisplayName().getFormattedText() + " &7has purchased &bDiamond Armor");
                                 ping();
@@ -153,7 +157,7 @@ public class BedWars extends Module {
                         spawnPos = mc.thePlayer.getPosition();
                         check = false;
                     }
-                    outsideSpawn = mc.thePlayer.getDistanceSq(spawnPos) > 800;
+                    if (spawnPos != null) outsideSpawn = mc.thePlayer.getDistanceSq(spawnPos) > 800;
                 }
                 else {
                     outsideSpawn = true;

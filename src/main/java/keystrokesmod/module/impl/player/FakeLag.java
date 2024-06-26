@@ -17,6 +17,7 @@ import net.minecraft.network.play.client.C01PacketChatMessage;
 import net.minecraft.network.play.client.C0FPacketConfirmTransaction;
 import net.minecraft.network.status.client.C00PacketServerQuery;
 import net.minecraft.network.status.client.C01PacketPing;
+import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -48,6 +49,8 @@ public class FakeLag extends Module {
     private AbstractClientPlayer target = null;
     private final ConcurrentHashMap<Packet<?>, Long> delayedPackets = new ConcurrentHashMap<>();
 
+    private Vec3 vec3 = null;
+
     public FakeLag() {
         super("Fake Lag", category.player);
         this.registerSetting(mode = new SliderSetting("Mode", MODES, 0));
@@ -71,11 +74,19 @@ public class FakeLag extends Module {
         Utils.correctValue(dynamicStartRange, dynamicMaxTargetRange);
     }
 
+    @SubscribeEvent
+    public void onRender(RenderWorldLastEvent event) {
+        if (vec3 != null && mode.getInput() == 0) {
+            Blink.drawBox(vec3.toVec3());
+        }
+    }
+
     public void onEnable() {
         lastDisableTime = -1;
         lastHurt = false;
         lastStartBlinkTime = -1;
         delayedPackets.clear();
+        vec3 = null;
     }
 
     public void onDisable() {
@@ -177,6 +188,7 @@ public class FakeLag extends Module {
                 long receiveTime = entry.getValue();
                 long ms = System.currentTimeMillis();
                 if (Utils.getDifference(ms, receiveTime) > this.delay.getInput() || !delay) {
+                    PacketUtils.getPos(packet).ifPresent(pos -> vec3 = pos);
                     PacketUtils.sendPacketNoEvent(packet);
                     packets.remove();
                 }

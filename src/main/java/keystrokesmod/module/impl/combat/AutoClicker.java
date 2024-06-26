@@ -1,5 +1,6 @@
 package keystrokesmod.module.impl.combat;
 
+import keystrokesmod.mixins.impl.client.MinecraftAccessor;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.other.RecordClick;
@@ -100,7 +101,7 @@ public class AutoClicker extends Module {
 
     @SubscribeEvent
     public void onRenderTick(@NotNull RenderTickEvent ev) {
-        if (ev.phase != Phase.END && Utils.nullCheck() && !mc.thePlayer.isEating() && mc.objectMouseOver != null && HitSelect.canAttack(mc.objectMouseOver.entityHit)) {
+        if (ev.phase != Phase.END && Utils.nullCheck() && !mc.thePlayer.isEating() && mc.objectMouseOver != null) {
             if (mc.currentScreen == null && mc.inGameHasFocus) {
                 if (weaponOnly.isToggled() && !Utils.holdingWeapon()) {
                     return;
@@ -178,11 +179,12 @@ public class AutoClicker extends Module {
 
         if (this.nextClickTime > 0L && this.nextReleaseClickTime > 0L) {
             double c = blockHitChance.getInput();
-            if (System.currentTimeMillis() > this.nextClickTime && KillAura.target == null && !ModuleManager.killAura.swing) {
-                KeyBinding.setKeyBindState(key, true);
+            if (System.currentTimeMillis() > this.nextClickTime && KillAura.target == null && !ModuleManager.killAura.swing && HitSelect.canAttack(mc.objectMouseOver.entityHit)) {
+                Reach.call();
+                HitBox.call();
                 RecordClick.click();
-                KeyBinding.onTick(key);
-                Reflection.setButton(mouse, true);
+
+                ((MinecraftAccessor) mc).clickMouse();
                 if (mouse == 0 && c > 0.0 && Mouse.isButtonDown(1) && Math.random() >= (100.0 - c) / 100.0) {
                     final int getKeyCode = mc.gameSettings.keyBindUseItem.getKeyCode();
                     KeyBinding.setKeyBindState(getKeyCode, true);
