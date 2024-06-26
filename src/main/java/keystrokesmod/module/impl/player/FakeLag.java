@@ -7,16 +7,14 @@ import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.script.classes.Vec3;
 import keystrokesmod.utility.PacketUtils;
 import keystrokesmod.utility.Utils;
+import keystrokesmod.utility.backtrack.TimedPacket;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.network.Packet;
 import net.minecraft.network.handshake.client.C00Handshake;
 import net.minecraft.network.login.client.C00PacketLoginStart;
 import net.minecraft.network.login.client.C01PacketEncryptionResponse;
-import net.minecraft.network.play.client.C00PacketKeepAlive;
 import net.minecraft.network.play.client.C01PacketChatMessage;
-import net.minecraft.network.play.client.C0FPacketConfirmTransaction;
 import net.minecraft.network.status.client.C00PacketServerQuery;
-import net.minecraft.network.status.client.C01PacketPing;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
@@ -25,9 +23,8 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Iterator;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static keystrokesmod.module.ModuleManager.blink;
 
@@ -35,6 +32,7 @@ public class FakeLag extends Module {
     private final SliderSetting mode;
     private static final String[] MODES = new String[]{"Latency", "Dynamic"};
     private final SliderSetting delay;
+    private final ButtonSetting drawRealPosition;
     private final ButtonSetting debug;
     private final ButtonSetting dynamicIgnoreTeammates;
     private final ButtonSetting dynamicStopOnHurt;
@@ -47,7 +45,7 @@ public class FakeLag extends Module {
     private long lastStartBlinkTime = -1;
     @Nullable
     private AbstractClientPlayer target = null;
-    private final ConcurrentHashMap<Packet<?>, Long> delayedPackets = new ConcurrentHashMap<>();
+    private final Queue<TimedPacket> packetQueue = new ConcurrentLinkedQueue<>();
 
     private Vec3 vec3 = null;
 
@@ -55,6 +53,7 @@ public class FakeLag extends Module {
         super("Fake Lag", category.player);
         this.registerSetting(mode = new SliderSetting("Mode", MODES, 0));
         this.registerSetting(delay = new SliderSetting("Delay", 200, 25, 1000, 5, "ms"));
+        this.registerSetting(drawRealPosition = new ButtonSetting("Draw real position", true));
         this.registerSetting(debug = new ButtonSetting("Debug", false));
         this.registerSetting(dynamicIgnoreTeammates = new ButtonSetting("Dynamic Ignore teammates", true));
         this.registerSetting(dynamicStopOnHurt = new ButtonSetting("Dynamic Stop on hurt", true));
@@ -76,7 +75,9 @@ public class FakeLag extends Module {
 
     @SubscribeEvent
     public void onRender(RenderWorldLastEvent event) {
-        if (vec3 != null && mode.getInput() == 0) {
+        if (drawRealPosition.isToggled() && vec3 != null && mode.getInput() == 0) {
+            if (vec3.distanceTo(mc.thePlayer) < 0.1) return;
+
             Blink.drawBox(vec3.toVec3());
         }
     }
@@ -85,7 +86,7 @@ public class FakeLag extends Module {
         lastDisableTime = -1;
         lastHurt = false;
         lastStartBlinkTime = -1;
-        delayedPackets.clear();
+        packetQueue.clear();
         vec3 = null;
     }
 
@@ -161,7 +162,11 @@ public class FakeLag extends Module {
     public void onSendPacket(@NotNull SendPacketEvent e) {
         if ((int) mode.getInput() != 0) return;
         final Packet<?> packet = e.getPacket();
-        if (packet instanceof C00Handshake || packet instanceof C00PacketLoginStart || packet instanceof C00PacketServerQuery || packet instanceof C01PacketPing || packet instanceof C01PacketEncryptionResponse || packet instanceof C00PacketKeepAlive || packet instanceof C0FPacketConfirmTransaction || packet instanceof C01PacketChatMessage) {
+        if (packet instanceof C00Handshake
+                || packet instanceof C00PacketLoginStart
+                || packet instanceof C00PacketServerQuery
+                || packet instanceof C01PacketEncryptionResponse
+                || packet instanceof C01PacketChatMessage) {
             return;
         }
         long receiveTime = System.currentTimeMillis();
@@ -172,29 +177,24 @@ public class FakeLag extends Module {
         if (e.isCanceled()) {
             return;
         }
-        delayedPackets.put(packet, receiveTime);
+        packetQueue.add(new TimedPacket(packet, receiveTime));
         e.setCanceled(true);
     }
 
     private void sendPacket(boolean delay) {
         try {
-            Iterator<Map.Entry<Packet<?>, Long>> packets = delayedPackets.entrySet().iterator();
-            while (packets.hasNext()) {
-                Map.Entry<Packet<?>, Long> entry = packets.next();
-                Packet<?> packet = entry.getKey();
-                if (packet == null) {
-                    continue;
-                }
-                long receiveTime = entry.getValue();
-                long ms = System.currentTimeMillis();
-                if (Utils.getDifference(ms, receiveTime) > this.delay.getInput() || !delay) {
+            while (!packetQueue.isEmpty()) {
+                if (!delay || packetQueue.element().getCold().getCum((long) this.delay.getInput())) {
+                    Packet<?> packet = packetQueue.remove().getPacket();
+                    if (packet == null) continue;
+
                     PacketUtils.getPos(packet).ifPresent(pos -> vec3 = pos);
                     PacketUtils.sendPacketNoEvent(packet);
-                    packets.remove();
+                } else {
+                    break;
                 }
             }
-        }
-        catch (Exception ignored) {
+        } catch (Exception ignored) {
         }
     }
 }

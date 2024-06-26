@@ -1,5 +1,6 @@
 package keystrokesmod.module.impl.player;
 
+import com.mojang.realmsclient.gui.ChatFormatting;
 import keystrokesmod.event.SendPacketEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ButtonSetting;
@@ -20,6 +21,7 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.opengl.GL11;
 
@@ -29,12 +31,14 @@ import java.util.List;
 
 public class Blink extends Module {
     private final ButtonSetting initialPosition;
+    private final ButtonSetting overlay;
     public final List<Packet<?>> blinkedPackets = new ArrayList<>();
     private Vec3 pos;
     public static final int color = new Color(72, 125, 227).getRGB();
     public Blink() {
         super("Blink", category.player);
         this.registerSetting(initialPosition = new ButtonSetting("Show initial position", true));
+        this.registerSetting(overlay = new ButtonSetting("Overlay", false));
     }
 
     @Override
@@ -59,6 +63,15 @@ public class Blink extends Module {
     }
 
     @SubscribeEvent
+    public void onRender(TickEvent.RenderTickEvent event) {
+        if (!overlay.isToggled() || event.phase != TickEvent.Phase.END || !Utils.nullCheck()) {
+            return;
+        }
+
+        RenderUtils.drawText("blinking: " + blinkedPackets.size());
+    }
+
+    @SubscribeEvent
     public void onSendPacket(SendPacketEvent e) {
         if (!Utils.nullCheck()) {
             this.disable();
@@ -68,7 +81,11 @@ public class Blink extends Module {
         if (packet.getClass().getSimpleName().startsWith("S")) {
             return;
         }
-        if (packet instanceof C00Handshake || packet instanceof C00PacketLoginStart || packet instanceof C00PacketServerQuery || packet instanceof C01PacketPing || packet instanceof C01PacketEncryptionResponse || packet instanceof C00PacketKeepAlive || packet instanceof C0FPacketConfirmTransaction || packet instanceof C01PacketChatMessage) {
+        if (packet instanceof C00Handshake
+                || packet instanceof C00PacketLoginStart
+                || packet instanceof C00PacketServerQuery
+                || packet instanceof C01PacketEncryptionResponse
+                || packet instanceof C01PacketChatMessage) {
             return;
         }
         blinkedPackets.add(packet);

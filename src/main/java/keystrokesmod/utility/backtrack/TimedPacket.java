@@ -17,7 +17,7 @@ public class TimedPacket {
     public TimedPacket(final Packet<?> packet, final long millis) {
         this.packet = packet;
         this.millis = millis;
-        this.time = null;
+        this.time = new Cold();
     }
 
     public Packet<?> getPacket() {

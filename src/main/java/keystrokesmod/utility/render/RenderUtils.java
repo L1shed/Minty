@@ -2,7 +2,9 @@ package keystrokesmod.utility.render;
 
 import keystrokesmod.mixins.impl.render.RenderManagerAccessor;
 import keystrokesmod.module.impl.player.Freecam;
+import keystrokesmod.module.impl.render.HUD;
 import keystrokesmod.script.classes.Vec3;
+import keystrokesmod.utility.Theme;
 import keystrokesmod.utility.Utils;
 import keystrokesmod.utility.font.Font;
 import net.minecraft.client.Minecraft;
@@ -158,7 +160,23 @@ public class RenderUtils {
             }
             s += Utils.rnd(h, 3);
         }
-        mc.fontRendererObj.drawString(s, (float)(scaledResolution.getScaledWidth() / 2 - mc.fontRendererObj.getStringWidth(s) / 2), (float)(scaledResolution.getScaledHeight() / 2 + 15), n, false);
+        drawText(s, n);
+    }
+
+    public static void drawText(final String text, final int color) {
+        ScaledResolution scaledResolution = new ScaledResolution(mc);
+
+        mc.fontRendererObj.drawString(
+                text,
+                (float)(scaledResolution.getScaledWidth() / 2 - mc.fontRendererObj.getStringWidth(text) / 2),
+                (float)(scaledResolution.getScaledHeight() / 2 + 15),
+                color,
+                false
+        );
+    }
+
+    public static void drawText(final String text) {
+        drawText(text, Theme.getGradient((int) HUD.theme.getInput(), 0));
     }
 
     public static void renderEntity(Entity e, int type, double expand, double shift, int color, boolean damage) {
