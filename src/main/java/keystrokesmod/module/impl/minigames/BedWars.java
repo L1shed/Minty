@@ -55,6 +55,10 @@ public class BedWars extends Module {
         obsidianPos.clear();
         check = false;
         outsideSpawn = true;
+
+        if (!Utils.isHypixel()) {
+            Utils.sendMessage(this.getPrettyName() + ChatFormatting.RED + " is made for Hypixel. It may won't work on others server!");
+        }
     }
 
     public void onDisable() {
