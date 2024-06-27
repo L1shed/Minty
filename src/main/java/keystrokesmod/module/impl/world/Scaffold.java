@@ -57,7 +57,6 @@ public class Scaffold extends Module { // from b4 :)
     private boolean forceStrict;
     private boolean down;
     private int add;
-    private boolean speeded;
     public Scaffold() {
         super("Scaffold", category.world);
         this.registerSetting(motion = new SliderSetting("Motion", 0.95, 0.5, 1.2, 0.01));
@@ -117,18 +116,13 @@ public class Scaffold extends Module { // from b4 :)
     public void onPreUpdate(PreUpdateEvent e) { // place here
         if (onlyOffGround.isToggled() && mc.thePlayer.onGround) return;
 
-        if (fast.isToggled()) {
+        if (fast.isToggled() && mc.gameSettings.keyBindJump.isKeyDown()) {
             if (mc.gameSettings.keyBindForward.isKeyDown() && client.getPlayer().onGround()) {
-                ((KeyBindingAccessor) mc.gameSettings.keyBindUseItem).setPressed(true);
-                ((KeyBindingAccessor) mc.gameSettings.keyBindJump).setPressed(true);
                 if (!isDiagonal() && !(mc.gameSettings.keyBindRight.isKeyDown() || mc.gameSettings.keyBindLeft.isKeyDown())) {
                     client.setSpeed(0.5);
                     client.setSprinting(false);
                     client.jump();
-                } else if (isDiagonal() || (mc.gameSettings.keyBindRight.isKeyDown() || mc.gameSettings.keyBindLeft.isKeyDown())) {
-                    client.jump();
                 }
-                speeded = true;
             }
         }
 
