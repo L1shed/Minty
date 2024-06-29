@@ -21,15 +21,18 @@ Raven B4, but for those who can't afford it.
 ### ***More functionality while staying in sync with upstream branches.***
 </div>
 
-## Additional Bypass for Hypixel (Compared to [Raven-Bs](https://github.com/Strangerrrs/Raven-bS))
-- TowerMove (Up Sprint Scaffold)
+## Additional Modules (Compared to [Raven-Bs](https://github.com/Strangerrrs/Raven-bS))
+- Hypixel TowerMove (Up Sprint Scaffold)
 - Fireball LongJump (Same as Raven B4)
-- Air Strafe Speed *(Patched)*
+- Air Strafe Speed
 - Blink/NoGround NoFall
 - Blink AntiVoid
 - Client-side AntiCheat
 - Criticals
 - TimerRange
+- Block-In
+- Backtrack
+- HitSelect
 
 ## Contribute
 Feel free to raise an issue or submit a pull request.
