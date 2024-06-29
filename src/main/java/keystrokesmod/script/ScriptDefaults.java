@@ -6,6 +6,7 @@ import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.combat.KillAura;
 import keystrokesmod.module.setting.Setting;
 import keystrokesmod.module.setting.impl.ButtonSetting;
+import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.script.classes.*;
 import keystrokesmod.script.packets.serverbound.CPacket;
@@ -39,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Supplier;
 
 public class ScriptDefaults {
     private static Minecraft mc = Minecraft.getMinecraft();
@@ -591,12 +593,34 @@ public class ScriptDefaults {
             getScript(this.superName).registerSetting(new ButtonSetting(name, defaultValue));
         }
 
+        public void registerButton(String name, boolean defaultValue, Supplier<Boolean> visibleCheck) {
+            getScript(this.superName).registerSetting(new ButtonSetting(name, defaultValue, visibleCheck));
+        }
+
         public void registerSlider(String name, double defaultValue, double minimum, double maximum, double interval) {
             getScript(this.superName).registerSetting(new SliderSetting(name, defaultValue, minimum, maximum, interval));
         }
 
+        public void registerSlider(String name, double defaultValue, double minimum, double maximum, double interval, Supplier<Boolean> visibleCheck) {
+            getScript(this.superName).registerSetting(new SliderSetting(name, defaultValue, minimum, maximum, interval, visibleCheck));
+        }
+
+        @Deprecated
         public void registerSlider(String name, int defaultValue, String[] stringArray) {
             getScript(this.superName).registerSetting(new SliderSetting(name, stringArray, defaultValue));
+        }
+
+        @Deprecated
+        public void registerSlider(String name, int defaultValue, String[] stringArray, Supplier<Boolean> visibleCheck) {
+            getScript(this.superName).registerSetting(new SliderSetting(name, stringArray, defaultValue, visibleCheck));
+        }
+
+        public void registerMode(String name, int defaultValue, String[] stringArray) {
+            getScript(this.superName).registerSetting(new ModeSetting(name, stringArray, defaultValue));
+        }
+
+        public void registerMode(String name, int defaultValue, String[] stringArray, Supplier<Boolean> visibleCheck) {
+            getScript(this.superName).registerSetting(new ModeSetting(name, stringArray, defaultValue, visibleCheck));
         }
 
         public boolean getButton(String moduleName, String name) {

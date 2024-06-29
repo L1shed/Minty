@@ -3,8 +3,7 @@ package keystrokesmod.module.impl.movement;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
-import keystrokesmod.module.setting.impl.SliderSetting;
-import keystrokesmod.script.classes.Vec3;
+import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.utility.Utils;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.settings.KeyBinding;
@@ -15,7 +14,7 @@ import static keystrokesmod.module.ModuleManager.*;
 
 public class InvMove extends Module {
     public static final String[] MODES = {"Normal", "Blink"};
-    private final SliderSetting mode;
+    private final ModeSetting mode;
     private final ButtonSetting allowSprint;
     private final ButtonSetting allowSneak;
     private final ButtonSetting chestNameCheck;
@@ -25,7 +24,7 @@ public class InvMove extends Module {
     public InvMove() {
         super("InvMove", category.movement);
         this.registerSetting(new DescriptionSetting("Allow you move in inventory."));
-        this.registerSetting(mode = new SliderSetting("Mode", MODES, 0));
+        this.registerSetting(mode = new ModeSetting("Mode", MODES, 0));
         this.registerSetting(allowSprint = new ButtonSetting("Allow sprint", false));
         this.registerSetting(allowSneak = new ButtonSetting("Allow sneak", false));
         this.registerSetting(chestNameCheck = new ButtonSetting("Chest name check", true));

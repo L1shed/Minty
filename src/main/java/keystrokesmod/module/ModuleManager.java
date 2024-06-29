@@ -76,6 +76,8 @@ public class ModuleManager {
     public static Particles particles;
     public static RecordClick recordClick;
     public static ClickRecorder clickRecorder;
+    public static InfiniteAura infiniteAura;
+    public static LegitScaffold legitScaffold;
 
     public void register() {
         this.addModule(autoClicker = new AutoClicker());
@@ -182,6 +184,8 @@ public class ModuleManager {
         this.addModule(particles = new Particles());
         this.addModule(recordClick = new RecordClick());
         this.addModule(clickRecorder = new ClickRecorder());
+        this.addModule(infiniteAura = new InfiniteAura());
+        this.addModule(legitScaffold = new LegitScaffold());
         antiBot.enable();
         modules.sort(Comparator.comparing(Module::getPrettyName));
     }

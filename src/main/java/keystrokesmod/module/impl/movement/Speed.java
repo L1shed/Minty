@@ -5,14 +5,12 @@ import keystrokesmod.module.Module;
 import keystrokesmod.module.impl.other.anticheats.utils.world.BlockUtils;
 import keystrokesmod.module.impl.player.NoFall;
 import keystrokesmod.module.setting.impl.ButtonSetting;
-import keystrokesmod.module.setting.impl.SliderSetting;
-import keystrokesmod.script.classes.Vec3;
+import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.utility.MoveUtil;
 import keystrokesmod.utility.Utils;
 import net.minecraft.block.BlockAir;
 import net.minecraft.network.play.client.C07PacketPlayerDigging;
 import net.minecraft.potion.Potion;
-import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -20,7 +18,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import static keystrokesmod.module.ModuleManager.scaffold;
 
 public class Speed extends Module {
-    private final SliderSetting mode;
+    private final ModeSetting mode;
     private final ButtonSetting liquidDisable;
     private final ButtonSetting sneakDisable;
     private final ButtonSetting stopMotion;
@@ -38,7 +36,7 @@ public class Speed extends Module {
 
     public Speed() {
         super("Speed", Module.category.movement);
-        this.registerSetting(mode = new SliderSetting("Mode", modes, 0));
+        this.registerSetting(mode = new ModeSetting("Mode", modes, 0));
         this.registerSetting(liquidDisable = new ButtonSetting("Disable in liquid", true));
         this.registerSetting(sneakDisable = new ButtonSetting("Disable while sneaking", true));
         this.registerSetting(stopMotion = new ButtonSetting("Stop motion", false));
@@ -96,6 +94,9 @@ public class Speed extends Module {
                             break;
                         case 11:
                             MoveUtil.strafe();
+                            break;
+                        case 12:
+                            MoveUtil.stop();
                             break;
                     }
                 }

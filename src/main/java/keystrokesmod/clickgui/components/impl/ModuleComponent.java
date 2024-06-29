@@ -2,22 +2,20 @@ package keystrokesmod.clickgui.components.impl;
 
 import keystrokesmod.Raven;
 import keystrokesmod.clickgui.components.Component;
+import keystrokesmod.clickgui.components.IComponent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.Setting;
-import keystrokesmod.module.setting.impl.ButtonSetting;
-import keystrokesmod.module.setting.impl.DescriptionSetting;
-import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.render.RenderUtils;
 import keystrokesmod.utility.profile.Manager;
 import keystrokesmod.utility.profile.ProfileModule;
 import net.minecraft.client.Minecraft;
+import org.jetbrains.annotations.NotNull;
 import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Iterator;
 
-public class ModuleComponent extends Component {
+public class ModuleComponent implements IComponent {
     private final int c2 = (new Color(154, 2, 255)).getRGB();
     private final int hoverColor = (new Color(0, 0, 0, 110)).getRGB();
     private final int unsavedColor = new Color(114, 188, 250).getRGB();
@@ -35,27 +33,13 @@ public class ModuleComponent extends Component {
         this.mod = mod;
         this.categoryComponent = p;
         this.o = o;
-        this.settings = new ArrayList();
+        this.settings = new ArrayList<>();
         this.po = false;
         int y = o + 12;
         if (mod != null && !mod.getSettings().isEmpty()) {
             for (Setting v : mod.getSettings()) {
-                if (v instanceof SliderSetting) {
-                    SliderSetting n = (SliderSetting) v;
-                    SliderComponent s = new SliderComponent(n, this, y);
-                    this.settings.add(s);
-                    y += 12;
-                } else if (v instanceof ButtonSetting) {
-                    ButtonSetting b = (ButtonSetting) v;
-                    ButtonComponent c = new ButtonComponent(mod, b, this, y);
-                    this.settings.add(c);
-                    y += 12;
-                } else if (v instanceof DescriptionSetting) {
-                    DescriptionSetting d = (DescriptionSetting) v;
-                    DescriptionComponent m = new DescriptionComponent(d, this, y);
-                    this.settings.add(m);
-                    y += 12;
-                }
+                this.settings.add(Component.fromSetting(v, this, y));
+                y += 12;
             }
         }
         this.settings.add(new BindComponent(this, y));
@@ -64,20 +48,17 @@ public class ModuleComponent extends Component {
     public void so(int n) {
         this.o = n;
         int y = this.o + 16;
-        Iterator var3 = this.settings.iterator();
 
-        while (true) {
-            while (var3.hasNext()) {
-                Component co = (Component) var3.next();
+        for (Component co : this.settings) {
+            Setting setting = co.getSetting();
+            if (setting == null || setting.isVisible()) {
                 co.so(y);
                 if (co instanceof SliderComponent) {
                     y += 16;
-                } else if (co instanceof ButtonComponent || co instanceof BindComponent || co instanceof DescriptionComponent) {
+                } else {
                     y += 12;
                 }
             }
-
-            return;
         }
     }
 
@@ -142,9 +123,17 @@ public class ModuleComponent extends Component {
         GL11.glPopMatrix();
         if (this.po && !this.settings.isEmpty()) {
             for (Component c : this.settings) {
-                c.render();
+                Setting setting = c.getSetting();
+                if (setting == null || setting.isVisible()) {
+                    c.render();
+                }
             }
         }
+    }
+
+    @Override
+    public @NotNull ModuleComponent getParent() {
+        return this;
     }
 
     public int gh() {
@@ -152,34 +141,29 @@ public class ModuleComponent extends Component {
             return 16;
         } else {
             int h = 16;
-            Iterator var2 = this.settings.iterator();
 
-            while (true) {
-                while (var2.hasNext()) {
-                    Component c = (Component) var2.next();
+            for (Component c : this.settings) {
+                Setting setting = c.getSetting();
+                if (setting == null || setting.isVisible()) {
                     if (c instanceof SliderComponent) {
                         h += 16;
-                    } else if (c instanceof ButtonComponent || c instanceof BindComponent || c instanceof DescriptionComponent) {
+                    } else {
                         h += 12;
                     }
                 }
-
-                return h;
             }
+
+            return h;
         }
     }
 
-    public void drawScreen(int x, int y) {
+    public void onDrawScreen(int x, int y) {
         if (!this.settings.isEmpty()) {
             for (Component c : this.settings) {
                 c.drawScreen(x, y);
             }
         }
-        if (ii(x, y)) {
-            hovering = true;
-        } else {
-            hovering = false;
-        }
+        hovering = ii(x, y);
     }
 
     public String getName() {

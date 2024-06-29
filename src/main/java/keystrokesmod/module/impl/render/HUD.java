@@ -5,7 +5,7 @@ import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.player.InvManager;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
-import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.utility.font.Font;
 import keystrokesmod.utility.font.FontManager;
 import keystrokesmod.utility.render.RenderUtils;
@@ -27,8 +27,8 @@ import java.util.Arrays;
 import java.util.List;
 
 public class HUD extends Module {
-    public static final String VERSION = "1.6.3";
-    public static SliderSetting theme;
+    public static final String VERSION = "1.7.0";
+    public static ModeSetting theme;
 //    public static SliderSetting font;
 //    public static SliderSetting fontSize;
     public static ButtonSetting dropShadow;
@@ -46,7 +46,7 @@ public class HUD extends Module {
     public HUD() {
         super("HUD", Module.category.render);
         this.registerSetting(new DescriptionSetting("Right click bind to hide modules."));
-        this.registerSetting(theme = new SliderSetting("Theme", Theme.themes, 0));
+        this.registerSetting(theme = new ModeSetting("Theme", Theme.themes, 0));
 //        this.registerSetting(font = new SliderSetting("Font", new String[]{"Minecraft", "Product Sans"}, 0));
 //        this.registerSetting(fontSize = new SliderSetting("Font", 1.0, 0.5, 2.0, 0.25, "x"));
         this.registerSetting(new ButtonSetting("Edit position", () -> mc.displayGuiScreen(new EditScreen())));

@@ -3,7 +3,7 @@ package keystrokesmod.module.impl.render;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.setting.impl.ButtonSetting;
-import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.utility.BlockUtils;
 import keystrokesmod.utility.Reflection;
 import keystrokesmod.utility.Utils;
@@ -15,7 +15,7 @@ import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 public class BreakProgress extends Module {
-    private SliderSetting mode;
+    private ModeSetting mode;
     private ButtonSetting manual;
     private ButtonSetting bedAura;
     private String[] modes = new String[]{"Percentage", "Second", "Decimal"};
@@ -25,7 +25,7 @@ public class BreakProgress extends Module {
 
     public BreakProgress() {
         super("BreakProgress", category.render);
-        this.registerSetting(mode = new SliderSetting("Mode", modes, 0));
+        this.registerSetting(mode = new ModeSetting("Mode", modes, 0));
         this.registerSetting(manual = new ButtonSetting("Show manual", true));
         this.registerSetting(bedAura = new ButtonSetting("Show BedAura", true));
     }

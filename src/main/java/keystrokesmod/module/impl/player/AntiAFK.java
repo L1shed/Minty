@@ -2,6 +2,7 @@ package keystrokesmod.module.impl.player;
 
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ButtonSetting;
+import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.Reflection;
 import keystrokesmod.utility.RotationUtils;
@@ -10,12 +11,12 @@ import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.settings.KeyBinding;
 
 public class AntiAFK extends Module {
-    private SliderSetting afk;
+    private ModeSetting afk;
     private ButtonSetting jump;
     private ButtonSetting jumpWhenCollided;
     private ButtonSetting randomClicks;
     private ButtonSetting swapItem;
-    private SliderSetting spin;
+    private ModeSetting spin;
     private ButtonSetting randomizeDelta;
     private ButtonSetting randomizePitch;
     private SliderSetting minDelay;
@@ -27,12 +28,12 @@ public class AntiAFK extends Module {
     public boolean stop = false;
     public AntiAFK() {
         super("AntiAFK", category.player);
-        this.registerSetting(afk = new SliderSetting("AFK", afkModes, 0));
+        this.registerSetting(afk = new ModeSetting("AFK", afkModes, 0));
         this.registerSetting(jump = new ButtonSetting("Jump", false));
         this.registerSetting(jumpWhenCollided = new ButtonSetting("Jump only when collided", false));
         this.registerSetting(randomClicks = new ButtonSetting("Random clicks", false));
         this.registerSetting(swapItem = new ButtonSetting("Swap item", false));
-        this.registerSetting(spin = new SliderSetting("Spin", spinModes, 0));
+        this.registerSetting(spin = new ModeSetting("Spin", spinModes, 0));
         this.registerSetting(randomizeDelta = new ButtonSetting("Randomize delta", true));
         this.registerSetting(randomizePitch = new ButtonSetting("Randomize pitch", true));
         this.registerSetting(minDelay = new SliderSetting("Minimum delay ticks", 10.0, 4.0, 160.0, 2.0));

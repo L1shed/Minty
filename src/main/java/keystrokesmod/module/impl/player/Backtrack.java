@@ -10,7 +10,6 @@ import keystrokesmod.event.PreUpdateEvent;
 import keystrokesmod.event.ReceivePacketEvent;
 import keystrokesmod.mixins.impl.network.S14PacketEntityAccessor;
 import keystrokesmod.module.Module;
-import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.script.classes.Vec3;
@@ -35,8 +34,6 @@ public class Backtrack extends Module {
     private final SliderSetting maxDistance = new SliderSetting("Max distance", 6.0, 0.0, 10.0, 0.1);
     private final SliderSetting stopOnTargetHurtTime = new SliderSetting("Stop on target HurtTime", -1, -1, 10, 1);
     private final SliderSetting stopOnSelfHurtTime = new SliderSetting("Stop on self HurtTime", -1, -1, 10, 1);
-    private final ButtonSetting delaySelfHurtAnime = new ButtonSetting("Delay self hurt anime", false);
-    private static final Set<Integer> SELF_HURT_ANIME_IDS = new HashSet<>(Arrays.asList(1, 4, 5));
 
     private final Queue<TimedPacket> packetQueue = new ConcurrentLinkedQueue<>();
     private final List<Packet<?>> skipPackets = new ArrayList<>();
@@ -144,6 +141,7 @@ public class Backtrack extends Module {
 
     @SubscribeEvent
     public void onReceivePacket(@NotNull ReceivePacketEvent e) {
+        if (!Utils.nullCheck()) return;
         Packet<?> p = e.getPacket();
         if (skipPackets.contains(p)) {
             skipPackets.remove(p);
@@ -173,18 +171,12 @@ public class Backtrack extends Module {
             if (e.isCanceled())
                 return;
 
-            if (p instanceof S19PacketEntityStatus || p instanceof S02PacketChat)
+            if (p instanceof S19PacketEntityStatus
+                    || p instanceof S02PacketChat
+                    || p instanceof S0BPacketAnimation
+                    || p instanceof S06PacketUpdateHealth
+            )
                 return;
-
-            if (p instanceof S0BPacketAnimation) {
-                if (!delaySelfHurtAnime.isToggled()) return;
-
-                S0BPacketAnimation packetAnimation = (S0BPacketAnimation) p;
-
-                if (packetAnimation.getEntityID() != mc.thePlayer.getEntityId()
-                        && !SELF_HURT_ANIME_IDS.contains(packetAnimation.getAnimationType()))
-                    return;
-            }
 
             if (p instanceof S08PacketPlayerPosLook || p instanceof S40PacketDisconnect) {
                 releaseAll();

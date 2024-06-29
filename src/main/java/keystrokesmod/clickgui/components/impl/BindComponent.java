@@ -12,13 +12,12 @@ import org.lwjgl.opengl.GL11;
 
 public class BindComponent extends Component {
     public boolean isBinding;
-    private ModuleComponent moduleComponent;
     private int bind;
     private int x;
     private int y;
 
     public BindComponent(ModuleComponent moduleComponent, int bind) {
-        this.moduleComponent = moduleComponent;
+        super(moduleComponent);
         this.x = moduleComponent.categoryComponent.getX() + moduleComponent.categoryComponent.gw();
         this.y = moduleComponent.categoryComponent.getY() + moduleComponent.o;
         this.bind = bind;
@@ -31,29 +30,29 @@ public class BindComponent extends Component {
     public void render() {
         GL11.glPushMatrix();
         GL11.glScaled(0.5D, 0.5D, 0.5D);
-        this.drawString(!this.moduleComponent.mod.canBeEnabled() && this.moduleComponent.mod.script == null ? "Module cannot be bound." : this.isBinding ? "Press a key..." : "Current bind: '§e" + (this.moduleComponent.mod.getKeycode() >= 1000 ? "M" + (this.moduleComponent.mod.getKeycode() - 1000) : Keyboard.getKeyName(this.moduleComponent.mod.getKeycode())) + "§r'");
+        this.drawString(!this.parent.mod.canBeEnabled() && this.parent.mod.script == null ? "Module cannot be bound." : this.isBinding ? "Press a key..." : "Current bind: '§e" + (this.parent.mod.getKeycode() >= 1000 ? "M" + (this.parent.mod.getKeycode() - 1000) : Keyboard.getKeyName(this.parent.mod.getKeycode())) + "§r'");
         GL11.glPopMatrix();
     }
 
-    public void drawScreen(int x, int y) {
-        this.y = this.moduleComponent.categoryComponent.getY() + this.bind;
-        this.x = this.moduleComponent.categoryComponent.getX();
+    public void onDrawScreen(int x, int y) {
+        this.y = this.parent.categoryComponent.getY() + this.bind;
+        this.x = this.parent.categoryComponent.getX();
     }
 
     public void onClick(int x, int y, int b) {
-        if (this.i(x, y) && this.moduleComponent.po && this.moduleComponent.mod.canBeEnabled()) {
+        if (this.i(x, y) && this.parent.po && this.parent.mod.canBeEnabled()) {
             if (b == 0) {
                 this.isBinding = !this.isBinding;
             }
-            else if (b == 1 && this.moduleComponent.mod.moduleCategory() != Module.category.profiles) {
-                this.moduleComponent.mod.setHidden(!this.moduleComponent.mod.isHidden());
+            else if (b == 1 && this.parent.mod.moduleCategory() != Module.category.profiles) {
+                this.parent.mod.setHidden(!this.parent.mod.isHidden());
                 if (Raven.currentProfile != null) {
                     ((ProfileModule) Raven.currentProfile.getModule()).saved = false;
                 }
             }
             else if (b > 1) {
                 if (this.isBinding) {
-                    this.moduleComponent.mod.setBind(b + 1000);
+                    this.parent.mod.setBind(b + 1000);
                     if (Raven.currentProfile != null) {
                         ((ProfileModule) Raven.currentProfile.getModule()).saved = false;
                     }
@@ -66,10 +65,10 @@ public class BindComponent extends Component {
     public void keyTyped(char t, int keybind) {
         if (this.isBinding) {
             if (keybind == Keyboard.KEY_0 || keybind == Keyboard.KEY_ESCAPE) {
-                if (this.moduleComponent.mod instanceof Gui) {
-                    this.moduleComponent.mod.setBind(54);
+                if (this.parent.mod instanceof Gui) {
+                    this.parent.mod.setBind(54);
                 } else {
-                    this.moduleComponent.mod.setBind(0);
+                    this.parent.mod.setBind(0);
                 }
                 if (Raven.currentProfile != null) {
                     ((ProfileModule) Raven.currentProfile.getModule()).saved = false;
@@ -78,7 +77,7 @@ public class BindComponent extends Component {
                 if (Raven.currentProfile != null) {
                     ((ProfileModule) Raven.currentProfile.getModule()).saved = false;
                 }
-                this.moduleComponent.mod.setBind(keybind);
+                this.parent.mod.setBind(keybind);
             }
 
             this.isBinding = false;
@@ -86,7 +85,7 @@ public class BindComponent extends Component {
     }
 
     public boolean i(int x, int y) {
-        return x > this.x && x < this.x + this.moduleComponent.categoryComponent.gw() && y > this.y - 1 && y < this.y + 12;
+        return x > this.x && x < this.x + this.parent.categoryComponent.gw() && y > this.y - 1 && y < this.y + 12;
     }
 
     public int gh() {
@@ -94,7 +93,7 @@ public class BindComponent extends Component {
     }
 
     private void drawString(String s) {
-        Minecraft.getMinecraft().fontRendererObj.drawStringWithShadow(s, (float) ((this.moduleComponent.categoryComponent.getX() + 4) * 2), (float) ((this.moduleComponent.categoryComponent.getY() + this.bind + 3) * 2), !this.moduleComponent.mod.hidden ? Theme.getGradient(10, 0) : Theme.getGradient(11, 0));
+        Minecraft.getMinecraft().fontRendererObj.drawStringWithShadow(s, (float) ((this.parent.categoryComponent.getX() + 4) * 2), (float) ((this.parent.categoryComponent.getY() + this.bind + 3) * 2), !this.parent.mod.hidden ? Theme.getGradient(10, 0) : Theme.getGradient(11, 0));
     }
 
     public void onGuiClosed() {

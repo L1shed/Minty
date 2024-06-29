@@ -10,6 +10,7 @@ import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.script.classes.Vec3;
 import keystrokesmod.utility.AimSimulator;
+import keystrokesmod.utility.RotationUtils;
 import keystrokesmod.utility.Utils;
 import net.minecraft.entity.player.EntityPlayer;
 import org.jetbrains.annotations.Nullable;
@@ -34,8 +35,8 @@ public class AimAssist extends Module {
     private EntityPlayer target = null;
     public AimAssist() {
         super("AimAssist", category.combat, 0);
-        this.registerSetting(horizonSpeed = new SliderSetting("Horizon speed", 3, 0, 5, 0.05));
-        this.registerSetting(verticalSpeed = new SliderSetting("Vertical speed", 0, 0, 5, 0.05));
+        this.registerSetting(horizonSpeed = new SliderSetting("Horizon speed", 3, 0, 10, 0.05));
+        this.registerSetting(verticalSpeed = new SliderSetting("Vertical speed", 0, 0, 10, 0.05));
         this.registerSetting(fov = new SliderSetting("FOV", 90.0D, 15.0D, 180.0D, 1.0D));
         this.registerSetting(distance = new SliderSetting("Distance", 4.5D, 1.0D, 10.0D, 0.5D));
         this.registerSetting(clickAim = new ButtonSetting("Click aim", true));
@@ -45,7 +46,7 @@ public class AimAssist extends Module {
         this.registerSetting(weaponOnly = new ButtonSetting("Weapon only", false));
         this.registerSetting(aimInvis = new ButtonSetting("Aim invis", false));
         this.registerSetting(blatantMode = new ButtonSetting("Blatant mode", false));
-        this.registerSetting(aimNearest = new ButtonSetting("Aim nearest", false));
+        this.registerSetting(aimNearest = new ButtonSetting("Aim nearest", true));
         this.registerSetting(ignoreTeammates = new ButtonSetting("Ignore teammates", false));
     }
 
@@ -61,7 +62,9 @@ public class AimAssist extends Module {
                 Utils.sendMessage(this.getName() + " &e" + target.getName());
             }
 
-            if (stopOnTarget.isToggled() && mc.objectMouseOver.entityHit == target) return;
+            if (stopOnTarget.isToggled() && (mc.objectMouseOver.entityHit == target
+                    || RotationUtils.rayCastIgnoreWall(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch, target))
+            ) return;
 
             if (blatantMode.isToggled()) {
                 final Vec3 pos = Utils.getEyePos(target);

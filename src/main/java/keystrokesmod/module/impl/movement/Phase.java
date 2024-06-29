@@ -4,9 +4,12 @@ import keystrokesmod.event.BlockAABBEvent;
 import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.event.ReceivePacketEvent;
 import keystrokesmod.module.Module;
+import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
+import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import net.minecraft.network.play.server.S02PacketChat;
+import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.jetbrains.annotations.NotNull;
@@ -14,53 +17,67 @@ import org.jetbrains.annotations.NotNull;
 import static keystrokesmod.module.ModuleManager.blink;
 
 public class Phase extends Module {
-    private final SliderSetting mode;
+    private final ModeSetting mode;
+    private final ButtonSetting autoBlink;
+    private final ButtonSetting cancelS08;
+    private final SliderSetting autoDisable;
+
+    private int phaseTime;
 
     // watchdog auto phase
-    private int phaseTime;
     private boolean phase;
 
     public Phase() {
         super("Phase", category.movement);
         this.registerSetting(new DescriptionSetting("Lets you go through solid blocks."));
-        this.registerSetting(mode = new SliderSetting("Mode", new String[]{"Watchdog Auto Phase"}, 0));
+        this.registerSetting(mode = new ModeSetting("Mode", new String[]{"Normal", "Watchdog Auto Phase"}, 0));
+        this.registerSetting(autoBlink = new ButtonSetting("Blink", true));
+        this.registerSetting(cancelS08 = new ButtonSetting("Cancel S06", false));
+        this.registerSetting(autoDisable = new SliderSetting("Auto disable", 6, 1, 20, 1, "ticks"));
     }
 
     @Override
     public void onEnable() {
-        phase = false;
         phaseTime = 0;
+        phase = false;
     }
 
     @Override
     public void onDisable() {
-        if ((int) mode.getInput() == 0) {
+        if (autoBlink.isToggled())
             blink.disable();
-        }
+
+        phaseTime = 0;
+        phase = false;
     }
 
     @SubscribeEvent
     public void onPreMotion(PreMotionEvent event) {
-        if ((int) mode.getInput() == 0) {
-            if (this.phase) {
-                this.phaseTime++;
-            } else {
-                this.phaseTime = 0;
-            }
+        if (this.phase) {
+            this.phaseTime++;
+        } else {
+            this.phaseTime = 0;
+        }
 
-            if (this.phase) {
-                blink.enable();
-            }
+        if (phaseTime > autoDisable.getInput())
+            disable();
+
+
+        switch ((int) mode.getInput()) {
+            case 0:
+                if (autoBlink.isToggled()) blink.enable();
+                phase = true;
+                break;
+            case 1:
+                if (this.phase && autoBlink.isToggled()) blink.enable();
+                break;
         }
     }
 
     @SubscribeEvent
     public void onBlockAABB(BlockAABBEvent event) {
-        if ((int) mode.getInput() == 0) {
-            if (this.phase && this.phaseTime <= 5) {
-                event.setBoundingBox(null);
-            }
-        }
+        if (this.phase)
+            event.setBoundingBox(null);
     }
 
     @SubscribeEvent
@@ -71,7 +88,13 @@ public class Phase extends Module {
 
     @SubscribeEvent
     public void onReceivePacket(@NotNull ReceivePacketEvent event) {
-        if ((int) mode.getInput() == 0) {
+        if (cancelS08.isToggled()) {
+            if (event.getPacket() instanceof S08PacketPlayerPosLook) {
+                event.setCanceled(true);
+            }
+        }
+
+        if ((int) mode.getInput() == 1) {
             if (event.getPacket() instanceof S02PacketChat) {
                 S02PacketChat packet = (S02PacketChat) event.getPacket();
                 String chat = packet.getChatComponent().getUnformattedText();
@@ -80,7 +103,7 @@ public class Phase extends Module {
                     this.phase = true;
                 } else if (chat.contains("FIGHT") && chat.contains("Cages")) {
                     this.phase = false;
-                    blink.disable();
+                    disable();
                 }
             }
         }

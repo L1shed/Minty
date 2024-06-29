@@ -3,30 +3,26 @@ package keystrokesmod.module.impl.player;
 import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.event.PreUpdateEvent;
 import keystrokesmod.event.SendPacketEvent;
-import keystrokesmod.mixins.impl.entity.MixinEntityPlayerSP;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
+import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.ContainerUtils;
 import keystrokesmod.utility.PacketUtils;
 import net.minecraft.item.ItemSword;
 import net.minecraft.network.Packet;
-import net.minecraft.network.play.client.C02PacketUseEntity;
 import net.minecraft.network.play.client.C03PacketPlayer;
-import net.minecraft.network.play.client.C0BPacketEntityAction;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Queue;
-
 import static keystrokesmod.module.ModuleManager.*;
 
 public class AntiVoid extends Module {
     private static final String[] MODES = new String[]{"Hypixel", "AirStuck", "Remiaft"};
-    private final SliderSetting mode;
+    private final ModeSetting mode;
     private final SliderSetting distance;
     private final ButtonSetting toggleScaffold;
 
@@ -45,7 +41,7 @@ public class AntiVoid extends Module {
     public AntiVoid() {
         super("AntiVoid", category.player);
         this.registerSetting(new DescriptionSetting("Prevent you from falling into the void."));
-        this.registerSetting(mode = new SliderSetting("Mode", MODES, 0));
+        this.registerSetting(mode = new ModeSetting("Mode", MODES, 0));
         this.registerSetting(distance = new SliderSetting("Distance", 5, 0, 10, 1));
         this.registerSetting(toggleScaffold = new ButtonSetting("Toggle scaffold", false));
     }

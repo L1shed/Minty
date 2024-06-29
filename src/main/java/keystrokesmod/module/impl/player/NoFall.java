@@ -5,6 +5,7 @@ import keystrokesmod.event.ReceivePacketEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.impl.other.anticheats.utils.world.PlayerMove;
 import keystrokesmod.module.setting.impl.ButtonSetting;
+import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.BlockUtils;
 import keystrokesmod.utility.Utils;
@@ -20,7 +21,7 @@ import static keystrokesmod.module.ModuleManager.blink;
 import static keystrokesmod.module.ModuleManager.scaffold;
 
 public class NoFall extends Module {
-    public final SliderSetting mode;
+    public final ModeSetting mode;
     private final SliderSetting minFallDistance;
     private final ButtonSetting ignoreVoid;
     private final String[] modes = new String[]{"Spoof", "Extra", "NoGround", "Blink", "Alan34"};
@@ -35,7 +36,7 @@ public class NoFall extends Module {
 
     public NoFall() {
         super("NoFall", category.player);
-        this.registerSetting(mode = new SliderSetting("Mode", modes, 0));
+        this.registerSetting(mode = new ModeSetting("Mode", modes, 0));
         this.registerSetting(minFallDistance = new SliderSetting("Minimum fall distance", 3.0, 0.0, 8.0, 0.1));
         this.registerSetting(ignoreVoid = new ButtonSetting("Ignore void", true));
     }

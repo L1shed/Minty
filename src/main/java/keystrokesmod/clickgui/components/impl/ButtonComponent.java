@@ -3,26 +3,29 @@ package keystrokesmod.clickgui.components.impl;
 import keystrokesmod.Raven;
 import keystrokesmod.clickgui.components.Component;
 import keystrokesmod.module.Module;
+import keystrokesmod.module.setting.Setting;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.utility.profile.ProfileModule;
 import net.minecraft.client.Minecraft;
+import org.jetbrains.annotations.Nullable;
 import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
 
 public class ButtonComponent extends Component {
-    private final int c = (new Color(20, 255, 0)).getRGB();
-    private Module mod;
-    private ButtonSetting buttonSetting;
-    private ModuleComponent p;
-    private int o;
-    private int x;
-    private int y;
+    private final Module mod;
+    private final ButtonSetting buttonSetting;
+
+    @Nullable
+    @Override
+    public Setting getSetting() {
+        return buttonSetting;
+    }
 
     public ButtonComponent(Module mod, ButtonSetting op, ModuleComponent b, int o) {
+        super(b);
         this.mod = mod;
         this.buttonSetting = op;
-        this.p = b;
         this.x = b.categoryComponent.getX() + b.categoryComponent.gw();
         this.y = b.categoryComponent.getY() + b.o;
         this.o = o;
@@ -70,7 +73,13 @@ public class ButtonComponent extends Component {
     public void render() {
         GL11.glPushMatrix();
         GL11.glScaled(0.5D, 0.5D, 0.5D);
-        Minecraft.getMinecraft().fontRendererObj.drawString((this.buttonSetting.isMethodButton ? "[=]  " : (this.buttonSetting.isToggled() ? "[+]  " : "[-]  ")) + this.buttonSetting.getName(), (float) ((this.p.categoryComponent.getX() + 4) * 2), (float) ((this.p.categoryComponent.getY() + this.o + 4) * 2), this.buttonSetting.isToggled() ? this.c : -1, false);
+        Minecraft.getMinecraft().fontRendererObj.drawString(
+                (this.buttonSetting.isMethodButton ? "[=]  " : (this.buttonSetting.isToggled() ? "[+]  " : "[-]  ")) + this.buttonSetting.getName(),
+                (float) ((this.parent.categoryComponent.getX() + 4) * 2),
+                (float) ((this.parent.categoryComponent.getY() + this.o + 4) * 2),
+                this.buttonSetting.isToggled() ? toggleColor : color,
+                false
+        );
         GL11.glPopMatrix();
     }
 
@@ -78,13 +87,13 @@ public class ButtonComponent extends Component {
         this.o = n;
     }
 
-    public void drawScreen(int x, int y) {
-        this.y = this.p.categoryComponent.getY() + this.o;
-        this.x = this.p.categoryComponent.getX();
+    public void onDrawScreen(int x, int y) {
+        this.y = this.parent.categoryComponent.getY() + this.o;
+        this.x = this.parent.categoryComponent.getX();
     }
 
     public void onClick(int x, int y, int b) {
-        if (this.i(x, y) && b == 0 && this.p.po) {
+        if (this.i(x, y) && b == 0 && this.parent.po) {
             if (this.buttonSetting.isMethodButton) {
                 this.buttonSetting.runMethod();
                 return;
@@ -98,6 +107,6 @@ public class ButtonComponent extends Component {
     }
 
     public boolean i(int x, int y) {
-        return x > this.x && x < this.x + this.p.categoryComponent.gw() && y > this.y && y < this.y + 11;
+        return x > this.x && x < this.x + this.parent.categoryComponent.gw() && y > this.y && y < this.y + 11;
     }
 }

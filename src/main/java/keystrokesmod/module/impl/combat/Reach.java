@@ -59,7 +59,7 @@ public class Reach extends Module {
             Object[] o = getEntity(r);
 
             if (o != null) {
-                if (!RotationUtils.rayCastIgnoreWall(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch, r, (EntityLivingBase) o[0]))
+                if (!RotationUtils.rayCastIgnoreWall(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch, (EntityLivingBase) o[0]))
                     return;
                 if (!hitThroughBlocks.isToggled() && RotationUtils.rayCast(r, mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch) != null)
                     return;

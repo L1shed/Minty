@@ -18,8 +18,8 @@ public class Vec2 {
     public static final Vec2 NEG_UNIT_Y = new Vec2(0.0f, -1.0f);
     public static final Vec2 MAX = new Vec2(Float.MAX_VALUE, Float.MAX_VALUE);
     public static final Vec2 MIN = new Vec2(Float.MIN_VALUE, Float.MIN_VALUE);
-    public final float x;
-    public final float y;
+    public float x;
+    public float y;
 
     public Vec2(float f, float g) {
         this.x = f;
@@ -40,6 +40,10 @@ public class Vec2 {
 
     public Vec2 add(float f) {
         return new Vec2(this.x + f, this.y + f);
+    }
+
+    public Vec2 add(float x, float y) {
+        return new Vec2(this.x + x, this.y + y);
     }
 
     public boolean equals(@NotNull Vec2 vec2) {

@@ -4,7 +4,7 @@ import keystrokesmod.module.Module;
 import keystrokesmod.module.impl.combat.KillAura;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
-import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.utility.render.RenderUtils;
 import keystrokesmod.utility.Theme;
 import keystrokesmod.utility.Timer;
@@ -19,7 +19,7 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import java.awt.*;
 
 public class TargetHUD extends Module {
-    private SliderSetting theme;
+    private ModeSetting theme;
     private ButtonSetting renderEsp;
     private ButtonSetting showStatus;
     private ButtonSetting healthColor;
@@ -34,7 +34,7 @@ public class TargetHUD extends Module {
     public TargetHUD() {
         super("TargetHUD", category.render);
         this.registerSetting(new DescriptionSetting("Only works with KillAura."));
-        this.registerSetting(theme = new SliderSetting("Theme", Theme.themes, 0));
+        this.registerSetting(theme = new ModeSetting("Theme", Theme.themes, 0));
         this.registerSetting(renderEsp = new ButtonSetting("Render ESP", true));
         this.registerSetting(showStatus = new ButtonSetting("Show win or loss", true));
         this.registerSetting(healthColor = new ButtonSetting("Traditional health color", false));

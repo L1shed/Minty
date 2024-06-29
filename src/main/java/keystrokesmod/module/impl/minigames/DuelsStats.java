@@ -3,7 +3,7 @@ package keystrokesmod.module.impl.minigames;
 import keystrokesmod.Raven;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ButtonSetting;
-import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.utility.ProfileUtils;
 import keystrokesmod.utility.URLUtils;
 import keystrokesmod.utility.Utils;
@@ -16,18 +16,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DuelsStats extends Module {
-    public static SliderSetting mode;
+    public static ModeSetting mode;
     public static ButtonSetting a;
     public static ButtonSetting threatLevel;
     public static String nick = "";
     private String ign = "";
     private String en = "";
     private static final String[] thr_lvl;
-    private List<String> q = new ArrayList();
+    private List<String> q = new ArrayList<>();
 
     public DuelsStats() {
         super("Duels Stats", Module.category.minigames, 0);
-        this.registerSetting(mode = new SliderSetting("Mode", thr_lvl, 0));
+        this.registerSetting(mode = new ModeSetting("Mode", thr_lvl, 0));
         this.registerSetting(a = new ButtonSetting("Send ign on join", false));
         this.registerSetting(threatLevel = new ButtonSetting("Threat Level", true));
     }

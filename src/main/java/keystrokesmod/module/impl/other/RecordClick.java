@@ -4,7 +4,7 @@ import com.google.gson.*;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
-import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.utility.Utils;
 import keystrokesmod.utility.clicks.Pattern;
 import org.jetbrains.annotations.NotNull;
@@ -19,7 +19,7 @@ public final class RecordClick extends Module {
     public static List<Pattern> LOADED_PATTERNS = new ArrayList<>(Collections.singletonList(Pattern.DEFAULT));
     public static String[] LOADED_PATTERNS_NAMES = new String[]{Pattern.DEFAULT.getName()};
 
-    private static SliderSetting currentPattern;
+    private static ModeSetting currentPattern;
     private int lastPattern = 0;
 
     private static Pattern pattern = Pattern.DEFAULT;
@@ -30,7 +30,7 @@ public final class RecordClick extends Module {
         super("RecordClick", category.other);
         this.registerSetting(new DescriptionSetting("Manage click patterns."));
         this.registerSetting(new ButtonSetting("Load patterns", RecordClick::loadPatterns));
-        this.registerSetting(currentPattern = new SliderSetting("Pattern", LOADED_PATTERNS_NAMES, 0));
+        this.registerSetting(currentPattern = new ModeSetting("Pattern", LOADED_PATTERNS_NAMES, 0));
         this.canBeEnabled = false;
 
         directory = new File(mc.mcDataDir + File.separator + "keystrokes", "clickPatterns");

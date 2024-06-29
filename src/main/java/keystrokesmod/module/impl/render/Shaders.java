@@ -1,14 +1,14 @@
 package keystrokesmod.module.impl.render;
 
 import keystrokesmod.module.Module;
-import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.utility.Reflection;
 import keystrokesmod.utility.Utils;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.util.ResourceLocation;
 
 public class Shaders extends Module {
-    private SliderSetting shader;
+    private ModeSetting shader;
     private String[] shaderNames;
     private ResourceLocation[] shaderLocations;
     public Shaders() {
@@ -24,7 +24,7 @@ public class Shaders extends Module {
             ex.printStackTrace();
             return;
         }
-        this.registerSetting(shader = new SliderSetting("Shader", shaderNames, 0));
+        this.registerSetting(shader = new ModeSetting("Shader", shaderNames, 0));
     }
 
     public void onUpdate() {

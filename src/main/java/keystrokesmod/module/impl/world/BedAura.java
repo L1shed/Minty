@@ -10,6 +10,7 @@ import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.minigames.BedWars;
 import keystrokesmod.module.impl.render.HUD;
 import keystrokesmod.module.setting.impl.ButtonSetting;
+import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.script.classes.Vec3;
 import keystrokesmod.utility.*;
@@ -40,7 +41,7 @@ import java.util.List;
 import java.util.Map;
 
 public class BedAura extends Module {
-    public SliderSetting mode;
+    public ModeSetting mode;
     private final SliderSetting breakSpeed;
     private final SliderSetting fov;
     private final SliderSetting range;
@@ -74,7 +75,7 @@ public class BedAura extends Module {
 
     public BedAura() {
         super("BedAura", category.world, 0);
-        this.registerSetting(mode = new SliderSetting("Break mode", modes, 0));
+        this.registerSetting(mode = new ModeSetting("Break mode", modes, 0));
         this.registerSetting(breakSpeed = new SliderSetting("Break speed", 1, 0.8, 2, 0.01, "x"));
         this.registerSetting(fov = new SliderSetting("FOV", 360.0, 30.0, 360.0, 4.0));
         this.registerSetting(range = new SliderSetting("Range", 4.5, 1.0, 8.0, 0.5));

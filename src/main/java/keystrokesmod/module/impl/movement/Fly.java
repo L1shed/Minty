@@ -2,6 +2,7 @@ package keystrokesmod.module.impl.movement;
 
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ButtonSetting;
+import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.render.RenderUtils;
 import keystrokesmod.utility.Utils;
@@ -10,7 +11,7 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.apache.commons.lang3.RandomUtils;
 
 public class Fly extends Module {
-    private SliderSetting mode;
+    private ModeSetting mode;
     public static SliderSetting horizontalSpeed;
     private SliderSetting verticalSpeed;
     private ButtonSetting showBPS;
@@ -21,7 +22,7 @@ public class Fly extends Module {
 
     public Fly() {
         super("Fly", category.movement);
-        this.registerSetting(mode = new SliderSetting("Fly", modes, 0));
+        this.registerSetting(mode = new ModeSetting("Fly", modes, 0));
         this.registerSetting(horizontalSpeed = new SliderSetting("Horizontal speed", 2.0, 1.0, 9.0, 0.1));
         this.registerSetting(verticalSpeed = new SliderSetting("Vertical speed", 2.0, 1.0, 9.0, 0.1));
         this.registerSetting(showBPS = new ButtonSetting("Show BPS", false));

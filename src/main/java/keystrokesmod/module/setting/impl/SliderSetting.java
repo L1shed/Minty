@@ -2,12 +2,14 @@ package keystrokesmod.module.setting.impl;
 
 import com.google.gson.JsonObject;
 import keystrokesmod.module.setting.Setting;
+import keystrokesmod.module.setting.interfaces.InputSetting;
 import org.jetbrains.annotations.NotNull;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.function.Supplier;
 
-public class SliderSetting extends Setting {
+public class SliderSetting extends Setting implements InputSetting {
     private final String settingName;
     private String[] options = null;
     private double defaultValue;
@@ -18,17 +20,21 @@ public class SliderSetting extends Setting {
     private String settingInfo = "";
 
     public SliderSetting(String settingName, double defaultValue, double min, double max, double intervals) {
-        super(settingName);
-        this.settingName = settingName;
-        this.defaultValue = defaultValue;
-        this.min = min;
-        this.max = max;
-        this.intervals = intervals;
-        this.isString = false;
+        this(settingName, defaultValue, min, max, intervals, "");
     }
 
     public SliderSetting(String settingName, double defaultValue, double min, double max, double intervals, String settingInfo) {
-        super(settingName);
+        this(settingName, defaultValue, min, max, intervals, settingInfo, () -> true);
+    }
+
+    public SliderSetting(String settingName, double defaultValue, double min, double max, double intervals,
+                         Supplier<Boolean> visibleCheck) {
+        this(settingName, defaultValue, min, max, intervals, "", visibleCheck);
+    }
+
+    public SliderSetting(String settingName, double defaultValue, double min, double max, double intervals, String settingInfo,
+                         Supplier<Boolean> visibleCheck) {
+        super(settingName, visibleCheck);
         this.settingName = settingName;
         this.defaultValue = defaultValue;
         this.min = min;
@@ -38,8 +44,14 @@ public class SliderSetting extends Setting {
         this.settingInfo = settingInfo;
     }
 
+    @Deprecated
     public SliderSetting(String settingName, String[] options, double defaultValue) {
-        super(settingName);
+        this(settingName, options, defaultValue, () -> true);
+    }
+
+    @Deprecated
+    public SliderSetting(String settingName, String @NotNull [] options, double defaultValue, Supplier<Boolean> visibleCheck) {
+        super(settingName, visibleCheck);
         this.settingName = settingName;
         this.options = options;
         this.defaultValue = defaultValue;
@@ -62,10 +74,12 @@ public class SliderSetting extends Setting {
         this.max = options.length - 1;
     }
 
+    @Override
     public String getName() {
         return this.settingName;
     }
 
+    @Override
     public double getInput() {
         return roundToInterval(this.defaultValue, 2);
     }

@@ -3,8 +3,6 @@ package keystrokesmod.utility;
 import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.module.impl.client.Settings;
 import keystrokesmod.module.impl.other.anticheats.utils.world.PlayerRotation;
-import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -153,9 +151,10 @@ public class RotationUtils {
         return mc.theWorld.rayTraceBlocks(getPositionEyes, getPositionEyes.addVector(vec3.xCoord * distance, vec3.yCoord * distance, vec3.zCoord * distance), false, false, false);
     }
     
-    public static boolean rayCastIgnoreWall(final float yaw, final float pitch, final double distance, @NotNull EntityLivingBase target) {
+    public static boolean rayCastIgnoreWall(float yaw, float pitch, @NotNull EntityLivingBase target) {
+        yaw = toPositive(yaw);
+
         AxisAlignedBB targetBox = target.getEntityBoundingBox();
-        keystrokesmod.script.classes.Vec3 fromPos = new keystrokesmod.script.classes.Vec3(mc.thePlayer).add(0, mc.thePlayer.getEyeHeight(), 0);
 
         float minYaw = Float.MAX_VALUE;
         float maxYaw = Float.MIN_VALUE;
@@ -166,9 +165,8 @@ public class RotationUtils {
             for (double y : new double[]{targetBox.minY, targetBox.maxY}) {
                 for (double z : new double[]{targetBox.minZ, targetBox.maxZ}) {
                     final keystrokesmod.script.classes.Vec3 hitPos = new keystrokesmod.script.classes.Vec3(x, y, z);
-                    if (hitPos.distanceTo(fromPos) > distance) continue;
 
-                    final float yaw1 = PlayerRotation.getYaw(hitPos);
+                    final float yaw1 = toPositive(PlayerRotation.getYaw(hitPos));
                     final float pitch1 = PlayerRotation.getPitch(hitPos);
 
                     if (minYaw > yaw1) minYaw = yaw1;
@@ -180,6 +178,12 @@ public class RotationUtils {
         }
 
         return yaw >= minYaw && yaw <= maxYaw && pitch >= minPitch && pitch <= maxPitch;
+    }
+
+    public static float toPositive(float yaw) {
+        if (yaw > 0) return yaw;
+
+        return 360 + (yaw % 360);
     }
 
     @Contract("_, _ -> new")

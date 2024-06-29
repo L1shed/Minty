@@ -4,6 +4,7 @@ import keystrokesmod.event.PreUpdateEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
+import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -16,7 +17,7 @@ import static keystrokesmod.module.ModuleManager.hitSelect;
 
 public class HitSelect extends Module {
     private static final String[] MODES = new String[]{"Pause", "Active"};
-    private final SliderSetting mode;
+    private final ModeSetting mode;
     private final SliderSetting delay;
     private final SliderSetting chance;
     private final ButtonSetting smart;
@@ -27,7 +28,7 @@ public class HitSelect extends Module {
     public HitSelect() {
         super("HitSelect", category.combat);
         this.registerSetting(new DescriptionSetting("chooses the best time to hit."));
-        this.registerSetting(mode = new SliderSetting("Mode", MODES, 0));
+        this.registerSetting(mode = new ModeSetting("Mode", MODES, 0));
         this.registerSetting(delay = new SliderSetting("Delay", 420, 400, 500, 1));
         this.registerSetting(chance = new SliderSetting("Chance", 80, 0, 100, 1));
         this.registerSetting(smart = new ButtonSetting("Smart", true));

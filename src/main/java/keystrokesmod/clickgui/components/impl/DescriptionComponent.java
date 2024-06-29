@@ -9,15 +9,11 @@ import org.lwjgl.opengl.GL11;
 import java.awt.*;
 
 public class DescriptionComponent extends Component {
-    private DescriptionSetting desc;
-    private ModuleComponent p;
-    private int o;
-    private int x;
-    private int y;
+    private final DescriptionSetting desc;
 
     public DescriptionComponent(DescriptionSetting desc, ModuleComponent b, int o) {
+        super(b);
         this.desc = desc;
-        this.p = b;
         this.x = b.categoryComponent.getX() + b.categoryComponent.gw();
         this.y = b.categoryComponent.getY() + b.o;
         this.o = o;
@@ -26,7 +22,7 @@ public class DescriptionComponent extends Component {
     public void render() {
         GL11.glPushMatrix();
         GL11.glScaled(0.5D, 0.5D, 0.5D);
-        Minecraft.getMinecraft().fontRendererObj.drawString(this.desc.getDesc(), (float) ((this.p.categoryComponent.getX() + 4) * 2), (float) ((this.p.categoryComponent.getY() + this.o + 4) * 2), Theme.getGradient(10, 0), true);
+        Minecraft.getMinecraft().fontRendererObj.drawString(this.desc.getDesc(), (float) ((this.parent.categoryComponent.getX() + 4) * 2), (float) ((this.parent.categoryComponent.getY() + this.o + 4) * 2), Theme.getGradient(10, 0), true);
         GL11.glPopMatrix();
     }
 

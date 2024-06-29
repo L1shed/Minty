@@ -2,6 +2,7 @@ package keystrokesmod.module.impl.minigames;
 
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
+import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.Utils;
 import net.minecraft.block.state.IBlockState;
@@ -19,7 +20,7 @@ import java.util.TimerTask;
 
 public class SumoFences extends Module {
     public static SliderSetting fenceHeight;
-    public SliderSetting blockType;
+    public ModeSetting blockType;
     private java.util.Timer t;
     private final List<String> maps = Arrays.asList("Sumo", "Space Mine", "White Crystal", "Fort");
     private IBlockState f;
@@ -31,7 +32,7 @@ public class SumoFences extends Module {
         this.f = Blocks.oak_fence.getDefaultState();
         this.registerSetting(new DescriptionSetting("Fences for Hypixel sumo."));
         this.registerSetting(fenceHeight = new SliderSetting("Fence height", 4.0D, 1.0D, 6.0D, 1.0D));
-        this.registerSetting(blockType = new SliderSetting("Block type", mode, 0));
+        this.registerSetting(blockType = new ModeSetting("Block type", mode, 0));
     }
 
     public void onEnable() {

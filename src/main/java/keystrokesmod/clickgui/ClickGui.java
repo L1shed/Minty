@@ -2,6 +2,7 @@ package keystrokesmod.clickgui;
 
 import keystrokesmod.Raven;
 import keystrokesmod.clickgui.components.Component;
+import keystrokesmod.clickgui.components.IComponent;
 import keystrokesmod.clickgui.components.impl.BindComponent;
 import keystrokesmod.clickgui.components.impl.CategoryComponent;
 import keystrokesmod.clickgui.components.impl.ModuleComponent;
@@ -101,7 +102,7 @@ public class ClickGui extends GuiScreen {
             c.rf(this.fontRendererObj);
             c.up(x, y);
 
-            for (Component m : c.getModules()) {
+            for (IComponent m : c.getModules()) {
                 m.drawScreen(x, y);
             }
         }
@@ -182,7 +183,7 @@ public class ClickGui extends GuiScreen {
                 } while (!category.fv());
             } while (category.getModules().isEmpty());
 
-            for (Component c : category.getModules()) {
+            for (IComponent c : category.getModules()) {
                 c.onClick(x, y, m);
             }
         }
@@ -193,7 +194,7 @@ public class ClickGui extends GuiScreen {
             for (CategoryComponent category : categories.values()) {
                 category.d(false);
                 if (category.fv() && !category.getModules().isEmpty()) {
-                    for (Component module : category.getModules()) {
+                    for (IComponent module : category.getModules()) {
                         module.mouseReleased(x, y, s);
                     }
                 }
@@ -208,7 +209,7 @@ public class ClickGui extends GuiScreen {
         } else {
             for (CategoryComponent category : categories.values()) {
                 if (category.fv() && !category.getModules().isEmpty()) {
-                    for (Component module : category.getModules()) {
+                    for (IComponent module : category.getModules()) {
                         module.keyTyped(t, k);
                     }
                 }
@@ -240,7 +241,7 @@ public class ClickGui extends GuiScreen {
         }
         for (CategoryComponent c : categories.values()) {
             c.dragging = false;
-            for (Component m : c.getModules()) {
+            for (IComponent m : c.getModules()) {
                 m.onGuiClosed();
             }
         }

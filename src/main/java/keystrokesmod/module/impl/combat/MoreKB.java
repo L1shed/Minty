@@ -5,6 +5,7 @@ import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.impl.world.AntiBot;
 import keystrokesmod.module.setting.impl.ButtonSetting;
+import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.Utils;
 import net.minecraft.client.settings.KeyBinding;
@@ -19,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 
 public class MoreKB extends Module {
     private final String[] MODES = new String[]{"Legit", "Silent"};
-    private final SliderSetting mode;
+    private final ModeSetting mode;
     private final SliderSetting chance;
     private final SliderSetting delay;
     private final SliderSetting rePressDelay;
@@ -33,7 +34,7 @@ public class MoreKB extends Module {
 
     public MoreKB() {
         super("MoreKB", category.combat);
-        this.registerSetting(mode = new SliderSetting("Mode", MODES, 0));
+        this.registerSetting(mode = new ModeSetting("Mode", MODES, 0));
         this.registerSetting(chance = new SliderSetting("Chance", 100, 0, 100, 1, "%"));
         this.registerSetting(delay = new SliderSetting("Delay", 500, 200, 750, 1, "ms"));
         this.registerSetting(rePressDelay = new SliderSetting("Re-press delay", 100, 1, 500, 1, "ms"));

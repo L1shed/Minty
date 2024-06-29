@@ -5,7 +5,9 @@ import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.other.RecordClick;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
+import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.module.setting.utils.ModeOnly;
 import keystrokesmod.utility.Reflection;
 import keystrokesmod.utility.Utils;
 import net.minecraft.block.Block;
@@ -29,7 +31,7 @@ import java.lang.reflect.Method;
 import java.util.Random;
 
 public class AutoClicker extends Module {
-    public SliderSetting mode;
+    public ModeSetting mode;
     public SliderSetting minCPS;
     public SliderSetting maxCPS;
     public SliderSetting jitter;
@@ -53,9 +55,10 @@ public class AutoClicker extends Module {
     public AutoClicker() {
         super("AutoClicker", Module.category.combat, 0);
         this.registerSetting(new DescriptionSetting("Best with delay remover."));
-        this.registerSetting(mode = new SliderSetting("Mode", new String[]{"CPS", "Record"}, 0));
-        this.registerSetting(minCPS = new SliderSetting("Min CPS", 9.0, 1.0, 20.0, 0.5));
-        this.registerSetting(maxCPS = new SliderSetting("Max CPS", 12.0, 1.0, 20.0, 0.5));
+        this.registerSetting(mode = new ModeSetting("Mode", new String[]{"CPS", "Record"}, 0));
+        final ModeOnly mode0 = new ModeOnly(mode, 0);
+        this.registerSetting(minCPS = new SliderSetting("Min CPS", 9.0, 1.0, 20.0, 0.5, mode0));
+        this.registerSetting(maxCPS = new SliderSetting("Max CPS", 12.0, 1.0, 20.0, 0.5, mode0));
         this.registerSetting(jitter = new SliderSetting("Jitter", 0.0, 0.0, 3.0, 0.1));
         this.registerSetting(blockHitChance = new SliderSetting("Block hit chance", 0.0, 0.0, 100.0, 1.0, "%"));
         this.registerSetting(leftClick = new ButtonSetting("Left click", true));

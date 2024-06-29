@@ -2,6 +2,7 @@ package keystrokesmod.module.impl.render;
 
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ButtonSetting;
+import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.BlockUtils;
 import keystrokesmod.utility.render.RenderUtils;
@@ -24,7 +25,7 @@ import java.util.Iterator;
 import java.util.List;
 
 public class BedESP extends Module {
-    public SliderSetting theme;
+    public ModeSetting theme;
     private SliderSetting range;
     private SliderSetting rate;
     private ButtonSetting firstBed;
@@ -34,7 +35,7 @@ public class BedESP extends Module {
 
     public BedESP() {
         super("BedESP", category.render);
-        this.registerSetting(theme = new SliderSetting("Theme", Theme.themes, 0));
+        this.registerSetting(theme = new ModeSetting("Theme", Theme.themes, 0));
         this.registerSetting(range = new SliderSetting("Range", 10.0, 2.0, 30.0, 1.0));
         this.registerSetting(rate = new SliderSetting("Rate", 0.4, 0.1, 3.0, 0.1, " second"));
         this.registerSetting(firstBed = new ButtonSetting("Only render first bed", false));

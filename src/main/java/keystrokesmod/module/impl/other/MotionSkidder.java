@@ -7,7 +7,7 @@ import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.other.anticheats.utils.phys.Vec2;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
-import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.script.classes.Vec3;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.network.play.client.C01PacketChatMessage;
@@ -18,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 public class MotionSkidder extends Module {
-    private final SliderSetting mode;
+    private final ModeSetting mode;
     private final ButtonSetting includeRotation;
     private final ButtonSetting waitForDamage;
     private final ButtonSetting stopAtOnGround;
@@ -27,7 +27,7 @@ public class MotionSkidder extends Module {
     public MotionSkidder() {
         super("MotionSkidder", category.other);
         this.registerSetting(new DescriptionSetting("Tries to skid other's motion."));
-        this.registerSetting(mode = new SliderSetting("Mode", new String[]{"Motion", "Position"}, 1));
+        this.registerSetting(mode = new ModeSetting("Mode", new String[]{"Motion", "Position"}, 1));
         this.registerSetting(includeRotation = new ButtonSetting("Include rotation", true));
         this.registerSetting(waitForDamage = new ButtonSetting("Wait for damage", true));
         this.registerSetting(stopAtOnGround = new ButtonSetting("Stop at onGround", true));

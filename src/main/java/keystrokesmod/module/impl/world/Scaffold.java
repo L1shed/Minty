@@ -2,11 +2,11 @@ package keystrokesmod.module.impl.world;
 
 import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.event.PreUpdateEvent;
-import keystrokesmod.mixins.impl.client.KeyBindingAccessor;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.impl.player.InvManager;
 import keystrokesmod.module.impl.render.HUD;
 import keystrokesmod.module.setting.impl.ButtonSetting;
+import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import static keystrokesmod.script.ScriptDefaults.client;
 import keystrokesmod.utility.*;
@@ -32,8 +32,8 @@ import java.util.Map;
 
 public class Scaffold extends Module { // from b4 :)
     private final SliderSetting motion;
-    private final SliderSetting rotation;
-    private final SliderSetting fastScaffold;
+    private final ModeSetting rotation;
+    private final ModeSetting fastScaffold;
     private final ButtonSetting autoSwap;
     private final ButtonSetting fastOnRMB;
     private final ButtonSetting highlightBlocks;
@@ -61,9 +61,9 @@ public class Scaffold extends Module { // from b4 :)
         super("Scaffold", category.world);
         this.registerSetting(motion = new SliderSetting("Motion", 0.95, 0.5, 1.2, 0.01));
         String[] rotationModes = new String[]{"None", "Backwards", "Strict", "Raytrace"};
-        this.registerSetting(rotation = new SliderSetting("Rotation", rotationModes, 1));
+        this.registerSetting(rotation = new ModeSetting("Rotation", rotationModes, 1));
         String[] fastScaffoldModes = new String[]{"Disabled", "Sprint", "Edge", "Jump", "Float"};
-        this.registerSetting(fastScaffold = new SliderSetting("Fast scaffold", fastScaffoldModes, 0));
+        this.registerSetting(fastScaffold = new ModeSetting("Fast scaffold", fastScaffoldModes, 0));
         //this.registerSetting(delayOnJump = new ButtonSetting("Delay on jump", true));
         this.registerSetting(autoSwap = new ButtonSetting("AutoSwap", true));
         this.registerSetting(fastOnRMB = new ButtonSetting("Fast on RMB", false));

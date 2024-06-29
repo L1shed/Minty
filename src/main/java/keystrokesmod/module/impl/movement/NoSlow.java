@@ -6,6 +6,7 @@ import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
+import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.Utils;
 import net.minecraft.item.ItemBow;
@@ -16,7 +17,7 @@ import net.minecraft.util.BlockPos;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 public class NoSlow extends Module {
-    public static SliderSetting mode;
+    public static ModeSetting mode;
     public static SliderSetting slowed;
     public static ButtonSetting disableBow;
     public static ButtonSetting disableSword;
@@ -29,7 +30,7 @@ public class NoSlow extends Module {
     public NoSlow() {
         super("NoSlow", Module.category.movement, 0);
         this.registerSetting(new DescriptionSetting("Default is 80% motion reduction."));
-        this.registerSetting(mode = new SliderSetting("Mode", modes, 0));
+        this.registerSetting(mode = new ModeSetting("Mode", modes, 0));
         this.registerSetting(slowed = new SliderSetting("Slow %", 80.0D, 0.0D, 80.0D, 1.0D));
         this.registerSetting(disableSword = new ButtonSetting("Disable sword", false));
         this.registerSetting(disableBow = new ButtonSetting("Disable bow", false));

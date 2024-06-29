@@ -7,7 +7,9 @@ import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.world.AntiBot;
 import keystrokesmod.module.setting.impl.ButtonSetting;
+import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.module.setting.utils.ModeOnly;
 import keystrokesmod.script.classes.Vec3;
 import keystrokesmod.utility.*;
 import net.minecraft.client.settings.KeyBinding;
@@ -35,16 +37,16 @@ import static net.minecraft.util.EnumFacing.DOWN;
 public class KillAura extends Module {
     public static EntityLivingBase target;
     private final SliderSetting aps;
-    public SliderSetting autoBlockMode;
+    public ModeSetting autoBlockMode;
     private final SliderSetting fov;
     private final SliderSetting attackRange;
     private final SliderSetting swingRange;
     private final SliderSetting blockRange;
-    private final SliderSetting rotationMode;
-    private final SliderSetting rotationTarget;
-    private final SliderSetting rotationSimulator;
+    private final ModeSetting rotationMode;
+    private final ModeSetting rotationTarget;
+    private final ModeSetting rotationSimulator;
     private final SliderSetting rotationSpeed;
-    private final SliderSetting sortMode;
+    private final ModeSetting sortMode;
     private final SliderSetting switchDelay;
     private final SliderSetting targets;
     private final ButtonSetting targetInvisible;
@@ -90,21 +92,22 @@ public class KillAura extends Module {
         super("KillAura", category.combat);
         this.registerSetting(aps = new SliderSetting("APS", 16.0, 1.0, 20.0, 0.5));
         String[] autoBlockModes = new String[]{"Manual", "Vanilla", "Post", "Swap", "Interact", "Fake", "Partial", "Watchdog 1.12.2"};
-        this.registerSetting(autoBlockMode = new SliderSetting("Autoblock", autoBlockModes, 0));
+        this.registerSetting(autoBlockMode = new ModeSetting("Autoblock", autoBlockModes, 0));
         this.registerSetting(fov = new SliderSetting("FOV", 360.0, 30.0, 360.0, 4.0));
         this.registerSetting(attackRange = new SliderSetting("Attack range", 3.3, 3.0, 6.0, 0.1));
         this.registerSetting(swingRange = new SliderSetting("Swing range", 3.3, 3.0, 8.0, 0.1));
         this.registerSetting(blockRange = new SliderSetting("Block range", 6.0, 3.0, 12.0, 0.1));
-        this.registerSetting(rotationMode = new SliderSetting("Rotation mode", rotationModes, 0));
+        this.registerSetting(rotationMode = new ModeSetting("Rotation mode", rotationModes, 0));
+        final ModeOnly doRotation = new ModeOnly(rotationMode, 1, 2);
         String[] rotationTargets = new String[]{"Head", "Nearest", "Constant"};
-        this.registerSetting(rotationTarget = new SliderSetting("Rotation target", rotationTargets, 0));
+        this.registerSetting(rotationTarget = new ModeSetting("Rotation target", rotationTargets, 0, doRotation));
         String[] rotationSimulators = new String[]{"None", "Lazy", "Noise"};
-        this.registerSetting(rotationSimulator = new SliderSetting("Rotation simulator", rotationSimulators, 0));
-        this.registerSetting(rotationSpeed = new SliderSetting("Rotation speed", 5, 0, 5, 0.05));
+        this.registerSetting(rotationSimulator = new ModeSetting("Rotation simulator", rotationSimulators, 0, doRotation));
+        this.registerSetting(rotationSpeed = new SliderSetting("Rotation speed", 5, 0, 5, 0.05, doRotation));
         String[] sortModes = new String[]{"Health", "HurtTime", "Distance", "Yaw"};
-        this.registerSetting(sortMode = new SliderSetting("Sort mode", sortModes, 0.0));
-        this.registerSetting(switchDelay = new SliderSetting("Switch delay", 200.0, 50.0, 1000.0, 25.0, "ms"));
+        this.registerSetting(sortMode = new ModeSetting("Sort mode", sortModes, 0));
         this.registerSetting(targets = new SliderSetting("Targets", 3.0, 1.0, 10.0, 1.0));
+        this.registerSetting(switchDelay = new SliderSetting("Switch delay", 200.0, 50.0, 1000.0, 25.0, "ms", () -> targets.getInput() > 1));
         this.registerSetting(targetInvisible = new ButtonSetting("Target invisible", true));
         this.registerSetting(targetPlayer = new ButtonSetting("Target player", true));
         this.registerSetting(targetEntity = new ButtonSetting("Target entity", false));
@@ -134,7 +137,7 @@ public class KillAura extends Module {
         resetVariables();
     }
 
-    private float @NotNull [] getRotations() {
+    private float[] getRotations() {
         boolean nearest = false, lazy = false, noise = false;
 
         switch ((int) rotationTarget.getInput()) {
@@ -143,7 +146,7 @@ public class KillAura extends Module {
                 break;
             case 2:
                 nearest = true;
-                if (RotationUtils.rayCastIgnoreWall(rotations[0], rotations[1], swingRange.getInput(), target))
+                if (RotationUtils.rayCastIgnoreWall(rotations[0], rotations[1], target))
                     return rotations;
                 break;
         }
@@ -459,6 +462,9 @@ public class KillAura extends Module {
             }
         }
         blocking = Reflection.setBlocking(state);
+        if (!state) {
+            mc.thePlayer.stopUsingItem();
+        }
     }
 
     private void setTarget(float[] rotations) {

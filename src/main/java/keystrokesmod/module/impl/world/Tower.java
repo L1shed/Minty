@@ -8,7 +8,9 @@ import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.other.anticheats.utils.world.BlockUtils;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
+import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.module.setting.utils.ModeOnly;
 import keystrokesmod.utility.Reflection;
 import keystrokesmod.utility.Utils;
 import net.minecraft.util.BlockPos;
@@ -23,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 import static keystrokesmod.module.ModuleManager.scaffold;
 
 public class Tower extends Module {
-    private final SliderSetting mode;
+    private final ModeSetting mode;
     private final SliderSetting speed;
     private final SliderSetting diagonalSpeed;
     private final SliderSetting slowedSpeed;
@@ -45,20 +47,22 @@ public class Tower extends Module {
         super("Tower", category.world);
         this.registerSetting(new DescriptionSetting("Works with SafeWalk & Scaffold"));
         String[] modes = new String[]{"Vanilla", "Hypixel"};
-        this.registerSetting(mode = new SliderSetting("Mode", modes, 0));
+        this.registerSetting(mode = new ModeSetting("Mode", modes, 0));
+        final ModeOnly mode0 = new ModeOnly(mode, 0);
+        final ModeOnly mode1 = new ModeOnly(mode, 1);
         this.registerSetting(speed = new SliderSetting("Speed", 0.95, 0.5, 1, 0.01));
-        this.registerSetting(diagonalSpeed = new SliderSetting("Diagonal speed", 5, 0, 10, 0.1));
-        this.registerSetting(slowedSpeed = new SliderSetting("Slowed speed", 2, 0, 9, 0.1));
-        this.registerSetting(slowedTicks = new SliderSetting("Slowed ticks", 1, 0, 20, 1));
+        this.registerSetting(diagonalSpeed = new SliderSetting("Diagonal speed", 5, 0, 10, 0.1, mode0));
+        this.registerSetting(slowedSpeed = new SliderSetting("Slowed speed", 2, 0, 9, 0.1, mode0));
+        this.registerSetting(slowedTicks = new SliderSetting("Slowed ticks", 1, 0, 20, 1, mode0));
+        this.registerSetting(hypixelOffGroundSpeed = new SliderSetting("Hypixel off ground speed", 0.5, 0.0, 1.0, 0.01, mode1));
+        this.registerSetting(hypixelNoStrafe = new ButtonSetting("Hypixel no strafe", false, mode1));
+        this.registerSetting(hypixelLowHop = new ButtonSetting("Hypixel low hop", false, mode1));
+        this.registerSetting(hypixelTowerTest = new ButtonSetting("Hypixel tower test", false, mode1));
+        this.registerSetting(hypixelJumpMotion = new SliderSetting("Hypixel tower motion", 0.4, 0.2, 0.8, 0.01, () -> hypixelTowerTest.isToggled() && mode1.get()));
+        this.registerSetting(hypixelTowerDelay = new SliderSetting("Hypixel tower delay", 100, 0, 1000, 10, "ms", () -> hypixelTowerTest.isToggled() && mode1.get()));
         this.registerSetting(disableWhileCollided = new ButtonSetting("Disable while collided", false));
         this.registerSetting(disableWhileHurt = new ButtonSetting("Disable while hurt", false));
         this.registerSetting(sprintJumpForward = new ButtonSetting("Sprint jump forward", true));
-        this.registerSetting(hypixelOffGroundSpeed = new SliderSetting("Hypixel off ground speed", 0.5, 0.0, 1.0, 0.01));
-        this.registerSetting(hypixelNoStrafe = new ButtonSetting("Hypixel no strafe", false));
-        this.registerSetting(hypixelLowHop = new ButtonSetting("Hypixel low hop", false));
-        this.registerSetting(hypixelTowerTest = new ButtonSetting("Hypixel tower test", false));
-        this.registerSetting(hypixelJumpMotion = new SliderSetting("Hypixel tower motion", 0.4, 0.2, 0.8, 0.01));
-        this.registerSetting(hypixelTowerDelay = new SliderSetting("Hypixel tower delay", 100, 0, 1000, 10, "ms"));
         this.canBeEnabled = false;
     }
 

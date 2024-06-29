@@ -5,6 +5,7 @@ import keystrokesmod.event.ReceivePacketEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
+import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.Utils;
 import net.minecraft.network.play.server.S02PacketChat;
@@ -14,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.concurrent.TimeUnit;
 
 public class AutoPlay extends Module {
-    private final SliderSetting mode;
+    private final ModeSetting mode;
     private final SliderSetting delay;
     private static final String winMessage = "You won! Want to play again? Click here!";
     private static final String loseMessage = "You died! Want to play again? Click here!";
@@ -22,7 +23,7 @@ public class AutoPlay extends Module {
     public AutoPlay() {
         super("AutoPlay", category.other);
         this.registerSetting(new DescriptionSetting("Auto take you to next game."));
-        this.registerSetting(mode = new SliderSetting("Mode", new String[]{"Solo Normal", "Solo Insane"}, 0));
+        this.registerSetting(mode = new ModeSetting("Mode", new String[]{"Solo Normal", "Solo Insane"}, 0));
         this.registerSetting(delay = new SliderSetting("Delay", 1500, 0, 4000, 50, "ms"));
     }
 

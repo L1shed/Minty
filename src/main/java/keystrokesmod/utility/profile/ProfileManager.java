@@ -10,6 +10,7 @@ import keystrokesmod.module.impl.render.HUD;
 import keystrokesmod.module.setting.Setting;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.module.setting.interfaces.InputSetting;
 import keystrokesmod.script.Manager;
 import keystrokesmod.utility.Utils;
 import net.minecraft.client.Minecraft;
@@ -111,8 +112,8 @@ public class ProfileManager {
         for (Setting setting : module.getSettings()) {
             if (setting instanceof ButtonSetting && !((ButtonSetting) setting).isMethodButton) {
                 moduleInformation.addProperty(setting.getName(), ((ButtonSetting) setting).isToggled());
-            } else if (setting instanceof SliderSetting) {
-                moduleInformation.addProperty(setting.getName(), ((SliderSetting) setting).getInput());
+            } else if (setting instanceof InputSetting) {
+                moduleInformation.addProperty(setting.getName(), ((InputSetting) setting).getInput());
             }
         }
         return moduleInformation;

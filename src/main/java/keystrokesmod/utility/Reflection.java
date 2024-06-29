@@ -18,6 +18,7 @@ import net.minecraft.network.play.client.C02PacketUseEntity;
 import net.minecraft.network.play.client.C03PacketPlayer;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraft.network.play.server.S12PacketEntityVelocity;
+import net.minecraft.network.play.server.S27PacketExplosion;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.common.MinecraftForge;
@@ -53,7 +54,11 @@ public class Reflection {
     public static Field C02PacketUseEntityEntityId;
     public static Field C03PacketPlayerOnGround;
     public static Field S12PacketEntityVelocityXMotion;
+    public static Field S12PacketEntityVelocityYMotion;
     public static Field S12PacketEntityVelocityZMotion;
+    public static Field S27PacketExplosionXMotion;
+    public static Field S27PacketExplosionYMotion;
+    public static Field S27PacketExplosionZMotion;
     public static Field bookContents;
     public static HashMap<Class, Field> containerInventoryPlayer = new HashMap<>();
     private static List<Class> containerClasses = new ArrayList<>();
@@ -152,9 +157,29 @@ public class Reflection {
                 S12PacketEntityVelocityXMotion.setAccessible(true);
             }
 
+            S12PacketEntityVelocityYMotion = ReflectionHelper.findField(S12PacketEntityVelocity.class, "motionY", "field_149416_c");
+            if (S12PacketEntityVelocityYMotion != null) {
+                S12PacketEntityVelocityYMotion.setAccessible(true);
+            }
+
             S12PacketEntityVelocityZMotion = ReflectionHelper.findField(S12PacketEntityVelocity.class, "motionZ", "field_149414_d");
             if (S12PacketEntityVelocityZMotion != null) {
                 S12PacketEntityVelocityZMotion.setAccessible(true);
+            }
+
+            S27PacketExplosionXMotion = ReflectionHelper.findField(S27PacketExplosion.class, "field_149152_f", "field_149152_f");
+            if (S27PacketExplosionXMotion != null) {
+                S27PacketExplosionXMotion.setAccessible(true);
+            }
+
+            S27PacketExplosionYMotion = ReflectionHelper.findField(S27PacketExplosion.class, "field_149153_g", "field_149153_g");
+            if (S27PacketExplosionYMotion != null) {
+                S27PacketExplosionYMotion.setAccessible(true);
+            }
+
+            S27PacketExplosionZMotion = ReflectionHelper.findField(S27PacketExplosion.class, "field_149159_h", "field_149159_h");
+            if (S27PacketExplosionZMotion != null) {
+                S27PacketExplosionZMotion.setAccessible(true);
             }
 
             bookContents = ReflectionHelper.findField(GuiScreenBook.class, "field_175386_A");

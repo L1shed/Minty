@@ -2,22 +2,33 @@ package keystrokesmod.module.setting.impl;
 
 import com.google.gson.JsonObject;
 import keystrokesmod.module.setting.Setting;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.function.Supplier;
 
 public class ButtonSetting extends Setting {
-    private String name;
+    private final String name;
     private boolean isEnabled;
     public boolean isMethodButton;
     private Runnable method;
 
     public ButtonSetting(String name, boolean isEnabled) {
-        super(name);
+        this(name, isEnabled, () -> true);
+    }
+
+    public ButtonSetting(String name, boolean isEnabled, @NotNull Supplier<Boolean> visibleCheck) {
+        super(name, visibleCheck);
         this.name = name;
         this.isEnabled = isEnabled;
         this.isMethodButton = false;
     }
 
     public ButtonSetting(String name, Runnable method) {
-        super(name);
+        this(name, method, () -> true);
+    }
+
+    public ButtonSetting(String name, Runnable method, @NotNull Supplier<Boolean> visibleCheck) {
+        super(name, visibleCheck);
         this.name = name;
         this.isEnabled = false;
         this.isMethodButton = true;

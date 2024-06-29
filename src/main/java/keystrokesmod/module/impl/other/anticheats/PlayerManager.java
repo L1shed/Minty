@@ -55,8 +55,11 @@ public class PlayerManager {
                 // 更新
                 activeMap.replace(uuid, true);
                 try {
-                    if (!LatencyAlerts.isFreeze()) {
-                        dataMap.get(uuid).update(player);
+                    final TRPlayer trPlayer = dataMap.get(uuid);
+                    if (LatencyAlerts.isFreeze() || Utils.getTimer().timerSpeed != 1.0F) {
+                        trPlayer.manager.disableTick = 30;
+                    } else {
+                        trPlayer.update(player);
                     }
                 } catch (Exception e) {
                     LogUtils.custom(Arrays.toString(e.getStackTrace()));

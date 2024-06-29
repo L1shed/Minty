@@ -4,6 +4,7 @@ import keystrokesmod.Raven;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
+import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
@@ -16,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Settings extends Module {
-    public static SliderSetting customCapes;
+    public static ModeSetting customCapes;
     public static ButtonSetting weaponAxe;
     public static ButtonSetting weaponRod;
     public static ButtonSetting weaponStick;
@@ -33,7 +34,7 @@ public class Settings extends Module {
     public Settings() {
         super("Settings", category.client, 0);
         this.registerSetting(new DescriptionSetting("General"));
-        this.registerSetting(customCapes = new SliderSetting("Custom cape", capes, 0));
+        this.registerSetting(customCapes = new ModeSetting("Custom cape", capes, 0));
         this.registerSetting(weaponAxe = new ButtonSetting("Set axe as weapon", false));
         this.registerSetting(weaponRod = new ButtonSetting("Set rod as weapon", false));
         this.registerSetting(weaponStick = new ButtonSetting("Set stick as weapon", false));

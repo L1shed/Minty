@@ -6,6 +6,7 @@ import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.other.anticheats.utils.phys.Vec2;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.module.setting.utils.ModeOnly;
 import keystrokesmod.utility.BlockUtils;
 import keystrokesmod.utility.Utils;
 import net.minecraft.block.*;
@@ -31,6 +32,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 
 public class InvManager extends Module {
     private final ButtonSetting autoArmor;
@@ -71,23 +73,23 @@ public class InvManager extends Module {
     public InvManager() {
         super("InvManager", category.player);
         this.registerSetting(autoArmor = new ButtonSetting("Auto armor", false));
-        this.registerSetting(autoArmorDelay = new SliderSetting("Auto armor delay", 3, 0, 20, 1));
+        this.registerSetting(autoArmorDelay = new SliderSetting("Auto armor delay", 3, 0, 20, 1, autoArmor::isToggled));
         this.registerSetting(autoSort = new ButtonSetting("Auto sort", false));
-        this.registerSetting(sortDelay = new SliderSetting("Sort delay", 3, 0, 20, 1));
+        this.registerSetting(sortDelay = new SliderSetting("Sort delay", 3, 0, 20, 1, autoSort::isToggled));
         this.registerSetting(stealChests = new ButtonSetting("Steal chests", false));
-        this.registerSetting(customChest = new ButtonSetting("Custom chest", false));
-        this.registerSetting(silentSteal = new ButtonSetting("Silent steal", false));
-        this.registerSetting(autoClose = new ButtonSetting("Close after stealing", false));
-        this.registerSetting(stealerDelay = new SliderSetting("Stealer delay", 3, 0, 20, 1));
+        this.registerSetting(customChest = new ButtonSetting("Custom chest", false, stealChests::isToggled));
+        this.registerSetting(silentSteal = new ButtonSetting("Silent steal", false, stealChests::isToggled));
+        this.registerSetting(autoClose = new ButtonSetting("Close after stealing", false, stealChests::isToggled));
+        this.registerSetting(stealerDelay = new SliderSetting("Stealer delay", 3, 0, 20, 1, stealChests::isToggled));
         this.registerSetting(inventoryCleaner = new ButtonSetting("Inventory cleaner", false));
-        this.registerSetting(middleClickToClean = new ButtonSetting("Middle click to clean", false));
-        this.registerSetting(cleanerDelay = new SliderSetting("Cleaner delay", 5, 0, 20, 1));
-        this.registerSetting(swordSlot = new SliderSetting("Sword slot", 0, 0, 9, 1));
-        this.registerSetting(blocksSlot = new SliderSetting("Blocks slot", 0, 0, 9, 1));
-        this.registerSetting(goldenAppleSlot = new SliderSetting("Golden apple slot", 0, 0, 9, 1));
-        this.registerSetting(projectileSlot = new SliderSetting("Projectile slot", 0, 0, 9, 1));
-        this.registerSetting(speedPotionSlot = new SliderSetting("Speed potion slot", 0, 0, 9, 1));
-        this.registerSetting(pearlSlot = new SliderSetting("Pearl slot", 0, 0, 9, 1));
+        this.registerSetting(middleClickToClean = new ButtonSetting("Middle click to clean", false, inventoryCleaner::isToggled));
+        this.registerSetting(cleanerDelay = new SliderSetting("Cleaner delay", 5, 0, 20, 1, inventoryCleaner::isToggled));
+        this.registerSetting(swordSlot = new SliderSetting("Sword slot", 0, 0, 9, 1, autoSort::isToggled));
+        this.registerSetting(blocksSlot = new SliderSetting("Blocks slot", 0, 0, 9, 1, autoSort::isToggled));
+        this.registerSetting(goldenAppleSlot = new SliderSetting("Golden apple slot", 0, 0, 9, 1, autoSort::isToggled));
+        this.registerSetting(projectileSlot = new SliderSetting("Projectile slot", 0, 0, 9, 1, autoSort::isToggled));
+        this.registerSetting(speedPotionSlot = new SliderSetting("Speed potion slot", 0, 0, 9, 1, autoSort::isToggled));
+        this.registerSetting(pearlSlot = new SliderSetting("Pearl slot", 0, 0, 9, 1, autoSort::isToggled));
     }
 
     public void onEnable() {

@@ -6,7 +6,9 @@ import keystrokesmod.event.PreUpdateEvent;
 import keystrokesmod.event.ReceivePacketEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ButtonSetting;
+import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.module.setting.utils.ModeOnly;
 import keystrokesmod.utility.MoveUtil;
 import keystrokesmod.utility.Reflection;
 import keystrokesmod.utility.Utils;
@@ -22,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class LongJump extends Module {
     public static final String[] MODES = {"Fireball", "Fireball Auto", "Self Damage"};
-    private final SliderSetting mode;
+    private final ModeSetting mode;
     private final SliderSetting horizonBoost;
     private final SliderSetting horizonMotionMultiplier;
     private final SliderSetting verticalMotion;
@@ -41,13 +43,14 @@ public class LongJump extends Module {
 
     public LongJump() {
         super("Long Jump", category.movement);
-        this.registerSetting(mode = new SliderSetting("Mode", MODES, 0));
+        this.registerSetting(mode = new ModeSetting("Mode", MODES, 0));
         this.registerSetting(horizonBoost = new SliderSetting("Horizon boost", 1.0, 1.0, 1.5, 0.01));
         this.registerSetting(horizonMotionMultiplier = new SliderSetting("Horizon motion multiplier", 1.0, 0.9, 1.1, 0.005));
         this.registerSetting(verticalMotion = new SliderSetting("Vertical motion", 0.01, 0.01, 0.6, 0.01));
-        this.registerSetting(reverseYaw = new ButtonSetting("Reverse yaw", false));
-        this.registerSetting(pitch = new SliderSetting("Pitch", 90, 80, 90, 0.5));
-        this.registerSetting(aimTicks = new SliderSetting("Aim ticks", 2, 1, 10, 1));
+        ModeOnly mode1 = new ModeOnly(mode, 1);
+        this.registerSetting(reverseYaw = new ButtonSetting("Reverse yaw", false, mode1));
+        this.registerSetting(pitch = new SliderSetting("Pitch", 90, 80, 90, 0.5, mode1));
+        this.registerSetting(aimTicks = new SliderSetting("Aim ticks", 2, 1, 10, 1, mode1));
         this.registerSetting(jumpAtEnd = new ButtonSetting("Jump at end.", false));
         this.registerSetting(showBPS = new ButtonSetting("Show BPS", false));
         this.registerSetting(stopOnTeleport = new ButtonSetting("Stop on teleport", true));

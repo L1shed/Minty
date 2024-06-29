@@ -1,38 +1,77 @@
 package keystrokesmod.module.impl.combat;
 
+import keystrokesmod.Raven;
+import keystrokesmod.event.PreUpdateEvent;
 import keystrokesmod.event.ReceivePacketEvent;
+import keystrokesmod.mixins.impl.network.S12PacketEntityVelocityAccessor;
+import keystrokesmod.mixins.impl.network.S27PacketExplosionAccessor;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.movement.LongJump;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
+import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.module.setting.utils.ModeOnly;
 import keystrokesmod.utility.Utils;
 import net.minecraft.network.play.server.S12PacketEntityVelocity;
 import net.minecraft.network.play.server.S27PacketExplosion;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class Velocity extends Module {
+    private static final String[] MODES = new String[]{"Normal", "Hypixel", "Intave"};
+    public static ModeSetting mode;
     public static SliderSetting horizontal;
     public static SliderSetting vertical;
     private final ButtonSetting cancelExplosion;
     private final ButtonSetting damageBoost;
     private final SliderSetting boostMultiplier;
+    private final SliderSetting boostDelay;
     private final ButtonSetting groundCheck;
     private final ButtonSetting lobbyCheck;
+    private final ButtonSetting debug;
+
+    private boolean attacked = false;
 
     public Velocity() {
         super("Velocity", category.combat);
-        this.registerSetting(new DescriptionSetting("Reduce knockback."));
-        this.registerSetting(horizontal = new SliderSetting("Horizontal", 0.0, 0.0, 100.0, 1.0));
-        this.registerSetting(vertical = new SliderSetting("Vertical", 0.0, 0.0, 100.0, 1.0));
-        this.registerSetting(cancelExplosion = new ButtonSetting("Cancel explosion packet", true));
+        this.registerSetting(new DescriptionSetting("Reduce knock-back."));
+        this.registerSetting(mode = new ModeSetting("Mode", MODES, 1));
+        final ModeOnly canChangeMode = new ModeOnly(mode, 0, 1);
+        this.registerSetting(horizontal = new SliderSetting("Horizontal", 0.0, -100.0, 100.0, 1.0, canChangeMode));
+        this.registerSetting(vertical = new SliderSetting("Vertical", 0.0, 0.0, 100.0, 1.0, canChangeMode));
+        this.registerSetting(cancelExplosion = new ButtonSetting("Cancel explosion packet", true, canChangeMode));
         this.registerSetting(damageBoost = new ButtonSetting("Damage boost", false));
-        this.registerSetting(boostMultiplier = new SliderSetting("Boost multiplier", 2.0, 1.0, 8.0, 0.1));
-        this.registerSetting(groundCheck = new ButtonSetting("Ground check", false));
+        this.registerSetting(boostMultiplier = new SliderSetting("Boost multiplier", 2.0, 1.0, 8.0, 0.1, damageBoost::isToggled));
+        this.registerSetting(boostDelay = new SliderSetting("Boost delay", 0, 0, 1000, 5, "ms", damageBoost::isToggled));
+        this.registerSetting(groundCheck = new ButtonSetting("Ground check", false, canChangeMode));
         this.registerSetting(lobbyCheck = new ButtonSetting("Lobby check", false));
+        this.registerSetting(debug = new ButtonSetting("Debug", false, new ModeOnly(mode, 2)));
+    }
+
+    @SubscribeEvent
+    public void onPreUpdate(PreUpdateEvent event) {
+        if (lobbyCheck.isToggled() && isLobby()) {
+            return;
+        }
+        if (mode.getInput() == 2 && mc.objectMouseOver.typeOfHit.equals(MovingObjectPosition.MovingObjectType.ENTITY) && mc.thePlayer.hurtTime > 0 && attacked) {
+            mc.thePlayer.motionX *= 0.6D;
+            mc.thePlayer.motionZ *= 0.6D;
+            mc.thePlayer.setSprinting(false);
+            if (debug.isToggled()) Utils.sendMessage("reduced.");
+        }
+
+        attacked = false;
+    }
+
+    @SubscribeEvent
+    public void onAttack(AttackEntityEvent event) {
+        attacked = true;
     }
 
     @SubscribeEvent
@@ -45,29 +84,39 @@ public class Velocity extends Module {
                 if (lobbyCheck.isToggled() && isLobby()) {
                     return;
                 }
-                e.setCanceled(true);
-                if (cancel()) {
-                    return;
+                switch ((int) mode.getInput()) {
+                    case 0:
+                        ((S12PacketEntityVelocityAccessor) e.getPacket()).setMotionX((int) (((S12PacketEntityVelocity) e.getPacket()).getMotionX() * horizontal.getInput() / 100));
+                        ((S12PacketEntityVelocityAccessor) e.getPacket()).setMotionY((int) (((S12PacketEntityVelocity) e.getPacket()).getMotionY() * vertical.getInput() / 100));
+                        ((S12PacketEntityVelocityAccessor) e.getPacket()).setMotionZ((int) (((S12PacketEntityVelocity) e.getPacket()).getMotionZ() * horizontal.getInput() / 100));
+                        break;
+                    case 1:
+                        e.setCanceled(true);
+                        if (cancel()) {
+                            return;
+                        }
+                        S12PacketEntityVelocity s12PacketEntityVelocity = (S12PacketEntityVelocity) e.getPacket();
+                        if (horizontal.getInput() == 0 && vertical.getInput() > 0) {
+                            mc.thePlayer.motionY = ((double) s12PacketEntityVelocity.getMotionY() / 8000) * vertical.getInput()/100;
+                        }
+                        else if (horizontal.getInput() > 0 && vertical.getInput() == 0) {
+                            mc.thePlayer.motionX = ((double) s12PacketEntityVelocity.getMotionX() / 8000) * horizontal.getInput()/100;
+                            mc.thePlayer.motionZ = ((double) s12PacketEntityVelocity.getMotionZ() / 8000) * horizontal.getInput()/100;
+                        }
+                        else {
+                            mc.thePlayer.motionX = ((double) s12PacketEntityVelocity.getMotionX() / 8000) * horizontal.getInput()/100;
+                            mc.thePlayer.motionY = ((double) s12PacketEntityVelocity.getMotionY() / 8000) * vertical.getInput()/100;
+                            mc.thePlayer.motionZ = ((double) s12PacketEntityVelocity.getMotionZ() / 8000) * horizontal.getInput()/100;
+                        }
+                        e.setCanceled(true);
+                        break;
                 }
-                S12PacketEntityVelocity s12PacketEntityVelocity = (S12PacketEntityVelocity) e.getPacket();
-                if (horizontal.getInput() == 0 && vertical.getInput() > 0) {
-                    mc.thePlayer.motionY = ((double) s12PacketEntityVelocity.getMotionY() / 8000) * vertical.getInput()/100;
-                }
-                else if (horizontal.getInput() > 0 && vertical.getInput() == 0) {
-                    mc.thePlayer.motionX = ((double) s12PacketEntityVelocity.getMotionX() / 8000) * horizontal.getInput()/100;
-                    mc.thePlayer.motionZ = ((double) s12PacketEntityVelocity.getMotionZ() / 8000) * horizontal.getInput()/100;
-                }
-                else {
-                    mc.thePlayer.motionX = ((double) s12PacketEntityVelocity.getMotionX() / 8000) * horizontal.getInput()/100;
-                    mc.thePlayer.motionY = ((double) s12PacketEntityVelocity.getMotionY() / 8000) * vertical.getInput()/100;
-                    mc.thePlayer.motionZ = ((double) s12PacketEntityVelocity.getMotionZ() / 8000) * horizontal.getInput()/100;
-                }
-                e.setCanceled(true);
                 if (damageBoost.isToggled()) {
-                    if (groundCheck.isToggled() && !mc.thePlayer.onGround) {
-                        return;
+                    if (boostDelay.getInput() == 0) {
+                        boost();
+                    } else {
+                        Raven.getExecutor().schedule(this::boost, (long) boostDelay.getInput(), TimeUnit.MILLISECONDS);
                     }
-                    Utils.setSpeed(Utils.getHorizontalSpeed() * boostMultiplier.getInput()); // from croat
                 }
             }
         }
@@ -75,25 +124,41 @@ public class Velocity extends Module {
             if (lobbyCheck.isToggled() && isLobby()) {
                 return;
             }
-            e.setCanceled(true);
-            if (cancelExplosion.isToggled() || cancel()) {
-                return;
+            switch ((int) mode.getInput()) {
+                case 0:
+                    ((S27PacketExplosionAccessor) e.getPacket()).setMotionX((float) (((S27PacketExplosion) e.getPacket()).func_149149_c() * horizontal.getInput() / 100));
+                    ((S27PacketExplosionAccessor) e.getPacket()).setMotionY((float) (((S27PacketExplosion) e.getPacket()).func_149144_d() * vertical.getInput()) / 100);
+                    ((S27PacketExplosionAccessor) e.getPacket()).setMotionZ((float) (((S27PacketExplosion) e.getPacket()).func_149147_e() * horizontal.getInput() / 100));
+                    break;
+                case 1:
+                    e.setCanceled(true);
+                    if (cancelExplosion.isToggled() || cancel()) {
+                        return;
+                    }
+                    S27PacketExplosion s27PacketExplosion = (S27PacketExplosion) e.getPacket();
+                    if (horizontal.getInput() == 0 && vertical.getInput() > 0) {
+                        mc.thePlayer.motionY += s27PacketExplosion.func_149144_d() * vertical.getInput()/100;
+                    }
+                    else if (horizontal.getInput() > 0 && vertical.getInput() == 0) {
+                        mc.thePlayer.motionX += s27PacketExplosion.func_149149_c() * horizontal.getInput()/100;
+                        mc.thePlayer.motionZ += s27PacketExplosion.func_149147_e() * horizontal.getInput()/100;
+                    }
+                    else {
+                        mc.thePlayer.motionX += s27PacketExplosion.func_149149_c() * horizontal.getInput()/100;
+                        mc.thePlayer.motionY += s27PacketExplosion.func_149144_d() * vertical.getInput()/100;
+                        mc.thePlayer.motionZ += s27PacketExplosion.func_149147_e() * horizontal.getInput()/100;
+                    }
+                    e.setCanceled(true);
+                    break;
             }
-            S27PacketExplosion s27PacketExplosion = (S27PacketExplosion) e.getPacket();
-            if (horizontal.getInput() == 0 && vertical.getInput() > 0) {
-                mc.thePlayer.motionY += s27PacketExplosion.func_149144_d() * vertical.getInput()/100;
-            }
-            else if (horizontal.getInput() > 0 && vertical.getInput() == 0) {
-                mc.thePlayer.motionX += s27PacketExplosion.func_149149_c() * horizontal.getInput()/100;
-                mc.thePlayer.motionZ += s27PacketExplosion.func_149147_e() * horizontal.getInput()/100;
-            }
-            else {
-                mc.thePlayer.motionX += s27PacketExplosion.func_149149_c() * horizontal.getInput()/100;
-                mc.thePlayer.motionY += s27PacketExplosion.func_149144_d() * vertical.getInput()/100;
-                mc.thePlayer.motionZ += s27PacketExplosion.func_149147_e() * horizontal.getInput()/100;
-            }
-            e.setCanceled(true);
         }
+    }
+
+    private void boost() {
+        if (groundCheck.isToggled() && !mc.thePlayer.onGround) {
+            return;
+        }
+        Utils.setSpeed(Utils.getHorizontalSpeed() * boostMultiplier.getInput()); // from croat
     }
 
     private boolean cancel() {
@@ -102,15 +167,18 @@ public class Velocity extends Module {
 
     @Override
     public String getInfo() {
-        return (int) horizontal.getInput() + "% " + (int) vertical.getInput() + "%";
+        return MODES[(int) mode.getInput()];
     }
 
     private boolean isLobby() {
         if (Utils.isHypixel()) {
             List<String> sidebarLines = Utils.getSidebarLines();
             if (!sidebarLines.isEmpty()) {
-                String[] parts = Utils.stripColor(sidebarLines.get(1)).split(" {2}");
-                return parts.length > 1 && parts[1].charAt(0) == 'L';
+                try {
+                    String[] parts = Utils.stripColor(sidebarLines.get(1)).split(" {2}");
+                    return parts.length > 1 && parts[1].charAt(0) == 'L';
+                } catch (IndexOutOfBoundsException ignored) {
+                }
             }
         }
         return false;

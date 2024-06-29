@@ -1,7 +1,7 @@
 package keystrokesmod.clickgui.components.impl;
 
 import keystrokesmod.Raven;
-import keystrokesmod.clickgui.components.Component;
+import keystrokesmod.clickgui.components.IComponent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.impl.client.Gui;
 import keystrokesmod.utility.font.Font;
@@ -138,7 +138,7 @@ public class CategoryComponent {
         this.k = 92;
         int h = 0;
         if (!this.modules.isEmpty() && this.categoryOpened) {
-            Component c;
+            IComponent c;
             for (Iterator<ModuleComponent> var3 = this.modules.iterator(); var3.hasNext(); h += c.gh()) {
                 c = var3.next();
             }
@@ -177,7 +177,7 @@ public class CategoryComponent {
     public void render() {
         int o = this.bh + 3;
 
-        Component c;
+        IComponent c;
         for (Iterator<ModuleComponent> var2 = this.modules.iterator(); var2.hasNext(); o += c.gh()) {
             c = var2.next();
             c.so(o);

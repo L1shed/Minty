@@ -6,6 +6,7 @@ import keystrokesmod.module.impl.other.anticheats.utils.phys.Vec2;
 import keystrokesmod.module.impl.other.anticheats.utils.world.PlayerRotation;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
+import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.script.classes.Vec3;
 import keystrokesmod.utility.*;
@@ -14,7 +15,6 @@ import net.minecraft.network.play.client.C0APacketAnimation;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.MovingObjectPosition;
-import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.apache.commons.lang3.tuple.Triple;
@@ -24,7 +24,7 @@ import java.util.*;
 
 public class BlockIn extends Module {
     private static final String[] rotationModes = new String[]{"None", "Block", "Strict"};
-    private final SliderSetting rotationMode;
+    private final ModeSetting rotationMode;
     private final SliderSetting aimSpeed;
     private final ButtonSetting lookView;
     private final SliderSetting placeDelay;
@@ -39,7 +39,7 @@ public class BlockIn extends Module {
     public BlockIn() {
         super("Block-In", category.world);
         this.registerSetting(new DescriptionSetting("make you block in."));
-        this.registerSetting(rotationMode = new SliderSetting("Rotation mode", rotationModes, 2));
+        this.registerSetting(rotationMode = new ModeSetting("Rotation mode", rotationModes, 2));
         this.registerSetting(aimSpeed = new SliderSetting("Aim speed", 5, 0, 5, 0.05));
         this.registerSetting(lookView = new ButtonSetting("Look view", false));
         this.registerSetting(placeDelay = new SliderSetting("Place delay", 50, 0, 500, 1, "ms"));

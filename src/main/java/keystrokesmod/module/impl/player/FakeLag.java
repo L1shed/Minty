@@ -3,7 +3,9 @@ package keystrokesmod.module.impl.player;
 import keystrokesmod.event.SendPacketEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ButtonSetting;
+import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.module.setting.utils.ModeOnly;
 import keystrokesmod.script.classes.Vec3;
 import keystrokesmod.utility.PacketUtils;
 import keystrokesmod.utility.Utils;
@@ -29,7 +31,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import static keystrokesmod.module.ModuleManager.blink;
 
 public class FakeLag extends Module {
-    private final SliderSetting mode;
+    private final ModeSetting mode;
     private static final String[] MODES = new String[]{"Latency", "Dynamic"};
     private final SliderSetting delay;
     private final ButtonSetting drawRealPosition;
@@ -51,16 +53,17 @@ public class FakeLag extends Module {
 
     public FakeLag() {
         super("Fake Lag", category.player);
-        this.registerSetting(mode = new SliderSetting("Mode", MODES, 0));
+        this.registerSetting(mode = new ModeSetting("Mode", MODES, 0));
+        final ModeOnly mode1 = new ModeOnly(mode, 1);
         this.registerSetting(delay = new SliderSetting("Delay", 200, 25, 1000, 5, "ms"));
         this.registerSetting(drawRealPosition = new ButtonSetting("Draw real position", true));
         this.registerSetting(debug = new ButtonSetting("Debug", false));
-        this.registerSetting(dynamicIgnoreTeammates = new ButtonSetting("Dynamic Ignore teammates", true));
-        this.registerSetting(dynamicStopOnHurt = new ButtonSetting("Dynamic Stop on hurt", true));
-        this.registerSetting(dynamicStopOnHurtTime = new SliderSetting("Dynamic Stop on hurt time", 500, 0, 1000, 5, "ms"));
-        this.registerSetting(dynamicStartRange = new SliderSetting("Dynamic Start range", 6.0, 3.0, 10.0, 0.1, "blocks"));
-        this.registerSetting(dynamicStopRange = new SliderSetting("Dynamic Stop range", 3.5, 1.0, 6.0, 0.1, "blocks"));
-        this.registerSetting(dynamicMaxTargetRange = new SliderSetting("Dynamic Max target range", 15.0, 6.0, 20.0, 0.5, "blocks"));
+        this.registerSetting(dynamicIgnoreTeammates = new ButtonSetting("Dynamic Ignore teammates", true, mode1));
+        this.registerSetting(dynamicStopOnHurt = new ButtonSetting("Dynamic Stop on hurt", true, mode1));
+        this.registerSetting(dynamicStopOnHurtTime = new SliderSetting("Dynamic Stop on hurt time", 500, 0, 1000, 5, "ms", mode1));
+        this.registerSetting(dynamicStartRange = new SliderSetting("Dynamic Start range", 6.0, 3.0, 10.0, 0.1, "blocks", mode1));
+        this.registerSetting(dynamicStopRange = new SliderSetting("Dynamic Stop range", 3.5, 1.0, 6.0, 0.1, "blocks", mode1));
+        this.registerSetting(dynamicMaxTargetRange = new SliderSetting("Dynamic Max target range", 15.0, 6.0, 20.0, 0.5, "blocks", mode1));
     }
 
     public String getInfo() {
@@ -160,6 +163,7 @@ public class FakeLag extends Module {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onSendPacket(@NotNull SendPacketEvent e) {
+        if (!Utils.nullCheck()) return;
         if ((int) mode.getInput() != 0) return;
         final Packet<?> packet = e.getPacket();
         if (packet instanceof C00Handshake

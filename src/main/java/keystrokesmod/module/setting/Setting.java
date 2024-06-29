@@ -1,16 +1,26 @@
 package keystrokesmod.module.setting;
 
 import com.google.gson.JsonObject;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.function.Supplier;
 
 public abstract class Setting {
     public String n;
+    public Supplier<Boolean> visibleCheck;
 
-    public Setting(String n) {
+    public Setting(String n, @NotNull Supplier<Boolean> visibleCheck) {
         this.n = n;
+        this.visibleCheck = visibleCheck;
     }
 
     public String getName() {
         return this.n;
+    }
+
+    public boolean isVisible() {
+        final Boolean b = visibleCheck.get();
+        return b == null || b;
     }
 
     public abstract void loadProfile(JsonObject data);

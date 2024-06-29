@@ -750,6 +750,7 @@ public class Utils {
     }
 
     public static boolean overAir() {
+        if (!Utils.nullCheck()) return false;
         return mc.theWorld.isAirBlock(new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY - 1.0, mc.thePlayer.posZ));
     }
 
@@ -807,8 +808,12 @@ public class Utils {
         return stringbuilder.toString();
     }
 
+    public static keystrokesmod.script.classes.Vec3 getEyePos(@NotNull Entity entity, keystrokesmod.script.classes.@NotNull Vec3 position) {
+        return position.add(new keystrokesmod.script.classes.Vec3(0, entity.getEyeHeight(), 0));
+    }
+
     public static keystrokesmod.script.classes.Vec3 getEyePos(Entity entity) {
-        return new keystrokesmod.script.classes.Vec3(entity).add(new keystrokesmod.script.classes.Vec3(0, entity.getEyeHeight(), 0));
+        return getEyePos(entity, new keystrokesmod.script.classes.Vec3(entity));
     }
 
     public static keystrokesmod.script.classes.Vec3 getEyePos() {
