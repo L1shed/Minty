@@ -41,6 +41,8 @@ public class Timer extends Module {
     @Override
     public void onUpdate() {
         enableTicks++;
+        if (enableTicks > 4)
+            enableTicks = 0;
 
         if ((int) mode.getInput() == 2) {
             if (mc.thePlayer.onGround) {
@@ -54,8 +56,6 @@ public class Timer extends Module {
                         MoveUtil.strafe();
                         break;
                 }
-                if (enableTicks >= 4)
-                    enableTicks = 0;
             } else {
                 reset();
             }
