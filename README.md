@@ -39,4 +39,6 @@ Feel free to raise an issue or submit a pull request.
 
 If you want to co-develop this project with me, please contact me.
 
+<a href="https://discord.gg/KrnzwaNf"><img src="https://invidget.switchblade.xyz/KrnzwaNf" alt="https://discord.gg/KrnzwaNf"/></a><br>
+
 <img src="https://github.com/SAWARATSUKI/KawaiiLogos/blob/main/IntelliJ IDEA/IntelliJ IDEA.png" alt="Java" width="500" />
