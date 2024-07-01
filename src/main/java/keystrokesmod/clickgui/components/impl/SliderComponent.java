@@ -77,16 +77,18 @@ public class SliderComponent extends Component {
         this.w = (double) (this.parent.categoryComponent.gw() - 8) * (this.sliderSetting.getInput() - this.sliderSetting.getMin()) / (this.sliderSetting.getMax() - this.sliderSetting.getMin());
         if (this.d) {
             if (d == 0.0D) {
+                this.sliderSetting.setValue(this.sliderSetting.getMin());
                 if (this.sliderSetting.getInput() != this.sliderSetting.getMin() && ModuleManager.hud != null && ModuleManager.hud.isEnabled() && !ModuleManager.organizedModules.isEmpty()) {
                     ModuleManager.sort();
                 }
-                this.sliderSetting.setValue(this.sliderSetting.getMin());
+                parent.categoryComponent.render();
             } else {
                 double n = roundToInterval(d / (double) (this.parent.categoryComponent.gw() - 8) * (this.sliderSetting.getMax() - this.sliderSetting.getMin()) + this.sliderSetting.getMin(), 2);
+                this.sliderSetting.setValue(n);
                 if (this.sliderSetting.getInput() != n && ModuleManager.hud != null && ModuleManager.hud.isEnabled() && !ModuleManager.organizedModules.isEmpty()) {
                     ModuleManager.sort();
                 }
-                this.sliderSetting.setValue(n);
+                parent.categoryComponent.render();
             }
             if (Raven.currentProfile != null) {
                 ((ProfileModule) Raven.currentProfile.getModule()).saved = false;

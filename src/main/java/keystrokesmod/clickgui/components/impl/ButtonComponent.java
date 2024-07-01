@@ -103,6 +103,7 @@ public class ButtonComponent extends Component {
             if (Raven.currentProfile != null) {
                 ((ProfileModule) Raven.currentProfile.getModule()).saved = false;
             }
+            parent.categoryComponent.render();
         }
     }
 

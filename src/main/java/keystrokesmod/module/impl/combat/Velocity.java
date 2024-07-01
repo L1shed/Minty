@@ -13,9 +13,12 @@ import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.module.setting.utils.ModeOnly;
+import keystrokesmod.utility.BlockUtils;
 import keystrokesmod.utility.Utils;
 import net.minecraft.network.play.server.S12PacketEntityVelocity;
 import net.minecraft.network.play.server.S27PacketExplosion;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.BlockPos;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -29,6 +32,7 @@ public class Velocity extends Module {
     public static SliderSetting horizontal;
     public static SliderSetting vertical;
     private final ButtonSetting cancelExplosion;
+    private final ButtonSetting cancelAir;
     private final ButtonSetting damageBoost;
     private final SliderSetting boostMultiplier;
     private final SliderSetting boostDelay;
@@ -46,6 +50,7 @@ public class Velocity extends Module {
         this.registerSetting(horizontal = new SliderSetting("Horizontal", 0.0, -100.0, 100.0, 1.0, canChangeMode));
         this.registerSetting(vertical = new SliderSetting("Vertical", 0.0, 0.0, 100.0, 1.0, canChangeMode));
         this.registerSetting(cancelExplosion = new ButtonSetting("Cancel explosion packet", true, canChangeMode));
+        this.registerSetting(cancelAir = new ButtonSetting("Cancel air", false, canChangeMode));
         this.registerSetting(damageBoost = new ButtonSetting("Damage boost", false));
         this.registerSetting(boostMultiplier = new SliderSetting("Boost multiplier", 2.0, 1.0, 8.0, 0.1, damageBoost::isToggled));
         this.registerSetting(boostDelay = new SliderSetting("Boost delay", 0, 0, 1000, 5, "ms", damageBoost::isToggled));
@@ -59,12 +64,14 @@ public class Velocity extends Module {
         if (lobbyCheck.isToggled() && isLobby()) {
             return;
         }
-        if (mode.getInput() == 2 && mc.objectMouseOver.typeOfHit.equals(MovingObjectPosition.MovingObjectType.ENTITY) && mc.thePlayer.hurtTime > 0 && attacked) {
-            mc.thePlayer.motionX *= 0.6D;
-            mc.thePlayer.motionZ *= 0.6D;
-            mc.thePlayer.setSprinting(false);
-            if (debug.isToggled()) Utils.sendMessage("reduced.");
-        }
+
+        if (mode.getInput() == 2)
+            if (mc.objectMouseOver.typeOfHit.equals(MovingObjectPosition.MovingObjectType.ENTITY) && mc.thePlayer.hurtTime > 0 && !attacked) {
+                mc.thePlayer.motionX *= 0.6D;
+                mc.thePlayer.motionZ *= 0.6D;
+                mc.thePlayer.setSprinting(false);
+                if (debug.isToggled()) Utils.sendMessage("reduced.");
+            }
 
         attacked = false;
     }
@@ -72,6 +79,15 @@ public class Velocity extends Module {
     @SubscribeEvent
     public void onAttack(AttackEntityEvent event) {
         attacked = true;
+    }
+
+    private boolean overAir() {
+        if (mc.thePlayer.onGround) return false;
+
+        final AxisAlignedBB boundingBox = BlockUtils.getCollisionBoundingBox(new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY - 1.0, mc.thePlayer.posZ));
+        if (boundingBox == null) return true;
+
+        return boundingBox.maxY != mc.thePlayer.posY;
     }
 
     @SubscribeEvent
@@ -86,6 +102,12 @@ public class Velocity extends Module {
                 }
                 switch ((int) mode.getInput()) {
                     case 0:
+                        if (cancel()) {
+                            ((S12PacketEntityVelocityAccessor) e.getPacket()).setMotionX(0);
+                            ((S12PacketEntityVelocityAccessor) e.getPacket()).setMotionY(0);
+                            ((S12PacketEntityVelocityAccessor) e.getPacket()).setMotionZ(0);
+                            return;
+                        }
                         ((S12PacketEntityVelocityAccessor) e.getPacket()).setMotionX((int) (((S12PacketEntityVelocity) e.getPacket()).getMotionX() * horizontal.getInput() / 100));
                         ((S12PacketEntityVelocityAccessor) e.getPacket()).setMotionY((int) (((S12PacketEntityVelocity) e.getPacket()).getMotionY() * vertical.getInput() / 100));
                         ((S12PacketEntityVelocityAccessor) e.getPacket()).setMotionZ((int) (((S12PacketEntityVelocity) e.getPacket()).getMotionZ() * horizontal.getInput() / 100));
@@ -126,6 +148,10 @@ public class Velocity extends Module {
             }
             switch ((int) mode.getInput()) {
                 case 0:
+                    if (cancelExplosion.isToggled() || cancel()) {
+                        e.setCanceled(true);
+                        return;
+                    }
                     ((S27PacketExplosionAccessor) e.getPacket()).setMotionX((float) (((S27PacketExplosion) e.getPacket()).func_149149_c() * horizontal.getInput() / 100));
                     ((S27PacketExplosionAccessor) e.getPacket()).setMotionY((float) (((S27PacketExplosion) e.getPacket()).func_149144_d() * vertical.getInput()) / 100);
                     ((S27PacketExplosionAccessor) e.getPacket()).setMotionZ((float) (((S27PacketExplosion) e.getPacket()).func_149147_e() * horizontal.getInput() / 100));
@@ -162,7 +188,7 @@ public class Velocity extends Module {
     }
 
     private boolean cancel() {
-        return (vertical.getInput() == 0 && horizontal.getInput() == 0) || ModuleManager.bedAura.cancelKnockback();
+        return (vertical.getInput() == 0 && horizontal.getInput() == 0) || ModuleManager.bedAura.cancelKnockback() || (cancelAir.isToggled() && overAir());
     }
 
     @Override

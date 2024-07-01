@@ -26,9 +26,12 @@
     "client.MinecraftAccessor",
     "client.MixinMinecraft",
     "client.PlayerControllerMPAccessor",
+    "network.MixinNetHandlerPlayClient",
+    "render.ItemRendererAccessor",
     "render.MixinEntityRenderer",
     "render.MixinGuiConnecting",
     "render.MixinGuiContainer",
-    "render.MixinGuiScreen"
+    "render.MixinGuiScreen",
+    "render.MixinItemRenderer"
   ]
 }

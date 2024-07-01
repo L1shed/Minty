@@ -4,6 +4,7 @@ import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.event.PrePlayerInput;
 import keystrokesmod.event.PreUpdateEvent;
 import keystrokesmod.event.ReceivePacketEvent;
+import keystrokesmod.mixins.impl.client.KeyBindingAccessor;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.ModeSetting;
@@ -51,7 +52,7 @@ public class LongJump extends Module {
         this.registerSetting(reverseYaw = new ButtonSetting("Reverse yaw", false, mode1));
         this.registerSetting(pitch = new SliderSetting("Pitch", 90, 80, 90, 0.5, mode1));
         this.registerSetting(aimTicks = new SliderSetting("Aim ticks", 2, 1, 10, 1, mode1));
-        this.registerSetting(jumpAtEnd = new ButtonSetting("Jump at end.", false));
+        this.registerSetting(jumpAtEnd = new ButtonSetting("Jump at end.", false, new ModeOnly(mode, 0, 1)));
         this.registerSetting(showBPS = new ButtonSetting("Show BPS", false));
         this.registerSetting(stopOnTeleport = new ButtonSetting("Stop on teleport", true));
     }
@@ -82,11 +83,11 @@ public class LongJump extends Module {
                 }
                 break;
             case 2:
-                if (ticks < 40) {
+                if (ticks < 33) {
                     event.setOnGround(false);
                     mc.thePlayer.motionX = mc.thePlayer.motionZ = 0;
-                    event.setPosZ(mc.thePlayer.lastTickPosZ);
-                    event.setPosX(mc.thePlayer.lastTickPosX);
+                    mc.thePlayer.posX = mc.thePlayer.lastTickPosX;
+                    mc.thePlayer.posZ = mc.thePlayer.lastTickPosZ;
                 } else if (ticks == 50) {
                     event.setOnGround(true);
                 }
@@ -165,10 +166,12 @@ public class LongJump extends Module {
                 break;
             case 2:
                 mc.thePlayer.setSprinting(true);
-                if (ticks < 40) {
+                if (ticks < 34) {
                     if (mc.thePlayer.onGround) mc.thePlayer.jump();
-                } else if (ticks > 40 && mc.thePlayer.onGround && !waitForDamage) {
-                    MoveUtil.strafe(0.6);
+                } else if (ticks > 34 && mc.thePlayer.onGround && !waitForDamage) {
+                    ((KeyBindingAccessor) mc.gameSettings.keyBindForward).setPressed(true);
+                    mc.thePlayer.moveForward = 1.0F;
+                    MoveUtil.strafe(0.415);
                     mc.thePlayer.motionY = 0.42;
                     waitForDamage = true;
                 } else if (waitForDamage && mc.thePlayer.hurtTime == 5) {
@@ -192,6 +195,10 @@ public class LongJump extends Module {
     }
 
     public void onDisable() {
+        if (mode.getInput() == 2) {
+            ((KeyBindingAccessor) mc.gameSettings.keyBindForward).setPressed(false);
+        }
+
         start = false;
         done = false;
         waitForDamage = false;

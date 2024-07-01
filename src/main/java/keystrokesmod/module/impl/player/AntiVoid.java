@@ -10,6 +10,7 @@ import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.ContainerUtils;
 import keystrokesmod.utility.PacketUtils;
+import keystrokesmod.utility.Utils;
 import net.minecraft.item.ItemSword;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.client.C03PacketPlayer;
@@ -69,7 +70,7 @@ public class AntiVoid extends Module {
                     return;
                 }
 
-                boolean overVoid = !mc.thePlayer.onGround && noBlockUnder();
+                boolean overVoid = !mc.thePlayer.onGround && Utils.overVoid();
 
                 if (overVoid) {
                     overVoidTicks++;

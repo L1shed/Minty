@@ -3,9 +3,12 @@ package keystrokesmod.mixins.impl.entity;
 import com.google.common.collect.Maps;
 import keystrokesmod.event.JumpEvent;
 import keystrokesmod.event.PreMotionEvent;
+import keystrokesmod.event.SwingAnimationEvent;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.client.Settings;
 import keystrokesmod.utility.RotationUtils;
+import keystrokesmod.utility.Utils;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -15,6 +18,7 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.MinecraftForge;
+import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
@@ -117,13 +121,13 @@ public abstract class MixinEntityLivingBase extends Entity {
         this.motionY = jumpEvent.getMotionY();
 
         if (this.isPotionActive(Potion.jump)) {
-            this.motionY += (double) ((float) (this.getActivePotionEffect(Potion.jump).getAmplifier() + 1) * 0.1F);
+            this.motionY += (float) (this.getActivePotionEffect(Potion.jump).getAmplifier() + 1) * 0.1F;
         }
 
         if (this.isSprinting()) {
             float f = jumpEvent.getYaw() * 0.017453292F;
-            this.motionX -= (double) (MathHelper.sin(f) * 0.2F);
-            this.motionZ += (double) (MathHelper.cos(f) * 0.2F);
+            this.motionX -= MathHelper.sin(f) * 0.2F;
+            this.motionZ += MathHelper.cos(f) * 0.2F;
         }
 
         this.isAirBorne = true;
@@ -135,5 +139,23 @@ public abstract class MixinEntityLivingBase extends Entity {
         if (ModuleManager.potions != null && ModuleManager.potions.isEnabled() && ((p_isPotionActive_1_ == Potion.confusion && ModuleManager.potions.removeNausea.isToggled()) || (p_isPotionActive_1_ == Potion.blindness && ModuleManager.potions.removeBlindness.isToggled()))) {
             callbackInfoReturnable.setReturnValue(false);
         }
+    }
+
+    /**
+     * @author xia__mc
+     * @reason for Animations module
+     */
+    @Overwrite
+    private int getArmSwingAnimationEnd() {
+        int swingAnimationEnd = this.isPotionActive(Potion.digSpeed) ? 6 -
+                (1 + this.getActivePotionEffect(Potion.digSpeed).getAmplifier()) :
+                (this.isPotionActive(Potion.digSlowdown) ? 6 +
+                        (1 + this.getActivePotionEffect(Potion.digSlowdown).getAmplifier()) * 2 : 6);
+
+        SwingAnimationEvent swingAnimationEvent = new SwingAnimationEvent(swingAnimationEnd);
+        MinecraftForge.EVENT_BUS.post(swingAnimationEvent);
+        swingAnimationEnd = swingAnimationEvent.getAnimationEnd();
+
+        return (int) (swingAnimationEnd * Utils.getTimer().timerSpeed);
     }
 }

@@ -8,6 +8,6 @@ import org.jetbrains.annotations.NotNull;
 public class BlockUtils {
     public static boolean isFullBlock(@NotNull IBlockState blockState) {
         Block block = blockState.getBlock();
-        return block instanceof BlockGlass || block.isFullBlock();
+        return block.isFullCube();
     }
 }

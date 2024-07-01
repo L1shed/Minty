@@ -93,9 +93,11 @@ public class Raven {
                         module.onUpdate();
                     }
                 }
-                for (Profile profile : Raven.profileManager.profiles) {
-                    if (mc.currentScreen == null) {
-                        profile.getModule().keybind();
+                synchronized (Raven.profileManager.profiles) {
+                    for (Profile profile : Raven.profileManager.profiles) {
+                        if (mc.currentScreen == null) {
+                            profile.getModule().keybind();
+                        }
                     }
                 }
                 for (Module module : Raven.scriptManager.scripts.values()) {

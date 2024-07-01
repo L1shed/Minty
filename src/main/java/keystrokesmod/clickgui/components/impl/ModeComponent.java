@@ -48,13 +48,32 @@ public class ModeComponent extends Component {
     }
 
     public void onClick(int x, int y, int b) {
-        if (isHover(x, y) && b == 0 && this.parent.po) {
-            if (Keyboard.isKeyDown(Raven.mc.gameSettings.keyBindSneak.getKeyCode())) {
-                this.ModeSetting.prevValue();
-            } else {
-                this.ModeSetting.nextValue();
-            }
+        if (isHover(x, y) && this.parent.po) {
+            changeValue(b, Keyboard.isKeyDown(Raven.mc.gameSettings.keyBindSneak.getKeyCode()));
             parent.categoryComponent.render();
+        }
+    }
+
+    private void changeValue(int b, boolean reserve) {
+        boolean next;
+        switch (b) {
+            case 0:
+                next = true;
+                break;
+            case 1:
+                next = false;
+                break;
+            default:
+                return;
+        }
+
+        if (reserve)
+            next = !next;
+
+        if (next) {
+            this.ModeSetting.nextValue();
+        } else {
+            this.ModeSetting.prevValue();
         }
     }
 }

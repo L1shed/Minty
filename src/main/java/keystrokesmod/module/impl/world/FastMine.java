@@ -10,23 +10,22 @@ import keystrokesmod.utility.Reflection;
 import keystrokesmod.utility.Utils;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import org.jetbrains.annotations.NotNull;
 import org.lwjgl.input.Mouse;
 
 public class FastMine extends Module { // from b4 src
-    private DescriptionSetting description;
-    private SliderSetting delay;
+    private final SliderSetting delay;
     public SliderSetting multiplier;
-    private ModeSetting mode;
-    private ButtonSetting creativeDisable;
+    private final ModeSetting mode;
+    private final ButtonSetting creativeDisable;
     private float lastCurBlockDamageMP;
-    private String[] modes = new String[]{"Pre", "Post", "Increment"};
 
     public FastMine() {
         super("FastMine", category.world);
-        this.registerSetting(description = new DescriptionSetting("Default is 5 delay & 1x speed."));
+        this.registerSetting(new DescriptionSetting("Default is 5 delay & 1x speed."));
         this.registerSetting(delay = new SliderSetting("Break delay ticks", 5.0, 0.0, 5.0, 1.0));
         this.registerSetting(multiplier = new SliderSetting("Break speed multiplier", 1.0, 1.0, 2.0, 0.02, "x"));
-        this.registerSetting(mode = new ModeSetting("Mode", modes, 0));
+        this.registerSetting(mode = new ModeSetting("Mode", new String[]{"Pre", "Post", "Increment"}, 0));
         this.registerSetting(creativeDisable = new ButtonSetting("Disable in creative", true));
     }
 
@@ -36,7 +35,7 @@ public class FastMine extends Module { // from b4 src
     }
 
     @SubscribeEvent
-    public void a(TickEvent.PlayerTickEvent e) {
+    public void a(TickEvent.@NotNull PlayerTickEvent e) {
         if (e.phase != TickEvent.Phase.END || !mc.inGameHasFocus || !Utils.nullCheck()) {
             return;
         }
@@ -51,8 +50,7 @@ public class FastMine extends Module { // from b4 src
                 } else if (Reflection.blockHitDelay.getInt(mc.playerController) > delay) {
                     Reflection.blockHitDelay.set(mc.playerController, delay);
                 }
-            } catch (IllegalAccessException ex) {
-            } catch (IndexOutOfBoundsException ex2) {
+            } catch (IllegalAccessException | IndexOutOfBoundsException ignored) {
             }
         }
         final double c = multiplier.getInput();
@@ -91,7 +89,7 @@ public class FastMine extends Module { // from b4 src
                             break;
                         }
                     }
-                } catch (IllegalAccessException | IndexOutOfBoundsException ex3) {
+                } catch (IllegalAccessException | IndexOutOfBoundsException | NullPointerException ignored) {
                 }
             } else if (mode.getInput() == 2) {
                 this.lastCurBlockDamageMP = 0.0f;

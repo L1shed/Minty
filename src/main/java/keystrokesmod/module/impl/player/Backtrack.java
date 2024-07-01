@@ -88,8 +88,7 @@ public class Backtrack extends Module {
             if (distance > maxDistance.getInput()
                     || distance < minDistance.getInput()
             ) {
-                target = null;
-                vec3 = null;
+                currentLatency = 0;
             }
 
         } catch (NullPointerException ignored) {
@@ -122,7 +121,7 @@ public class Backtrack extends Module {
         if (target == null)
             return;
 
-        Blink.drawBox(vec3.toVec3());
+        Blink.drawBox(currentLatency > 0 ? vec3.toVec3() : target.getPositionVector());
     }
 
     @SubscribeEvent
@@ -134,6 +133,14 @@ public class Backtrack extends Module {
 
             target = (EntityPlayer) e.target;
             vec3 = new Vec3(e.target.getPositionVector());
+        }
+
+        try {
+            final double distance = vec3.distanceTo(mc.thePlayer);
+            if (distance > maxDistance.getInput() || distance < minDistance.getInput())
+                return;
+
+        } catch (NullPointerException ignored) {
         }
 
         currentLatency = (int) (Math.random() * (maxLatency.getInput() - minLatency.getInput()) + minLatency.getInput());

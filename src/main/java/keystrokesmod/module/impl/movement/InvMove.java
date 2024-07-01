@@ -1,25 +1,34 @@
 package keystrokesmod.module.impl.movement;
 
+import keystrokesmod.event.SendPacketEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.ModeSetting;
+import keystrokesmod.utility.PacketUtils;
 import keystrokesmod.utility.Utils;
 import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.inventory.ContainerChest;
+import net.minecraft.network.play.client.C0BPacketEntityAction;
+import net.minecraft.network.play.client.C0EPacketClickWindow;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.input.Keyboard;
 
 import static keystrokesmod.module.ModuleManager.*;
 
 public class InvMove extends Module {
-    public static final String[] MODES = {"Normal", "Blink"};
+    public static final String[] MODES = {"Normal", "Blink", "LegitInv"};
     private final ModeSetting mode;
     private final ButtonSetting allowSprint;
     private final ButtonSetting allowSneak;
     private final ButtonSetting chestNameCheck;
     private final ButtonSetting targetNearbyCheck;
+
     private boolean blinking = false;
+
+    private boolean clicked = false;
 
     public InvMove() {
         super("InvMove", category.movement);
@@ -34,30 +43,84 @@ public class InvMove extends Module {
     @Override
     public void onUpdate() {
         if (mc.currentScreen instanceof GuiContainer && nameCheck() && targetNearbyCheck() && !scaffold.isEnabled()) {
-            if ((int) mode.getInput() == 1) {
-                if (!blinking) {
-                    blink.enable();
-                }
-                blinking = true;
+            switch ((int) mode.getInput()) {
+                case 1:
+                    if (!blinking) {
+                        blink.enable();
+                    }
+                    blinking = true;
+                    break;
+                case 2:
+                    if (!(mc.currentScreen instanceof GuiInventory) || clicked) {
+                        noInvMove();
+                        return;
+                    }
+                    break;
             }
 
-            if (allowSprint.isToggled()) {
-                KeyBinding.setKeyBindState(mc.gameSettings.keyBindSprint.getKeyCode(), Keyboard.isKeyDown(mc.gameSettings.keyBindSprint.getKeyCode()));
+
+            doInvMove();
+        } else {
+            switch ((int) mode.getInput()) {
+                case 1:
+                    if (blinking && blink.isEnabled()) {
+                        blink.disable();
+                    }
+                    blinking = false;
+                    break;
+                case 2:
+                    noInvMove();
+                    clicked = false;
+                    break;
             }
-            if (allowSneak.isToggled()) {
-                KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), Keyboard.isKeyDown(mc.gameSettings.keyBindSneak.getKeyCode()));
-            }
-            KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), Keyboard.isKeyDown(mc.gameSettings.keyBindForward.getKeyCode()));
-            KeyBinding.setKeyBindState(mc.gameSettings.keyBindBack.getKeyCode(), Keyboard.isKeyDown(mc.gameSettings.keyBindBack.getKeyCode()));
-            KeyBinding.setKeyBindState(mc.gameSettings.keyBindRight.getKeyCode(), Keyboard.isKeyDown(mc.gameSettings.keyBindRight.getKeyCode()));
-            KeyBinding.setKeyBindState(mc.gameSettings.keyBindLeft.getKeyCode(), Keyboard.isKeyDown(mc.gameSettings.keyBindLeft.getKeyCode()));
-            KeyBinding.setKeyBindState(mc.gameSettings.keyBindJump.getKeyCode(), Utils.jumpDown());
-        } else if ((int) mode.getInput() == 1) {
-            if (blinking && blink.isEnabled()) {
-                blink.disable();
-            }
-            blinking = false;
         }
+    }
+
+    @SubscribeEvent
+    public void onSendPacket(SendPacketEvent event) {
+        if ((int) mode.getInput() != 2) return;
+
+        if (event.getPacket() instanceof C0BPacketEntityAction) {
+            C0BPacketEntityAction packet = (C0BPacketEntityAction) event.getPacket();
+
+            if (packet.getAction() == C0BPacketEntityAction.Action.OPEN_INVENTORY) {
+                clicked = false;
+                event.setCanceled(true);
+            }
+        } else if (event.getPacket() instanceof C0EPacketClickWindow) {
+            if (!clicked) {
+                PacketUtils.sendPacketNoEvent(new C0BPacketEntityAction(mc.thePlayer, C0BPacketEntityAction.Action.OPEN_INVENTORY));
+            }
+            clicked = true;
+        }
+    }
+
+    private void doInvMove() {
+        if (allowSprint.isToggled()) {
+            KeyBinding.setKeyBindState(mc.gameSettings.keyBindSprint.getKeyCode(), Keyboard.isKeyDown(mc.gameSettings.keyBindSprint.getKeyCode()));
+        }
+        if (allowSneak.isToggled()) {
+            KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), Keyboard.isKeyDown(mc.gameSettings.keyBindSneak.getKeyCode()));
+        }
+        KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), Keyboard.isKeyDown(mc.gameSettings.keyBindForward.getKeyCode()));
+        KeyBinding.setKeyBindState(mc.gameSettings.keyBindBack.getKeyCode(), Keyboard.isKeyDown(mc.gameSettings.keyBindBack.getKeyCode()));
+        KeyBinding.setKeyBindState(mc.gameSettings.keyBindRight.getKeyCode(), Keyboard.isKeyDown(mc.gameSettings.keyBindRight.getKeyCode()));
+        KeyBinding.setKeyBindState(mc.gameSettings.keyBindLeft.getKeyCode(), Keyboard.isKeyDown(mc.gameSettings.keyBindLeft.getKeyCode()));
+        KeyBinding.setKeyBindState(mc.gameSettings.keyBindJump.getKeyCode(), Utils.jumpDown());
+    }
+
+    private void noInvMove() {
+        if (allowSprint.isToggled()) {
+            KeyBinding.setKeyBindState(mc.gameSettings.keyBindSprint.getKeyCode(), false);
+        }
+        if (allowSneak.isToggled()) {
+            KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), false);
+        }
+        KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), false);
+        KeyBinding.setKeyBindState(mc.gameSettings.keyBindBack.getKeyCode(), false);
+        KeyBinding.setKeyBindState(mc.gameSettings.keyBindRight.getKeyCode(), false);
+        KeyBinding.setKeyBindState(mc.gameSettings.keyBindLeft.getKeyCode(), false);
+        KeyBinding.setKeyBindState(mc.gameSettings.keyBindJump.getKeyCode(), false);
     }
 
     private boolean nameCheck() {
@@ -79,6 +142,16 @@ public class InvMove extends Module {
             blink.disable();
         }
         blinking = false;
+
+        if (mc.currentScreen instanceof GuiInventory && !clicked) {
+            PacketUtils.sendPacketNoEvent(new C0BPacketEntityAction(mc.thePlayer, C0BPacketEntityAction.Action.OPEN_INVENTORY));
+        }
+        clicked = false;
+    }
+
+    @Override
+    public void onEnable() {
+        clicked = mc.currentScreen instanceof GuiInventory;
     }
 
     @Override

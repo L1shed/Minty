@@ -13,6 +13,7 @@ import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.module.setting.utils.ModeOnly;
 import keystrokesmod.utility.Reflection;
 import keystrokesmod.utility.Utils;
+import net.minecraft.network.play.client.C03PacketPlayer;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.MovingObjectPosition;
@@ -59,7 +60,7 @@ public class Tower extends Module {
         this.registerSetting(hypixelLowHop = new ButtonSetting("Hypixel low hop", false, mode1));
         this.registerSetting(hypixelTowerTest = new ButtonSetting("Hypixel tower test", false, mode1));
         this.registerSetting(hypixelJumpMotion = new SliderSetting("Hypixel tower motion", 0.4, 0.2, 0.8, 0.01, () -> hypixelTowerTest.isToggled() && mode1.get()));
-        this.registerSetting(hypixelTowerDelay = new SliderSetting("Hypixel tower delay", 100, 0, 1000, 10, "ms", () -> hypixelTowerTest.isToggled() && mode1.get()));
+        this.registerSetting(hypixelTowerDelay = new SliderSetting("Hypixel tower delay", 100, 0, 2500, 10, "ms", () -> hypixelTowerTest.isToggled() && mode1.get()));
         this.registerSetting(disableWhileCollided = new ButtonSetting("Disable while collided", false));
         this.registerSetting(disableWhileHurt = new ButtonSetting("Disable while hurt", false));
         this.registerSetting(sprintJumpForward = new ButtonSetting("Sprint jump forward", true));
@@ -96,14 +97,16 @@ public class Tower extends Module {
                             }
                             if (toweredBlock != null) {
                                 Raven.getExecutor().schedule(() -> {
+                                    final BlockPos block = toweredBlock;
                                     if (scaffold.place(new MovingObjectPosition(
-                                            new Vec3(toweredBlock.getX() + 0.1, scaffold.placeBlock.hitVec.yCoord, scaffold.placeBlock.hitVec.zCoord),
+                                            new Vec3(block.getX(), block.getY() + 1, block.getZ() + 0.5),
                                             EnumFacing.UP,
-                                            toweredBlock), true)) {
-//                                        e.setOnGround(true);
+                                            block), true)) {
+                                        mc.thePlayer.motionY = -0.28;
+                                        mc.thePlayer.sendQueue.addToSendQueue(new C03PacketPlayer(true));
                                     }
                                 }, (long) hypixelTowerDelay.getInput(), TimeUnit.MILLISECONDS);
-                                mc.thePlayer.motionY = hypixelJumpMotion.getInput();
+                                if (offGroundTicks <= 1) mc.thePlayer.motionY = hypixelJumpMotion.getInput();
                             }
                         }
                     } else {

@@ -7,12 +7,14 @@ import keystrokesmod.module.impl.player.NoFall;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.utility.MoveUtil;
+import keystrokesmod.utility.RotationUtils;
 import keystrokesmod.utility.Utils;
 import net.minecraft.block.BlockAir;
 import net.minecraft.network.play.client.C07PacketPlayerDigging;
 import net.minecraft.potion.Potion;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import static keystrokesmod.module.ModuleManager.scaffold;
@@ -23,7 +25,7 @@ public class Speed extends Module {
     private final ButtonSetting sneakDisable;
     private final ButtonSetting stopMotion;
     private final ButtonSetting stopSprint;
-    private final String[] modes = new String[]{"StrafeTest", "Ground", "Damage", "OldHypixel"};
+    private final String[] modes = new String[]{"Strafe (Deprecated)", "Ground", "Damage", "OldHypixel", "LowHopTest", "Strafe B"};
     private int offGroundTicks = 0;
     public static int ticksSinceVelocity = Integer.MAX_VALUE;
 
@@ -33,6 +35,8 @@ public class Speed extends Module {
     double lastAngle = 0;
 
     float angle = 0;
+
+    int groundYPos = -1;
 
     public Speed() {
         super("Speed", Module.category.movement);
@@ -82,12 +86,12 @@ public class Speed extends Module {
                     mc.thePlayer.setSprinting(true);
                     switch (offGroundTicks) {
                         case 0:
+                            groundYPos = (int) Math.floor(mc.thePlayer.posY) - 1;
                             MoveUtil.strafe(0.415);
                             mc.thePlayer.motionY = 0.42;
                             break;
                         case 10:
-                            if (!BlockUtils.isFullBlock(keystrokesmod.utility.BlockUtils.getBlockState(mc.thePlayer.getPosition().down())))
-                                break;
+                            if (isYAxisChange()) break;
 
                             MoveUtil.strafe(0.315);
                             mc.thePlayer.motionY = -0.28;
@@ -217,7 +221,58 @@ public class Speed extends Module {
                     }
                 }
                 break;
+            case 4:
+                if (!Utils.jumpDown() && Utils.isMoving() && mc.currentScreen == null) {
+                    mc.thePlayer.setSprinting(true);
+                    switch (offGroundTicks) {
+                        case 0:
+                            groundYPos = (int) Math.floor(mc.thePlayer.posY) - 1;
+                            MoveUtil.strafe(0.415);
+                            mc.thePlayer.motionY = 0.42;
+                            Utils.resetTimer();
+                            break;
+                        case 9:
+                            if (isYAxisChange()) break;
+
+                            mc.thePlayer.motionY = -0.3;
+                            Utils.getTimer().timerSpeed = 1.6f;
+                            break;
+                        case 11:
+                            Utils.resetTimer();
+                            break;
+                    }
+                }
+                break;
+            case 5:
+                if (!Utils.jumpDown() && Utils.isMoving() && mc.currentScreen == null && mc.thePlayer.hurtTime == 0) {
+                    mc.thePlayer.setSprinting(true);
+                    switch (offGroundTicks) {
+                        case 0:
+                            groundYPos = (int) Math.floor(mc.thePlayer.posY) - 1;
+                            MoveUtil.strafe(0.45);
+                            mc.thePlayer.motionY = 0.42;
+                            Utils.resetTimer();
+                            break;
+                        case 9:
+                            MoveUtil.strafe(0.315);
+                            mc.thePlayer.motionY = -0.28;
+                            Utils.getTimer().timerSpeed = 1.8f;
+                            break;
+                        case 10:
+                            MoveUtil.strafe();
+                            Utils.resetTimer();
+                            break;
+                        case 11:
+                            MoveUtil.stop();
+                    }
+                }
+                break;
         }
+    }
+
+    private boolean isYAxisChange() {
+        MovingObjectPosition hitResult = RotationUtils.rayCast(3, 0, 90);
+        return hitResult == null || hitResult.getBlockPos().getY() != groundYPos;
     }
 
     public void onDisable() {
@@ -227,5 +282,6 @@ public class Speed extends Module {
         cooldownTicks = 0;
         cooldown = false;
         strafe = false;
+        Utils.resetTimer();
     }
 }

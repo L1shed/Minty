@@ -14,6 +14,7 @@ import keystrokesmod.script.classes.Vec3;
 import keystrokesmod.utility.*;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.network.Packet;
@@ -478,6 +479,7 @@ public class KillAura extends Module {
                 .filter(entity -> entity != mc.thePlayer)
                 .filter(entity -> entity instanceof EntityLivingBase)
                 .filter(entity -> {
+                    if (entity instanceof EntityArmorStand) return false;
                     if (entity instanceof EntityPlayer) {
                         if (!targetPlayer.isToggled()) return false;
                         if (Utils.isFriended((EntityPlayer) entity)) {
@@ -494,8 +496,6 @@ public class KillAura extends Module {
                 .filter(entity -> fov.getInput() == 360 || Utils.inFov((float) fov.getInput(), entity))
                 .map(entity -> new Pair<>(entity, eyePos.distanceTo(entity)))
                 .forEach(pair -> {
-                    if (availableTargets.size() >= targets.getInput()) return;
-
                     // need a more accurate distance check as this can ghost on hypixel
                     if (pair.second() <= blockRange.getInput() && autoBlockMode.getInput() > 0) {
                         KeyBinding.setKeyBindState(mc.gameSettings.keyBindUseItem.getKeyCode(), false);
@@ -535,7 +535,7 @@ public class KillAura extends Module {
                     break;
             }
             availableTargets.sort(comparator);
-            if (entityIndex > availableTargets.size() - 1) {
+            if (entityIndex > (int) targets.getInput() - 1 || entityIndex > availableTargets.size() - 1) {
                 entityIndex = 0;
             }
             target = availableTargets.get(entityIndex);
@@ -658,13 +658,13 @@ public class KillAura extends Module {
 
     private boolean behindBlocks(float[] rotations) {
         try {
-            Vec3 from = new Vec3(mc.thePlayer).add(0, mc.thePlayer.getEyeHeight(), 0);
+            Vec3 from = Utils.getEyePos();
             MovingObjectPosition hitResult = RotationUtils.rayCast(
                     RotationUtils.getNearestPoint(target.getEntityBoundingBox(), from).distanceTo(from),
                     rotations[0], rotations[1]
             );
             if (hitResult != null) {
-                if (keystrokesmod.module.impl.other.anticheats.utils.world.BlockUtils.isFullBlock(mc.theWorld.getBlockState(hitResult.getBlockPos()))) {
+                if (mc.theWorld.getBlockState(hitResult.getBlockPos()).getBlock().isFullCube()) {
                     return true;
                 }
             }

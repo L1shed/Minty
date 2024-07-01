@@ -74,6 +74,10 @@ public class Utils {
         return true;
     }
 
+    public static boolean overVoid() {
+        return overVoid(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
+    }
+
     public static List<NetworkPlayerInfo> getTablist() {
         final ArrayList<NetworkPlayerInfo> list = new ArrayList<>(mc.getNetHandler().getPlayerInfoMap());
         removeDuplicates((ArrayList) list);
@@ -824,5 +828,14 @@ public class Utils {
         return mc.theWorld.playerEntities.stream()
                 .filter(target -> target != mc.thePlayer)
                 .anyMatch(target -> new keystrokesmod.script.classes.Vec3(target).distanceTo(mc.thePlayer) < 6);
+    }
+
+    /**
+     * Checks if the player is in a liquid
+     *
+     * @return in liquid
+     */
+    public static boolean inLiquid() {
+        return mc.thePlayer.isInWater() || mc.thePlayer.isInLava();
     }
 }

@@ -27,7 +27,7 @@ import java.util.Objects;
 public class ProfileManager {
     public static Minecraft mc = Minecraft.getMinecraft();
     public File directory;
-    public List<Profile> profiles = new ArrayList<>();
+    public final List<Profile> profiles = new ArrayList<>();
 
     public ProfileManager() {
         directory = new File(mc.mcDataDir + File.separator + "keystrokes", "profiles");

@@ -3,6 +3,7 @@ package keystrokesmod.module.impl.movement;
 import keystrokesmod.event.BlockAABBEvent;
 import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.event.ReceivePacketEvent;
+import keystrokesmod.mixins.impl.client.PlayerControllerMPAccessor;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
@@ -20,6 +21,7 @@ public class Phase extends Module {
     private final ModeSetting mode;
     private final ButtonSetting autoBlink;
     private final ButtonSetting cancelS08;
+    private final ButtonSetting waitingBreakBlock;
     private final SliderSetting autoDisable;
 
     private int phaseTime;
@@ -27,12 +29,16 @@ public class Phase extends Module {
     // watchdog auto phase
     private boolean phase;
 
+    private boolean currentHittingBlock;
+    private boolean lastHittingBlock;
+
     public Phase() {
         super("Phase", category.movement);
         this.registerSetting(new DescriptionSetting("Lets you go through solid blocks."));
         this.registerSetting(mode = new ModeSetting("Mode", new String[]{"Normal", "Watchdog Auto Phase"}, 0));
         this.registerSetting(autoBlink = new ButtonSetting("Blink", true));
         this.registerSetting(cancelS08 = new ButtonSetting("Cancel S06", false));
+        this.registerSetting(waitingBreakBlock = new ButtonSetting("waiting break block", false));
         this.registerSetting(autoDisable = new SliderSetting("Auto disable", 6, 1, 20, 1, "ticks"));
     }
 
@@ -40,6 +46,7 @@ public class Phase extends Module {
     public void onEnable() {
         phaseTime = 0;
         phase = false;
+        currentHittingBlock = lastHittingBlock = false;
     }
 
     @Override
@@ -51,6 +58,12 @@ public class Phase extends Module {
         phase = false;
     }
 
+    @Override
+    public void onUpdate() {
+        currentHittingBlock = ((PlayerControllerMPAccessor) mc.playerController).isHittingBlock();
+        lastHittingBlock = currentHittingBlock;
+    }
+
     @SubscribeEvent
     public void onPreMotion(PreMotionEvent event) {
         if (this.phase) {
@@ -59,9 +72,14 @@ public class Phase extends Module {
             this.phaseTime = 0;
         }
 
-        if (phaseTime > autoDisable.getInput())
+        if (phaseTime > autoDisable.getInput()) {
             disable();
+            return;
+        }
 
+        if (waitingBreakBlock.isToggled() && !(lastHittingBlock && !currentHittingBlock)) {
+            return;
+        }
 
         switch ((int) mode.getInput()) {
             case 0:

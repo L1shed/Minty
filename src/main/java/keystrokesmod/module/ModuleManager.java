@@ -33,23 +33,23 @@ public class ModuleManager {
     public static Module antiBot;
     public static Module noSlow;
     public static KillAura killAura;
-    public static Module autoClicker;
-    public static Module hitBox;
-    public static Module reach;
+    public static AutoClicker autoClicker;
+    public static HitBox hitBox;
+    public static Reach reach;
     public static BedESP bedESP;
     public static HUD hud;
     public static Timer timer;
-    public static Module fly;
-    public static Module moreKB;
+    public static Fly fly;
+    public static MoreKB moreKB;
     public static Potions potions;
     public static NoFall noFall;
     public static PlayerESP playerESP;
-    public static Module reduce;
+    public static Reduce reduce;
     public static SafeWalk safeWalk;
-    public static Module keepSprint;
-    public static Module antiKnockback;
+    public static KeepSprint keepSprint;
+    public static Velocity velocity;
     public static Tower tower;
-    public static Module bedwars;
+    public static BedWars bedwars;
     public static Speed speed;
     public static InvManager invManager;
     public static Scaffold scaffold;
@@ -64,7 +64,6 @@ public class ModuleManager {
     public static NoHurtCam noHurtCam;
     public static NoCameraClip noCameraClip;
     public static AutoPlay autoPlay;
-    public static SaveMoveKeys saveMoveKeys;
     public static NyaProxy nyaProxy;
     public static CustomName customName;
     public static CommandChat commandChat;
@@ -78,6 +77,9 @@ public class ModuleManager {
     public static ClickRecorder clickRecorder;
     public static InfiniteAura infiniteAura;
     public static LegitScaffold legitScaffold;
+    public static FreeLook freeLook;
+    public static Step step;
+    public static Animations animations;
 
     public void register() {
         this.addModule(autoClicker = new AutoClicker());
@@ -119,7 +121,7 @@ public class ModuleManager {
         this.addModule(noFall = new NoFall());
         this.addModule(safeWalk = new SafeWalk());
         this.addModule(reduce = new Reduce());
-        this.addModule(antiKnockback = new Velocity());
+        this.addModule(velocity = new Velocity());
         this.addModule(antiBot = new AntiBot());
         this.addModule(antiShuffle = new AntiShuffle());
         this.addModule(new Chams());
@@ -172,7 +174,6 @@ public class ModuleManager {
         this.addModule(noHurtCam = new NoHurtCam());
         this.addModule(noCameraClip = new NoCameraClip());
         this.addModule(autoPlay = new AutoPlay());
-//        this.addModule(saveMoveKeys = new SaveMoveKeys());
         this.addModule(nyaProxy = new NyaProxy());
         this.addModule(customName = new CustomName());
         this.addModule(commandChat = new CommandChat());
@@ -186,6 +187,9 @@ public class ModuleManager {
         this.addModule(clickRecorder = new ClickRecorder());
         this.addModule(infiniteAura = new InfiniteAura());
         this.addModule(legitScaffold = new LegitScaffold());
+        this.addModule(freeLook = new FreeLook());
+        this.addModule(step = new Step());
+        this.addModule(animations = new Animations());
         antiBot.enable();
         modules.sort(Comparator.comparing(Module::getPrettyName));
     }
@@ -198,16 +202,16 @@ public class ModuleManager {
         return modules;
     }
 
-    public List<Module> inCategory(Module.category categ) {
-        ArrayList<Module> categML = new ArrayList<>();
+    public List<Module> inCategory(Module.category category) {
+        ArrayList<Module> categoryML = new ArrayList<>();
 
         for (Module mod : this.getModules()) {
-            if (mod.moduleCategory().equals(categ)) {
-                categML.add(mod);
+            if (mod.moduleCategory().equals(category)) {
+                categoryML.add(mod);
             }
         }
 
-        return categML;
+        return categoryML;
     }
 
     public Module getModule(String moduleName) {
