@@ -69,7 +69,8 @@ public class InvMove extends Module {
                     blinking = false;
                     break;
                 case 2:
-                    noInvMove();
+                    if (mc.currentScreen instanceof GuiContainer)
+                        noInvMove();
                     clicked = false;
                     break;
             }
