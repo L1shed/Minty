@@ -26,6 +26,11 @@ public class JumpReset extends Module {
         this.registerSetting(ignoreLiquid = new ButtonSetting("Ignore liquid", true));
     }
 
+    @Override
+    public void guiUpdate() {
+        Utils.correctValue(minDelay, maxDelay);
+    }
+
     @SubscribeEvent
     public void onVelocity(PostVelocityEvent event) {
         if (Utils.nullCheck()) {
@@ -45,7 +50,7 @@ public class JumpReset extends Module {
             }
 
             long delay = (long) (Math.random() * (maxDelay.getInput() - minDelay.getInput()) + minDelay.getInput());
-            if (delay == 0) {
+            if (maxDelay.getInput() == 0 || delay == 0) {
                 if (mc.thePlayer.onGround) mc.thePlayer.jump();
             } else {
                 Raven.getExecutor().schedule(() -> {

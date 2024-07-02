@@ -1,11 +1,11 @@
 package keystrokesmod.script.packets.clientbound;
 
 public class SPacket {
-    public String a;
-    protected net.minecraft.network.Packet b;
+    public String name;
+    protected net.minecraft.network.Packet packet;
 
     public SPacket(net.minecraft.network.Packet b) {
-        this.b = b;
-        this.a = b.getClass().getSimpleName();
+        this.packet = b;
+        this.name = b.getClass().getSimpleName();
     }
 }

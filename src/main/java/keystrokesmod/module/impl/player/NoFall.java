@@ -8,6 +8,7 @@ import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.BlockUtils;
+import keystrokesmod.utility.Reflection;
 import keystrokesmod.utility.Utils;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockAir;
@@ -100,6 +101,23 @@ public class NoFall extends Module {
             return;
         }
         switch ((int) mode.getInput()) {
+            case 1:
+                float fallDistance = 0;
+                try {
+                    fallDistance = Reflection.EntityFallDistance.getFloat(mc.thePlayer);
+                } catch (Exception exception) {
+                    Utils.sendMessage("&cFailed to get fall distance.");
+                }
+                if (fallDistance > minFallDistance.getInput()) {
+                    Utils.getTimer().timerSpeed = (float) 0.5;
+                    mc.getNetHandler().addToSendQueue(new C03PacketPlayer(true));
+                    try {
+                        Reflection.EntityFallDistance.setFloat(mc.thePlayer, 0);
+                    } catch (Exception exception) {
+                        Utils.sendMessage("&cFailed to set fall distance to 0.");
+                    }
+                }
+                break;
             case 2:
                 event.setOnGround(false);
                 break;
@@ -118,9 +136,9 @@ public class NoFall extends Module {
                     }
 
                     prevOnGround = false;
-                } else if (BlockUtils.isBlockUnder() && blink.isEnabled() && fallDistance >= minFallDistance.getInput()) {
+                } else if (BlockUtils.isBlockUnder() && blink.isEnabled() && this.fallDistance >= minFallDistance.getInput()) {
                     mc.thePlayer.sendQueue.addToSendQueue(new C03PacketPlayer(true));
-                    fallDistance = 0.0F;
+                    this.fallDistance = 0.0F;
                 }
                 break;
             case 4:

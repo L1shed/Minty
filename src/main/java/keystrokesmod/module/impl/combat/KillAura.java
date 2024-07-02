@@ -494,7 +494,7 @@ public class KillAura extends Module {
                 .filter(entity -> targetInvisible.isToggled() || !entity.isInvisible())
                 .filter(entity -> hitThroughBlocks.isToggled() || !behindBlocks(rotations))
                 .filter(entity -> fov.getInput() == 360 || Utils.inFov((float) fov.getInput(), entity))
-                .map(entity -> new Pair<>(entity, eyePos.distanceTo(entity)))
+                .map(entity -> new Pair<>(entity, eyePos.distanceTo(RotationUtils.getNearestPoint(entity.getEntityBoundingBox(), eyePos))))
                 .forEach(pair -> {
                     // need a more accurate distance check as this can ghost on hypixel
                     if (pair.second() <= blockRange.getInput() && autoBlockMode.getInput() > 0) {

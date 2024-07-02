@@ -31,6 +31,8 @@ public class AimAssist extends Module {
     private final ButtonSetting blatantMode;
     private final ButtonSetting aimNearest;
     private final ButtonSetting ignoreTeammates;
+    private final ButtonSetting throughBlock;
+    private final ButtonSetting smooth;
 
     private EntityPlayer target = null;
     public AimAssist() {
@@ -46,8 +48,10 @@ public class AimAssist extends Module {
         this.registerSetting(weaponOnly = new ButtonSetting("Weapon only", false));
         this.registerSetting(aimInvis = new ButtonSetting("Aim invis", false));
         this.registerSetting(blatantMode = new ButtonSetting("Blatant mode", false));
-        this.registerSetting(aimNearest = new ButtonSetting("Aim nearest", true));
         this.registerSetting(ignoreTeammates = new ButtonSetting("Ignore teammates", false));
+        this.registerSetting(aimNearest = new ButtonSetting("Aim nearest", true, () -> !blatantMode.isToggled()));
+        this.registerSetting(throughBlock = new ButtonSetting("Through block", true, () -> !blatantMode.isToggled()));
+        this.registerSetting(smooth = new ButtonSetting("Smooth as possible", false));
     }
 
     public void onUpdate() {
@@ -73,11 +77,18 @@ public class AimAssist extends Module {
             } else {
                 final Pair<Float, Float> rot = AimSimulator.getLegitAim(target, mc.thePlayer,
                         aimNearest.isToggled(), true, false, null, 0);
+
+                if (!throughBlock.isToggled() && RotationUtils.rayCast(distance.getInput(), rot.first(), rot.second()) != null)
+                    return;
+
                 if (horizonSpeed.getInput() > 0)
-                    mc.thePlayer.rotationYaw = AimSimulator.rotMove(rot.first(), mc.thePlayer.rotationYaw,
-                            (float) horizonSpeed.getInput());
+                    mc.thePlayer.rotationYaw = smooth.isToggled() ?
+                            AimSimulator.rotMoveNoRandom(rot.second(), mc.thePlayer.rotationYaw, (float) horizonSpeed.getInput()) :
+                            AimSimulator.rotMove(rot.first(), mc.thePlayer.rotationYaw, (float) horizonSpeed.getInput());
                 if (verticalSpeed.getInput() > 0)
-                    mc.thePlayer.rotationPitch = AimSimulator.rotMove(rot.second(), mc.thePlayer.rotationPitch,
+                    mc.thePlayer.rotationPitch = smooth.isToggled() ?
+                            AimSimulator.rotMoveNoRandom(rot.second(), mc.thePlayer.rotationPitch, (float) verticalSpeed.getInput()) :
+                            AimSimulator.rotMove(rot.second(), mc.thePlayer.rotationPitch,
                             (float) verticalSpeed.getInput());
             }
         }

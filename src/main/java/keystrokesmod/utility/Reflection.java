@@ -10,6 +10,7 @@ import net.minecraft.client.gui.inventory.GuiFurnace;
 import net.minecraft.client.multiplayer.PlayerControllerMP;
 import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.projectile.EntityArrow;
@@ -59,6 +60,7 @@ public class Reflection {
     public static Field S27PacketExplosionXMotion;
     public static Field S27PacketExplosionYMotion;
     public static Field S27PacketExplosionZMotion;
+    public static Field EntityFallDistance;
     public static Field bookContents;
     public static HashMap<Class, Field> containerInventoryPlayer = new HashMap<>();
     private static List<Class> containerClasses = new ArrayList<>();
@@ -180,6 +182,11 @@ public class Reflection {
             S27PacketExplosionZMotion = ReflectionHelper.findField(S27PacketExplosion.class, "field_149159_h", "field_149159_h");
             if (S27PacketExplosionZMotion != null) {
                 S27PacketExplosionZMotion.setAccessible(true);
+            }
+
+            EntityFallDistance = ReflectionHelper.findField(Entity.class, "fallDistance", "field_70143_R");
+            if (EntityFallDistance != null) {
+                EntityFallDistance.setAccessible(true);
             }
 
             bookContents = ReflectionHelper.findField(GuiScreenBook.class, "field_175386_A");

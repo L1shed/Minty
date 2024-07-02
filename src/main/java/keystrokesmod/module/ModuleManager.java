@@ -80,6 +80,7 @@ public class ModuleManager {
     public static FreeLook freeLook;
     public static Step step;
     public static Animations animations;
+    public static ChestStealer chestStealer;
 
     public void register() {
         this.addModule(autoClicker = new AutoClicker());
@@ -190,6 +191,7 @@ public class ModuleManager {
         this.addModule(freeLook = new FreeLook());
         this.addModule(step = new Step());
         this.addModule(animations = new Animations());
+        this.addModule(chestStealer = new ChestStealer());
         antiBot.enable();
         modules.sort(Comparator.comparing(Module::getPrettyName));
     }

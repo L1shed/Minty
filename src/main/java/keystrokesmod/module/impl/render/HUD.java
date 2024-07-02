@@ -3,6 +3,7 @@ package keystrokesmod.module.impl.render;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.player.InvManager;
+import keystrokesmod.module.impl.player.ChestStealer;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.ModeSetting;
@@ -27,7 +28,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class HUD extends Module {
-    public static final String VERSION = "1.8.0";
+    public static final String VERSION = "1.9.0";
     public static ModeSetting theme;
 //    public static SliderSetting font;
 //    public static SliderSetting fontSize;
@@ -37,6 +38,7 @@ public class HUD extends Module {
     private static ButtonSetting lowercase;
     public static ButtonSetting showInfo;
     public static ButtonSetting showWatermark;
+    public static ModeSetting watermarkMode;
     public static int hudX = 5;
     public static int hudY = 70;
     public static String bName = "s";
@@ -56,6 +58,7 @@ public class HUD extends Module {
         this.registerSetting(lowercase = new ButtonSetting("Lowercase", false));
         this.registerSetting(showInfo = new ButtonSetting("Show module info", true));
         this.registerSetting(showWatermark = new ButtonSetting("Show Watermark", true));
+        this.registerSetting(watermarkMode = new ModeSetting("Watermark mode", new String[]{"Fork", "Augustus"}, 0));
     }
 
     public void onEnable() {
@@ -81,7 +84,7 @@ public class HUD extends Module {
             canShowInfo = showInfo.isToggled();
             ModuleManager.sort();
         }
-        if (mc.currentScreen != null && !(mc.currentScreen instanceof GuiChest && InvManager.noChestRender()) && !(mc.currentScreen instanceof GuiChat) || mc.gameSettings.showDebugInfo) {
+        if (mc.currentScreen != null && !(mc.currentScreen instanceof GuiChest && ChestStealer.noChestRender()) && !(mc.currentScreen instanceof GuiChat) || mc.gameSettings.showDebugInfo) {
             return;
         }
         int n = hudY;
@@ -117,13 +120,24 @@ public class HUD extends Module {
         List<String> texts = new ArrayList<>(modules.size());
 
         if (showWatermark.isToggled()) {
-            String text = "§r§u§lRaven §bB§9" + bName +"§e";
-            String text2 = "§r§7[§rxia__mc Forked§7]§r B" + VERSION;
-            if (lowercase.isToggled())
-                text = text.toLowerCase();
-            texts.add(text);
+            String text = "";
+            String text2 = "";
+            switch ((int) watermarkMode.getInput()) {
+                case 0:
+                    text = "§r§f§lRaven §bB§9" + bName +"§e";
+                    text2 = "§r§7[§rxia__mc Forked§7]§r v" + VERSION;
+                    break;
+                case 1:
+                    text = "§f§lAugustus b" + VERSION;
+                    break;
+            }
 
-            if (showInfo.isToggled()) {
+            if (!text.isEmpty()) {
+                if (lowercase.isToggled())
+                    text = text.toLowerCase();
+                texts.add(text);
+            }
+            if (showInfo.isToggled() && !text2.isEmpty()) {
                 if (lowercase.isToggled())
                     text2 = text2.toLowerCase();
                 texts.add(text2);

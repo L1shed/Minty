@@ -1,39 +1,129 @@
 package keystrokesmod.module.impl.movement;
 
+import keystrokesmod.event.PrePlayerInput;
+import keystrokesmod.event.ReceivePacketEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.module.setting.utils.ModeOnly;
+import keystrokesmod.utility.MoveUtil;
+import keystrokesmod.utility.PacketUtils;
 import keystrokesmod.utility.render.RenderUtils;
 import keystrokesmod.utility.Utils;
+import net.minecraft.network.play.client.C03PacketPlayer;
+import net.minecraft.network.play.server.S08PacketPlayerPosLook;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.apache.commons.lang3.RandomUtils;
+import org.jetbrains.annotations.NotNull;
 
 public class Fly extends Module {
-    private ModeSetting mode;
+    private final ModeSetting mode;
     public static SliderSetting horizontalSpeed;
-    private SliderSetting verticalSpeed;
-    private ButtonSetting showBPS;
-    private ButtonSetting stopMotion;
+    private final SliderSetting verticalSpeed;
+    private final ButtonSetting showBPS;
+    private final ButtonSetting stopMotion;
     private boolean d;
-    private boolean a = false;
-    private String[] modes = new String[]{"Vanilla", "Fast", "Fast 2"};
+
+    private int offGroundTicks = 0;
+    private boolean started, notUnder, clipped, teleport;
 
     public Fly() {
         super("Fly", category.movement);
-        this.registerSetting(mode = new ModeSetting("Fly", modes, 0));
-        this.registerSetting(horizontalSpeed = new SliderSetting("Horizontal speed", 2.0, 1.0, 9.0, 0.1));
-        this.registerSetting(verticalSpeed = new SliderSetting("Vertical speed", 2.0, 1.0, 9.0, 0.1));
+        this.registerSetting(mode = new ModeSetting("Fly", new String[]{"Vanilla", "Fast", "Fast 2", "BlocksMC"}, 0));
+        final ModeOnly canChangeSpeed = new ModeOnly(mode, 0, 1, 2);
+        this.registerSetting(horizontalSpeed = new SliderSetting("Horizontal speed", 2.0, 1.0, 9.0, 0.1, canChangeSpeed));
+        this.registerSetting(verticalSpeed = new SliderSetting("Vertical speed", 2.0, 1.0, 9.0, 0.1, canChangeSpeed));
         this.registerSetting(showBPS = new ButtonSetting("Show BPS", false));
         this.registerSetting(stopMotion = new ButtonSetting("Stop motion", false));
     }
 
+    @Override
+    public String getInfo() {
+        return mode.getOptions()[(int) mode.getInput()];
+    }
+
     public void onEnable() {
         this.d = mc.thePlayer.capabilities.isFlying;
+
+        notUnder = false;
+        started = false;
+        clipped = false;
+        teleport = false;
+
+        if ((int) mode.getInput() == 3) {
+            Utils.sendMessage("Start the fly under the block and walk forward.");
+        }
+    }
+
+    @SubscribeEvent
+    public void onReceivePacket(@NotNull ReceivePacketEvent event) {
+        if (event.getPacket() instanceof S08PacketPlayerPosLook) {
+            if (teleport) {
+                event.setCanceled(true);
+                teleport = false;
+                Utils.sendMessage("Teleported!");
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public void onPlayerInput(PrePlayerInput event) {
+        if ((int) mode.getInput() != 3) return;
+
+        final AxisAlignedBB bb = mc.thePlayer.getEntityBoundingBox().offset(0, 1, 0);
+
+        if (mc.theWorld.getCollidingBoundingBoxes(mc.thePlayer, bb).isEmpty() || started) {
+            switch (offGroundTicks) {
+                case 0:
+                    if (notUnder) {
+                        if (clipped) {
+                            started = true;
+                            event.setSpeed(10);
+                            mc.thePlayer.motionY = 0.42f;
+                            notUnder = false;
+                        }
+                    }
+                    break;
+
+                case 1:
+                    if (started) event.setSpeed(9.6);
+                    break;
+
+                default:
+//                    if (mc.thePlayer.fallDistance > 0 && started) {
+//                        mc.thePlayer.motionY += 2.5 / 100f;
+//                    }
+                    break;
+            }
+        } else {
+            notUnder = true;
+
+            if (clipped) return;
+
+            clipped = true;
+
+            PacketUtils.sendPacket(new C03PacketPlayer.C06PacketPlayerPosLook(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ, mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch, false));
+            PacketUtils.sendPacket(new C03PacketPlayer.C06PacketPlayerPosLook(mc.thePlayer.posX, mc.thePlayer.posY - 0.1, mc.thePlayer.posZ, mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch, false));
+            PacketUtils.sendPacket(new C03PacketPlayer.C06PacketPlayerPosLook(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ, mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch, false));
+
+            teleport = true;
+        }
+
+        MoveUtil.strafe();
+
+        Utils.getTimer().timerSpeed = 0.4f;
     }
 
     public void onUpdate() {
+        if (mc.thePlayer.onGround) {
+            offGroundTicks = 0;
+        } else {
+            offGroundTicks++;
+        }
+
         switch ((int) mode.getInput()) {
             case 0:
                 mc.thePlayer.motionY = 0.0;
@@ -90,7 +180,6 @@ public class Fly extends Module {
                 break;
             }
             case 2: {
-                a = false;
                 break;
             }
         }
@@ -99,17 +188,14 @@ public class Fly extends Module {
             mc.thePlayer.motionY = 0;
             mc.thePlayer.motionX = 0;
         }
+        if ((int) mode.getInput() == 3) {
+            MoveUtil.stop();
+        }
     }
 
     @SubscribeEvent
     public void onRenderTick(TickEvent.RenderTickEvent e) {
-        if (!showBPS.isToggled() || e.phase != TickEvent.Phase.END || !Utils.nullCheck()) {
-            return;
-        }
-        if (mc.currentScreen != null || mc.gameSettings.showDebugInfo) {
-            return;
-        }
-        RenderUtils.renderBPS(true, false);
+        RenderUtils.renderBPS(showBPS.isToggled(), e);
     }
 
     public static void setSpeed(final double n) {

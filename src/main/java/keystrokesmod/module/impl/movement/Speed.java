@@ -1,21 +1,27 @@
 package keystrokesmod.module.impl.movement;
 
 import keystrokesmod.event.PreMotionEvent;
+import keystrokesmod.event.PrePlayerInput;
+import keystrokesmod.event.ReceivePacketEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.impl.other.anticheats.utils.world.BlockUtils;
 import keystrokesmod.module.impl.player.NoFall;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.utility.MoveUtil;
+import keystrokesmod.utility.PacketUtils;
 import keystrokesmod.utility.RotationUtils;
 import keystrokesmod.utility.Utils;
 import net.minecraft.block.BlockAir;
 import net.minecraft.network.play.client.C07PacketPlayerDigging;
+import net.minecraft.network.play.client.C0BPacketEntityAction;
+import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraft.potion.Potion;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import org.jetbrains.annotations.NotNull;
 
 import static keystrokesmod.module.ModuleManager.scaffold;
 
@@ -25,7 +31,7 @@ public class Speed extends Module {
     private final ButtonSetting sneakDisable;
     private final ButtonSetting stopMotion;
     private final ButtonSetting stopSprint;
-    private final String[] modes = new String[]{"Strafe (Deprecated)", "Ground", "Damage", "OldHypixel", "LowHopTest", "Strafe B"};
+    private final String[] modes = new String[]{"Strafe (Deprecated)", "Ground", "Damage", "OldHypixel", "LowHopTest", "Strafe B", "BlocksMC"};
     private int offGroundTicks = 0;
     public static int ticksSinceVelocity = Integer.MAX_VALUE;
 
@@ -37,6 +43,9 @@ public class Speed extends Module {
     float angle = 0;
 
     int groundYPos = -1;
+
+    private boolean reset;
+    private double speed;
 
     public Speed() {
         super("Speed", Module.category.movement);
@@ -57,6 +66,16 @@ public class Speed extends Module {
         if (stopSprint.isToggled()) {
             event.setSprinting(false);
         }
+
+        if (noAction()) return;
+        if ((int) mode.getInput() == 6) {
+            if (!MoveUtil.isMoving()) {
+                event.setPosX(event.getPosX() + (Math.random() - 0.5) / 100);
+                event.setPosZ(event.getPosZ() + (Math.random() - 0.5) / 100);
+            }
+
+            PacketUtils.sendPacketNoEvent(new C0BPacketEntityAction(mc.thePlayer, C0BPacketEntityAction.Action.START_SPRINTING));
+        }
     }
 
     @Override
@@ -73,13 +92,7 @@ public class Speed extends Module {
             offGroundTicks++;
         }
 
-        if (((mc.thePlayer.isInWater()
-                || mc.thePlayer.isInLava()) && liquidDisable.isToggled())
-                || (mc.thePlayer.isSneaking() && sneakDisable.isToggled())
-                || scaffold.isEnabled()
-        ) {
-            return;
-        }
+        if (noAction()) return;
         switch ((int) mode.getInput()) {
             case 0:
                 if (!Utils.jumpDown() && Utils.isMoving() && mc.currentScreen == null) {
@@ -270,6 +283,59 @@ public class Speed extends Module {
         }
     }
 
+    private boolean noAction() {
+        return ((mc.thePlayer.isInWater()
+                || mc.thePlayer.isInLava()) && liquidDisable.isToggled())
+                || (mc.thePlayer.isSneaking() && sneakDisable.isToggled())
+                || scaffold.isEnabled();
+    }
+
+    @SubscribeEvent
+    public void onPlayerInput(PrePlayerInput event) {
+        if (noAction()) return;
+
+        if ((int) mode.getInput() == 6) {
+            final double base = MoveUtil.getAllowedHorizontalDistance();
+
+            if (!Utils.jumpDown() && Utils.isMoving() && mc.currentScreen == null) {
+                switch (offGroundTicks) {
+                    case 0:
+                        mc.thePlayer.motionY = MoveUtil.jumpBoostMotion(0.42f);
+                        speed = base * 2.15;
+                        break;
+
+                    case 1:
+                        speed -= 0.8 * (speed - base);
+                        break;
+
+                    default:
+                        speed -= speed / MoveUtil.BUNNY_FRICTION;
+                        break;
+                }
+
+                reset = false;
+            } else if (!reset) {
+                speed = 0;
+
+                reset = true;
+                speed = MoveUtil.getAllowedHorizontalDistance();
+            }
+
+            if (mc.thePlayer.isCollidedHorizontally) {
+                speed = MoveUtil.getAllowedHorizontalDistance();
+            }
+
+            event.setSpeed(Math.max(speed, base), Math.random() / 2000);
+        }
+    }
+
+    @SubscribeEvent
+    public void onReceivePacket(@NotNull ReceivePacketEvent event) {
+        if (event.getPacket() instanceof S08PacketPlayerPosLook) {
+            speed = 0;
+        }
+    }
+
     private boolean isYAxisChange() {
         MovingObjectPosition hitResult = RotationUtils.rayCast(3, 0, 90);
         return hitResult == null || hitResult.getBlockPos().getY() != groundYPos;
@@ -282,6 +348,7 @@ public class Speed extends Module {
         cooldownTicks = 0;
         cooldown = false;
         strafe = false;
+        speed = 0;
         Utils.resetTimer();
     }
 }

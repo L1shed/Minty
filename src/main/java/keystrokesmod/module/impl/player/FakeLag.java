@@ -79,7 +79,7 @@ public class FakeLag extends Module {
     @SubscribeEvent
     public void onRender(RenderWorldLastEvent event) {
         if (drawRealPosition.isToggled() && vec3 != null && mode.getInput() == 0) {
-            if (vec3.distanceTo(mc.thePlayer) < 0.1) return;
+            if (mc.gameSettings.thirdPersonView == 0) return;
 
             Blink.drawBox(vec3.toVec3());
         }

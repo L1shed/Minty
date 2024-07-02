@@ -161,7 +161,7 @@ public class BlockIn extends Module {
         return BlockUtils.getSurroundBlocks(mc.thePlayer);
     }
 
-    private @NotNull Optional<Triple<BlockPos, EnumFacing, Vec3>> getPlaceSide(@NotNull BlockPos blockPos) {
+    public static @NotNull Optional<Triple<BlockPos, EnumFacing, Vec3>> getPlaceSide(@NotNull BlockPos blockPos) {
         final List<BlockPos> possible = Arrays.asList(
                 blockPos.down(), blockPos.east(), blockPos.west(),
                 blockPos.north(), blockPos.south(), blockPos.up()

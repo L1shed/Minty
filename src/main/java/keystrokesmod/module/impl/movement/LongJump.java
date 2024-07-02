@@ -59,13 +59,7 @@ public class LongJump extends Module {
 
     @SubscribeEvent
     public void onRender(TickEvent.RenderTickEvent event) {
-        if (!showBPS.isToggled() || event.phase != TickEvent.Phase.END || !Utils.nullCheck()) {
-            return;
-        }
-        if (mc.currentScreen != null || mc.gameSettings.showDebugInfo) {
-            return;
-        }
-        RenderUtils.renderBPS(true, false);
+        RenderUtils.renderBPS(showBPS.isToggled(), event);
     }
 
     @SubscribeEvent(priority = EventPriority.HIGH)

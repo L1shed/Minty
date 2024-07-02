@@ -5,6 +5,8 @@ import keystrokesmod.module.impl.combat.KillAura;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.ModeSetting;
+import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.script.classes.Vec3;
 import keystrokesmod.utility.render.RenderUtils;
 import keystrokesmod.utility.Theme;
 import keystrokesmod.utility.Timer;
@@ -13,16 +15,20 @@ import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
+import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
 public class TargetHUD extends Module {
-    private ModeSetting theme;
-    private ButtonSetting renderEsp;
-    private ButtonSetting showStatus;
-    private ButtonSetting healthColor;
+    private final ButtonSetting onlyKillAura;
+    private final SliderSetting maxDistance;
+    private final ModeSetting theme;
+    private final ButtonSetting renderEsp;
+    private final ButtonSetting showStatus;
+    private final ButtonSetting healthColor;
     private Timer fadeTimer;
     private Timer healthBarTimer = null;
     private EntityLivingBase target;
@@ -34,6 +40,8 @@ public class TargetHUD extends Module {
     public TargetHUD() {
         super("TargetHUD", category.render);
         this.registerSetting(new DescriptionSetting("Only works with KillAura."));
+        this.registerSetting(onlyKillAura = new ButtonSetting("Only KillAura", true));
+        this.registerSetting(maxDistance = new SliderSetting("Max distance", 6, 3, 20, 1, "blocks", () -> !onlyKillAura.isToggled()));
         this.registerSetting(theme = new ModeSetting("Theme", Theme.themes, 0));
         this.registerSetting(renderEsp = new ButtonSetting("Render ESP", true));
         this.registerSetting(showStatus = new ButtonSetting("Show win or loss", true));
@@ -42,6 +50,20 @@ public class TargetHUD extends Module {
 
     public void onDisable() {
         reset();
+    }
+
+    @SubscribeEvent
+    public void onAttack(@NotNull AttackEntityEvent event) {
+        if (!onlyKillAura.isToggled() && event.target instanceof EntityLivingBase)
+            renderEntity = (EntityLivingBase) event.target;
+    }
+
+    @Override
+    public void onUpdate() {
+        if (renderEntity != null) {
+            if (new Vec3(renderEntity).distanceTo(mc.thePlayer) > maxDistance.getInput())
+                renderEntity = null;
+        }
     }
 
     @SubscribeEvent
@@ -57,6 +79,10 @@ public class TargetHUD extends Module {
             }
             if (KillAura.target != null) {
                 target = KillAura.target;
+                lastAliveMS = System.currentTimeMillis();
+                fadeTimer = null;
+            } else if (renderEntity != null) {
+                target = renderEntity;
                 lastAliveMS = System.currentTimeMillis();
                 fadeTimer = null;
             } else if (target != null) {

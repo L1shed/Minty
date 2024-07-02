@@ -126,8 +126,12 @@ public class Utils {
         return num == Math.floor(num);
     }
 
-    public static int randomizeInt(int min, int max) {
-        return rand.nextInt(max - min + 1) + min;
+    public static int randomizeInt(double min, double max) {
+        final int iMin = (int) min;
+        final int iMax = (int) max;
+
+        if (iMin == iMax) return iMin;
+        return rand.nextInt(iMax - iMin + 1) + iMin;
     }
 
     public static double randomizeDouble(double min, double max) {

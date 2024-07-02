@@ -59,6 +59,10 @@ public class PacketUtils {
             final C03PacketPlayer.C04PacketPlayerPosition p = (C03PacketPlayer.C04PacketPlayerPosition) packet;
             return Optional.of(new Vec3(p.getPositionX(), p.getPositionY(), p.getPositionZ()));
         }
+        if (packet instanceof C03PacketPlayer.C04PacketPlayerPosition) {
+            final C03PacketPlayer.C04PacketPlayerPosition p = (C03PacketPlayer.C04PacketPlayerPosition) packet;
+            return Optional.of(new Vec3(p.getPositionX(), p.getPositionY(), p.getPositionZ()));
+        }
         return Optional.empty();
     }
 }

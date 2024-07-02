@@ -40,7 +40,7 @@ public abstract class MixinEntityLivingBase extends Entity {
 
     @Shadow
     public PotionEffect getActivePotionEffect(Potion potionIn) {
-        return (PotionEffect) this.raven_bS$activePotionsMap.get(Integer.valueOf(potionIn.id));
+        return this.raven_bS$activePotionsMap.get(Integer.valueOf(potionIn.id));
     }
 
     @Shadow
@@ -145,17 +145,11 @@ public abstract class MixinEntityLivingBase extends Entity {
      * @author xia__mc
      * @reason for Animations module
      */
-    @Overwrite
-    private int getArmSwingAnimationEnd() {
-        int swingAnimationEnd = this.isPotionActive(Potion.digSpeed) ? 6 -
-                (1 + this.getActivePotionEffect(Potion.digSpeed).getAmplifier()) :
-                (this.isPotionActive(Potion.digSlowdown) ? 6 +
-                        (1 + this.getActivePotionEffect(Potion.digSlowdown).getAmplifier()) * 2 : 6);
-
-        SwingAnimationEvent swingAnimationEvent = new SwingAnimationEvent(swingAnimationEnd);
+    @Inject(method = "getArmSwingAnimationEnd", at = @At("RETURN"), cancellable = true)
+    private void onGetArmSwingAnimationEnd(@NotNull CallbackInfoReturnable<Integer> cir) {
+        SwingAnimationEvent swingAnimationEvent = new SwingAnimationEvent(cir.getReturnValue());
         MinecraftForge.EVENT_BUS.post(swingAnimationEvent);
-        swingAnimationEnd = swingAnimationEvent.getAnimationEnd();
 
-        return (int) (swingAnimationEnd * Utils.getTimer().timerSpeed);
+        cir.setReturnValue((int) (swingAnimationEvent.getAnimationEnd() * Utils.getTimer().timerSpeed));
     }
 }

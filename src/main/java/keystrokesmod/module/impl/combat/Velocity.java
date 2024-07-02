@@ -14,6 +14,7 @@ import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.module.setting.utils.ModeOnly;
 import keystrokesmod.utility.BlockUtils;
+import keystrokesmod.utility.MoveUtil;
 import keystrokesmod.utility.Utils;
 import net.minecraft.network.play.server.S12PacketEntityVelocity;
 import net.minecraft.network.play.server.S27PacketExplosion;
@@ -52,9 +53,9 @@ public class Velocity extends Module {
         this.registerSetting(cancelExplosion = new ButtonSetting("Cancel explosion packet", true, canChangeMode));
         this.registerSetting(cancelAir = new ButtonSetting("Cancel air", false, canChangeMode));
         this.registerSetting(damageBoost = new ButtonSetting("Damage boost", false));
-        this.registerSetting(boostMultiplier = new SliderSetting("Boost multiplier", 2.0, 1.0, 8.0, 0.1, damageBoost::isToggled));
+        this.registerSetting(boostMultiplier = new SliderSetting("Boost multiplier", 1.2, 0.5, 2.5, 0.1, damageBoost::isToggled));
         this.registerSetting(boostDelay = new SliderSetting("Boost delay", 0, 0, 1000, 5, "ms", damageBoost::isToggled));
-        this.registerSetting(groundCheck = new ButtonSetting("Ground check", false, canChangeMode));
+        this.registerSetting(groundCheck = new ButtonSetting("Ground check", false, damageBoost::isToggled));
         this.registerSetting(lobbyCheck = new ButtonSetting("Lobby check", false));
         this.registerSetting(debug = new ButtonSetting("Debug", false, new ModeOnly(mode, 2)));
     }
@@ -184,7 +185,7 @@ public class Velocity extends Module {
         if (groundCheck.isToggled() && !mc.thePlayer.onGround) {
             return;
         }
-        Utils.setSpeed(Utils.getHorizontalSpeed() * boostMultiplier.getInput()); // from croat
+        MoveUtil.strafe(MoveUtil.speed() * boostMultiplier.getInput()); // from croat
     }
 
     private boolean cancel() {

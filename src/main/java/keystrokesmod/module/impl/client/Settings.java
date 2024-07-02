@@ -26,6 +26,7 @@ public class Settings extends Module {
     public static ButtonSetting fullBody;
     public static ButtonSetting movementFix;
     public static SliderSetting randomYawFactor;
+    public static SliderSetting offset;
     public static SliderSetting timeMultiplier;
     public static ButtonSetting sendMessage;
     private final String[] capes = new String[]{"None", "Anime", "Aqua", "Green", "Purple", "Red", "White", "Yellow"};
@@ -47,6 +48,7 @@ public class Settings extends Module {
         this.registerSetting(new DescriptionSetting("Profiles"));
         this.registerSetting(sendMessage = new ButtonSetting("Send message on enable", true));
         this.registerSetting(new DescriptionSetting("Theme colors"));
+        this.registerSetting(offset = new SliderSetting("Offset", 0.5, -3.0, 3.0, 0.1));
         this.registerSetting(timeMultiplier = new SliderSetting("Time multiplier", 0.5, 0.1, 4.0, 0.1));
         this.canBeEnabled = false;
         loadCapes();

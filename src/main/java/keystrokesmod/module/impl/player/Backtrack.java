@@ -93,7 +93,6 @@ public class Backtrack extends Module {
 
         } catch (NullPointerException ignored) {
         }
-
     }
 
     @SubscribeEvent
@@ -118,7 +117,7 @@ public class Backtrack extends Module {
 
     @SubscribeEvent
     public void onRender(RenderWorldLastEvent e) {
-        if (target == null)
+        if (target == null || vec3 == null)
             return;
 
         Blink.drawBox(currentLatency > 0 ? vec3.toVec3() : target.getPositionVector());
@@ -127,16 +126,12 @@ public class Backtrack extends Module {
     @SubscribeEvent
     public void onAttack(@NotNull AttackEntityEvent e) {
         if (e.target instanceof EntityPlayer) {
-
-            if (target != null && e.target == target)
-                return;
-
             target = (EntityPlayer) e.target;
-            vec3 = new Vec3(e.target.getPositionVector());
         }
 
+        final Vec3 targetPos = new Vec3(e.target.getPositionVector());
         try {
-            final double distance = vec3.distanceTo(mc.thePlayer);
+            final double distance = targetPos.distanceTo(mc.thePlayer);
             if (distance > maxDistance.getInput() || distance < minDistance.getInput())
                 return;
 

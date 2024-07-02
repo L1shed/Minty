@@ -76,7 +76,7 @@ public class BedWars extends Module {
         for (EnumFacing facing : EnumFacing.values()) {
             if (BlockUtils.getBlock(e.pos.offset(facing)) instanceof BlockBed) {
                 obsidianPos.add(e.pos);
-                Utils.sendMessage(e.player.getDisplayName() + " &7placed &dObsidian");
+                Utils.sendMessage(e.player.getDisplayName().getFormattedText() + " &7placed &dObsidian");
                 break;
             }
         }

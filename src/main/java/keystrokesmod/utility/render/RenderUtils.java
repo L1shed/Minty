@@ -20,6 +20,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.Timer;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.opengl.GL11;
 
@@ -127,6 +128,16 @@ public class RenderUtils {
         GL11.glDepthMask(true);
         GL11.glDisable(3042);
         GL11.glPopMatrix();
+    }
+
+    public static void renderBPS(final boolean isRender, TickEvent.RenderTickEvent e) {
+        if (!isRender || e.phase != TickEvent.Phase.END || !Utils.nullCheck()) {
+            return;
+        }
+        if (mc.currentScreen != null || mc.gameSettings.showDebugInfo) {
+            return;
+        }
+        RenderUtils.renderBPS(true, false);
     }
 
     public static void renderBPS(final boolean b, final boolean b2) {

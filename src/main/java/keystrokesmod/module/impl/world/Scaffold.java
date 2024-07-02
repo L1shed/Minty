@@ -9,7 +9,11 @@ import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import static keystrokesmod.script.ScriptDefaults.client;
+
+import keystrokesmod.module.setting.utils.ModeOnly;
+import keystrokesmod.script.classes.Vec3;
 import keystrokesmod.utility.*;
+import keystrokesmod.utility.Timer;
 import keystrokesmod.utility.render.RenderUtils;
 import net.minecraft.block.BlockAir;
 import net.minecraft.client.gui.ScaledResolution;
@@ -24,11 +28,10 @@ import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import org.apache.commons.lang3.tuple.Triple;
 import org.lwjgl.input.Mouse;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 public class Scaffold extends Module { // from b4 :)
     private final SliderSetting motion;
@@ -44,6 +47,7 @@ public class Scaffold extends Module { // from b4 :)
     public final ButtonSetting tower;
     public final ButtonSetting fast;
     public final ButtonSetting onlyOffGround;
+    public final ButtonSetting sameY;
 
     protected MovingObjectPosition placeBlock;
     private int lastSlot;
@@ -57,6 +61,7 @@ public class Scaffold extends Module { // from b4 :)
     private boolean forceStrict;
     private boolean down;
     private int add;
+    private int sameY$bridged = 0;
     public Scaffold() {
         super("Scaffold", category.world);
         this.registerSetting(motion = new SliderSetting("Motion", 0.95, 0.5, 1.2, 0.01));
@@ -75,6 +80,7 @@ public class Scaffold extends Module { // from b4 :)
         this.registerSetting(tower = new ButtonSetting("Tower", false));
         this.registerSetting(fast = new ButtonSetting("Fast", false));
         this.registerSetting(onlyOffGround = new ButtonSetting("Only offGround", false));
+        this.registerSetting(sameY = new ButtonSetting("SameY", false, new ModeOnly(fastScaffold, 3)));
     }
 
     public void onDisable() {
@@ -89,6 +95,7 @@ public class Scaffold extends Module { // from b4 :)
         startPos = -1;
         forceStrict = false;
         down = false;
+        sameY$bridged = 0;
     }
 
     public void onEnable() {
@@ -126,6 +133,29 @@ public class Scaffold extends Module { // from b4 :)
             }
         }
 
+        if (sameY.isToggled() && sameY$bridged != 0 && sameY$bridged % 4 == 0 && placeBlock != null) {
+            List<BlockPos> possible = new ArrayList<>(Arrays.asList(
+                    placeBlock.getBlockPos().west(),
+                    placeBlock.getBlockPos().east(),
+                    placeBlock.getBlockPos().north(),
+                    placeBlock.getBlockPos().south()
+            ));
+
+            for (BlockPos pos : possible) {
+                if (!BlockUtils.replaceable(pos)) continue;
+
+                Optional<Triple<BlockPos, EnumFacing, Vec3>> placeSide = BlockIn.getPlaceSide(pos);
+                if (!placeSide.isPresent()) continue;
+
+                place(new MovingObjectPosition(MovingObjectPosition.MovingObjectType.BLOCK,
+                        placeSide.get().getRight().toVec3(),
+                        placeSide.get().getMiddle(),
+                        placeSide.get().getLeft())
+                        , true);
+                break;
+            }
+        }
+
         final ItemStack heldItem = mc.thePlayer.getHeldItem();
         if (!autoSwap.isToggled() || getSlot() == -1) {
             if (heldItem == null || !(heldItem.getItem() instanceof ItemBlock)) {
@@ -139,7 +169,7 @@ public class Scaffold extends Module { // from b4 :)
         else if (!keepYPosition()) {
             down = false;
         }
-        if (keepYPosition() && fastScaffold.getInput() == 3 && mc.thePlayer.onGround) {
+        if (keepYPosition() && fastScaffold.getInput() == 3 && mc.thePlayer.onGround && !sameY.isToggled()) {
             mc.thePlayer.jump();
             add = 0;
         }
@@ -154,7 +184,8 @@ public class Scaffold extends Module { // from b4 :)
         for (int i = yOffSet; i < 0; ++i) {
             for (int j = -n2; j <= n2; ++j) {
                 for (int k = -n2; k <= n2; ++k) {
-                    final BlockPos blockPos = new BlockPos(mc.thePlayer.posX + j, (keepYPosition() ? original : mc.thePlayer.posY) + i, mc.thePlayer.posZ + k);
+                    BlockPos blockPos = new BlockPos(mc.thePlayer.posX + j, (keepYPosition() && !(sameY.isToggled() && fastScaffold.getInput() == 3) ? original : mc.thePlayer.posY) + i, mc.thePlayer.posZ + k);
+
                     if (!BlockUtils.replaceable(blockPos)) {
                         EnumFacing enumFacing = null;
                         double lastDistance = 0.0;
@@ -255,6 +286,7 @@ public class Scaffold extends Module { // from b4 :)
                 place(placeBlock, true);
             }
             place(placeBlock, false);
+            sameY$bridged++;
         }
     }
 
@@ -442,14 +474,14 @@ public class Scaffold extends Module { // from b4 :)
     }
 
     private int getSlot() {
-        return ContainerUtils.getSlot(ItemBlock.class, InvManager::canBePlaced);
+        return ContainerUtils.getSlot(ItemBlock.class, ContainerUtils::canBePlaced);
     }
 
     public int totalBlocks() {
         int totalBlocks = 0;
         for (int i = 0; i < 9; ++i) {
             final ItemStack stack = mc.thePlayer.inventory.mainInventory[i];
-            if (stack != null && stack.getItem() instanceof ItemBlock && InvManager.canBePlaced((ItemBlock) stack.getItem()) && stack.stackSize > 0) {
+            if (stack != null && stack.getItem() instanceof ItemBlock && ContainerUtils.canBePlaced((ItemBlock) stack.getItem()) && stack.stackSize > 0) {
                 totalBlocks += stack.stackSize;
             }
         }

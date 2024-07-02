@@ -1,7 +1,10 @@
 package keystrokesmod.event;
 
+import keystrokesmod.utility.MoveUtil;
 import net.minecraftforge.fml.common.eventhandler.Cancelable;
 import net.minecraftforge.fml.common.eventhandler.Event;
+
+import static keystrokesmod.Raven.mc;
 
 @Cancelable
 public class PrePlayerInput extends Event {
@@ -47,5 +50,16 @@ public class PrePlayerInput extends Event {
 
     public void setYaw(float yaw) {
         this.yaw = yaw;
+    }
+
+    public void setSpeed(final double speed, final double motionMultiplier) {
+        setFriction((float) (getForward() != 0 && getStrafe() != 0 ? speed * 0.98F : speed));
+        mc.thePlayer.motionX *= motionMultiplier;
+        mc.thePlayer.motionZ *= motionMultiplier;
+    }
+
+    public void setSpeed(final double speed) {
+        setFriction((float) (getForward() != 0 && getStrafe() != 0 ? speed * 0.98F : speed));
+        MoveUtil.stop();
     }
 }

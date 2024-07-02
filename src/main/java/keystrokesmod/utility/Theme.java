@@ -28,7 +28,7 @@ public enum Theme {
 
     public static int getGradient(int index, double delay) {
         if (index > 0) {
-            return convert(values()[index].firstGradient, values()[index].secondGradient, (Math.sin(System.currentTimeMillis() / 1.0E8 * Settings.timeMultiplier.getInput() * 400000.0 + delay * 0.550000011920929) + 1.0) * 0.5).getRGB();
+            return convert(values()[index].firstGradient, values()[index].secondGradient, (Math.sin(System.currentTimeMillis() / 1.0E8 * Settings.timeMultiplier.getInput() * 400000.0 + delay * Settings.offset.getInput()) + 1.0) * 0.5).getRGB();
         } else if (index == 0) {
             return Utils.getChroma(2, (long) delay);
         }

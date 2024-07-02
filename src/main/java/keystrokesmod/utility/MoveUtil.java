@@ -232,4 +232,18 @@ public class MoveUtil {
 
         return workingYaw;
     }
+
+    /**
+     * Modifies a selected motion with jump boost
+     *
+     * @param motionY input motion
+     * @return modified motion
+     */
+    public static double jumpBoostMotion(final double motionY) {
+        if (mc.thePlayer.isPotionActive(Potion.jump)) {
+            return motionY + (mc.thePlayer.getActivePotionEffect(Potion.jump).getAmplifier() + 1) * 0.1F;
+        }
+
+        return motionY;
+    }
 }

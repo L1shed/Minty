@@ -3,6 +3,7 @@ package keystrokesmod.module.impl.world;
 import keystrokesmod.Raven;
 import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.event.PreUpdateEvent;
+import keystrokesmod.event.SendPacketEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.other.anticheats.utils.world.BlockUtils;
@@ -14,6 +15,7 @@ import keystrokesmod.module.setting.utils.ModeOnly;
 import keystrokesmod.utility.Reflection;
 import keystrokesmod.utility.Utils;
 import net.minecraft.network.play.client.C03PacketPlayer;
+import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.MovingObjectPosition;
@@ -47,7 +49,7 @@ public class Tower extends Module {
     public Tower() {
         super("Tower", category.world);
         this.registerSetting(new DescriptionSetting("Works with SafeWalk & Scaffold"));
-        String[] modes = new String[]{"Vanilla", "Hypixel"};
+        String[] modes = new String[]{"Vanilla", "Hypixel", "BlocksMC"};
         this.registerSetting(mode = new ModeSetting("Mode", modes, 0));
         final ModeOnly mode0 = new ModeOnly(mode, 0);
         final ModeOnly mode1 = new ModeOnly(mode, 1);
@@ -126,7 +128,12 @@ public class Tower extends Module {
                         }
                     }
                     break;
-
+                case 2:
+                    if (mc.thePlayer.onGround)
+                        mc.thePlayer.motionY = 0.42F;
+                    mc.thePlayer.motionX *= speed.getInput();
+                    mc.thePlayer.motionZ *= speed.getInput();
+                    break;
             }
         } else if (mode.getInput() == 0) {
             if (wasTowering && slowedTicks.getInput() > 0 && modulesEnabled()) {
@@ -145,6 +152,19 @@ public class Tower extends Module {
                 slowTicks = 0;
             }
             reset();
+        }
+    }
+
+    @SubscribeEvent
+    public void onSendPacket(SendPacketEvent event) {
+        if ((int) mode.getInput() == 2) {
+            if (mc.thePlayer.motionY > -0.0784000015258789 && event.getPacket() instanceof C08PacketPlayerBlockPlacement) {
+                final C08PacketPlayerBlockPlacement wrapper = ((C08PacketPlayerBlockPlacement) event.getPacket());
+
+                if (wrapper.getPosition().equals(new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY - 1.4, mc.thePlayer.posZ))) {
+                    mc.thePlayer.motionY = -0.0784000015258789;
+                }
+            }
         }
     }
 

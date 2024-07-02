@@ -21,6 +21,7 @@ public class MotionSkidder extends Module {
     private final ModeSetting mode;
     private final ButtonSetting includeRotation;
     private final ButtonSetting waitForDamage;
+    private final ButtonSetting startAtOnGround;
     private final ButtonSetting stopAtOnGround;
     private AbstractClientPlayer target = null;
     private static List<MoveData> moves = null;
@@ -29,8 +30,9 @@ public class MotionSkidder extends Module {
         this.registerSetting(new DescriptionSetting("Tries to skid other's motion."));
         this.registerSetting(mode = new ModeSetting("Mode", new String[]{"Motion", "Position"}, 1));
         this.registerSetting(includeRotation = new ButtonSetting("Include rotation", true));
-        this.registerSetting(waitForDamage = new ButtonSetting("Wait for damage", true));
-        this.registerSetting(stopAtOnGround = new ButtonSetting("Stop at onGround", true));
+        this.registerSetting(waitForDamage = new ButtonSetting("Wait for damage", false));
+        this.registerSetting(startAtOnGround = new ButtonSetting("Start at onGround", false));
+        this.registerSetting(stopAtOnGround = new ButtonSetting("Stop at onGround", false));
     }
 
     @Override
@@ -75,7 +77,7 @@ public class MotionSkidder extends Module {
     public void onUpdate() {
         if (target == null) return;
         if (moves == null && waitForDamage.isToggled() && target.hurtTime <= 0) return;
-        if (moves != null && stopAtOnGround.isToggled() && target.onGround && target.hurtTime <= 0) {
+        if (moves != null && moves.size() > 1 && stopAtOnGround.isToggled() && target.onGround && target.hurtTime <= 0) {
             disable();
             return;
         }
@@ -90,6 +92,10 @@ public class MotionSkidder extends Module {
             deltaMove = new Vec3(target.posX - target.lastTickPosX, target.posY - target.lastTickPosY, target.posZ - target.lastTickPosZ);
         } else {
             deltaMove = new Vec3(target.motionX, target.motionY, target.motionZ);
+        }
+
+        if (startAtOnGround.isToggled() && target.onGround && moves.size() == 1) {
+            moves.clear();
         }
 
         if (includeRotation.isToggled()) {
