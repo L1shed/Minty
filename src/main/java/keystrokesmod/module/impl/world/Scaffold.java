@@ -105,7 +105,7 @@ public class Scaffold extends Module { // from b4 :)
     }
 
     @SubscribeEvent
-    public void onPreMotion(RotationEvent event) {
+    public void onPreMotion(PreMotionEvent event) {
         if (!Utils.nullCheck()) {
             return;
         }
