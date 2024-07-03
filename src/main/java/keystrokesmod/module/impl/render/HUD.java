@@ -63,7 +63,7 @@ public class HUD extends Module {
         this.registerSetting(lowercase = new ButtonSetting("Lowercase", false));
         this.registerSetting(showInfo = new ButtonSetting("Show module info", true));
         this.registerSetting(showWatermark = new ButtonSetting("Show Watermark", true));
-        this.registerSetting(watermarkMode = new ModeSetting("Watermark mode", new String[]{"Fork", "Augustus"}, 0));
+        this.registerSetting(watermarkMode = new ModeSetting("Watermark mode", new String[]{"Fork", "Augustus"}, 0, showWatermark::isToggled));
     }
 
     public void onEnable() {
