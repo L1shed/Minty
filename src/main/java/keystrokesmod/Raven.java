@@ -72,6 +72,7 @@ public class Raven {
         scriptManager.loadScripts();
         scriptManager.loadScripts();
         FMLCommonHandler.instance().bus().register(ModuleManager.tower);
+        FMLCommonHandler.instance().bus().register(ModuleManager.rotationHandler);
     }
 
     @SubscribeEvent

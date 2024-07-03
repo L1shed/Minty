@@ -2,6 +2,7 @@ package keystrokesmod.module.impl.world;
 
 import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.event.PreUpdateEvent;
+import keystrokesmod.event.RotationEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.impl.player.InvManager;
 import keystrokesmod.module.impl.render.HUD;
@@ -104,7 +105,7 @@ public class Scaffold extends Module { // from b4 :)
     }
 
     @SubscribeEvent
-    public void onPreMotion(PreMotionEvent event) {
+    public void onPreMotion(RotationEvent event) {
         if (!Utils.nullCheck()) {
             return;
         }

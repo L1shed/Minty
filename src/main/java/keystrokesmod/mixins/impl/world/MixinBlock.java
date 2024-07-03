@@ -1,9 +1,9 @@
 package keystrokesmod.mixins.impl.world;
 
+import keystrokesmod.Raven;
 import keystrokesmod.event.BlockAABBEvent;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
@@ -30,13 +30,15 @@ public abstract class MixinBlock {
     @Inject(method = "addCollisionBoxesToList", at = @At("HEAD"), cancellable = true)
     public void addCollisionBoxesToList(World worldIn, BlockPos pos, IBlockState state, AxisAlignedBB mask, List<AxisAlignedBB> list,
                                         Entity collidingEntity, CallbackInfo ci) {
-        if (collidingEntity == Minecraft.getMinecraft().thePlayer) {
+        if (collidingEntity == Raven.mc.thePlayer) {
+            ci.cancel();
+
             final AxisAlignedBB axisalignedbb = this.getCollisionBoundingBox(worldIn, pos, state);
             final BlockAABBEvent event = new BlockAABBEvent(worldIn, (Block)(Object) this, pos, axisalignedbb, mask);
             MinecraftForge.EVENT_BUS.post(event);
 
-            if (event.isCanceled() || event.getMaskBoundingBox() == null || event.getBoundingBox() == null || !event.getMaskBoundingBox().intersectsWith(event.getBoundingBox())) {
-                ci.cancel();
+            if (event.getBoundingBox() != null && event.getMaskBoundingBox().intersectsWith(event.getBoundingBox())) {
+                list.add(event.getBoundingBox());
             }
         }
     }

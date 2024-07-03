@@ -53,6 +53,7 @@ public class NoFall extends Module {
             blink.disable();
             blinked = false;
         }
+        Utils.resetTimer();
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -69,12 +70,6 @@ public class NoFall extends Module {
 
     public void onUpdate() {
         ticksSinceTeleport++;
-        if (ignoreVoid.isToggled() && isVoid()) {
-            return;
-        }
-        if (mode.getInput() == 1 && (mc.thePlayer.fallDistance > minFallDistance.getInput()|| minFallDistance.getInput() == 0)) {
-            mc.thePlayer.sendQueue.addToSendQueue(new C03PacketPlayer(true));
-        }
     }
 
     @SubscribeEvent
@@ -86,6 +81,7 @@ public class NoFall extends Module {
 
     @SubscribeEvent
     public void onPreMotionEvent(PreMotionEvent event) {
+        Utils.resetTimer();
         if (mc.thePlayer.onGround) {
             this.fallDistance = 0.0;
         } else if (mc.thePlayer.motionY < 0.0) {
@@ -136,7 +132,7 @@ public class NoFall extends Module {
                     }
 
                     prevOnGround = false;
-                } else if (BlockUtils.isBlockUnder() && blink.isEnabled() && this.fallDistance >= minFallDistance.getInput()) {
+                } else if (BlockUtils.isBlockUnder() && blink.isEnabled() && (this.fallDistance - mc.thePlayer.motionY) >= minFallDistance.getInput()) {
                     mc.thePlayer.sendQueue.addToSendQueue(new C03PacketPlayer(true));
                     this.fallDistance = 0.0F;
                 }

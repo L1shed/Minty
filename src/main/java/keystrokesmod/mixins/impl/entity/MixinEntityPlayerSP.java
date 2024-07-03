@@ -7,6 +7,8 @@ import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.event.PreUpdateEvent;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.movement.NoSlow;
+import keystrokesmod.module.impl.movement.Sprint;
+import keystrokesmod.module.impl.other.RotationHandler;
 import keystrokesmod.utility.RotationUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.PositionedSoundRecord;
@@ -130,8 +132,8 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
                 this.posX,
                 this.getEntityBoundingBox().minY,
                 this.posZ,
-                this.rotationYaw,
-                this.rotationPitch,
+                RotationHandler.getRotationYaw(),
+                RotationHandler.getRotationPitch(),
                 this.onGround,
                 this.isSprinting(),
                 this.isSneaking()
@@ -230,7 +232,7 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
         this.prevTimeInPortal = this.timeInPortal;
         if (this.inPortal) {
             if (this.mc.currentScreen != null && !this.mc.currentScreen.doesGuiPauseGame()) {
-                this.mc.displayGuiScreen((GuiScreen) null);
+                this.mc.displayGuiScreen(null);
             }
 
             if (this.timeInPortal == 0.0F) {
@@ -285,7 +287,7 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
         this.pushOutOfBlocks(this.posX + (double) this.width * 0.35, this.getEntityBoundingBox().minY + 0.5, this.posZ - (double) this.width * 0.35);
         this.pushOutOfBlocks(this.posX + (double) this.width * 0.35, this.getEntityBoundingBox().minY + 0.5, this.posZ + (double) this.width * 0.35);
         boolean flag3 = (float) this.getFoodStats().getFoodLevel() > 6.0F || this.capabilities.allowFlying;
-        if (this.onGround && !flag1 && !flag2 && this.movementInput.moveForward >= f && !this.isSprinting() && flag3 && (!usingItemModified || !stopSprint) && !this.isPotionActive(Potion.blindness)) {
+        if (this.onGround && !flag1 && !flag2 && (Sprint.omni() || this.movementInput.moveForward >= f) && !this.isSprinting() && flag3 && (!usingItemModified || !stopSprint) && !this.isPotionActive(Potion.blindness)) {
             if (this.sprintToggleTimer <= 0 && !this.mc.gameSettings.keyBindSprint.isKeyDown()) {
                 this.sprintToggleTimer = 7;
             } else {
@@ -293,11 +295,11 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
             }
         }
 
-        if ((!this.isSprinting() && this.movementInput.moveForward >= f && flag3 && (!usingItemModified || !stopSprint) && !this.isPotionActive(Potion.blindness) && this.mc.gameSettings.keyBindSprint.isKeyDown())) {
+        if ((!this.isSprinting() && (Sprint.omni() || this.movementInput.moveForward >= f) && flag3 && (!usingItemModified || !stopSprint) && !this.isPotionActive(Potion.blindness) && this.mc.gameSettings.keyBindSprint.isKeyDown())) {
             this.setSprinting(true);
         }
 
-        if (this.isSprinting() && ((this.movementInput.moveForward < f || this.isCollidedHorizontally || !flag3) || (ModuleManager.scaffold != null && ModuleManager.scaffold.isEnabled() && !ModuleManager.scaffold.sprint() && !ModuleManager.tower.canSprint()))) {
+        if (this.isSprinting() && (!Sprint.omni() && (this.movementInput.moveForward < f || this.isCollidedHorizontally || !flag3) || (ModuleManager.scaffold != null && ModuleManager.scaffold.isEnabled() && !ModuleManager.scaffold.sprint() && !ModuleManager.tower.canSprint()))) {
             this.setSprinting(false);
         }
 
@@ -320,11 +322,11 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
 
         if (this.capabilities.isFlying && this.isCurrentViewEntity()) {
             if (this.movementInput.sneak) {
-                this.motionY -= (double) (this.capabilities.getFlySpeed() * 3.0F);
+                this.motionY -= this.capabilities.getFlySpeed() * 3.0F;
             }
 
             if (this.movementInput.jump) {
-                this.motionY += (double) (this.capabilities.getFlySpeed() * 3.0F);
+                this.motionY += this.capabilities.getFlySpeed() * 3.0F;
             }
         }
 

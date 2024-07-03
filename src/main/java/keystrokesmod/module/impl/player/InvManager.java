@@ -121,10 +121,13 @@ public class InvManager extends Module {
 
             for (int i : armorTypes) {
                 final int curArmorSlot = i + 5;
-                final int bestArmorSlot = ContainerUtils.getBestArmor(i, inventory);
+                final int bestArmorSlot = ContainerUtils.getBestArmor(i, null);
                 if (bestArmorSlot != -1 && bestArmorSlot != curArmorSlot) {
-                    ContainerUtils.drop(curArmorSlot);
-                    ContainerUtils.click(bestArmorSlot);
+                    if (ContainerUtils.getItemStack(curArmorSlot) != null) {
+                        ContainerUtils.drop(curArmorSlot);
+                    } else {
+                        ContainerUtils.click(bestArmorSlot);
+                    }
                     nextTaskTime = System.currentTimeMillis() + Utils.randomizeInt(minArmorDelay.getInput(), maxArmorDelay.getInput());
                     continue armor;
                 }
@@ -158,7 +161,7 @@ public class InvManager extends Module {
     }
 
     private void sort(int from, int to) {
-        if (to == 0) return;
+        if (to == 0 || from == -1 || to == -1) return;
         if (ContainerUtils.sort(from, to)) {
             nextTaskTime = System.currentTimeMillis() + Utils.randomizeInt(minSortDelay.getInput(), maxSortDelay.getInput());
         }
@@ -171,7 +174,7 @@ public class InvManager extends Module {
             final ItemStack stack = ContainerUtils.getItemStack(i);
             if (stack == null || stack.getItem() instanceof ItemEmptyMap)
                 continue;
-            if (!ContainerUtils.canDrop(stack, i))
+            if (!ContainerUtils.canDrop(stack, i, null))
                 continue;
             result.add(new Pair<>(i, stack));
         }

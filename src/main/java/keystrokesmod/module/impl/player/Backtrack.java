@@ -16,6 +16,8 @@ import keystrokesmod.script.classes.Vec3;
 import keystrokesmod.utility.PacketUtils;
 import keystrokesmod.utility.Utils;
 import keystrokesmod.utility.backtrack.TimedPacket;
+import keystrokesmod.utility.render.Animation;
+import keystrokesmod.utility.render.Easing;
 import net.minecraft.client.network.NetHandlerPlayClient;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.network.Packet;
@@ -24,6 +26,7 @@ import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class Backtrack extends Module {
     public static final Color color = new Color(72, 125, 227);
@@ -37,6 +40,9 @@ public class Backtrack extends Module {
 
     private final Queue<TimedPacket> packetQueue = new ConcurrentLinkedQueue<>();
     private final List<Packet<?>> skipPackets = new ArrayList<>();
+    private @Nullable Animation animationX;
+    private @Nullable Animation animationY;
+    private @Nullable Animation animationZ;
     private Vec3 vec3;
     private EntityPlayer target;
 
@@ -120,25 +126,53 @@ public class Backtrack extends Module {
         if (target == null || vec3 == null)
             return;
 
-        Blink.drawBox(currentLatency > 0 ? vec3.toVec3() : target.getPositionVector());
+        final net.minecraft.util.Vec3 pos = currentLatency > 0 ? vec3.toVec3() : target.getPositionVector();
+
+        if (animationX == null || animationY == null || animationZ == null) {
+            animationX = new Animation(Easing.EASE_OUT_CIRC, 100);
+            animationY = new Animation(Easing.EASE_OUT_CIRC, 100);
+            animationZ = new Animation(Easing.EASE_OUT_CIRC, 100);
+
+            animationX.setValue(pos.xCoord);
+            animationY.setValue(pos.yCoord);
+            animationZ.setValue(pos.zCoord);
+        }
+
+        animationX.run(pos.xCoord);
+        animationY.run(pos.yCoord);
+        animationZ.run(pos.zCoord);
+        Blink.drawBox(new net.minecraft.util.Vec3(animationX.getValue(), animationY.getValue(), animationZ.getValue()));
     }
 
     @SubscribeEvent
     public void onAttack(@NotNull AttackEntityEvent e) {
+        final Vec3 targetPos = new Vec3(e.target);
         if (e.target instanceof EntityPlayer) {
+            if (target == null || e.target != target) {
+                vec3 = targetPos;
+                if (animationX != null && animationY != null && animationZ != null) {
+                    long duration = target == null ? 0 : Math.min(500, Math.max(100, (long) new Vec3(e.target).distanceTo(target) * 50));
+                    animationX.setDuration(duration);
+                    animationY.setDuration(duration);
+                    animationZ.setDuration(duration);
+                }
+            } else if (animationX != null && animationY != null && animationZ != null) {
+                animationX.setDuration(100);
+                animationY.setDuration(100);
+                animationZ.setDuration(100);
+            }
             target = (EntityPlayer) e.target;
+
+            try {
+                final double distance = targetPos.distanceTo(mc.thePlayer);
+                if (distance > maxDistance.getInput() || distance < minDistance.getInput())
+                    return;
+
+            } catch (NullPointerException ignored) {
+            }
+
+            currentLatency = (int) (Math.random() * (maxLatency.getInput() - minLatency.getInput()) + minLatency.getInput());
         }
-
-        final Vec3 targetPos = new Vec3(e.target.getPositionVector());
-        try {
-            final double distance = targetPos.distanceTo(mc.thePlayer);
-            if (distance > maxDistance.getInput() || distance < minDistance.getInput())
-                return;
-
-        } catch (NullPointerException ignored) {
-        }
-
-        currentLatency = (int) (Math.random() * (maxLatency.getInput() - minLatency.getInput()) + minLatency.getInput());
     }
 
     @SubscribeEvent

@@ -1,7 +1,7 @@
 package keystrokesmod.utility;
 
 import keystrokesmod.event.PreMotionEvent;
-import keystrokesmod.module.impl.client.Settings;
+import keystrokesmod.module.impl.other.RotationHandler;
 import keystrokesmod.module.impl.other.anticheats.utils.world.PlayerRotation;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
@@ -19,7 +19,7 @@ public class RotationUtils {
 
     public static void setRenderYaw(float yaw) {
         mc.thePlayer.rotationYawHead = yaw;
-        if (Settings.rotateBody.isToggled() && Settings.fullBody.isToggled()) {
+        if (RotationHandler.rotateBody.isToggled() && RotationHandler.fullBody.isToggled()) {
             mc.thePlayer.renderYawOffset = yaw;
         }
     }
@@ -125,7 +125,7 @@ public class RotationUtils {
         n = n3 + n10;
         n2 = n4 + n11;
         if (abs >= 1.0f) {
-            final int n12 = (int) Settings.randomYawFactor.getInput();
+            final int n12 = (int) RotationHandler.randomYawFactor.getInput();
             if (n12 != 0) {
                 final int n13 = n12 * 100 + Utils.randomizeInt(-30, 30);
                 n += Utils.randomizeInt(-n13, n13) / 100.0;

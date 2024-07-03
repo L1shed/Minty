@@ -1,22 +1,28 @@
 package keystrokesmod.module.impl.movement;
 
 import keystrokesmod.event.PreMotionEvent;
-import keystrokesmod.event.PrePlayerInput;
-import keystrokesmod.mixins.impl.client.KeyBindingAccessor;
 import keystrokesmod.module.Module;
+import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.setting.impl.ModeSetting;
+import keystrokesmod.module.setting.utils.ModeOnly;
 import keystrokesmod.utility.MoveUtil;
 import keystrokesmod.utility.Utils;
+import keystrokesmod.utility.movement.Move;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.PlayerTickEvent;
 
 public class Sprint extends Module {
-    private final ModeSetting mode = new ModeSetting("Mode", new String[]{"Legit", "Hypixel"}, 0);
+    private final ModeSetting mode = new ModeSetting("Mode", new String[]{"Legit", "Omni"}, 0);
+    private final ModeSetting omniMode = new ModeSetting("Bypass mode", new String[]{"None", "Hypixel", "Legit"}, 1, new ModeOnly(mode, 1));
 
     public Sprint() {
         super("Sprint", Module.category.movement, 0);
-        this.registerSetting(mode);
+        this.registerSetting(mode, omniMode);
+    }
+
+    public static boolean omni() {
+        return ModuleManager.sprint != null && ModuleManager.sprint.isEnabled() && ModuleManager.sprint.mode.getInput() == 1 && MoveUtil.isMoving();
     }
 
     @SubscribeEvent
@@ -27,30 +33,19 @@ public class Sprint extends Module {
     }
 
     @SubscribeEvent
-    public void onStrafe(PrePlayerInput event) {
-        if (mode.getInput() != 1) return;
-
-        ((KeyBindingAccessor) mc.gameSettings.keyBindSprint).setPressed(true);
-
-        if (MoveUtil.isMoving()) {
-            mc.thePlayer.setSprinting(true);
-
-            float forward = event.getForward();
-            float strafe = event.getStrafe();
-            if (Math.abs(strafe) == 1)
-                strafe *= 1.3F;
-            if (Math.abs(forward) == 1)
-                forward *= 1.3F;
-            event.setForward(forward);
-            event.setStrafe(strafe);
-        }
-    }
-
-    @SubscribeEvent
     public void onPreMotion(PreMotionEvent event) {
         if (mode.getInput() != 1) return;
 
-        if (mc.thePlayer.moveForward <= 0)
-            event.setSprinting(false);
+        switch ((int) omniMode.getInput()) {
+            case 0:
+                break;
+            case 1:
+                if (mc.thePlayer.moveForward <= 0)
+                    event.setSprinting(false);
+                break;
+            case 2:
+                event.setYaw(event.getYaw() + Move.fromMovement(mc.thePlayer.moveForward, mc.thePlayer.moveStrafing).getDeltaYaw());
+                break;
+        }
     }
 }

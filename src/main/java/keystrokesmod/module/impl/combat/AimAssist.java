@@ -83,7 +83,7 @@ public class AimAssist extends Module {
 
                 if (horizonSpeed.getInput() > 0)
                     mc.thePlayer.rotationYaw = smooth.isToggled() ?
-                            AimSimulator.rotMoveNoRandom(rot.second(), mc.thePlayer.rotationYaw, (float) horizonSpeed.getInput()) :
+                            AimSimulator.rotMoveNoRandom(rot.first(), mc.thePlayer.rotationYaw, (float) horizonSpeed.getInput()) :
                             AimSimulator.rotMove(rot.first(), mc.thePlayer.rotationYaw, (float) horizonSpeed.getInput());
                 if (verticalSpeed.getInput() > 0)
                     mc.thePlayer.rotationPitch = smooth.isToggled() ?

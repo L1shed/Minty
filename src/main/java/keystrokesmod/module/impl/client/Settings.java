@@ -22,12 +22,9 @@ public class Settings extends Module {
     public static ButtonSetting weaponRod;
     public static ButtonSetting weaponStick;
     public static ButtonSetting middleClickFriends;
-    public static ButtonSetting rotateBody;
-    public static ButtonSetting fullBody;
-    public static ButtonSetting movementFix;
-    public static SliderSetting randomYawFactor;
     public static SliderSetting offset;
     public static SliderSetting timeMultiplier;
+    public static ButtonSetting toggleSound;
     public static ButtonSetting sendMessage;
     private final String[] capes = new String[]{"None", "Anime", "Aqua", "Green", "Purple", "Red", "White", "Yellow"};
     public static List<ResourceLocation> loadedCapes = new ArrayList<>();
@@ -40,16 +37,12 @@ public class Settings extends Module {
         this.registerSetting(weaponRod = new ButtonSetting("Set rod as weapon", false));
         this.registerSetting(weaponStick = new ButtonSetting("Set stick as weapon", false));
         this.registerSetting(middleClickFriends = new ButtonSetting("Middle click friends", false));
-        this.registerSetting(new DescriptionSetting("Rotations"));
-        this.registerSetting(rotateBody = new ButtonSetting("Rotate body", true));
-        this.registerSetting(fullBody = new ButtonSetting("Full body", false));
-//        this.registerSetting(movementFix = new ButtonSetting("Movement fix", false));
-        this.registerSetting(randomYawFactor = new SliderSetting("Random yaw factor", 1.0, 0.0, 10.0, 1.0));
         this.registerSetting(new DescriptionSetting("Profiles"));
         this.registerSetting(sendMessage = new ButtonSetting("Send message on enable", true));
         this.registerSetting(new DescriptionSetting("Theme colors"));
         this.registerSetting(offset = new SliderSetting("Offset", 0.5, -3.0, 3.0, 0.1));
         this.registerSetting(timeMultiplier = new SliderSetting("Time multiplier", 0.5, 0.1, 4.0, 0.1));
+        this.registerSetting(toggleSound = new ButtonSetting("Toggle sound", true));
         this.canBeEnabled = false;
         loadCapes();
     }

@@ -13,6 +13,7 @@ import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.DamageSource;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -81,23 +82,20 @@ public class ContainerUtils {
                 }
             }
         }
-        if (bestSword == -1) {
-            bestSword = desiredSlot + 35;
-        }
         return bestSword;
     }
 
     public static int getBestArmor(int armorType, IInventory inventory) {
         int bestArmor = -1;
-        double lastProtection = -1;
+        int bestLevel = -1;
         for (int i = 5; i < 45; i++) {
             ItemStack item = getItemStack(i);
             if (item == null || !(item.getItem() instanceof ItemArmor) || !(((ItemArmor) item.getItem()).armorType == armorType)) {
                 continue;
             }
-            double protection = getProtection(item);
-            if (protection > lastProtection) {
-                lastProtection = protection;
+            int level = getArmorLevel(item);
+            if (level > bestLevel) {
+                bestLevel = level;
                 bestArmor = i;
             }
         }
@@ -107,9 +105,9 @@ public class ContainerUtils {
                 if (item == null || !(item.getItem() instanceof ItemArmor) || !(((ItemArmor) item.getItem()).armorType == armorType)) {
                     continue;
                 }
-                double protection = getProtection(item);
-                if (protection > lastProtection) {
-                    lastProtection = protection;
+                int protection = getArmorLevel(item);
+                if (protection > bestLevel) {
+                    bestLevel = protection;
                     bestArmor = i;
                 }
             }
@@ -319,26 +317,26 @@ public class ContainerUtils {
         return biggestSlot;
     }
 
-    public static boolean canDrop(@NotNull ItemStack itemStack, int slot) {
+    public static boolean canDrop(@NotNull ItemStack itemStack, int slot, @Nullable IInventory inventory) {
         if (IGNORE_ITEMS.contains(itemStack.getUnlocalizedName().toLowerCase())) {
             return true;
         }
         if (dropPotion(itemStack)) {
             return true;
         }
-        if (itemStack.getItem() instanceof ItemSword && getBestSword(null, -1) != slot) {
+        if (itemStack.getItem() instanceof ItemSword && getBestSword(inventory, -1) != slot) {
             return true;
         }
-        if (itemStack.getItem() instanceof ItemArmor && getBestArmor(((ItemArmor) itemStack.getItem()).armorType, null) != slot) {
+        if (itemStack.getItem() instanceof ItemArmor && getBestArmor(((ItemArmor) itemStack.getItem()).armorType, inventory) != slot) {
             return true;
         }
-        if (itemStack.getItem() instanceof ItemTool && getBestTool(itemStack, null) != slot) {
+        if (itemStack.getItem() instanceof ItemTool && getBestTool(itemStack, inventory) != slot) {
             return true;
         }
-        if (itemStack.getItem() instanceof ItemBow && getBestBow(null) != slot) {
+        if (itemStack.getItem() instanceof ItemBow && getBestBow(inventory) != slot) {
             return true;
         }
-        if (itemStack.getItem() instanceof ItemFishingRod && getBestRod(null) != slot) {
+        if (itemStack.getItem() instanceof ItemFishingRod && getBestRod(inventory) != slot) {
             return true;
         }
         return false;
@@ -386,6 +384,23 @@ public class ContainerUtils {
         return false;
     }
 
+    public static int getArmorLevel(final @NotNull ItemStack itemStack) {
+        int level = 0;
+
+        final Item item = itemStack.getItem();
+        if (item == Items.diamond_helmet || item == Items.diamond_chestplate || item == Items.diamond_leggings || item == Items.diamond_boots)
+            level += 15;
+        else if (item == Items.iron_helmet || item == Items.iron_chestplate || item == Items.iron_leggings || item == Items.iron_boots)
+            level += 10;
+        else if (item == Items.golden_helmet || item == Items.golden_chestplate || item == Items.golden_leggings || item == Items.golden_boots)
+            level += 5;
+        else if (item == Items.chainmail_helmet || item == Items.chainmail_chestplate || item == Items.chainmail_leggings || item == Items.chainmail_boots)
+            level += 5;
+
+        level += getProtection(itemStack);
+
+        return level;
+    }
 
     public static int getProtection(final @NotNull ItemStack itemStack) {
         return ((ItemArmor)itemStack.getItem()).damageReduceAmount + EnchantmentHelper.getEnchantmentModifierDamage(new ItemStack[] { itemStack }, DamageSource.generic);

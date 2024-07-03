@@ -1,6 +1,7 @@
 package keystrokesmod.module.impl.world;
 
 import keystrokesmod.event.PreMotionEvent;
+import keystrokesmod.event.RotationEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.impl.other.anticheats.utils.phys.Vec2;
 import keystrokesmod.module.impl.other.anticheats.utils.world.PlayerRotation;
@@ -58,7 +59,7 @@ public class BlockIn extends Module {
     }
 
     @SubscribeEvent
-    public void onPreMotion(PreMotionEvent event) {
+    public void onPreMotion(RotationEvent event) {
         if (currentRot == null) return;
         if (rotationMode.getInput() == 0) {
             currentRot = null;

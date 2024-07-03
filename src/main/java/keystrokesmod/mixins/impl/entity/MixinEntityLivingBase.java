@@ -2,13 +2,13 @@ package keystrokesmod.mixins.impl.entity;
 
 import com.google.common.collect.Maps;
 import keystrokesmod.event.JumpEvent;
-import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.event.SwingAnimationEvent;
 import keystrokesmod.module.ModuleManager;
-import keystrokesmod.module.impl.client.Settings;
+import keystrokesmod.module.impl.movement.Sprint;
+import keystrokesmod.module.impl.other.RotationHandler;
+import keystrokesmod.utility.MoveUtil;
 import keystrokesmod.utility.RotationUtils;
 import keystrokesmod.utility.Utils;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -64,7 +64,7 @@ public abstract class MixinEntityLivingBase extends Entity {
     @Overwrite
     protected float func_110146_f(float p_1101461, float p_1101462) {
         float rotationYaw = this.rotationYaw;
-        if (Settings.fullBody != null && Settings.rotateBody != null && !Settings.fullBody.isToggled() && Settings.rotateBody.isToggled() && (EntityLivingBase) (Object) this instanceof EntityPlayerSP) {
+        if (RotationHandler.fullBody != null && RotationHandler.rotateBody != null && !RotationHandler.fullBody.isToggled() && RotationHandler.rotateBody.isToggled() && (EntityLivingBase) (Object) this instanceof EntityPlayerSP) {
             if (this.swingProgress > 0F) {
                 p_1101461 = RotationUtils.renderYaw;
             }
@@ -108,14 +108,10 @@ public abstract class MixinEntityLivingBase extends Entity {
      */
     @Overwrite
     protected void jump() {
-        JumpEvent jumpEvent = new JumpEvent(this.getJumpUpwardsMotion(), this.rotationYaw);
+        JumpEvent jumpEvent = new JumpEvent(this.getJumpUpwardsMotion(), RotationHandler.getMovementYaw());
         MinecraftForge.EVENT_BUS.post(jumpEvent);
         if (jumpEvent.isCanceled()) {
             return;
-        }
-
-        if (Settings.movementFix != null && Settings.movementFix.isToggled() && PreMotionEvent.setRenderYaw()) {
-            jumpEvent.setYaw(RotationUtils.renderYaw);
         }
 
         this.motionY = jumpEvent.getMotionY();
@@ -126,6 +122,12 @@ public abstract class MixinEntityLivingBase extends Entity {
 
         if (this.isSprinting()) {
             float f = jumpEvent.getYaw() * 0.017453292F;
+
+            if (Sprint.omni()) {
+                f = (float) (MoveUtil.direction() * (180 / Math.PI));
+                f *= 0.017453292F;
+            }
+
             this.motionX -= MathHelper.sin(f) * 0.2F;
             this.motionZ += MathHelper.cos(f) * 0.2F;
         }

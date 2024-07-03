@@ -21,8 +21,10 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import org.apache.commons.lang3.tuple.Triple;
 import org.lwjgl.input.Keyboard;
 
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static keystrokesmod.module.ModuleManager.scaffold;
@@ -39,9 +41,8 @@ public class Tower extends Module {
     private final ButtonSetting hypixelNoStrafe;
     private final ButtonSetting hypixelLowHop;
     private final SliderSetting hypixelOffGroundSpeed;
-    private final SliderSetting hypixelJumpMotion;
-    private final SliderSetting hypixelTowerDelay;
-    private final ButtonSetting hypixelTowerTest;
+    private final SliderSetting doubleBlockDelay;
+    private final ButtonSetting doubleBlock;
     private int slowTicks;
     private boolean wasTowering;
     private int offGroundTicks = 0;
@@ -60,9 +61,8 @@ public class Tower extends Module {
         this.registerSetting(hypixelOffGroundSpeed = new SliderSetting("Hypixel off ground speed", 0.5, 0.0, 1.0, 0.01, mode1));
         this.registerSetting(hypixelNoStrafe = new ButtonSetting("Hypixel no strafe", false, mode1));
         this.registerSetting(hypixelLowHop = new ButtonSetting("Hypixel low hop", false, mode1));
-        this.registerSetting(hypixelTowerTest = new ButtonSetting("Hypixel tower test", false, mode1));
-        this.registerSetting(hypixelJumpMotion = new SliderSetting("Hypixel tower motion", 0.4, 0.2, 0.8, 0.01, () -> hypixelTowerTest.isToggled() && mode1.get()));
-        this.registerSetting(hypixelTowerDelay = new SliderSetting("Hypixel tower delay", 100, 0, 2500, 10, "ms", () -> hypixelTowerTest.isToggled() && mode1.get()));
+        this.registerSetting(doubleBlock = new ButtonSetting("Double block", false, mode1));
+        this.registerSetting(doubleBlockDelay = new SliderSetting("Double block delay", 100, 0, 2500, 10, "ms", () -> doubleBlock.isToggled() && mode1.get()));
         this.registerSetting(disableWhileCollided = new ButtonSetting("Disable while collided", false));
         this.registerSetting(disableWhileHurt = new ButtonSetting("Disable while hurt", false));
         this.registerSetting(sprintJumpForward = new ButtonSetting("Sprint jump forward", true));
@@ -89,7 +89,7 @@ public class Tower extends Module {
                     Reflection.jumpTicks.set(mc.thePlayer, 0);
                     e.setSprinting(false);
 
-                    if (hypixelTowerTest.isToggled() && mc.thePlayer.motionX == 0 && mc.thePlayer.motionZ == 0) {
+                    if (doubleBlock.isToggled() && mc.thePlayer.motionX == 0 && mc.thePlayer.motionZ == 0) {
                         if (scaffold.placeBlock != null) {
                             BlockPos groundBlock = scaffold.placeBlock.getBlockPos().add(1, -1, 0);
                             if (BlockUtils.isFullBlock(mc.theWorld.getBlockState(groundBlock))) {
@@ -98,17 +98,13 @@ public class Tower extends Module {
                                 toweredBlock = null;
                             }
                             if (toweredBlock != null) {
-                                Raven.getExecutor().schedule(() -> {
-                                    final BlockPos block = toweredBlock;
-                                    if (scaffold.place(new MovingObjectPosition(
-                                            new Vec3(block.getX(), block.getY() + 1, block.getZ() + 0.5),
-                                            EnumFacing.UP,
-                                            block), true)) {
-                                        mc.thePlayer.motionY = -0.28;
-                                        mc.thePlayer.sendQueue.addToSendQueue(new C03PacketPlayer(true));
-                                    }
-                                }, (long) hypixelTowerDelay.getInput(), TimeUnit.MILLISECONDS);
-                                if (offGroundTicks <= 1) mc.thePlayer.motionY = hypixelJumpMotion.getInput();
+                                BlockIn.getPlaceSide(toweredBlock).ifPresent(placeSide ->
+                                        Raven.getExecutor().schedule(() ->
+                                                scaffold.place(
+                                                        new MovingObjectPosition(placeSide.getRight().toVec3(), placeSide.getMiddle(), placeSide.getLeft())
+                                                        , true)
+                                                , (long) doubleBlockDelay.getInput(), TimeUnit.MILLISECONDS)
+                                );
                             }
                         }
                     } else {

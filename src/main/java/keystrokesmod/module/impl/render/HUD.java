@@ -2,11 +2,11 @@ package keystrokesmod.module.impl.render;
 
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
-import keystrokesmod.module.impl.player.InvManager;
 import keystrokesmod.module.impl.player.ChestStealer;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.ModeSetting;
+import keystrokesmod.utility.Timer;
 import keystrokesmod.utility.font.Font;
 import keystrokesmod.utility.font.FontManager;
 import keystrokesmod.utility.render.RenderUtils;
@@ -15,6 +15,7 @@ import keystrokesmod.utility.Utils;
 import net.minecraft.client.gui.*;
 import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraftforge.fml.client.config.GuiButtonExt;
+import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.RenderTickEvent;
@@ -28,7 +29,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class HUD extends Module {
-    public static final String VERSION = "1.9.0";
+    public static final String VERSION = "1.10.0";
     public static ModeSetting theme;
 //    public static SliderSetting font;
 //    public static SliderSetting fontSize;
@@ -51,7 +52,11 @@ public class HUD extends Module {
         this.registerSetting(theme = new ModeSetting("Theme", Theme.themes, 0));
 //        this.registerSetting(font = new SliderSetting("Font", new String[]{"Minecraft", "Product Sans"}, 0));
 //        this.registerSetting(fontSize = new SliderSetting("Font", 1.0, 0.5, 2.0, 0.25, "x"));
-        this.registerSetting(new ButtonSetting("Edit position", () -> mc.displayGuiScreen(new EditScreen())));
+        this.registerSetting(new ButtonSetting("Edit position", () -> {
+            final EditScreen screen = new EditScreen();
+            FMLCommonHandler.instance().bus().register(screen);
+            mc.displayGuiScreen(screen);
+        }));
         this.registerSetting(alignRight = new ButtonSetting("Align right", false));
         this.registerSetting(alphabeticalSort = new ButtonSetting("Alphabetical sort", false));
         this.registerSetting(dropShadow = new ButtonSetting("Drop shadow", true));
@@ -184,13 +189,16 @@ public class HUD extends Module {
     static class EditScreen extends GuiScreen {
         final String example = "This is an-Example-HUD";
         GuiButtonExt resetPosition;
-        boolean d = false;
+        boolean hoverHUD = false;
+        boolean hoverTargetHUD = false;
         int miX = 0;
         int miY = 0;
         int maX = 0;
         int maY = 0;
-        int aX = 5;
-        int aY = 70;
+        int curHudX = 5;
+        int curHudY = 70;
+        int lastTargetHUDX = 70;
+        int lastTargetHUDY = 30;
         int laX = 0;
         int laY = 0;
         int lmX = 0;
@@ -200,14 +208,21 @@ public class HUD extends Module {
         public void initGui() {
             super.initGui();
             this.buttonList.add(this.resetPosition = new GuiButtonExt(1, this.width - 90, 5, 85, 20, "Reset position"));
-            this.aX = HUD.hudX;
-            this.aY = HUD.hudY;
+            this.curHudX = HUD.hudX;
+            this.curHudY = HUD.hudY;
+            this.lastTargetHUDX = TargetHUD.posX;
+            this.lastTargetHUDY = TargetHUD.posY;
+        }
+
+        @Override
+        public void onGuiClosed() {
+            FMLCommonHandler.instance().bus().unregister(this);
         }
 
         public void drawScreen(int mX, int mY, float pt) {
             drawRect(0, 0, this.width, this.height, -1308622848);
-            int miX = this.aX;
-            int miY = this.aY;
+            int miX = this.curHudX;
+            int miY = this.curHudY;
             int maX = miX + 50;
             int maY = miY + 32;
             int[] clickPos = this.d(getFontRenderer(), this.example);
@@ -236,6 +251,11 @@ public class HUD extends Module {
             }
 
             super.drawScreen(mX, mY, pt);
+        }
+
+        @SubscribeEvent
+        public void onRenderTick(RenderTickEvent event) {
+            TargetHUD.drawTargetHUD(null, mc.thePlayer.getName(), mc.thePlayer.getHealth());
         }
 
         private int @Nullable [] d(Font fr, String t) {
@@ -294,15 +314,24 @@ public class HUD extends Module {
         protected void mouseClickMove(int mX, int mY, int b, long t) {
             super.mouseClickMove(mX, mY, b, t);
             if (b == 0) {
-                if (this.d) {
-                    this.aX = this.laX + (mX - this.lmX);
-                    this.aY = this.laY + (mY - this.lmY);
+                if (this.hoverHUD) {
+                    this.curHudX = this.laX + (mX - this.lmX);
+                    this.curHudY = this.laY + (mY - this.lmY);
+                } else if (this.hoverTargetHUD) {
+                    TargetHUD.posX = this.laX + (mX - this.lmX);
+                    TargetHUD.posY = this.laY + (mY - this.lmY);
                 } else if (mX > this.clickMinX && mX < this.maX && mY > this.miY && mY < this.maY) {
-                    this.d = true;
+                    this.hoverHUD = true;
                     this.lmX = mX;
                     this.lmY = mY;
-                    this.laX = this.aX;
-                    this.laY = this.aY;
+                    this.laX = this.curHudX;
+                    this.laY = this.curHudY;
+                } else if (mX > TargetHUD.current$minX && mX < TargetHUD.current$maxX && mY > TargetHUD.current$minY && mY < TargetHUD.current$maxY) {
+                    this.hoverTargetHUD = true;
+                    this.lmX = mX;
+                    this.lmY = mY;
+                    this.laX = TargetHUD.posX;
+                    this.laY = TargetHUD.posY;
                 }
 
             }
@@ -311,15 +340,18 @@ public class HUD extends Module {
         protected void mouseReleased(int mX, int mY, int s) {
             super.mouseReleased(mX, mY, s);
             if (s == 0) {
-                this.d = false;
+                this.hoverHUD = false;
+                this.hoverTargetHUD = false;
             }
 
         }
 
         public void actionPerformed(GuiButton b) {
             if (b == this.resetPosition) {
-                this.aX = HUD.hudX = 5;
-                this.aY = HUD.hudY = 70;
+                this.curHudX = HUD.hudX = 5;
+                this.curHudY = HUD.hudY = 70;
+                this.lastTargetHUDX = TargetHUD.posX = 70;
+                this.lastTargetHUDY = TargetHUD.posY = 30;
             }
 
         }

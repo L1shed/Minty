@@ -5,29 +5,37 @@ import keystrokesmod.event.RenderItemEvent;
 import keystrokesmod.event.SwingAnimationEvent;
 import keystrokesmod.mixins.impl.render.ItemRendererAccessor;
 import keystrokesmod.module.Module;
+import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.Utils;
+import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.item.EnumAction;
 import net.minecraft.item.ItemMap;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.MathHelper;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.jetbrains.annotations.NotNull;
+
+import static net.minecraft.util.MovingObjectPosition.MovingObjectType.BLOCK;
 
 public class Animations extends Module {
     private final ModeSetting blockAnimation = new ModeSetting("Block animation", new String[]{"None", "1.7", "Smooth", "Exhibition"}, 1);
     private final ModeSetting swingAnimation = new ModeSetting("Swing animation", new String[]{"None", "1.9+", "Smooth"}, 0);
-    private final SliderSetting x = new SliderSetting("X", 0, -2, 2, 0.05);
-    private final SliderSetting y = new SliderSetting("Y", 0, -2, 2, 0.05);
-    private final SliderSetting z = new SliderSetting("Z", 0, -2, 2, 0.05);
+    private final ModeSetting otherAnimation = new ModeSetting("Other animation", new String[]{"None", "1.7"}, 1);
+    private final ButtonSetting blockAndSwing = new ButtonSetting("Block and swing", false);
+    private final SliderSetting x = new SliderSetting("X", 0, -1, 1, 0.05);
+    private final SliderSetting y = new SliderSetting("Y", 0, -1, 1, 0.05);
+    private final SliderSetting z = new SliderSetting("Z", 0, -1, 1, 0.05);
     private final SliderSetting swingSpeed = new SliderSetting("Swing speed", 0, -200, 50, 5);
 
     private int swing;
 
     public Animations() {
         super("Animations", category.render);
-        this.registerSetting(blockAnimation, swingAnimation, x, y, z, swingSpeed);
+        this.registerSetting(blockAnimation, swingAnimation, otherAnimation, blockAndSwing, x, y, z, swingSpeed);
     }
 
     @SubscribeEvent
@@ -39,52 +47,85 @@ public class Animations extends Module {
         final EnumAction itemAction = event.getEnumAction();
         final ItemRendererAccessor itemRenderer = (ItemRendererAccessor) mc.getItemRenderer();
         final float animationProgression = event.getAnimationProgression();
-        final float swingProgress = event.getSwingProgress();
+        float swingProgress = event.getSwingProgress();
         final float convertedProgress = MathHelper.sin(MathHelper.sqrt_float(swingProgress) * (float) Math.PI);
 
-        if (event.isUseItem() && itemAction == EnumAction.BLOCK) {
+        GlStateManager.translate(x.getInput(), y.getInput(), z.getInput());
 
-            GlStateManager.translate(x.getInput(), y.getInput(), z.getInput());
-
-
-            switch ((int) blockAnimation.getInput()) {
-                case 0:
-                    itemRenderer.transformFirstPersonItem(animationProgression, 0.0F);
-                    itemRenderer.blockTransformation();
-
+        if (event.isUseItem()) {
+            switch (itemAction) {
+                case NONE:
+                    switch ((int) otherAnimation.getInput()) {
+                        case 0:
+                            itemRenderer.transformFirstPersonItem(animationProgression, 0.0F);
+                            break;
+                        case 1:
+                            itemRenderer.transformFirstPersonItem(animationProgression, swingProgress);
+                            break;
+                    }
                     break;
+                case BLOCK:
+                    switch ((int) blockAnimation.getInput()) {
+                        case 0:
+                            itemRenderer.transformFirstPersonItem(animationProgression, 0.0F);
+                            itemRenderer.blockTransformation();
+                            break;
 
-                case 1:
-                    itemRenderer.transformFirstPersonItem(animationProgression, swingProgress);
-                    itemRenderer.blockTransformation();
+                        case 1:
+                            itemRenderer.transformFirstPersonItem(animationProgression, swingProgress);
+                            itemRenderer.blockTransformation();
+                            break;
 
+                        case 2:
+                            itemRenderer.transformFirstPersonItem(animationProgression, 0.0F);
+                            final float y = -convertedProgress * 2.0F;
+                            GlStateManager.translate(0.0F, y / 10.0F + 0.1F, 0.0F);
+                            GlStateManager.rotate(y * 10.0F, 0.0F, 1.0F, 0.0F);
+                            GlStateManager.rotate(250, 0.2F, 1.0F, -0.6F);
+                            GlStateManager.rotate(-10.0F, 1.0F, 0.5F, 1.0F);
+                            GlStateManager.rotate(-y * 20.0F, 1.0F, 0.5F, 1.0F);
+                            break;
+
+                        case 3: {
+                            itemRenderer.transformFirstPersonItem(animationProgression / 2.0F, 0.0F);
+                            GlStateManager.translate(0.0F, 0.3F, -0.0F);
+                            GlStateManager.rotate(-convertedProgress * 31.0F, 1.0F, 0.0F, 2.0F);
+                            GlStateManager.rotate(-convertedProgress * 33.0F, 1.5F, (convertedProgress / 1.1F), 0.0F);
+                            itemRenderer.blockTransformation();
+                            break;
+                        }
+                    }
                     break;
-
-                case 2:
-                    itemRenderer.transformFirstPersonItem(animationProgression, 0.0F);
-                    final float y = -convertedProgress * 2.0F;
-                    GlStateManager.translate(0.0F, y / 10.0F + 0.1F, 0.0F);
-                    GlStateManager.rotate(y * 10.0F, 0.0F, 1.0F, 0.0F);
-                    GlStateManager.rotate(250, 0.2F, 1.0F, -0.6F);
-                    GlStateManager.rotate(-10.0F, 1.0F, 0.5F, 1.0F);
-                    GlStateManager.rotate(-y * 20.0F, 1.0F, 0.5F, 1.0F);
-
+                case EAT:
+                case DRINK:
+                    switch ((int) otherAnimation.getInput()) {
+                        case 0:
+                            func_178104_a(mc.thePlayer.getHeldItem(), mc.thePlayer, event.getPartialTicks());
+                            itemRenderer.transformFirstPersonItem(animationProgression, 0.0F);
+                            break;
+                        case 1:
+                            func_178104_a(mc.thePlayer.getHeldItem(), mc.thePlayer, event.getPartialTicks());
+                            itemRenderer.transformFirstPersonItem(animationProgression, swingProgress);
+                            break;
+                    }
                     break;
-
-                case 3: {
-                    itemRenderer.transformFirstPersonItem(animationProgression / 2.0F, 0.0F);
-                    GlStateManager.translate(0.0F, 0.3F, -0.0F);
-                    GlStateManager.rotate(-convertedProgress * 31.0F, 1.0F, 0.0F, 2.0F);
-                    GlStateManager.rotate(-convertedProgress * 33.0F, 1.5F, (convertedProgress / 1.1F), 0.0F);
-                    itemRenderer.blockTransformation();
-
+                case BOW:
+                    switch ((int) otherAnimation.getInput()) {
+                        case 0:
+                            itemRenderer.transformFirstPersonItem(animationProgression, 0.0F);
+                            func_178098_a(mc.thePlayer.getHeldItem(), event.getPartialTicks(), mc.thePlayer);
+                            break;
+                        case 1:
+                            itemRenderer.transformFirstPersonItem(animationProgression, swingProgress);
+                            func_178098_a(mc.thePlayer.getHeldItem(), event.getPartialTicks(), mc.thePlayer);
+                            break;
+                    }
                     break;
-                }
             }
 
             event.setCanceled(true);
 
-        } else if (!event.isUseItem()) {
+        } else {
             switch ((int) swingAnimation.getInput()) {
                 case 0:
                     func_178105_d(swingProgress);
@@ -115,6 +156,11 @@ public class Animations extends Module {
         } else {
             swing = Math.max(0, swing - 1);
         }
+
+        if (blockAndSwing.isToggled() && mc.objectMouseOver.typeOfHit == BLOCK
+                && mc.gameSettings.keyBindAttack.isKeyDown()) {
+            mc.thePlayer.swingItem();
+        }
     }
 
     @SubscribeEvent
@@ -123,7 +169,6 @@ public class Animations extends Module {
     }
 
     /**
-     * LabyMod issue, but I need to compat it.
      * @see net.minecraft.client.renderer.ItemRenderer#func_178105_d(float swingProgress)
      */
     void func_178105_d(float swingProgress) {
@@ -131,5 +176,52 @@ public class Animations extends Module {
         float f1 = 0.2F * MathHelper.sin(MathHelper.sqrt_float(swingProgress) * 3.1415927F * 2.0F);
         float f2 = -0.2F * MathHelper.sin(swingProgress * 3.1415927F);
         GlStateManager.translate(f, f1, f2);
+    }
+
+    /**
+     * @see net.minecraft.client.renderer.ItemRenderer#func_178104_a(AbstractClientPlayer player, float swingProgress)
+     */
+    private void func_178104_a(ItemStack itemToRender, @NotNull AbstractClientPlayer p_178104_1_, float p_178104_2_) {
+        if (itemToRender == null) return;
+
+        float f = (float)p_178104_1_.getItemInUseCount() - p_178104_2_ + 1.0F;
+        float f1 = f / (float)itemToRender.getMaxItemUseDuration();
+        float f2 = MathHelper.abs(MathHelper.cos(f / 4.0F * 3.1415927F) * 0.1F);
+        if (f1 >= 0.8F) {
+            f2 = 0.0F;
+        }
+
+        GlStateManager.translate(0.0F, f2, 0.0F);
+        float f3 = 1.0F - (float)Math.pow(f1, 27.0);
+        GlStateManager.translate(f3 * 0.6F, f3 * -0.5F, f3 * 0.0F);
+        GlStateManager.rotate(f3 * 90.0F, 0.0F, 1.0F, 0.0F);
+        GlStateManager.rotate(f3 * 10.0F, 1.0F, 0.0F, 0.0F);
+        GlStateManager.rotate(f3 * 30.0F, 0.0F, 0.0F, 1.0F);
+    }
+
+    /**
+     * @see net.minecraft.client.renderer.ItemRenderer#func_178098_a(float, AbstractClientPlayer)
+     */
+    private void func_178098_a(ItemStack itemToRender, float p_178098_1_, AbstractClientPlayer p_178098_2_) {
+        GlStateManager.rotate(-18.0F, 0.0F, 0.0F, 1.0F);
+        GlStateManager.rotate(-12.0F, 0.0F, 1.0F, 0.0F);
+        GlStateManager.rotate(-8.0F, 1.0F, 0.0F, 0.0F);
+        GlStateManager.translate(-0.9F, 0.2F, 0.0F);
+        float f = (float)itemToRender.getMaxItemUseDuration() - ((float)p_178098_2_.getItemInUseCount() - p_178098_1_ + 1.0F);
+        float f1 = f / 20.0F;
+        f1 = (f1 * f1 + f1 * 2.0F) / 3.0F;
+        if (f1 > 1.0F) {
+            f1 = 1.0F;
+        }
+
+        if (f1 > 0.1F) {
+            float f2 = MathHelper.sin((f - 0.1F) * 1.3F);
+            float f3 = f1 - 0.1F;
+            float f4 = f2 * f3;
+            GlStateManager.translate(f4 * 0.0F, f4 * 0.01F, f4 * 0.0F);
+        }
+
+        GlStateManager.translate(f1 * 0.0F, f1 * 0.0F, f1 * 0.1F);
+        GlStateManager.scale(1.0F, 1.0F, 1.0F + f1 * 0.2F);
     }
 }

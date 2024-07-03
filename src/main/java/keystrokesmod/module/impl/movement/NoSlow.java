@@ -6,7 +6,6 @@ import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.setting.impl.ButtonSetting;
-import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.module.setting.utils.ModeOnly;
@@ -37,9 +36,8 @@ public class NoSlow extends Module {
 
     public NoSlow() {
         super("NoSlow", Module.category.movement, 0);
-        this.registerSetting(new DescriptionSetting("Default is 80% motion reduction."));
         this.registerSetting(mode = new ModeSetting("Mode", modes, 0));
-        this.registerSetting(slowed = new SliderSetting("Slow %", 80.0D, 0.0D, 80.0D, 1.0D, new ModeOnly(mode, 5).reserve()));
+        this.registerSetting(slowed = new SliderSetting("Slow %", 5.0D, 0.0D, 80.0D, 1.0D, new ModeOnly(mode, 5).reserve()));
         this.registerSetting(disableSword = new ButtonSetting("Disable sword", false));
         this.registerSetting(disableBow = new ButtonSetting("Disable bow", false));
         this.registerSetting(disablePotions = new ButtonSetting("Disable potions", false));
@@ -142,7 +140,7 @@ public class NoSlow extends Module {
         } else if (mc.thePlayer.getHeldItem().getItem() instanceof ItemPotion && !ItemPotion.isSplash(mc.thePlayer.getHeldItem().getItemDamage()) && disablePotions.isToggled()) {
             return 0.2f;
         }
-        return (100.0F - (float) slowed.getInput()) / 100.0F;
+        return mode.getInput() == 5 ? 1.0f : (100.0F - (float) slowed.getInput()) / 100.0F;
     }
 
     @Override

@@ -25,6 +25,7 @@
     "client.KeyBindingAccessor",
     "client.MinecraftAccessor",
     "client.MixinMinecraft",
+    "client.MixinMovementInputFromOptions",
     "client.PlayerControllerMPAccessor",
     "network.MixinNetHandlerPlayClient",
     "render.ItemRendererAccessor",

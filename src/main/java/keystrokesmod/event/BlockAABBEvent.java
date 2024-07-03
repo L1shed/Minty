@@ -15,12 +15,12 @@ public class BlockAABBEvent extends Event {
     private AxisAlignedBB boundingBox;
     private final AxisAlignedBB maskBoundingBox;
 
-    public BlockAABBEvent(World world, Block block, BlockPos blockPos, AxisAlignedBB maskBoundingBox, AxisAlignedBB boundingBox) {
+    public BlockAABBEvent(World world, Block block, BlockPos blockPos, AxisAlignedBB boundingBox, AxisAlignedBB maskBoundingBox) {
         this.world = world;
         this.block = block;
         this.blockPos = blockPos;
-        this.maskBoundingBox = maskBoundingBox;
         this.boundingBox = boundingBox;
+        this.maskBoundingBox = maskBoundingBox;
     }
 
     public World getWorld() {

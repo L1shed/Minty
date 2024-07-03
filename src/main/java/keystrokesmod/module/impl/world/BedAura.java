@@ -1,10 +1,7 @@
 package keystrokesmod.module.impl.world;
 
 import keystrokesmod.Raven;
-import keystrokesmod.event.PostUpdateEvent;
-import keystrokesmod.event.PreMotionEvent;
-import keystrokesmod.event.PreUpdateEvent;
-import keystrokesmod.event.ReceivePacketEvent;
+import keystrokesmod.event.*;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.minigames.BedWars;
@@ -189,7 +186,7 @@ public class BedAura extends Module {
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public void onPreMotion(PreMotionEvent e) {
+    public void onRotation(RotationEvent e) {
         if ((rotate || breakProgress >= 1 || breakProgress == 0) && currentBlock != null) {
             float[] rotations = RotationUtils.getRotations(currentBlock, e.getYaw(), e.getPitch());
             if (RotationUtils.notInRange(currentBlock, range.getInput())) {
@@ -198,6 +195,15 @@ public class BedAura extends Module {
             e.setYaw(rotations[0]);
             e.setPitch(rotations[1]);
             rotate = false;
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public void onPreMotion(PreMotionEvent e) {
+        if ((rotate || breakProgress >= 1 || breakProgress == 0) && currentBlock != null) {
+            if (RotationUtils.notInRange(currentBlock, range.getInput())) {
+                return;
+            }
             if (groundSpoof.isToggled() && !mc.thePlayer.isInWater()) {
                 e.setOnGround(true);
             }

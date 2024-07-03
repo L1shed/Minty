@@ -81,6 +81,8 @@ public class ModuleManager {
     public static Step step;
     public static Animations animations;
     public static ChestStealer chestStealer;
+    public static Sprint sprint;
+    public static RotationHandler rotationHandler;
 
     public void register() {
         this.addModule(autoClicker = new AutoClicker());
@@ -111,7 +113,7 @@ public class ModuleManager {
         this.addModule(noSlow = new NoSlow());
         this.addModule(new Indicators());
         this.addModule(new LatencyAlerts());
-        this.addModule(new Sprint());
+        this.addModule(sprint = new Sprint());
         this.addModule(new StopMotion());
         this.addModule(timer = new Timer());
         this.addModule(new VClip());
@@ -192,6 +194,7 @@ public class ModuleManager {
         this.addModule(step = new Step());
         this.addModule(animations = new Animations());
         this.addModule(chestStealer = new ChestStealer());
+        this.addModule(rotationHandler = new RotationHandler());
         antiBot.enable();
         modules.sort(Comparator.comparing(Module::getPrettyName));
     }

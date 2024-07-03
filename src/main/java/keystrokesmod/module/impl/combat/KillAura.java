@@ -27,6 +27,7 @@ import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.jetbrains.annotations.NotNull;
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
 import java.util.*;
@@ -303,7 +304,7 @@ public class KillAura extends Module {
     }
 
     @SubscribeEvent(priority = EventPriority.LOW)
-    public void onPreMotion(PreMotionEvent e) {
+    public void onPreMotion(RotationEvent e) {
         if (gameNoAction() || playerNoAction()) {
             resetVariables();
             return;
@@ -398,6 +399,11 @@ public class KillAura extends Module {
     private void resetVariables() {
         target = null;
         availableTargets.clear();
+
+        if (mc.thePlayer.isBlocking() && !Keyboard.isKeyDown(mc.gameSettings.keyBindUseItem.getKeyCode())) {
+            mc.thePlayer.stopUsingItem();
+        }
+
         block.set(false);
         swing = false;
         rmbDown = false;
@@ -478,6 +484,7 @@ public class KillAura extends Module {
                 .filter(Objects::nonNull)
                 .filter(entity -> entity != mc.thePlayer)
                 .filter(entity -> entity instanceof EntityLivingBase)
+                .map(entity -> (EntityLivingBase) entity)
                 .filter(entity -> {
                     if (entity instanceof EntityArmorStand) return false;
                     if (entity instanceof EntityPlayer) {
@@ -485,14 +492,14 @@ public class KillAura extends Module {
                         if (Utils.isFriended((EntityPlayer) entity)) {
                             return false;
                         }
-                        if (((EntityPlayer) entity).deathTime != 0) {
+                        if (entity.deathTime != 0) {
                             return false;
                         }
                         return !AntiBot.isBot(entity) && !(ignoreTeammates.isToggled() && Utils.isTeamMate(entity));
                     } else return targetEntity.isToggled();
                 })
                 .filter(entity -> targetInvisible.isToggled() || !entity.isInvisible())
-                .filter(entity -> hitThroughBlocks.isToggled() || !behindBlocks(rotations))
+                .filter(entity -> hitThroughBlocks.isToggled() || !behindBlocks(rotations, entity))
                 .filter(entity -> fov.getInput() == 360 || Utils.inFov((float) fov.getInput(), entity))
                 .map(entity -> new Pair<>(entity, eyePos.distanceTo(RotationUtils.getNearestPoint(entity.getEntityBoundingBox(), eyePos))))
                 .forEach(pair -> {
@@ -505,7 +512,7 @@ public class KillAura extends Module {
                         swing = true;
                     }
                     if (pair.second() <= attackRange.getInput() || pair.second() <= swingRange.getInput()) {
-                        availableTargets.add((EntityLivingBase) pair.first());
+                        availableTargets.add(pair.first());
                     }
                 });
 
@@ -541,6 +548,7 @@ public class KillAura extends Module {
             target = availableTargets.get(entityIndex);
         } else {
             target = null;
+            resetVariables();
         }
     }
 
@@ -621,6 +629,7 @@ public class KillAura extends Module {
             return;
         }
         mc.thePlayer.sendQueue.addToSendQueue(new C07PacketPlayerDigging(C07PacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, DOWN));
+        mc.thePlayer.stopUsingItem();
     }
 
     public void resetBlinkState(boolean unblock) {
@@ -656,18 +665,14 @@ public class KillAura extends Module {
         blinking = false;
     }
 
-    private boolean behindBlocks(float[] rotations) {
+    private boolean behindBlocks(float[] rotations, EntityLivingBase target) {
         try {
             Vec3 from = Utils.getEyePos();
             MovingObjectPosition hitResult = RotationUtils.rayCast(
-                    RotationUtils.getNearestPoint(target.getEntityBoundingBox(), from).distanceTo(from),
+                    RotationUtils.getNearestPoint(target.getEntityBoundingBox(), from).distanceTo(from) + 0.2,
                     rotations[0], rotations[1]
             );
-            if (hitResult != null) {
-                if (mc.theWorld.getBlockState(hitResult.getBlockPos()).getBlock().isFullCube()) {
-                    return true;
-                }
-            }
+            return hitResult != null;
         } catch (NullPointerException ignored) {
         }
         return false;

@@ -26,11 +26,7 @@ public class FreeLook extends Module {
 
     @Override
     public void onEnable() {
-        viewData = new ViewData(
-                mc.gameSettings.thirdPersonView,
-                mc.thePlayer.rotationYaw,
-                mc.thePlayer.rotationPitch
-        );
+        viewData = null;
     }
 
     @Override
@@ -40,7 +36,6 @@ public class FreeLook extends Module {
             mc.thePlayer.rotationYaw = viewData.rotationYaw;
             mc.thePlayer.rotationPitch = viewData.rotationPitch;
         }
-        viewData = null;
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -63,6 +58,12 @@ public class FreeLook extends Module {
                 event.setYaw(viewData.rotationYaw);
                 event.setPitch(viewData.rotationPitch);
             }
+        } else {
+            viewData = new ViewData(
+                    mc.gameSettings.thirdPersonView,
+                    event.getYaw(),
+                    event.getPitch()
+            );
         }
     }
 

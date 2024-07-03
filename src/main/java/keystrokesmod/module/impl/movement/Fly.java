@@ -1,5 +1,6 @@
 package keystrokesmod.module.impl.movement;
 
+import keystrokesmod.event.BlockAABBEvent;
 import keystrokesmod.event.PrePlayerInput;
 import keystrokesmod.event.ReceivePacketEvent;
 import keystrokesmod.module.Module;
@@ -11,6 +12,7 @@ import keystrokesmod.utility.MoveUtil;
 import keystrokesmod.utility.PacketUtils;
 import keystrokesmod.utility.render.RenderUtils;
 import keystrokesmod.utility.Utils;
+import net.minecraft.block.BlockAir;
 import net.minecraft.network.play.client.C03PacketPlayer;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraft.util.AxisAlignedBB;
@@ -23,6 +25,8 @@ public class Fly extends Module {
     private final ModeSetting mode;
     public static SliderSetting horizontalSpeed;
     private final SliderSetting verticalSpeed;
+    private final SliderSetting maxBalance;
+    private final ButtonSetting autoDisable;
     private final ButtonSetting showBPS;
     private final ButtonSetting stopMotion;
     private boolean d;
@@ -30,12 +34,19 @@ public class Fly extends Module {
     private int offGroundTicks = 0;
     private boolean started, notUnder, clipped, teleport;
 
+    private long balance = 0;
+    private long startTime = -1;
+    private Timer.BalanceState balanceState = Timer.BalanceState.NONE;
+
     public Fly() {
         super("Fly", category.movement);
-        this.registerSetting(mode = new ModeSetting("Fly", new String[]{"Vanilla", "Fast", "Fast 2", "BlocksMC"}, 0));
+        this.registerSetting(mode = new ModeSetting("Fly", new String[]{"Vanilla", "Fast", "Fast 2", "BlocksMC", "AirWalk", "GrimAC"}, 0));
         final ModeOnly canChangeSpeed = new ModeOnly(mode, 0, 1, 2);
+        final ModeOnly balanceMode = new ModeOnly(mode, 5);
         this.registerSetting(horizontalSpeed = new SliderSetting("Horizontal speed", 2.0, 1.0, 9.0, 0.1, canChangeSpeed));
         this.registerSetting(verticalSpeed = new SliderSetting("Vertical speed", 2.0, 1.0, 9.0, 0.1, canChangeSpeed));
+        this.registerSetting(maxBalance = new SliderSetting("Max balance", 6000, 3000, 30000, 1000, "ms", balanceMode));
+        this.registerSetting(autoDisable = new ButtonSetting("Auto disable", true, balanceMode));
         this.registerSetting(showBPS = new ButtonSetting("Show BPS", false));
         this.registerSetting(stopMotion = new ButtonSetting("Stop motion", false));
     }
@@ -166,6 +177,9 @@ public class Fly extends Module {
     }
 
     public void onDisable() {
+        balance$reset();
+        if (!Utils.nullCheck()) return;
+
         if (mc.thePlayer.capabilities.allowFlying) {
             mc.thePlayer.capabilities.isFlying = this.d;
         }
@@ -193,9 +207,62 @@ public class Fly extends Module {
         }
     }
 
+    private void balance$reset() {
+        Utils.resetTimer();
+        balance = 0;
+        balanceState = Timer.BalanceState.NONE;
+    }
+
     @SubscribeEvent
     public void onRenderTick(TickEvent.RenderTickEvent e) {
         RenderUtils.renderBPS(showBPS.isToggled(), e);
+
+        if ((int) mode.getInput() == 5) {
+            final long curTime = System.currentTimeMillis();
+            switch (balanceState) {
+                case NONE:
+                    startTime = curTime;
+                    Utils.getTimer().timerSpeed = 0;
+                    balanceState = Timer.BalanceState.SLOW;
+                    break;
+                case SLOW:
+                    balance += curTime - startTime;
+                    if (balance >= maxBalance.getInput()) {
+                        balance = (long) maxBalance.getInput();
+                        balanceState = Timer.BalanceState.TIMER;
+                        startTime = curTime;
+                    } else {
+                        startTime = curTime;
+                        Utils.getTimer().timerSpeed = 0;
+                    }
+                    break;
+                case TIMER:
+                    balance -= (curTime - startTime) * 10;
+                    if (balance <= 0) {
+                        balance$reset();
+                        if (autoDisable.isToggled())
+                            disable();
+                        break;
+                    }
+                    startTime = curTime;
+                    Utils.getTimer().timerSpeed = 10;
+                    break;
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public void onBlockAABB(BlockAABBEvent event) {
+        if ((int) mode.getInput() == 4 || ((int) mode.getInput() == 5 && balanceState == Timer.BalanceState.TIMER)) {
+            // Sets The Bounding Box To The Players Y Position.
+            if (event.getBlock() instanceof BlockAir) {
+                final double x = event.getBlockPos().getX(), y = event.getBlockPos().getY(), z = event.getBlockPos().getZ();
+
+                if (y < mc.thePlayer.posY) {
+                    event.setBoundingBox(AxisAlignedBB.fromBounds(-15, -1, -15, 15, 1, 15).offset(x, y, z));
+                }
+            }
+        }
     }
 
     public static void setSpeed(final double n) {

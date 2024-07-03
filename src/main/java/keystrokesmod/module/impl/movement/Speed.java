@@ -4,15 +4,14 @@ import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.event.PrePlayerInput;
 import keystrokesmod.event.ReceivePacketEvent;
 import keystrokesmod.module.Module;
-import keystrokesmod.module.impl.other.anticheats.utils.world.BlockUtils;
 import keystrokesmod.module.impl.player.NoFall;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.ModeSetting;
-import keystrokesmod.utility.MoveUtil;
-import keystrokesmod.utility.PacketUtils;
-import keystrokesmod.utility.RotationUtils;
-import keystrokesmod.utility.Utils;
+import keystrokesmod.utility.*;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockAir;
+import net.minecraft.block.state.BlockState;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.network.play.client.C07PacketPlayerDigging;
 import net.minecraft.network.play.client.C0BPacketEntityAction;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
@@ -321,7 +320,10 @@ public class Speed extends Module {
                 speed = MoveUtil.getAllowedHorizontalDistance();
             }
 
-            if (mc.thePlayer.isCollidedHorizontally) {
+            if (mc.thePlayer.isCollidedHorizontally || BlockUtils.getSurroundBlocks(mc.thePlayer).stream()
+                    .map(BlockUtils::getBlockState)
+                    .map(IBlockState::getBlock)
+                    .allMatch(Block::isFullCube)) {
                 speed = MoveUtil.getAllowedHorizontalDistance();
             }
 

@@ -7,6 +7,7 @@ import keystrokesmod.clickgui.components.impl.CategoryComponent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.impl.client.Gui;
 import keystrokesmod.module.impl.render.HUD;
+import keystrokesmod.module.impl.render.TargetHUD;
 import keystrokesmod.module.setting.Setting;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
@@ -94,6 +95,10 @@ public class ProfileManager {
         if (module instanceof HUD) {
             moduleInformation.addProperty("posX", HUD.hudX);
             moduleInformation.addProperty("posY", HUD.hudY);
+        }
+        if (module instanceof TargetHUD) {
+            moduleInformation.addProperty("posX", TargetHUD.posX);
+            moduleInformation.addProperty("posY", TargetHUD.posY);
         }
         if (module instanceof Gui) {
             JsonArray jsonArray = new JsonArray();
@@ -228,6 +233,15 @@ public class ProfileManager {
                         }
                         if (moduleInformation.has("posY")) {
                             HUD.hudY = moduleInformation.get("posY").getAsInt();
+                        }
+                    }
+
+                    if (module.getName().equals("TargetHUD")) {
+                        if (moduleInformation.has("posX")) {
+                            TargetHUD.posX = moduleInformation.get("posX").getAsInt();
+                        }
+                        if (moduleInformation.has("posY")) {
+                            TargetHUD.posY = moduleInformation.get("posY").getAsInt();
                         }
                     }
 

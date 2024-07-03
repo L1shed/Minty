@@ -23,29 +23,35 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.*;
 
 public class TargetHUD extends Module {
+    public static int posX = 70;
+    public static int posY = 30;
     private final ButtonSetting onlyKillAura;
     private final SliderSetting maxDistance;
-    private final ModeSetting theme;
+    private static final ModeSetting theme = new ModeSetting("Theme", Theme.themes, 0);
     private final ButtonSetting renderEsp;
-    private final ButtonSetting showStatus;
-    private final ButtonSetting healthColor;
+    private static final ButtonSetting showStatus = new ButtonSetting("Show win or loss", true);
+    private static final ButtonSetting healthColor = new ButtonSetting("Traditional health color", false);
     private Timer fadeTimer;
-    private Timer healthBarTimer = null;
-    private EntityLivingBase target;
+    private static Timer healthBarTimer = null;
+    private static EntityLivingBase target;
     private long lastAliveMS;
     private double lastHealth;
-    private float lastHealthBar;
+    private static float lastHealthBar;
     public EntityLivingBase renderEntity;
+
+    public static int current$minX;
+    public static int current$maxX;
+    public static int current$minY;
+    public static int current$maxY;
 
     public TargetHUD() {
         super("TargetHUD", category.render);
-        this.registerSetting(new DescriptionSetting("Only works with KillAura."));
         this.registerSetting(onlyKillAura = new ButtonSetting("Only KillAura", true));
         this.registerSetting(maxDistance = new SliderSetting("Max distance", 6, 3, 20, 1, "blocks", () -> !onlyKillAura.isToggled()));
-        this.registerSetting(theme = new ModeSetting("Theme", Theme.themes, 0));
+        this.registerSetting(theme);
         this.registerSetting(renderEsp = new ButtonSetting("Render ESP", true));
-        this.registerSetting(showStatus = new ButtonSetting("Show win or loss", true));
-        this.registerSetting(healthColor = new ButtonSetting("Traditional health color", false));
+        this.registerSetting(showStatus);
+        this.registerSetting(healthColor);
     }
 
     public void onDisable() {
@@ -116,28 +122,28 @@ public class TargetHUD extends Module {
         }
     }
 
-    private void drawTargetHUD(Timer cd, String string, double health) {
+    public static void drawTargetHUD(Timer cd, String string, double health) {
         if (showStatus.isToggled()) {
             string = string + " " + ((health <= Utils.getCompleteHealth(mc.thePlayer) / mc.thePlayer.getMaxHealth()) ? "§aW" : "§cL");
         }
         final ScaledResolution scaledResolution = new ScaledResolution(mc);
         final int n2 = 8;
         final int n3 = mc.fontRendererObj.getStringWidth(string) + n2;
-        final int n4 = scaledResolution.getScaledWidth() / 2 - n3 / 2 + 70;
-        final int n5 = scaledResolution.getScaledHeight() / 2 + 15 + 30;
-        final int n6 = n4 - n2;
-        final int n7 = n5 - n2;
-        final int n8 = n4 + n3;
-        final int n9 = n5 + (mc.fontRendererObj.FONT_HEIGHT + 5) - 6 + n2;
+        final int n4 = scaledResolution.getScaledWidth() / 2 - n3 / 2 + posX;
+        final int n5 = scaledResolution.getScaledHeight() / 2 + 15 + posY;
+        current$minX = n4 - n2;  // minX
+        current$minY = n5 - n2;  // minY
+        current$maxX = n4 + n3;  // maxX
+        current$maxY = n5 + (mc.fontRendererObj.FONT_HEIGHT + 5) - 6 + n2;  // maxY
         final int n10 = (cd == null) ? 255 : (255 - cd.getValueInt(0, 255, 1));
         if (n10 > 0) {
             final int n11 = (n10 > 110) ? 110 : n10;
             final int n12 = (n10 > 210) ? 210 : n10;
             final int[] array = Theme.getGradients((int) theme.getInput());
-            RenderUtils.drawRoundedGradientOutlinedRectangle((float) n6, (float) n7, (float) n8, (float) (n9 + 13), 10.0f, Utils.merge(Color.black.getRGB(), n11), Utils.merge(array[0], n10), Utils.merge(array[1], n10)); // outline
-            final int n13 = n6 + 6;
-            final int n14 = n8 - 6;
-            final int n15 = n9;
+            RenderUtils.drawRoundedGradientOutlinedRectangle((float) current$minX, (float) current$minY, (float) current$maxX, (float) (current$maxY + 13), 10.0f, Utils.merge(Color.black.getRGB(), n11), Utils.merge(array[0], n10), Utils.merge(array[1], n10)); // outline
+            final int n13 = current$minX + 6;
+            final int n14 = current$maxX - 6;
+            final int n15 = current$maxY;
             RenderUtils.drawRoundedRectangle((float) n13, (float) n15, (float) n14, (float) (n15 + 5), 4.0f, Utils.merge(Color.black.getRGB(), n11)); // background
             int k = Utils.merge(array[0], n12);
             int n16 = Utils.merge(array[1], n12);
