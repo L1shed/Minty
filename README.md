@@ -21,9 +21,9 @@ Raven B4, but not only for Hypixel.
 ![Screenshot](https://github.com/xia-mc/Raven-bS/assets/108219418/68b68ce7-2339-4cf3-8d54-622ef34aa3ba)
 
 ### ***More functionality while staying in sync with upstream branches.***
-</div>
 
 <a href="https://discord.gg/zSgDKArSH4"><img src="https://invidget.switchblade.xyz/zSgDKArSH4" alt="https://discord.gg/zSgDKArSH4"/></a><br>
+</div>
 
 ## Additional Modules
 - Hypixel
