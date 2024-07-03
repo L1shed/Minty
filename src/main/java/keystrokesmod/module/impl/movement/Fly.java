@@ -37,6 +37,7 @@ public class Fly extends Module {
     private long balance = 0;
     private long startTime = -1;
     private Timer.BalanceState balanceState = Timer.BalanceState.NONE;
+    private long lastReport = -1;
 
     public Fly() {
         super("Fly", category.movement);
@@ -219,11 +220,17 @@ public class Fly extends Module {
 
         if ((int) mode.getInput() == 5) {
             final long curTime = System.currentTimeMillis();
+
+            if (System.currentTimeMillis() - lastReport > 1000) {
+                lastReport = System.currentTimeMillis();
+                Utils.sendMessage(balance + ".0");
+            }
             switch (balanceState) {
                 case NONE:
                     startTime = curTime;
                     Utils.getTimer().timerSpeed = 0;
                     balanceState = Timer.BalanceState.SLOW;
+                    lastReport = System.currentTimeMillis();
                     break;
                 case SLOW:
                     balance += curTime - startTime;
