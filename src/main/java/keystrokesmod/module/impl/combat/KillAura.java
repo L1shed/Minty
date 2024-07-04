@@ -58,6 +58,7 @@ public class KillAura extends Module {
     private final ButtonSetting disableWhileBlocking;
     private final ButtonSetting disableWhileMining;
     private final ButtonSetting fixSlotReset;
+    private final ButtonSetting fixNoSlowFlag;
     private final ButtonSetting hitThroughBlocks;
     private final ButtonSetting ignoreTeammates;
     public ButtonSetting manualBlock;
@@ -89,6 +90,8 @@ public class KillAura extends Module {
     private float[] rotations = new float[]{0, 0};
     private final ConcurrentLinkedQueue<Packet<?>> blinkedPackets = new ConcurrentLinkedQueue<>();
 
+    private int blockingTime = 0;
+
 
     public KillAura() {
         super("KillAura", category.combat);
@@ -96,8 +99,8 @@ public class KillAura extends Module {
         String[] autoBlockModes = new String[]{"Manual", "Vanilla", "Post", "Swap", "Interact", "Fake", "Partial", "Watchdog 1.12.2"};
         this.registerSetting(autoBlockMode = new ModeSetting("Autoblock", autoBlockModes, 0));
         this.registerSetting(fov = new SliderSetting("FOV", 360.0, 30.0, 360.0, 4.0));
-        this.registerSetting(attackRange = new SliderSetting("Attack range", 3.3, 3.0, 6.0, 0.1));
-        this.registerSetting(swingRange = new SliderSetting("Swing range", 3.3, 3.0, 8.0, 0.1));
+        this.registerSetting(attackRange = new SliderSetting("Attack range", 3.2, 3.0, 6.0, 0.1));
+        this.registerSetting(swingRange = new SliderSetting("Swing range", 3.2, 3.0, 8.0, 0.1));
         this.registerSetting(blockRange = new SliderSetting("Block range", 6.0, 3.0, 12.0, 0.1));
         this.registerSetting(rotationMode = new ModeSetting("Rotation mode", rotationModes, 0));
         final ModeOnly doRotation = new ModeOnly(rotationMode, 1, 2);
@@ -117,6 +120,7 @@ public class KillAura extends Module {
         this.registerSetting(disableWhileBlocking = new ButtonSetting("Disable while blocking", false));
         this.registerSetting(disableWhileMining = new ButtonSetting("Disable while mining", false));
         this.registerSetting(fixSlotReset = new ButtonSetting("Fix slot reset", false));
+        this.registerSetting(fixNoSlowFlag = new ButtonSetting("Fix NoSlow flag", true));
         this.registerSetting(hitThroughBlocks = new ButtonSetting("Hit through blocks", true));
         this.registerSetting(ignoreTeammates = new ButtonSetting("Ignore teammates", true));
         this.registerSetting(manualBlock = new ButtonSetting("Manual block", false));
@@ -137,6 +141,7 @@ public class KillAura extends Module {
 
     public void onDisable() {
         resetVariables();
+        if (Utils.nullCheck()) mc.thePlayer.stopUsingItem();
     }
 
     private float[] getRotations() {
@@ -306,7 +311,6 @@ public class KillAura extends Module {
     @SubscribeEvent(priority = EventPriority.LOW)
     public void onPreMotion(RotationEvent e) {
         if (gameNoAction() || playerNoAction()) {
-            resetVariables();
             return;
         }
         setTarget(new float[]{e.getYaw(), e.getPitch()});
@@ -400,10 +404,6 @@ public class KillAura extends Module {
         target = null;
         availableTargets.clear();
 
-        if (mc.thePlayer.isBlocking() && !Keyboard.isKeyDown(mc.gameSettings.keyBindUseItem.getKeyCode())) {
-            mc.thePlayer.stopUsingItem();
-        }
-
         block.set(false);
         swing = false;
         rmbDown = false;
@@ -413,6 +413,7 @@ public class KillAura extends Module {
         block();
         resetBlinkState(true);
         swapped = false;
+        blockingTime = 0;
     }
 
     private void block() {
@@ -458,6 +459,11 @@ public class KillAura extends Module {
                 blocking = true;
                 break;
         }
+        if (block.get()) {
+            blockingTime++;
+        } else {
+            blockingTime = 0;
+        }
     }
 
     private void setBlockState(boolean state, boolean sendBlock, boolean sendUnBlock) {
@@ -469,9 +475,6 @@ public class KillAura extends Module {
             }
         }
         blocking = Reflection.setBlocking(state);
-        if (!state) {
-            mc.thePlayer.stopUsingItem();
-        }
     }
 
     private void setTarget(float[] rotations) {
@@ -548,7 +551,6 @@ public class KillAura extends Module {
             target = availableTargets.get(entityIndex);
         } else {
             target = null;
-            resetVariables();
         }
     }
 
@@ -566,14 +568,15 @@ public class KillAura extends Module {
     private boolean playerNoAction() {
         if (!Mouse.isButtonDown(0) && requireMouseDown.isToggled()) {
             return true;
-        }
-        else if (!Utils.holdingWeapon() && weaponOnly.isToggled()) {
+        } else if (!Utils.holdingWeapon() && weaponOnly.isToggled()) {
             return true;
-        }
-        else if (isMining() && disableWhileMining.isToggled()) {
+        } else if (isMining() && disableWhileMining.isToggled()) {
             return true;
+        } else if (fixNoSlowFlag.isToggled() && blockingTime > 10) {
+            unBlock();
+            blockingTime = 0;
         }
-        else return mc.currentScreen != null && disableInInventory.isToggled();
+        return mc.currentScreen != null && disableInInventory.isToggled();
     }
 
     private boolean isMining() {
@@ -629,7 +632,7 @@ public class KillAura extends Module {
             return;
         }
         mc.thePlayer.sendQueue.addToSendQueue(new C07PacketPlayerDigging(C07PacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, DOWN));
-        mc.thePlayer.stopUsingItem();
+        blockingTime = 0;
     }
 
     public void resetBlinkState(boolean unblock) {

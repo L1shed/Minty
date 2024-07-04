@@ -3,6 +3,7 @@ package keystrokesmod;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
+import keystrokesmod.florianmichael.viamcp.ViaMCP;
 import keystrokesmod.keystroke.KeySrokeRenderer;
 import keystrokesmod.keystroke.KeyStrokeConfigGui;
 import keystrokesmod.keystroke.keystrokeCommand;
@@ -73,6 +74,17 @@ public class Raven {
         scriptManager.loadScripts();
         FMLCommonHandler.instance().bus().register(ModuleManager.tower);
         FMLCommonHandler.instance().bus().register(ModuleManager.rotationHandler);
+
+        try {
+            ViaMCP.create();
+
+            // In case you want a version slider like in the Minecraft options, you can use this code here, please choose one of those:
+
+            ViaMCP.INSTANCE.initAsyncSlider(); // For top left aligned slider
+            ViaMCP.INSTANCE.initAsyncSlider(10, 10, 110, 20); // For custom position and size slider
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
     }
 
     @SubscribeEvent

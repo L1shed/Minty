@@ -3,6 +3,7 @@ package keystrokesmod.utility;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.mojang.realmsclient.gui.ChatFormatting;
+import keystrokesmod.florianmichael.viamcp.fixes.AttackOrder;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.client.NyaProxy;
@@ -80,7 +81,7 @@ public class Utils {
 
     public static List<NetworkPlayerInfo> getTablist() {
         final ArrayList<NetworkPlayerInfo> list = new ArrayList<>(mc.getNetHandler().getPlayerInfoMap());
-        removeDuplicates((ArrayList) list);
+        removeDuplicates(list);
         list.remove(mc.getNetHandler().getPlayerInfo(mc.thePlayer.getUniqueID()));
         return list;
     }

@@ -42,7 +42,7 @@ public final class RotationHandler extends Module {
     public static float getMovementYaw() {
         if (movementYaw != null)
             return movementYaw;
-        return getRotationYaw();
+        return mc.thePlayer.rotationYaw;
     }
 
     public static float getRotationYaw() {
@@ -92,7 +92,7 @@ public final class RotationHandler extends Module {
                 movementYaw = null;
                 break;
             case 1:
-                movementYaw = mc.thePlayer.rotationYaw;
+                movementYaw = null;
 
                 final float forward = event.getForward();
                 final float strafe = event.getStrafe();

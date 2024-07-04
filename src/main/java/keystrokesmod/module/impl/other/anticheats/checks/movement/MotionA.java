@@ -138,6 +138,6 @@ public class MotionA extends Check {
 
     @Override
     public boolean isDisabled() {
-        return !Anticheat.getMovementCheck().isToggled();
+        return true;
     }
 }

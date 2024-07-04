@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(NetworkManager.class)
+@Mixin(value = NetworkManager.class, priority = 1001)
 public abstract class MixinNetworkManager {
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     @Shadow public abstract boolean isChannelOpen();
@@ -35,16 +35,19 @@ public abstract class MixinNetworkManager {
 
     @Inject(method = "channelRead0(Lio/netty/channel/ChannelHandlerContext;Lnet/minecraft/network/Packet;)V", at = @At("HEAD"), cancellable = true)
     public void receivePacket(ChannelHandlerContext p_channelRead0_1_, Packet<?> p_channelRead0_2_, CallbackInfo ci) {
-        if (Raven.mc.thePlayer == null || Raven.mc.theWorld == null || !this.isChannelOpen()) return;
-        if (PacketUtils.skipReceiveEvent.contains(p_channelRead0_2_)) {
-            PacketUtils.skipReceiveEvent.remove(p_channelRead0_2_);
-            return;
-        }
-        ReceivePacketEvent receivePacketEvent = new ReceivePacketEvent(p_channelRead0_2_);
-        net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(receivePacketEvent);
+        try {
+            if (Raven.mc.thePlayer == null || Raven.mc.theWorld == null || !this.isChannelOpen()) return;
+            if (PacketUtils.skipReceiveEvent.contains(p_channelRead0_2_)) {
+                PacketUtils.skipReceiveEvent.remove(p_channelRead0_2_);
+                return;
+            }
+            ReceivePacketEvent receivePacketEvent = new ReceivePacketEvent(p_channelRead0_2_);
+            net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(receivePacketEvent);
 
-        if (receivePacketEvent.isCanceled()) {
-            ci.cancel();
+            if (receivePacketEvent.isCanceled()) {
+                ci.cancel();
+            }
+        } catch (Exception ignored) {
         }
     }
 }

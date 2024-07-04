@@ -73,6 +73,16 @@ dependencies {
         exclude module: 'slf4j-api'
     }
     implementation 'org.jetbrains:annotations:24.1.0'
+    implementation files('libraries/snakeyaml-2.1.jar')
+    implementation files('libraries/ViaRewind-3.1.2.jar')
+    implementation files('libraries/ViaBackwards-4.10.2.jar')
+    implementation files('libraries/ViaVersion-4.10.2.jar')
+
+//    // Ensure these dependencies are also embedded
+//    embed files('libraries/snakeyaml-2.1.jar')
+//    embed files('libraries/ViaRewind-3.1.2.jar')
+//    embed files('libraries/ViaBackwards-4.10.2.jar')
+//    embed files('libraries/ViaVersion-4.10.2.jar')
 }
 
 processResources {
@@ -110,5 +120,11 @@ jar {
                 'FMLCorePluginContainsFMLMod': true,
                 "ModSide": "CLIENT"
         )
+    }
+}
+
+reobf {
+    jar {
+        mappingType = "searge"
     }
 }
