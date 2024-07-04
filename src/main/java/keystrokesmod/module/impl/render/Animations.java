@@ -15,7 +15,6 @@ import net.minecraft.item.EnumAction;
 import net.minecraft.item.ItemMap;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.MathHelper;
-import net.minecraft.util.MovingObjectPosition;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -157,9 +156,12 @@ public class Animations extends Module {
             swing = Math.max(0, swing - 1);
         }
 
-        if (blockAndSwing.isToggled() && mc.objectMouseOver.typeOfHit == BLOCK
-                && mc.gameSettings.keyBindAttack.isKeyDown()) {
-            mc.thePlayer.swingItem();
+        try {
+            if (blockAndSwing.isToggled() && mc.objectMouseOver.typeOfHit == BLOCK
+                    && mc.gameSettings.keyBindAttack.isKeyDown()) {
+                mc.thePlayer.swingItem();
+            }
+        } catch (Exception ignore) {
         }
     }
 
