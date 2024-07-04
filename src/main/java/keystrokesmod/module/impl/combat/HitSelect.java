@@ -29,7 +29,7 @@ public class HitSelect extends Module {
         super("HitSelect", category.combat);
         this.registerSetting(new DescriptionSetting("chooses the best time to hit."));
         this.registerSetting(mode = new ModeSetting("Mode", MODES, 0));
-        this.registerSetting(delay = new SliderSetting("Delay", 420, 400, 500, 1));
+        this.registerSetting(delay = new SliderSetting("Delay", 420, 300, 500, 1));
         this.registerSetting(chance = new SliderSetting("Chance", 80, 0, 100, 1));
         this.registerSetting(smart = new ButtonSetting("Smart", true));
     }
