@@ -18,7 +18,7 @@ Raven B4, but for those who can't afford it.
 
 Raven B4, but not only for Hypixel.
 
-![Screenshot](https://github.com/xia-mc/Raven-bS/assets/108219418/68b68ce7-2339-4cf3-8d54-622ef34aa3ba)
+![2024-07-05_17 26 21](https://github.com/xia-mc/Raven-bS/assets/108219418/82644c77-0ed1-4f27-babc-d6129f020765)
 
 ### ***More functionality while staying in sync with upstream branches.***
 
@@ -35,6 +35,8 @@ Raven B4, but not only for Hypixel.
     - NoSlow
     - AntiVoid
     - Tower
+- Intave/Polar
+    - NoSlow
 - Undetectable
     - AimAssist
     - AutoClicker
