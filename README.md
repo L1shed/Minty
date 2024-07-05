@@ -35,6 +35,8 @@ Raven B4, but not only for Hypixel.
     - NoSlow
     - AntiVoid
     - Tower
+- Intave/Polar
+    - NoSlow
 - Undetectable
     - AimAssist
     - AutoClicker
