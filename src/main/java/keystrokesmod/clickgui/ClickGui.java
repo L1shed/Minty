@@ -21,6 +21,7 @@ import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraftforge.fml.client.config.GuiButtonExt;
 import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
@@ -143,6 +144,31 @@ public class ClickGui extends GuiScreen {
         }
 
     }
+
+    @Override
+    public void handleMouseInput() throws IOException {
+        super.handleMouseInput();
+        int dWheel = Mouse.getDWheel();
+        if (dWheel != 0) {
+            this.mouseScrolled(dWheel);
+        }
+    }
+
+    public void mouseScrolled(int dWheel) {
+        if (dWheel > 0) {
+            // up
+            for (CategoryComponent category : categories.values()) {
+                category.y(category.getY() + 20);
+            }
+        } else if (dWheel < 0) {
+            // down
+            for (CategoryComponent category : categories.values()) {
+                category.y(category.getY() - 20);
+            }
+        }
+    }
+
+
 
     public void mouseClicked(int x, int y, int m) throws IOException {
         Iterator<CategoryComponent> var4 = clickHistory.stream()
