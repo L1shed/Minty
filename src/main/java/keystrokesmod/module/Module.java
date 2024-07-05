@@ -202,10 +202,10 @@ public void registerSetting(Setting @NotNull ... setting) {
     public void toggle() {
         if (this.isEnabled()) {
             this.disable();
-            if (Settings.toggleSound.isToggled()) mc.thePlayer.playSound("keystrokesmod:toggle.disable", 1, 1);
+            if (Settings.toggleSound.getInput() != 0) mc.thePlayer.playSound(Settings.getToggleSound(false), 1, 1);
         } else {
             this.enable();
-            if (Settings.toggleSound.isToggled()) mc.thePlayer.playSound("keystrokesmod:toggle.enable", 1, 1);
+            if (Settings.toggleSound.getInput() != 0) mc.thePlayer.playSound(Settings.getToggleSound(true), 1, 1);
         }
 
     }

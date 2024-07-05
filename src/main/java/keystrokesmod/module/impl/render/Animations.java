@@ -39,124 +39,127 @@ public class Animations extends Module {
 
     @SubscribeEvent
     public void onRenderItem(@NotNull RenderItemEvent event) {
-        if (event.getItemToRender().getItem() instanceof ItemMap) {
-            return;
-        }
+        try {
+            if (event.getItemToRender().getItem() instanceof ItemMap) {
+                return;
+            }
 
-        final EnumAction itemAction = event.getEnumAction();
-        final ItemRendererAccessor itemRenderer = (ItemRendererAccessor) mc.getItemRenderer();
-        final float animationProgression = event.getAnimationProgression();
-        float swingProgress = event.getSwingProgress();
-        final float convertedProgress = MathHelper.sin(MathHelper.sqrt_float(swingProgress) * (float) Math.PI);
+            final EnumAction itemAction = event.getEnumAction();
+            final ItemRendererAccessor itemRenderer = (ItemRendererAccessor) mc.getItemRenderer();
+            final float animationProgression = event.getAnimationProgression();
+            float swingProgress = event.getSwingProgress();
+            final float convertedProgress = MathHelper.sin(MathHelper.sqrt_float(swingProgress) * (float) Math.PI);
 
-        GlStateManager.translate(x.getInput(), y.getInput(), z.getInput());
+            GlStateManager.translate(x.getInput(), y.getInput(), z.getInput());
 
-        if (event.isUseItem()) {
-            switch (itemAction) {
-                case NONE:
-                    switch ((int) otherAnimation.getInput()) {
-                        case 0:
-                            itemRenderer.transformFirstPersonItem(animationProgression, 0.0F);
-                            break;
-                        case 1:
-                            itemRenderer.transformFirstPersonItem(animationProgression, swingProgress);
-                            break;
-                    }
-                    break;
-                case BLOCK:
-                    switch ((int) blockAnimation.getInput()) {
-                        case 0:
-                            itemRenderer.transformFirstPersonItem(animationProgression, 0.0F);
-                            itemRenderer.blockTransformation();
-                            break;
-
-                        case 1:
-                            itemRenderer.transformFirstPersonItem(animationProgression, swingProgress);
-                            itemRenderer.blockTransformation();
-                            break;
-
-                        case 2:
-                            itemRenderer.transformFirstPersonItem(animationProgression, 0.0F);
-                            final float y = -convertedProgress * 2.0F;
-                            GlStateManager.translate(0.0F, y / 10.0F + 0.1F, 0.0F);
-                            GlStateManager.rotate(y * 10.0F, 0.0F, 1.0F, 0.0F);
-                            GlStateManager.rotate(250, 0.2F, 1.0F, -0.6F);
-                            GlStateManager.rotate(-10.0F, 1.0F, 0.5F, 1.0F);
-                            GlStateManager.rotate(-y * 20.0F, 1.0F, 0.5F, 1.0F);
-                            break;
-
-                        case 3: {
-                            itemRenderer.transformFirstPersonItem(animationProgression / 2.0F, 0.0F);
-                            GlStateManager.translate(0.0F, 0.3F, -0.0F);
-                            GlStateManager.rotate(-convertedProgress * 31.0F, 1.0F, 0.0F, 2.0F);
-                            GlStateManager.rotate(-convertedProgress * 33.0F, 1.5F, (convertedProgress / 1.1F), 0.0F);
-                            itemRenderer.blockTransformation();
-                            break;
+            if (event.isUseItem()) {
+                switch (itemAction) {
+                    case NONE:
+                        switch ((int) otherAnimation.getInput()) {
+                            case 0:
+                                itemRenderer.transformFirstPersonItem(animationProgression, 0.0F);
+                                break;
+                            case 1:
+                                itemRenderer.transformFirstPersonItem(animationProgression, swingProgress);
+                                break;
                         }
-                    }
-                    break;
-                case EAT:
-                case DRINK:
-                    switch ((int) otherAnimation.getInput()) {
-                        case 0:
-                            func_178104_a(mc.thePlayer.getHeldItem(), mc.thePlayer, event.getPartialTicks());
-                            itemRenderer.transformFirstPersonItem(animationProgression, 0.0F);
-                            break;
-                        case 1:
-                            func_178104_a(mc.thePlayer.getHeldItem(), mc.thePlayer, event.getPartialTicks());
-                            itemRenderer.transformFirstPersonItem(animationProgression, swingProgress);
-                            break;
-                    }
-                    break;
-                case BOW:
-                    switch ((int) otherAnimation.getInput()) {
-                        case 0:
-                            itemRenderer.transformFirstPersonItem(animationProgression, 0.0F);
-                            func_178098_a(mc.thePlayer.getHeldItem(), event.getPartialTicks(), mc.thePlayer);
-                            break;
-                        case 1:
-                            itemRenderer.transformFirstPersonItem(animationProgression, swingProgress);
-                            func_178098_a(mc.thePlayer.getHeldItem(), event.getPartialTicks(), mc.thePlayer);
-                            break;
-                    }
-                    break;
+                        break;
+                    case BLOCK:
+                        switch ((int) blockAnimation.getInput()) {
+                            case 0:
+                                itemRenderer.transformFirstPersonItem(animationProgression, 0.0F);
+                                itemRenderer.blockTransformation();
+                                break;
+
+                            case 1:
+                                itemRenderer.transformFirstPersonItem(animationProgression, swingProgress);
+                                itemRenderer.blockTransformation();
+                                break;
+
+                            case 2:
+                                itemRenderer.transformFirstPersonItem(animationProgression, 0.0F);
+                                final float y = -convertedProgress * 2.0F;
+                                GlStateManager.translate(0.0F, y / 10.0F + 0.1F, 0.0F);
+                                GlStateManager.rotate(y * 10.0F, 0.0F, 1.0F, 0.0F);
+                                GlStateManager.rotate(250, 0.2F, 1.0F, -0.6F);
+                                GlStateManager.rotate(-10.0F, 1.0F, 0.5F, 1.0F);
+                                GlStateManager.rotate(-y * 20.0F, 1.0F, 0.5F, 1.0F);
+                                break;
+
+                            case 3: {
+                                itemRenderer.transformFirstPersonItem(animationProgression / 2.0F, 0.0F);
+                                GlStateManager.translate(0.0F, 0.3F, -0.0F);
+                                GlStateManager.rotate(-convertedProgress * 31.0F, 1.0F, 0.0F, 2.0F);
+                                GlStateManager.rotate(-convertedProgress * 33.0F, 1.5F, (convertedProgress / 1.1F), 0.0F);
+                                itemRenderer.blockTransformation();
+                                break;
+                            }
+                        }
+                        break;
+                    case EAT:
+                    case DRINK:
+                        switch ((int) otherAnimation.getInput()) {
+                            case 0:
+                                func_178104_a(mc.thePlayer.getHeldItem(), mc.thePlayer, event.getPartialTicks());
+                                itemRenderer.transformFirstPersonItem(animationProgression, 0.0F);
+                                break;
+                            case 1:
+                                func_178104_a(mc.thePlayer.getHeldItem(), mc.thePlayer, event.getPartialTicks());
+                                itemRenderer.transformFirstPersonItem(animationProgression, swingProgress);
+                                break;
+                        }
+                        break;
+                    case BOW:
+                        switch ((int) otherAnimation.getInput()) {
+                            case 0:
+                                itemRenderer.transformFirstPersonItem(animationProgression, 0.0F);
+                                func_178098_a(mc.thePlayer.getHeldItem(), event.getPartialTicks(), mc.thePlayer);
+                                break;
+                            case 1:
+                                itemRenderer.transformFirstPersonItem(animationProgression, swingProgress);
+                                func_178098_a(mc.thePlayer.getHeldItem(), event.getPartialTicks(), mc.thePlayer);
+                                break;
+                        }
+                        break;
+                }
+
+                event.setCanceled(true);
+
+            } else {
+                switch ((int) swingAnimation.getInput()) {
+                    case 0:
+                        func_178105_d(swingProgress);
+                        itemRenderer.transformFirstPersonItem(animationProgression, swingProgress);
+                        break;
+
+                    case 1:
+                        func_178105_d(swingProgress);
+                        itemRenderer.transformFirstPersonItem(animationProgression, swingProgress);
+                        GlStateManager.translate(0, -((swing - 1) -
+                                (swing == 0 ? 0 : Utils.getTimer().renderPartialTicks)) / 5f, 0);
+                        break;
+
+                    case 2:
+                        itemRenderer.transformFirstPersonItem(animationProgression, swingProgress);
+                        func_178105_d(animationProgression);
+                        break;
+                }
+
+                event.setCanceled(true);
             }
-
-            event.setCanceled(true);
-
-        } else {
-            switch ((int) swingAnimation.getInput()) {
-                case 0:
-                    func_178105_d(swingProgress);
-                    itemRenderer.transformFirstPersonItem(animationProgression, swingProgress);
-                    break;
-
-                case 1:
-                    func_178105_d(swingProgress);
-                    itemRenderer.transformFirstPersonItem(animationProgression, swingProgress);
-                    GlStateManager.translate(0, -((swing - 1) -
-                            (swing == 0 ? 0 : Utils.getTimer().renderPartialTicks)) / 5f, 0);
-                    break;
-
-                case 2:
-                    itemRenderer.transformFirstPersonItem(animationProgression, swingProgress);
-                    func_178105_d(animationProgression);
-                    break;
-            }
-
-            event.setCanceled(true);
+        } catch (Exception ignored) {
         }
     }
 
     @SubscribeEvent
     public void onPreMotion(PreMotionEvent event) {
-        if (mc.thePlayer.swingProgressInt == 1) {
-            swing = 9;
-        } else {
-            swing = Math.max(0, swing - 1);
-        }
-
         try {
+            if (mc.thePlayer.swingProgressInt == 1) {
+                swing = 9;
+            } else {
+                swing = Math.max(0, swing - 1);
+            }
+
             if (blockAndSwing.isToggled() && mc.objectMouseOver.typeOfHit == BLOCK
                     && mc.gameSettings.keyBindAttack.isKeyDown()) {
                 mc.thePlayer.swingItem();

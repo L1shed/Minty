@@ -30,7 +30,7 @@ public class Speed extends Module {
     private final ButtonSetting sneakDisable;
     private final ButtonSetting stopMotion;
     private final ButtonSetting stopSprint;
-    private final String[] modes = new String[]{"Strafe (Deprecated)", "Ground", "Damage", "OldHypixel", "LowHopTest", "Strafe B", "BlocksMC"};
+    private final String[] modes = new String[]{"Ground", "BlocksMC"};
     private int offGroundTicks = 0;
     public static int ticksSinceVelocity = Integer.MAX_VALUE;
 
@@ -96,30 +96,6 @@ public class Speed extends Module {
             case 0:
                 if (!Utils.jumpDown() && Utils.isMoving() && mc.currentScreen == null) {
                     mc.thePlayer.setSprinting(true);
-                    switch (offGroundTicks) {
-                        case 0:
-                            groundYPos = (int) Math.floor(mc.thePlayer.posY) - 1;
-                            MoveUtil.strafe(0.415);
-                            mc.thePlayer.motionY = 0.42;
-                            break;
-                        case 10:
-                            if (isYAxisChange()) break;
-
-                            MoveUtil.strafe(0.315);
-                            mc.thePlayer.motionY = -0.28;
-                            break;
-                        case 11:
-                            MoveUtil.strafe();
-                            break;
-                        case 12:
-                            MoveUtil.stop();
-                            break;
-                    }
-                }
-                break;
-            case 1:
-                if (!Utils.jumpDown() && Utils.isMoving() && mc.currentScreen == null) {
-                    mc.thePlayer.setSprinting(true);
                     if (mc.thePlayer.onGround) {
                         MoveUtil.strafe(MoveUtil.getAllowedHorizontalDistance() - Math.random() / 100f);
                         mc.thePlayer.jump();
@@ -146,139 +122,6 @@ public class Speed extends Module {
                     }
                 }
                 break;
-            case 2:
-                if (!Utils.jumpDown() && Utils.isMoving() && mc.currentScreen == null) {
-                    mc.thePlayer.setSprinting(true);
-                    if (mc.thePlayer.onGround) {
-                        mc.thePlayer.jump();
-                        if (!strafe) {
-                            MoveUtil.strafe(0.42);
-//                        Utils.setSpeed(0.42);
-                        }
-                    }
-                }
-
-                if (mc.thePlayer.hurtTime == 9 && !mc.thePlayer.onGround && !cooldown && Utils.isMoving() && mc.currentScreen == null) {
-                    strafe = true;
-                    MoveUtil.strafe(MoveUtil.speed() * 1.2);
-//                    Utils.setSpeed(Utils.getHorizontalSpeed() * 1.2);
-                    cooldown = true;
-                } else {
-                    strafe = false;
-                }
-
-                if (cooldown) {
-                    cooldownTicks++;
-                }
-                if (cooldownTicks == 11) {
-                    cooldown = false;
-//                    Utils.sendModuleMessage(this, "&aCooldown expired!");
-                    cooldownTicks = 0;
-                }
-
-                if (Utils.isMoving() && !mc.thePlayer.onGround && !strafe) {
-                    if (offGroundTicks == 11) {
-                        MoveUtil.strafe(MoveUtil.speed() * 1.2);
-//                        Utils.setSpeed(Utils.getHorizontalSpeed() * 1.2);
-                    }
-                }
-                break;
-            case 3:
-                if (Utils.jumpDown() || !Utils.isMoving() || mc.currentScreen != null) break;
-                if (!(NoFall.blockRelativeToPlayer(-1) instanceof BlockAir) || !(NoFall.blockRelativeToPlayer(-1.1) instanceof BlockAir)) {
-                    angle = MoveUtil.simulationStrafeAngle(angle, ticksSinceVelocity < 40 ? 39.9f : 19.9f);
-                }
-
-                if (ticksSinceVelocity <= 20 || mc.thePlayer.onGround) {
-                    angle = MoveUtil.simulationStrafeAngle(angle, 360);
-                }
-
-                mc.thePlayer.sendQueue.addToSendQueue(new C07PacketPlayerDigging(C07PacketPlayerDigging.Action.STOP_DESTROY_BLOCK, new BlockPos(mc.thePlayer), EnumFacing.UP));
-
-                if (ticksSinceVelocity > 20) {
-                    switch (offGroundTicks) {
-                        case 1:
-                            mc.thePlayer.motionY -= 0.005;
-                            break;
-
-                        case 2:
-                        case 3:
-                            mc.thePlayer.motionY -= 0.001;
-                            break;
-                    }
-                }
-
-                if (mc.thePlayer.onGround) {
-                    MoveUtil.strafe(MoveUtil.getAllowedHorizontalDistance() - Math.random() / 1000);
-                    mc.thePlayer.jump();
-
-                    double angle = Math.atan(mc.thePlayer.motionX / mc.thePlayer.motionZ) * (180 / Math.PI);
-
-                    if (Math.abs(lastAngle - angle) > 20 && ticksSinceVelocity > 20) {
-                        int speed = mc.thePlayer.isPotionActive(Potion.moveSpeed) ? mc.thePlayer.getActivePotionEffect(Potion.moveSpeed).getAmplifier() + 1 : 0;
-
-                        switch (speed) {
-                            case 0:
-                                MoveUtil.moveFlying(-0.005);
-                                break;
-
-                            case 1:
-                                MoveUtil.moveFlying(-0.035);
-                                break;
-
-                            default:
-                                MoveUtil.moveFlying(-0.04);
-                                break;
-                        }
-                    }
-                }
-                break;
-            case 4:
-                if (!Utils.jumpDown() && Utils.isMoving() && mc.currentScreen == null) {
-                    mc.thePlayer.setSprinting(true);
-                    switch (offGroundTicks) {
-                        case 0:
-                            groundYPos = (int) Math.floor(mc.thePlayer.posY) - 1;
-                            MoveUtil.strafe(0.415);
-                            mc.thePlayer.motionY = 0.42;
-                            Utils.resetTimer();
-                            break;
-                        case 9:
-                            if (isYAxisChange()) break;
-
-                            mc.thePlayer.motionY = -0.3;
-                            Utils.getTimer().timerSpeed = 1.6f;
-                            break;
-                        case 11:
-                            Utils.resetTimer();
-                            break;
-                    }
-                }
-                break;
-            case 5:
-                if (!Utils.jumpDown() && Utils.isMoving() && mc.currentScreen == null && mc.thePlayer.hurtTime == 0) {
-                    mc.thePlayer.setSprinting(true);
-                    switch (offGroundTicks) {
-                        case 0:
-                            groundYPos = (int) Math.floor(mc.thePlayer.posY) - 1;
-                            MoveUtil.strafe(0.45);
-                            mc.thePlayer.motionY = 0.42;
-                            Utils.resetTimer();
-                            break;
-                        case 9:
-                            MoveUtil.strafe(0.315);
-                            mc.thePlayer.motionY = -0.28;
-                            Utils.getTimer().timerSpeed = 1.8f;
-                            break;
-                        case 10:
-                            MoveUtil.strafe();
-                            Utils.resetTimer();
-                            break;
-                        case 11:
-                            MoveUtil.stop();
-                    }
-                }
-                break;
         }
     }
 
@@ -293,7 +136,7 @@ public class Speed extends Module {
     public void onPlayerInput(PrePlayerInput event) {
         if (noAction()) return;
 
-        if ((int) mode.getInput() == 6) {
+        if ((int) mode.getInput() == 1) {
             final double base = MoveUtil.getAllowedHorizontalDistance();
 
             if (!Utils.jumpDown() && Utils.isMoving() && mc.currentScreen == null) {

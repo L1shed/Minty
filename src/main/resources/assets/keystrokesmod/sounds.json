@@ -1,14 +1,26 @@
 {
-  "toggle.enable":{
+  "toggle.rise.enable":{
     "category": "player",
     "sounds": [
-      "keystrokesmod:toggle/enable"
+      "keystrokesmod:toggle/rise/enable"
     ]
   },
-  "toggle.disable":{
+  "toggle.rise.disable":{
     "category": "player",
     "sounds": [
-      "keystrokesmod:toggle/disable"
+      "keystrokesmod:toggle/rise/disable"
+    ]
+  },
+  "toggle.augustus.enable":{
+    "category": "player",
+    "sounds": [
+      "keystrokesmod:toggle/augustus/enable"
+    ]
+  },
+  "toggle.augustus.disable":{
+    "category": "player",
+    "sounds": [
+      "keystrokesmod:toggle/augustus/disable"
     ]
   }
 }

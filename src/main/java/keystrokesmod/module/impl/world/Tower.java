@@ -39,7 +39,6 @@ public class Tower extends Module {
     private final ButtonSetting disableWhileHurt;
     private final ButtonSetting sprintJumpForward;
     private final ButtonSetting hypixelNoStrafe;
-    private final ButtonSetting hypixelLowHop;
     private final SliderSetting hypixelOffGroundSpeed;
     private final SliderSetting doubleBlockDelay;
     private final ButtonSetting doubleBlock;
@@ -60,9 +59,8 @@ public class Tower extends Module {
         this.registerSetting(slowedTicks = new SliderSetting("Slowed ticks", 1, 0, 20, 1, mode0));
         this.registerSetting(hypixelOffGroundSpeed = new SliderSetting("Hypixel off ground speed", 0.5, 0.0, 1.0, 0.01, mode1));
         this.registerSetting(hypixelNoStrafe = new ButtonSetting("Hypixel no strafe", false, mode1));
-        this.registerSetting(hypixelLowHop = new ButtonSetting("Hypixel low hop", false, mode1));
-        this.registerSetting(doubleBlock = new ButtonSetting("Double block", false, mode1));
-        this.registerSetting(doubleBlockDelay = new SliderSetting("Double block delay", 100, 0, 2500, 10, "ms", () -> doubleBlock.isToggled() && mode1.get()));
+        this.registerSetting(doubleBlock = new ButtonSetting("Double block", false));
+        this.registerSetting(doubleBlockDelay = new SliderSetting("Double block delay", 100, 0, 2500, 10, "ms"));
         this.registerSetting(disableWhileCollided = new ButtonSetting("Disable while collided", false));
         this.registerSetting(disableWhileHurt = new ButtonSetting("Disable while hurt", false));
         this.registerSetting(sprintJumpForward = new ButtonSetting("Sprint jump forward", true));
@@ -80,6 +78,28 @@ public class Tower extends Module {
     public void onPreMotion(PreMotionEvent e) throws IllegalAccessException {
         if (canTower()) {
             wasTowering = true;
+
+            final boolean didDoubleBlock = doubleBlock.isToggled() && mc.thePlayer.motionX == 0 && mc.thePlayer.motionZ == 0;
+            if (didDoubleBlock) {
+                if (scaffold.placeBlock != null) {
+                    BlockPos groundBlock = scaffold.placeBlock.getBlockPos().add(1, -1, 0);
+                    if (BlockUtils.isFullBlock(mc.theWorld.getBlockState(groundBlock))) {
+                        toweredBlock = groundBlock.up();
+                    } else {
+                        toweredBlock = null;
+                    }
+                    if (toweredBlock != null) {
+                        BlockIn.getPlaceSide(toweredBlock).ifPresent(placeSide ->
+                                Raven.getExecutor().schedule(() ->
+                                                scaffold.place(
+                                                        new MovingObjectPosition(placeSide.getRight().toVec3(), placeSide.getMiddle(), placeSide.getLeft())
+                                                        , true)
+                                        , (long) doubleBlockDelay.getInput(), TimeUnit.MILLISECONDS)
+                        );
+                    }
+                }
+            }
+
             switch ((int) mode.getInput()) {
                 case 0:
                     Utils.setSpeed(Math.max((diagonal() ? diagonalSpeed.getInput() : speed.getInput()) * 0.1 - 0.25, 0));
@@ -89,25 +109,7 @@ public class Tower extends Module {
                     Reflection.jumpTicks.set(mc.thePlayer, 0);
                     e.setSprinting(false);
 
-                    if (doubleBlock.isToggled() && mc.thePlayer.motionX == 0 && mc.thePlayer.motionZ == 0) {
-                        if (scaffold.placeBlock != null) {
-                            BlockPos groundBlock = scaffold.placeBlock.getBlockPos().add(1, -1, 0);
-                            if (BlockUtils.isFullBlock(mc.theWorld.getBlockState(groundBlock))) {
-                                toweredBlock = groundBlock.up();
-                            } else {
-                                toweredBlock = null;
-                            }
-                            if (toweredBlock != null) {
-                                BlockIn.getPlaceSide(toweredBlock).ifPresent(placeSide ->
-                                        Raven.getExecutor().schedule(() ->
-                                                scaffold.place(
-                                                        new MovingObjectPosition(placeSide.getRight().toVec3(), placeSide.getMiddle(), placeSide.getLeft())
-                                                        , true)
-                                                , (long) doubleBlockDelay.getInput(), TimeUnit.MILLISECONDS)
-                                );
-                            }
-                        }
-                    } else {
+                    if (!didDoubleBlock) {
                         toweredBlock = null;
                         double moveSpeed = e.isOnGround() ? speed.getInput() : hypixelOffGroundSpeed.getInput();
                         if (hypixelNoStrafe.isToggled()) {
@@ -153,7 +155,7 @@ public class Tower extends Module {
 
     @SubscribeEvent
     public void onSendPacket(SendPacketEvent event) {
-        if ((int) mode.getInput() == 2) {
+        if (canTower() && (int) mode.getInput() == 2) {
             if (mc.thePlayer.motionY > -0.0784000015258789 && event.getPacket() instanceof C08PacketPlayerBlockPlacement) {
                 final C08PacketPlayerBlockPlacement wrapper = ((C08PacketPlayerBlockPlacement) event.getPacket());
 
@@ -170,27 +172,6 @@ public class Tower extends Module {
             offGroundTicks = 0;
         } else {
             offGroundTicks++;
-        }
-
-        if (canTower() && hypixelLowHop.isToggled() && Utils.isMoving()) {
-            switch (offGroundTicks) {
-                case 0:
-                    mc.thePlayer.motionY = 0.4196;
-                    break;
-                case 3:
-                case 4:
-                    mc.thePlayer.motionY = 0;
-                    break;
-                case 5:
-                    mc.thePlayer.motionY = 0.4191;
-                    break;
-                case 6:
-                    mc.thePlayer.motionY = 0.3275;
-                    break;
-                case 11:
-                    mc.thePlayer.motionY = -0.5;
-                    break;
-            }
         }
     }
 

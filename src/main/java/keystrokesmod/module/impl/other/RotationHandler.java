@@ -10,6 +10,7 @@ import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.module.setting.utils.ModeOnly;
 import keystrokesmod.utility.AimSimulator;
 import keystrokesmod.utility.MoveUtil;
+import net.minecraft.entity.Entity;
 import net.minecraft.util.MathHelper;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
@@ -39,10 +40,10 @@ public final class RotationHandler extends Module {
         this.canBeEnabled = false;
     }
 
-    public static float getMovementYaw() {
+    public static float getMovementYaw(Entity entity) {
         if (movementYaw != null)
             return movementYaw;
-        return mc.thePlayer.rotationYaw;
+        return entity.rotationYaw;
     }
 
     public static float getRotationYaw() {

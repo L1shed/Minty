@@ -1,5 +1,6 @@
 package keystrokesmod.utility;
 
+import com.mojang.realmsclient.gui.ChatFormatting;
 import keystrokesmod.Raven;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
@@ -19,12 +20,14 @@ import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiChat;
 import net.minecraft.network.play.client.C01PacketChatMessage;
 import org.jetbrains.annotations.NotNull;
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 public class Commands {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -302,6 +305,52 @@ public class Commands {
                 HUD.bName = args.get(1);
 
                 print("&aSet BName to " + HUD.bName, 1);
+            } else if (args.get(0).equals("binds")) {
+                StringBuilder result = new StringBuilder(ChatFormatting.BOLD + "Binds:" + ChatFormatting.RESET + '\n');
+
+                for (Module module : Raven.getModuleManager().getModules()) {
+                    if (module.getKeycode() != 0) {
+                        if (result.length() > 0)
+                            result.append('\n');
+                        result.append(ChatFormatting.AQUA)
+                                .append(module.getName())
+                                .append(": ")
+                                .append(Keyboard.getKeyName(module.getKeycode()));
+                    }
+                }
+
+                print(result.toString(), 1);
+            } else if (args.get(0).equals("bind")) {
+                if (!hasArgs) {
+                    print(invSyn, 1);
+                    return;
+                }
+
+                if (args.size() != 3) {
+                    print(invSyn, 1);
+                    return;
+                }
+
+                Module targetModule = null;
+                for (Module module : Raven.getModuleManager().getModules()) {
+                    if (Objects.equals(module.getPrettyName(), args.get(1))) {
+                        targetModule = module;
+                        break;
+                    }
+                }
+                if (targetModule == null) {
+                    print(ChatFormatting.RED + "Module '" + ChatFormatting.RESET + args.get(1) + ChatFormatting.RED + "' is not found.", 1);
+                    return;
+                }
+
+                int keyCode = Keyboard.getKeyIndex(args.get(2));
+                if (keyCode == Keyboard.KEY_NONE) {
+                    print(ChatFormatting.RED + "Key '" + ChatFormatting.RESET + args.get(2) + ChatFormatting.RED + "' is invalid.", 1);
+                    return;
+                }
+
+                targetModule.setBind(keyCode);
+                print(ChatFormatting.GREEN + "Bind '" + ChatFormatting.RESET + args.get(2) + ChatFormatting.GREEN + "' to " + targetModule.getPrettyName() + ".", 1);
             } else if (args.get(0).equals("friend") || args.get(0).equals("f")) {
                 if (!hasArgs) {
                     print(invSyn, 1);
@@ -433,6 +482,8 @@ public class Commands {
                 print("2 profiles save [profile]", 0);
                 print("3 profiles load [profile]", 0);
                 print("4 profiles remove [profile]", 0);
+                print("5 binds", 0);
+                print("6 bind [module] [key]", 0);
                 print("&eModule-specific:", 0);
                 print("1 cname [name]", 0);
                 print("2 " + FakeChat.command + " [msg]", 0);

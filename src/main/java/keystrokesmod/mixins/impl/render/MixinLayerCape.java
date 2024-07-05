@@ -1,6 +1,8 @@
 package keystrokesmod.mixins.impl.render;
 
+import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.client.Settings;
+import keystrokesmod.module.impl.render.CustomCape;
 import keystrokesmod.utility.RotationUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.AbstractClientPlayer;
@@ -10,9 +12,10 @@ import net.minecraft.client.renderer.entity.layers.LayerCape;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EnumPlayerModelParts;
 import net.minecraft.util.MathHelper;
+import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.*;
 
-@Mixin(priority = 995, value = LayerCape.class)
+@Mixin(priority = 1001, value = LayerCape.class)
 public abstract class MixinLayerCape {
     @Mutable
     @Final
@@ -28,11 +31,11 @@ public abstract class MixinLayerCape {
      * @reason mixin do render layer
      */
     @Overwrite
-    public void doRenderLayer(AbstractClientPlayer p_doRenderLayer_1_, float p_doRenderLayer_2_, float p_doRenderLayer_3_, float p_doRenderLayer_4_, float p_doRenderLayer_5_, float p_doRenderLayer_6_, float p_doRenderLayer_7_, float p_doRenderLayer_8_) {
-        if (p_doRenderLayer_1_.hasPlayerInfo() && !p_doRenderLayer_1_.isInvisible() && (p_doRenderLayer_1_.isWearing(EnumPlayerModelParts.CAPE) && p_doRenderLayer_1_.getLocationCape() != null || p_doRenderLayer_1_.equals(Minecraft.getMinecraft().thePlayer) && Settings.customCapes.getInput() > 0)) {
+    public void doRenderLayer(@NotNull AbstractClientPlayer p_doRenderLayer_1_, float p_doRenderLayer_2_, float p_doRenderLayer_3_, float p_doRenderLayer_4_, float p_doRenderLayer_5_, float p_doRenderLayer_6_, float p_doRenderLayer_7_, float p_doRenderLayer_8_) {
+        if (p_doRenderLayer_1_.hasPlayerInfo() && !p_doRenderLayer_1_.isInvisible() && (p_doRenderLayer_1_.isWearing(EnumPlayerModelParts.CAPE) && p_doRenderLayer_1_.getLocationCape() != null || p_doRenderLayer_1_.equals(Minecraft.getMinecraft().thePlayer) && ModuleManager.customCape.isEnabled())) {
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-            if (p_doRenderLayer_1_.equals(Minecraft.getMinecraft().thePlayer) && Settings.customCapes.getInput() > 0) {
-                this.playerRenderer.bindTexture(Settings.loadedCapes.get((int) (Settings.customCapes.getInput() - 1)));
+            if (p_doRenderLayer_1_.equals(Minecraft.getMinecraft().thePlayer) && ModuleManager.customCape.isEnabled()) {
+                this.playerRenderer.bindTexture(CustomCape.LOADED_CAPES.get((int) (CustomCape.cape.getInput())));
             }
             else {
                 this.playerRenderer.bindTexture(p_doRenderLayer_1_.getLocationCape());

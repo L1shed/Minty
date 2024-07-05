@@ -15,8 +15,8 @@ import java.io.FileWriter;
 import java.util.*;
 
 public final class RecordClick extends Module {
-    public static File directory;
-    public static List<Pattern> LOADED_PATTERNS = new ArrayList<>(Collections.singletonList(Pattern.DEFAULT));
+    private static File directory;
+    private static List<Pattern> LOADED_PATTERNS = new ArrayList<>(Collections.singletonList(Pattern.DEFAULT));
     public static String[] LOADED_PATTERNS_NAMES = new String[]{Pattern.DEFAULT.getName()};
 
     private static ModeSetting currentPattern;

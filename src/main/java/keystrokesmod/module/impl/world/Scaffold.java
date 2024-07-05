@@ -134,7 +134,7 @@ public class Scaffold extends Module { // from b4 :)
             }
         }
 
-        if (sameY.isToggled() && sameY$bridged != 0 && sameY$bridged % 2 == 0 && placeBlock != null) {
+        if (sameY.isToggled() && fastScaffold.getInput() == 3 && sameY$bridged != 0 && sameY$bridged % 2 == 0 && placeBlock != null) {
             List<BlockPos> possible = new ArrayList<>(Arrays.asList(
                     placeBlock.getBlockPos().west(),
                     placeBlock.getBlockPos().east(),

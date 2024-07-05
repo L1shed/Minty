@@ -199,6 +199,10 @@ public class Utils {
         return getColorForHealth(entity.getHealth() / entity.getMaxHealth(), completeHealth);
     }
 
+    public static int limit(int current, int min, int max) {
+        return Math.min(Math.max(current, min), max);
+    }
+
     public static int getTool(Block block) {
         float n = 1.0f;
         int n2 = -1;

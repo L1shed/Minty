@@ -25,17 +25,13 @@ public class FreeLook extends Module {
     }
 
     @Override
-    public void onEnable() {
-        viewData = null;
-    }
-
-    @Override
     public void onDisable() {
         if (viewData != null) {
             mc.gameSettings.thirdPersonView = viewData.thirdPersonView;
             mc.thePlayer.rotationYaw = viewData.rotationYaw;
             mc.thePlayer.rotationPitch = viewData.rotationPitch;
         }
+        viewData = null;
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)

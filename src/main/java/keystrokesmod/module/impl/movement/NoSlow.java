@@ -16,6 +16,7 @@ import keystrokesmod.utility.Utils;
 import net.minecraft.item.*;
 import net.minecraft.network.play.client.C07PacketPlayerDigging;
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
+import net.minecraft.network.play.client.C0CPacketInput;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -29,17 +30,19 @@ public class NoSlow extends Module {
     public static ButtonSetting disablePotions;
     public static ButtonSetting swordOnly;
     public static ButtonSetting vanillaSword;
-    private final String[] modes = new String[]{"Vanilla", "Pre", "Post", "Alpha", "BlocksMC", "Intave"};
+    private final String[] modes = new String[]{"Vanilla", "Pre", "Post", "Alpha", "BlocksMC", "Intave", "Polar"};
     private boolean postPlace;
+    private static ModeOnly canChangeSpeed;
 
     private boolean lastUsingRestItem = false;
 
     public NoSlow() {
         super("NoSlow", Module.category.movement, 0);
         this.registerSetting(mode = new ModeSetting("Mode", modes, 0));
-        this.registerSetting(slowed = new SliderSetting("Slow %", 5.0D, 0.0D, 80.0D, 1.0D, new ModeOnly(mode, 5).reserve()));
+        canChangeSpeed = new ModeOnly(mode, 5, 6).reserve();
+        this.registerSetting(slowed = new SliderSetting("Slow %", 5.0D, 0.0D, 80.0D, 1.0D, canChangeSpeed));
         this.registerSetting(disableSword = new ButtonSetting("Disable sword", false));
-        this.registerSetting(disableBow = new ButtonSetting("Disable bow", false));
+        this.registerSetting(disableBow = new ButtonSetting("Disable bow", false, canChangeSpeed));
         this.registerSetting(disablePotions = new ButtonSetting("Disable potions", false));
         this.registerSetting(swordOnly = new ButtonSetting("Sword only", false));
         this.registerSetting(vanillaSword = new ButtonSetting("Vanilla sword", false));
@@ -105,23 +108,44 @@ public class NoSlow extends Module {
 
     @SubscribeEvent
     public void onPreMotion(PreMotionEvent event) {
-        if ((int) mode.getInput() != 5 || !MoveUtil.isMoving() || !mc.thePlayer.isUsingItem()) {
+        if (!mc.thePlayer.isUsingItem()) {
             lastUsingRestItem = false;
             return;
         }
 
         final Item item = mc.thePlayer.getHeldItem().getItem();
-        if (ContainerUtils.isRest(item)) {
-            if (!lastUsingRestItem) {
-                PacketUtils.sendPacket(new C07PacketPlayerDigging(C07PacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.UP));
-            }
-            lastUsingRestItem = true;
-        } else {
-            lastUsingRestItem = false;
+        switch ((int) mode.getInput()) {
+            case 5:
+                if (!MoveUtil.isMoving()) return;
+                if (ContainerUtils.isRest(item)) {
+                    if (!lastUsingRestItem) {
+                        PacketUtils.sendPacket(new C07PacketPlayerDigging(C07PacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.UP));
+                    }
+                    lastUsingRestItem = true;
+                } else {
+                    lastUsingRestItem = false;
 
-            if (item instanceof ItemSword) {
-                PacketUtils.sendPacket(new C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()));
-            }
+                    if (item instanceof ItemSword) {
+                        PacketUtils.sendPacket(new C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()));
+                    }
+                }
+                break;
+            case 6:
+                if (ContainerUtils.isRest(item)) {
+                    if (!lastUsingRestItem) {
+                        PacketUtils.sendPacket(new C07PacketPlayerDigging(C07PacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.UP));
+                    }
+                    PacketUtils.sendPacket(new C0CPacketInput(0, 0.82f, false, false));
+                    lastUsingRestItem = true;
+                } else {
+                    lastUsingRestItem = false;
+
+                    if (item instanceof ItemSword || item instanceof ItemBow) {
+                        PacketUtils.sendPacket(new C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()));
+                        PacketUtils.sendPacket(new C0CPacketInput(0, 0.82f, false, false));
+                    }
+                }
+                break;
         }
     }
 
@@ -135,12 +159,12 @@ public class NoSlow extends Module {
         }
         if (mc.thePlayer.getHeldItem().getItem() instanceof ItemSword && disableSword.isToggled()) {
             return 0.2f;
-        } if (mc.thePlayer.getHeldItem().getItem() instanceof ItemBow && disableBow.isToggled()) {
+        } if (mc.thePlayer.getHeldItem().getItem() instanceof ItemBow && (disableBow.isToggled() || !canChangeSpeed.get())) {
             return 0.2f;
         } else if (mc.thePlayer.getHeldItem().getItem() instanceof ItemPotion && !ItemPotion.isSplash(mc.thePlayer.getHeldItem().getItemDamage()) && disablePotions.isToggled()) {
             return 0.2f;
         }
-        return mode.getInput() == 5 ? 1.0f : (100.0F - (float) slowed.getInput()) / 100.0F;
+        return !canChangeSpeed.get() ? 1.0f : (100.0F - (float) slowed.getInput()) / 100.0F;
     }
 
     @Override

@@ -83,6 +83,8 @@ public class ModuleManager {
     public static ChestStealer chestStealer;
     public static Sprint sprint;
     public static RotationHandler rotationHandler;
+    public static CustomCape customCape;
+    public static ClientSpoofer clientSpoofer;
 
     public void register() {
         this.addModule(autoClicker = new AutoClicker());
@@ -195,6 +197,8 @@ public class ModuleManager {
         this.addModule(animations = new Animations());
         this.addModule(chestStealer = new ChestStealer());
         this.addModule(rotationHandler = new RotationHandler());
+        this.addModule(customCape = new CustomCape());
+        this.addModule(clientSpoofer = new ClientSpoofer());
         antiBot.enable();
         modules.sort(Comparator.comparing(Module::getPrettyName));
     }

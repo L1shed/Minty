@@ -5,6 +5,7 @@ import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.utility.render.RenderUtils;
 import keystrokesmod.utility.Utils;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemAxe;
 import net.minecraft.item.ItemBow;
@@ -13,29 +14,36 @@ import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.*;
 import java.util.List;
 
 public class MurderMystery extends Module {
-    private ButtonSetting alert;
-    private ButtonSetting highlightMurderer;
-    private ButtonSetting highlightBow;
-    private ButtonSetting highlightInnocent;
-    private final List<EntityPlayer> murderers = new ArrayList();
-    private final List<EntityPlayer> hasBow = new ArrayList();
-    private final String c1 = "MURDER";
-    private final String c2 = "MYSTERY";
-    private final String c3 = "Role:";
-    private final String c4 = "&7[&cALERT&7]";
-    private final String c5 = "note.pling";
-    private final String c6 = "is a murderer!";
-    private final String c7 = "has a bow!";
+    private final ButtonSetting alert;
+    private final ButtonSetting highlightMurderer;
+    private final ButtonSetting highlightBow;
+    private final ButtonSetting highlightInnocent;
+    private final List<EntityPlayer> murderers = new ArrayList<>();
+    private final List<EntityPlayer> hasBow = new ArrayList<>();
     private boolean override;
+
+    private static final Set<Item> MURDER_ITEMS = new HashSet<>(Arrays.asList(
+            Items.wooden_sword,
+            Items.stone_sword,
+            Items.golden_sword,
+            Items.iron_sword,
+            Items.diamond_sword,
+            Items.wooden_axe,
+            Items.stone_axe,
+            Items.golden_axe,
+            Items.iron_axe,
+            Items.diamond_axe,
+            Items.stick,
+            Items.blaze_rod
+    ));
 
     public MurderMystery() {
         super("Murder Mystery", category.minigames);
-        this.registerSetting(alert = new ButtonSetting("Alert murderer", true));
+        this.registerSetting(alert = new ButtonSetting("Alert", true));
         this.registerSetting(highlightMurderer = new ButtonSetting("Highlight murderer", true));
         this.registerSetting(highlightBow = new ButtonSetting("Highlight bow", true));
         this.registerSetting(highlightInnocent = new ButtonSetting("Highlight innocent", true));
@@ -56,15 +64,19 @@ public class MurderMystery extends Module {
                     if (en != mc.thePlayer && !en.isInvisible()) {
                         if (en.getHeldItem() != null && en.getHeldItem().hasDisplayName()) {
                             Item i = en.getHeldItem().getItem();
-                            if (i instanceof ItemSword || i instanceof ItemAxe || en.getHeldItem().getDisplayName().contains("aKnife")) {
+                            if (MURDER_ITEMS.contains(i) || en.getHeldItem().getDisplayName().contains("knife")) {
                                 if (!murderers.contains(en)) {
                                     murderers.add(en);
                                     if (alert.isToggled()) {
-                                        mc.thePlayer.playSound(this.c5, 1.0F, 1.0F);
-                                        Utils.sendMessage(this.c4 + " &e" + en.getName() + " &3" + this.c6);
+                                        mc.thePlayer.playSound("note.pling", 1.0F, 1.0F);
+                                        Utils.sendMessage("&7[&cALERT&7]" + " &e" + en.getName() + " &3" + "is a murderer!");
                                     }
                                 } else if (i instanceof ItemBow && highlightMurderer.isToggled() && !hasBow.contains(en)) {
                                     hasBow.add(en);
+                                    if (alert.isToggled()) {
+                                        mc.thePlayer.playSound("note.pling", 1.0F, 1.0F);
+                                        Utils.sendMessage("&7[&cALERT&7]" + " &e" + en.getName() + " &3" + "has a bow!");
+                                    }
                                 }
                             }
                         }
@@ -93,7 +105,9 @@ public class MurderMystery extends Module {
             }
 
             String d = mc.thePlayer.getWorldScoreboard().getObjectiveInDisplaySlot(1).getDisplayName();
-            if (!d.contains(this.c1) && !d.contains(this.c2)) {
+            String c1 = "MURDER";
+            String c2 = "MYSTERY";
+            if (!d.contains(c1) && !d.contains(c2)) {
                 return false;
             }
 
@@ -102,7 +116,8 @@ public class MurderMystery extends Module {
             while (var2.hasNext()) {
                 String l = (String) var2.next();
                 String s = Utils.stripColor(l);
-                if (s.contains(this.c3)) {
+                String c3 = "Role:";
+                if (s.contains(c3)) {
                     return true;
                 }
             }
