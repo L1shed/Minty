@@ -140,7 +140,7 @@ public class NoSlow extends Module {
                 } else {
                     lastUsingRestItem = false;
 
-                    if (item instanceof ItemSword || item instanceof ItemBow) {
+                    if (item instanceof ItemSword) {
                         PacketUtils.sendPacket(new C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()));
                         PacketUtils.sendPacket(new C0CPacketInput(0, 0.82f, false, false));
                     }
