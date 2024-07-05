@@ -63,13 +63,13 @@ public class AutoPlay extends Module {
 						case 5:
 							command = "/play bedwars_eight_two";
 							break;
-						case 5:
+						case 6:
 							command = "/play bedwars_four_three";
 							break;
-						case 6:
+						case 7:
 							command = "/play bedwars_four_four";
 							break;
-						case 7:
+						case 8:
 							command = "/play bedwars_two_four";
 							break;
 						default:
