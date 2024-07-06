@@ -77,6 +77,7 @@ Raven B4, but not only for Hypixel.
 5. **Set Up the Project**:
    - Run the following commands to set up the Gradle wrapper and the development environment:
      ```bash
+     gradlew.bat
      gradle wrapper
      gradlew setupDecompWorkspace && gradlew idea
      gradlew build
