@@ -287,7 +287,11 @@ public class Utils {
                 && (mc.getCurrentServerData().serverIP.contains("hypixel.net")
                 || NyaProxy.isNyaProxy(mc.getCurrentServerData().serverIP).isPresent());
     }
-
+    public static boolean isCraftiGames() {
+        return !mc.isSingleplayer() && mc.getCurrentServerData() != null
+                && ((mc.getCurrentServerData().serverIP.contains("pika-network.net") || mc.getCurrentServerData().serverIP.contains("pikasys.net") || mc.getCurrentServerData().serverIP.contains("pika.host") || mc.getCurrentServerData().serverIP.contains("jartexsys.net") || mc.getCurrentServerData().serverIP.contains("jartexnetwork.com"))
+                || NyaProxy.isNyaProxy(mc.getCurrentServerData().serverIP).isPresent());
+    }
     public static net.minecraft.util.Timer getTimer() {
         return ObfuscationReflectionHelper.getPrivateValue(Minecraft.class, Minecraft.getMinecraft(), "timer", "field_71428_T");
     }
@@ -393,19 +397,23 @@ public class Utils {
             return -1;
         }
         final ScoreObjective objective = scoreboard.getObjectiveInDisplaySlot(1);
-        if (objective == null || !stripString(objective.getDisplayName()).contains("BED WARS")) {
+        if (objective == null) {
+            return -1;
+        }
+        String displayName = stripString(objective.getDisplayName());
+        if (!displayName.contains("BED WARS") && !displayName.contains("BedWars")) {
             return -1;
         }
         for (String line : getSidebarLines()) {
-            line = stripString(line);
+            line = stripString(line).trim();
             String[] parts = line.split("  ");
-            if (parts.length > 1) {
-                if (parts[1].startsWith("L")) {
-                    return 0;
-                }
-            } else if (line.equals("Waiting...") || line.startsWith("Starting in")) {
+            if (parts.length > 1 && parts[1].equalsIgnoreCase("L")) {
+                return 0;
+            }
+            if (line.equalsIgnoreCase("Waiting...") || line.startsWith("Starting")) {
                 return 1;
-            } else if (line.startsWith("R Red:") || line.startsWith("B Blue:")) {
+            }
+            if (line.startsWith("R Red:") || line.startsWith("B Blue:") || line.startsWith("Red") || line.startsWith("Blue")) {
                 return 2;
             }
         }
@@ -423,7 +431,7 @@ public class Utils {
         return validated.toString();
     }
 
-    public static List<String> getSidebarLines() {
+public static List<String> getSidebarLines() {
         final List<String> lines = new ArrayList<>();
         if (mc.theWorld == null) {
             return lines;
@@ -459,7 +467,6 @@ public class Utils {
         }
         return lines;
     }
-
     public static Random getRandom() {
         return rand;
     }
