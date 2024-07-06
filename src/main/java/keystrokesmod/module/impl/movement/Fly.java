@@ -31,6 +31,10 @@ public class Fly extends Module {
     private final ButtonSetting stopMotion;
     private boolean d;
 
+    private int offGroundTicks = 0;
+    private boolean started, notUnder, clipped, teleport;
+
+
     private long balance = 0;
     private long startTime = -1;
     private Timer.BalanceState balanceState = Timer.BalanceState.NONE;
@@ -38,7 +42,7 @@ public class Fly extends Module {
 
     public Fly() {
         super("Fly", category.movement);
-        this.registerSetting(mode = new ModeSetting("Fly", new String[]{"Vanilla", "Fast", "Fast 2", "AirWalk", "GrimAC"}, 0));
+        this.registerSetting(mode = new ModeSetting("Fly", new String[]{"Vanilla", "Fast", "Fast 2", "AirWalk", "GrimAC", "BlocksMC"}, 0));
         final ModeOnly canChangeSpeed = new ModeOnly(mode, 0, 1, 2);
         final ModeOnly balanceMode = new ModeOnly(mode, 5);
         this.registerSetting(horizontalSpeed = new SliderSetting("Horizontal speed", 2.0, 1.0, 9.0, 0.1, canChangeSpeed));
@@ -56,9 +60,83 @@ public class Fly extends Module {
 
     public void onEnable() {
         this.d = mc.thePlayer.capabilities.isFlying;
+
+        notUnder = false;
+        started = false;
+        clipped = false;
+        teleport = false;
+
+        if ((int) mode.getInput() == 5) {
+            Utils.sendMessage("Start the fly under the block and walk forward.");
+        }
+    }
+
+    @SubscribeEvent
+    public void onReceivePacket(@NotNull ReceivePacketEvent event) {
+        if (event.getPacket() instanceof S08PacketPlayerPosLook) {
+            if (teleport) {
+                event.setCanceled(true);
+                teleport = false;
+                Utils.sendMessage("Teleported!");
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public void onPlayerInput(PrePlayerInput event) {
+        if ((int) mode.getInput() != 5) return;
+
+        final AxisAlignedBB bb = mc.thePlayer.getEntityBoundingBox().offset(0, 1, 0);
+
+        if (mc.theWorld.getCollidingBoundingBoxes(mc.thePlayer, bb).isEmpty() || started) {
+            switch (offGroundTicks) {
+                case 0:
+                    if (notUnder) {
+                        if (clipped) {
+                            started = true;
+                            event.setSpeed(10);
+                            mc.thePlayer.motionY = 0.42f;
+                            notUnder = false;
+                        }
+                    }
+                    break;
+
+                case 1:
+                    if (started) event.setSpeed(9.6);
+                    break;
+
+                default:
+//                    if (mc.thePlayer.fallDistance > 0 && started) {
+//                        mc.thePlayer.motionY += 2.5 / 100f;
+//                    }
+                    break;
+            }
+        } else {
+            notUnder = true;
+
+            if (clipped) return;
+
+            clipped = true;
+
+            PacketUtils.sendPacket(new C03PacketPlayer.C06PacketPlayerPosLook(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ, mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch, false));
+            PacketUtils.sendPacket(new C03PacketPlayer.C06PacketPlayerPosLook(mc.thePlayer.posX, mc.thePlayer.posY - 0.1, mc.thePlayer.posZ, mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch, false));
+            PacketUtils.sendPacket(new C03PacketPlayer.C06PacketPlayerPosLook(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ, mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch, false));
+
+            teleport = true;
+        }
+
+        MoveUtil.strafe();
+
+        Utils.getTimer().timerSpeed = 0.4f;
     }
 
     public void onUpdate() {
+        if (mc.thePlayer.onGround) {
+            offGroundTicks = 0;
+        } else {
+            offGroundTicks++;
+        }
+
         switch ((int) mode.getInput()) {
             case 0:
                 mc.thePlayer.motionY = 0.0;
@@ -125,6 +203,9 @@ public class Fly extends Module {
             mc.thePlayer.motionZ = 0;
             mc.thePlayer.motionY = 0;
             mc.thePlayer.motionX = 0;
+        }
+        if ((int) mode.getInput() == 5) {
+            MoveUtil.stop();
         }
     }
 
