@@ -10,13 +10,14 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.jetbrains.annotations.NotNull;
 
 public class Criticals extends Module {
+    private final ModeSetting mode;
+    public static final String[] MODES = {"Default", "NoGround"};
     public static int ticksSinceVelocity = Integer.MAX_VALUE;
-    private final ModeSetting modes = new ModeSetting("Mode", new String[]{"Default", "NoGround"}, 1);
 
     public Criticals() {
         super("Criticals", category.combat);
         this.registerSetting(new DescriptionSetting("Makes you get a critical hit every time you attack."));
-        this.registerSetting(modes);
+        this.registerSetting(mode = new ModeSetting("Mode", MODES, 0));
     }
 
     @Override
@@ -40,7 +41,7 @@ public class Criticals extends Module {
 
     @SubscribeEvent
     public void onPreMotion(PreMotionEvent event) {
-        switch ((int) modes.getInput()) {
+        switch ((int) mode.getInput()) {
             case 0: // Default
                 if (ticksSinceVelocity <= 18 && mc.thePlayer.fallDistance < 1.3) {
                     event.setOnGround(false);
@@ -54,5 +55,10 @@ public class Criticals extends Module {
                 }
                 break;
         }
+    }
+
+    @Override
+    public String getInfo() {
+        return MODES[(int) mode.getInput()];
     }
 }
