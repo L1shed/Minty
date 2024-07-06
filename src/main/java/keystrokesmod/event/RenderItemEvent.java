@@ -7,10 +7,12 @@ import net.minecraftforge.fml.common.eventhandler.Event;
 
 @Cancelable
 public final class RenderItemEvent extends Event {
-    private EnumAction enumAction;
-    private boolean useItem;
-    private float animationProgression, partialTicks, swingProgress;
-    private ItemStack itemToRender;
+    private final EnumAction enumAction;
+    private final boolean useItem;
+    private final float animationProgression;
+    private final float partialTicks;
+    private final float swingProgress;
+    private final ItemStack itemToRender;
 
     public RenderItemEvent(EnumAction enumAction, boolean useItem, float animationProgression, float partialTicks, float swingProgress, ItemStack itemToRender) {
         this.enumAction = enumAction;
@@ -25,47 +27,23 @@ public final class RenderItemEvent extends Event {
         return enumAction;
     }
 
-    public void setEnumAction(EnumAction enumAction) {
-        this.enumAction = enumAction;
-    }
-
     public boolean isUseItem() {
         return useItem;
-    }
-
-    public void setUseItem(boolean useItem) {
-        this.useItem = useItem;
     }
 
     public float getAnimationProgression() {
         return animationProgression;
     }
 
-    public void setAnimationProgression(float animationProgression) {
-        this.animationProgression = animationProgression;
-    }
-
     public float getPartialTicks() {
         return partialTicks;
-    }
-
-    public void setPartialTicks(float partialTicks) {
-        this.partialTicks = partialTicks;
     }
 
     public float getSwingProgress() {
         return swingProgress;
     }
 
-    public void setSwingProgress(float swingProgress) {
-        this.swingProgress = swingProgress;
-    }
-
     public ItemStack getItemToRender() {
         return itemToRender;
-    }
-
-    public void setItemToRender(ItemStack itemToRender) {
-        this.itemToRender = itemToRender;
     }
 }

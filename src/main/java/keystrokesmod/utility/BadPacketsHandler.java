@@ -10,6 +10,7 @@ import net.minecraft.network.play.server.S09PacketHeldItemChange;
 import net.minecraft.network.play.server.S0CPacketSpawnPlayer;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import org.jetbrains.annotations.NotNull;
 
 public class BadPacketsHandler { // ensures you don't get banned
     public boolean C08;
@@ -22,7 +23,7 @@ public class BadPacketsHandler { // ensures you don't get banned
     public int serverSlot = -1;
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onSendPacket(SendPacketEvent e) {
+    public void onSendPacket(@NotNull SendPacketEvent e) {
         if (e.isCanceled()) {
             return;
         }

@@ -27,7 +27,6 @@ import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.jetbrains.annotations.NotNull;
-import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
 import java.util.*;
@@ -96,7 +95,7 @@ public class KillAura extends Module {
     public KillAura() {
         super("KillAura", category.combat);
         this.registerSetting(aps = new SliderSetting("APS", 16.0, 1.0, 20.0, 0.5));
-        String[] autoBlockModes = new String[]{"Manual", "Vanilla", "Post", "Swap", "Interact", "Fake", "Partial", "Watchdog 1.12.2"};
+        String[] autoBlockModes = new String[]{"Manual", "Vanilla", "Post", "Swap", "Interact", "Fake", "Partial", "Watchdog 1.12.2", "BlocksMC"};
         this.registerSetting(autoBlockMode = new ModeSetting("Autoblock", autoBlockModes, 0));
         this.registerSetting(fov = new SliderSetting("FOV", 360.0, 30.0, 360.0, 4.0));
         this.registerSetting(attackRange = new SliderSetting("Attack range", 3.2, 3.0, 6.0, 0.1));
@@ -230,64 +229,63 @@ public class KillAura extends Module {
                 ModuleManager.bedAura.stopAutoblock = false;
                 return;
             }
-            if (autoBlockMode.getInput() == 3) {
-                if (lag) {
-                    blinking = true;
-                    if (Raven.badPacketsHandler.playerSlot != mc.thePlayer.inventory.currentItem % 8 + 1) {
-                        mc.thePlayer.sendQueue.addToSendQueue(new C09PacketHeldItemChange(Raven.badPacketsHandler.playerSlot = mc.thePlayer.inventory.currentItem % 8 + 1));
-                        swapped = true;
-                    }
-                    lag = false;
-                }
-                else {
-                    if (Raven.badPacketsHandler.delayAttack) {
-                        return;
-                    }
-                    if (Raven.badPacketsHandler.playerSlot != mc.thePlayer.inventory.currentItem) {
-                        mc.thePlayer.sendQueue.addToSendQueue(new C09PacketHeldItemChange(Raven.badPacketsHandler.playerSlot = mc.thePlayer.inventory.currentItem));
-                        swapped = false;
-                    }
-                    if (target != null && attack) {
-                        attack = false;
-                        if (noAimToEntity()) {
+            switch ((int) autoBlockMode.getInput()) {
+                case 3:
+                    if (lag) {
+                        blinking = true;
+                        if (Raven.badPacketsHandler.playerSlot != mc.thePlayer.inventory.currentItem % 8 + 1) {
+                            mc.thePlayer.sendQueue.addToSendQueue(new C09PacketHeldItemChange(Raven.badPacketsHandler.playerSlot = mc.thePlayer.inventory.currentItem % 8 + 1));
+                            swapped = true;
+                        }
+                        lag = false;
+                    } else {
+                        if (Raven.badPacketsHandler.delayAttack) {
                             return;
                         }
-                        switchTargets = true;
-                        Utils.attackEntity(target, !swing && swingWhileBlocking, !swingWhileBlocking);
-                        mc.thePlayer.sendQueue.addToSendQueue(new C02PacketUseEntity(target, C02PacketUseEntity.Action.INTERACT));
-                    }
-                    else if (ModuleManager.antiFireball != null && ModuleManager.antiFireball.isEnabled() && ModuleManager.antiFireball.fireball != null && ModuleManager.antiFireball.attack) {
-                        Utils.attackEntity(ModuleManager.antiFireball.fireball, !ModuleManager.antiFireball.silentSwing.isToggled(), ModuleManager.antiFireball.silentSwing.isToggled());
-                        mc.thePlayer.sendQueue.addToSendQueue(new C02PacketUseEntity(ModuleManager.antiFireball.fireball, C02PacketUseEntity.Action.INTERACT));
-                    }
-                    mc.getNetHandler().addToSendQueue(new C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()));
-                    releasePackets();
-                    lag = true;
-                }
-            }
-            else if (autoBlockMode.getInput() == 4) {
-                if (lag) {
-                    blinking = true;
-                    unBlock();
-                    lag = false;
-                } else {
-                    if (target != null && attack) {
-                        attack = false;
-                        if (noAimToEntity()) {
-                            return;
+                        if (Raven.badPacketsHandler.playerSlot != mc.thePlayer.inventory.currentItem) {
+                            mc.thePlayer.sendQueue.addToSendQueue(new C09PacketHeldItemChange(Raven.badPacketsHandler.playerSlot = mc.thePlayer.inventory.currentItem));
+                            swapped = false;
                         }
-                        switchTargets = true;
-                        Utils.attackEntity(target, !swing && swingWhileBlocking, !swingWhileBlocking);
-                        mc.thePlayer.sendQueue.addToSendQueue(new C02PacketUseEntity(target, C02PacketUseEntity.Action.INTERACT));
+                        if (target != null && attack) {
+                            attack = false;
+                            if (noAimToEntity()) {
+                                return;
+                            }
+                            switchTargets = true;
+                            Utils.attackEntity(target, !swing && swingWhileBlocking, !swingWhileBlocking);
+                            mc.thePlayer.sendQueue.addToSendQueue(new C02PacketUseEntity(target, C02PacketUseEntity.Action.INTERACT));
+                        } else if (ModuleManager.antiFireball != null && ModuleManager.antiFireball.isEnabled() && ModuleManager.antiFireball.fireball != null && ModuleManager.antiFireball.attack) {
+                            Utils.attackEntity(ModuleManager.antiFireball.fireball, !ModuleManager.antiFireball.silentSwing.isToggled(), ModuleManager.antiFireball.silentSwing.isToggled());
+                            mc.thePlayer.sendQueue.addToSendQueue(new C02PacketUseEntity(ModuleManager.antiFireball.fireball, C02PacketUseEntity.Action.INTERACT));
+                        }
+                        mc.getNetHandler().addToSendQueue(new C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()));
+                        releasePackets();
+                        lag = true;
                     }
-                    else if (ModuleManager.antiFireball != null && ModuleManager.antiFireball.isEnabled() && ModuleManager.antiFireball.fireball != null && ModuleManager.antiFireball.attack) {
-                        Utils.attackEntity(ModuleManager.antiFireball.fireball, !ModuleManager.antiFireball.silentSwing.isToggled(), ModuleManager.antiFireball.silentSwing.isToggled());
-                        mc.thePlayer.sendQueue.addToSendQueue(new C02PacketUseEntity(ModuleManager.antiFireball.fireball, C02PacketUseEntity.Action.INTERACT));
+                    break;
+                case 4:
+                    if (lag) {
+                        blinking = true;
+                        unBlock();
+                        lag = false;
+                    } else {
+                        if (target != null && attack) {
+                            attack = false;
+                            if (noAimToEntity()) {
+                                return;
+                            }
+                            switchTargets = true;
+                            Utils.attackEntity(target, !swing && swingWhileBlocking, !swingWhileBlocking);
+                            mc.thePlayer.sendQueue.addToSendQueue(new C02PacketUseEntity(target, C02PacketUseEntity.Action.INTERACT));
+                        } else if (ModuleManager.antiFireball != null && ModuleManager.antiFireball.isEnabled() && ModuleManager.antiFireball.fireball != null && ModuleManager.antiFireball.attack) {
+                            Utils.attackEntity(ModuleManager.antiFireball.fireball, !ModuleManager.antiFireball.silentSwing.isToggled(), ModuleManager.antiFireball.silentSwing.isToggled());
+                            mc.thePlayer.sendQueue.addToSendQueue(new C02PacketUseEntity(ModuleManager.antiFireball.fireball, C02PacketUseEntity.Action.INTERACT));
+                        }
+                        mc.getNetHandler().addToSendQueue(new C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()));
+                        releasePackets();
+                        lag = true;
                     }
-                    mc.getNetHandler().addToSendQueue(new C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()));
-                    releasePackets();
-                    lag = true;
-                }
+                    break;
             }
             return;
         }

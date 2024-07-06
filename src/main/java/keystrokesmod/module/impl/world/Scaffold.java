@@ -148,11 +148,13 @@ public class Scaffold extends Module { // from b4 :)
                 Optional<Triple<BlockPos, EnumFacing, Vec3>> placeSide = BlockIn.getPlaceSide(pos);
                 if (!placeSide.isPresent()) continue;
 
-                place(new MovingObjectPosition(MovingObjectPosition.MovingObjectType.BLOCK,
-                        placeSide.get().getRight().toVec3(),
-                        placeSide.get().getMiddle(),
-                        placeSide.get().getLeft())
-                        , true);
+                if (place(new MovingObjectPosition(MovingObjectPosition.MovingObjectType.BLOCK,
+                                placeSide.get().getRight().toVec3(),
+                                placeSide.get().getMiddle(),
+                                placeSide.get().getLeft())
+                        , true)) {
+                    sameY$bridged = 0;
+                }
                 break;
             }
         }
