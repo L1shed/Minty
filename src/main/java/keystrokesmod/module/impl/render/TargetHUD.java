@@ -3,7 +3,6 @@ package keystrokesmod.module.impl.render;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.impl.combat.KillAura;
 import keystrokesmod.module.setting.impl.ButtonSetting;
-import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.script.classes.Vec3;
@@ -22,13 +21,17 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
+import static keystrokesmod.utility.render.RenderUtils.renderMode;
+
 public class TargetHUD extends Module {
     public static int posX = 70;
     public static int posY = 30;
+    public static final Color jellocolor = new Color(255, 255, 255, 128);
     private final ButtonSetting onlyKillAura;
     private final SliderSetting maxDistance;
     private static final ModeSetting theme = new ModeSetting("Theme", Theme.themes, 0);
     private final ButtonSetting renderEsp;
+    private static final ModeSetting targetEspMode = new ModeSetting("Target ESP Mode", renderMode, 0);
     private static final ButtonSetting showStatus = new ButtonSetting("Show win or loss", true);
     private static final ButtonSetting healthColor = new ButtonSetting("Traditional health color", false);
     private Timer fadeTimer;
@@ -50,6 +53,7 @@ public class TargetHUD extends Module {
         this.registerSetting(maxDistance = new SliderSetting("Max distance", 6, 3, 20, 1, "blocks", () -> !onlyKillAura.isToggled()));
         this.registerSetting(theme);
         this.registerSetting(renderEsp = new ButtonSetting("Render ESP", true));
+        this.registerSetting(targetEspMode);
         this.registerSetting(showStatus);
         this.registerSetting(healthColor);
     }
@@ -116,9 +120,23 @@ public class TargetHUD extends Module {
             return;
         }
         if (KillAura.target != null) {
-            RenderUtils.renderEntity(KillAura.target, 2, 0.0, 0.0, Theme.getGradient((int) theme.getInput(), 0), false);
+            renderTarget(KillAura.target);
         } else if (renderEntity != null) {
-            RenderUtils.renderEntity(renderEntity, 2, 0.0, 0.0, Theme.getGradient((int) theme.getInput(), 0), false);
+            renderTarget(renderEntity);
+        }
+    }
+
+    private void renderTarget(EntityLivingBase target) {
+        int modeIndex = (int) targetEspMode.getInput();
+        String mode = renderMode[modeIndex];
+
+        switch (mode) {
+            case "Default":
+                RenderUtils.renderEntity(target, 2, 0.0, 0.0, Theme.getGradient((int) theme.getInput(), 0), false);
+                break;
+            case "Jello":
+                RenderUtils.jelloRender(target, target, jellocolor);
+                break;
         }
     }
 
