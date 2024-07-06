@@ -2,36 +2,45 @@ package keystrokesmod.module.impl.world;
 
 import com.mojang.authlib.GameProfile;
 import keystrokesmod.Raven;
+import keystrokesmod.event.SendPacketEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.player.Freecam;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.script.classes.Vec3;
 import keystrokesmod.utility.Utils;
 import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.network.play.client.C02PacketUseEntity;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class AntiBot extends Module {
     private static final HashMap<EntityPlayer, Long> entities = new HashMap<>();
+    private static final Set<EntityPlayer> filteredBot = new HashSet<>();
     private static ButtonSetting entitySpawnDelay;
     private static SliderSetting delay;
     private static ButtonSetting pitSpawn;
     private static ButtonSetting tablist;
+    private static ButtonSetting matrix;
+    private static ButtonSetting cancelBotHit;
+    private static ButtonSetting debug;
 
     public AntiBot() {
         super("AntiBot", Module.category.world, 0);
         this.registerSetting(entitySpawnDelay = new ButtonSetting("Entity spawn delay", false));
-        this.registerSetting(delay = new SliderSetting("Delay", 7.0, 0.5, 15.0, 0.5, " second"));
+        this.registerSetting(delay = new SliderSetting("Delay", 7.0, 0.5, 15.0, 0.5, " second", entitySpawnDelay::isToggled));
         this.registerSetting(tablist = new ButtonSetting("Tab list", false));
+        this.registerSetting(matrix = new ButtonSetting("MatrixTest", false));
+        this.registerSetting(debug = new ButtonSetting("Debug", false, matrix::isToggled));
         this.registerSetting(pitSpawn = new ButtonSetting("Pit spawn", false));
+        this.registerSetting(cancelBotHit = new ButtonSetting("Cancel bot hit", false));
     }
 
     @SubscribeEvent
@@ -41,14 +50,50 @@ public class AntiBot extends Module {
         }
     }
 
+    @SubscribeEvent
+    public void onSendPacket(SendPacketEvent event) {
+        if (cancelBotHit.isToggled() && event.getPacket() instanceof C02PacketUseEntity) {
+            C02PacketUseEntity packet = (C02PacketUseEntity) event.getPacket();
+            if (packet.getAction() == C02PacketUseEntity.Action.ATTACK) {
+                if (isBot(packet.getEntityFromWorld(mc.theWorld))) {
+                    event.setCanceled(true);
+                }
+            }
+        }
+    }
+
     public void onUpdate() {
         if (entitySpawnDelay.isToggled() && !entities.isEmpty()) {
             entities.values().removeIf(n -> n < System.currentTimeMillis() - delay.getInput());
+        }
+
+        final HashMap<String, EntityPlayer> players = new HashMap<>();
+        for (EntityPlayer p : mc.theWorld.playerEntities) {
+            if (filteredBot.contains(p)) continue;
+
+            String name = p.getName();
+            if (players.containsKey(name)) {
+                if (debug.isToggled()) Utils.sendMessage("Filtered bot: " + p.getName() + ".");
+
+                EntityPlayer exists = players.get(name);
+                Vec3 thePlayer = new Vec3(mc.thePlayer);
+                double existsDistance = thePlayer.distanceTo(exists);
+                double curDistance = thePlayer.distanceTo(p);
+
+                if (existsDistance > curDistance) {
+                    filteredBot.add(p);
+                } else {
+                    filteredBot.add(exists);
+                }
+                break;
+            }
+            players.put(name, p);
         }
     }
 
     public void onDisable() {
         entities.clear();
+        filteredBot.clear();
     }
 
     public static boolean isBot(Entity entity) {
@@ -63,6 +108,9 @@ public class AntiBot extends Module {
         }
         final EntityPlayer entityPlayer = (EntityPlayer) entity;
         if (entitySpawnDelay.isToggled() && !entities.isEmpty() && entities.containsKey(entityPlayer)) {
+            return true;
+        }
+        if (matrix.isToggled() && filteredBot.contains(entityPlayer)) {
             return true;
         }
         if (entityPlayer.isDead) {

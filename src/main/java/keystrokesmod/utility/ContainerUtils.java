@@ -466,7 +466,7 @@ public class ContainerUtils {
 
         for (int i = 9; i < 45; i++) {
             ItemStack item = getItemStack(i);
-            if (item != null && item.getItem() instanceof ItemBlock && item.stackSize > count && canBePlaced((ItemBlock) item.getItem())) {
+            if (item != null && item.getItem() instanceof ItemBlock && item.stackSize > count + 1 && canBePlaced((ItemBlock) item.getItem())) {
                 count = item.stackSize;
                 biggestSlot = i;
             }

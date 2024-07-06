@@ -14,7 +14,7 @@ public class LegitScaffold extends Module {
     private final SliderSetting minDelay = new SliderSetting("Min delay", 100, 0, 500, 1, "ms");
     private final SliderSetting maxDelay = new SliderSetting("Max delay", 200, 0, 500, 1, "ms");
     private final ButtonSetting pitchCheck = new ButtonSetting("Pitch check", true);
-    private final SliderSetting pitch = new SliderSetting("Pitch", 45, 90, 0, 5, pitchCheck::isToggled);
+    private final SliderSetting pitch = new SliderSetting("Pitch", 45, 0, 90, 5, pitchCheck::isToggled);
     private final ButtonSetting onlySPressed = new ButtonSetting("Only S pressed", false);
 
     private long lastSneakTime = -1;

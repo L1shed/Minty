@@ -36,7 +36,7 @@ public abstract class MixinEntityLivingBase extends Entity {
     }
 
     @Unique
-    private final Map<Integer, PotionEffect> raven_bS$activePotionsMap = Maps.<Integer, PotionEffect>newHashMap();
+    private final Map<Integer, PotionEffect> raven_bS$activePotionsMap = Maps.newHashMap();
 
     @Shadow
     public PotionEffect getActivePotionEffect(Potion potionIn) {

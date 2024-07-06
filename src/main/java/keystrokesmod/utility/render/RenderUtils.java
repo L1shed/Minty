@@ -166,7 +166,7 @@ public class RenderUtils {
             s = s + t + "bps";
         }
         if (b2) {
-            final double h = Utils.getHorizontalSpeed();
+            final double h = Utils.getHorizontalSpeed() * (Utils.getTimer().timerSpeed / 2);
             if (!s.isEmpty()) {
                 s += " ";
             }
