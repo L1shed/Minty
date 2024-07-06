@@ -50,8 +50,6 @@ public class Criticals extends Module {
             case 1: // NoGround
                 if (KillAura.target != null) {
                     event.setOnGround(false);
-                } else {
-                    event.setOnGround(true);
                 }
                 break;
         }
