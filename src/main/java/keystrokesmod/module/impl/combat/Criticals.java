@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class Criticals extends Module {
     private final ModeSetting mode;
-    public static final String[] MODES = {"Default", "NoGround"};
+    public static final String[] MODES = {"Alan34", "NoGround"};
     public static int ticksSinceVelocity = Integer.MAX_VALUE;
 
     public Criticals() {
@@ -42,7 +42,7 @@ public class Criticals extends Module {
     @SubscribeEvent
     public void onPreMotion(PreMotionEvent event) {
         switch ((int) mode.getInput()) {
-            case 0: // Default
+            case 0: // Alan34
                 if (ticksSinceVelocity <= 18 && mc.thePlayer.fallDistance < 1.3) {
                     event.setOnGround(false);
                 }
