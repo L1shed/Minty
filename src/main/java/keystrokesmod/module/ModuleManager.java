@@ -85,6 +85,7 @@ public class ModuleManager {
     public static RotationHandler rotationHandler;
     public static CustomCape customCape;
     public static ClientSpoofer clientSpoofer;
+    public static BlockHit blockHit;
 
     public void register() {
         this.addModule(autoClicker = new AutoClicker());
@@ -199,6 +200,7 @@ public class ModuleManager {
         this.addModule(rotationHandler = new RotationHandler());
         this.addModule(customCape = new CustomCape());
         this.addModule(clientSpoofer = new ClientSpoofer());
+        this.addModule(blockHit = new BlockHit());
         antiBot.enable();
         modules.sort(Comparator.comparing(Module::getPrettyName));
     }

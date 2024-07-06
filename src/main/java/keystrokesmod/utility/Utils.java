@@ -3,7 +3,7 @@ package keystrokesmod.utility;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.mojang.realmsclient.gui.ChatFormatting;
-import keystrokesmod.florianmichael.viamcp.fixes.AttackOrder;
+import net.minecraftforge.client.event.MouseEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.client.NyaProxy;
@@ -35,6 +35,7 @@ import net.minecraft.network.play.client.C0APacketAnimation;
 import net.minecraft.potion.Potion;
 import net.minecraft.scoreboard.*;
 import net.minecraft.util.*;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -45,6 +46,7 @@ import org.lwjgl.input.Mouse;
 import java.awt.*;
 import java.util.List;
 import java.util.*;
+import java.nio.ByteBuffer;
 import java.util.stream.IntStream;
 
 public class Utils {
@@ -619,7 +621,21 @@ public static List<String> getSidebarLines() {
             return AutoClicker.leftClick.isToggled() && Mouse.isButtonDown(0);
         } else return CPSCalculator.f() > 1 && System.currentTimeMillis() - CPSCalculator.LL < 300L;
     }
+    public static boolean tryingToCombo() {
+        return Mouse.isButtonDown(0) && Mouse.isButtonDown(1);
+    }
+    public static void setMouseButtonState(int mouseButton, boolean held) {
+        MouseEvent m = new MouseEvent();
 
+        ObfuscationReflectionHelper.setPrivateValue(MouseEvent.class, m, mouseButton, "button");
+        ObfuscationReflectionHelper.setPrivateValue(MouseEvent.class, m, held, "buttonstate");
+        MinecraftForge.EVENT_BUS.post(m);
+
+        ByteBuffer buttons = ObfuscationReflectionHelper.getPrivateValue(Mouse.class, null, "buttons");
+        buttons.put(mouseButton, (byte)(held ? 1 : 0));
+        ObfuscationReflectionHelper.setPrivateValue(Mouse.class, null, buttons, "buttons");
+
+    }
     public static long getDifference(long n, long n2) {
         return Math.abs(n2 - n);
     }
