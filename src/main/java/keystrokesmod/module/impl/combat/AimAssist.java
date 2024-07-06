@@ -39,7 +39,7 @@ public class AimAssist extends Module {
         super("AimAssist", category.combat, 0);
         this.registerSetting(horizonSpeed = new SliderSetting("Horizon speed", 3, 0, 10, 0.05));
         this.registerSetting(verticalSpeed = new SliderSetting("Vertical speed", 0, 0, 10, 0.05));
-        this.registerSetting(fov = new SliderSetting("FOV", 90.0D, 15.0D, 180.0D, 1.0D));
+        this.registerSetting(fov = new SliderSetting("FOV", 90.0D, 15.0D, 360.0D, 1.0D));
         this.registerSetting(distance = new SliderSetting("Distance", 4.5D, 1.0D, 10.0D, 0.5D));
         this.registerSetting(clickAim = new ButtonSetting("Click aim", true));
         this.registerSetting(stopOnTarget = new ButtonSetting("Stop on target", true));
