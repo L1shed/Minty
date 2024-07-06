@@ -2,8 +2,10 @@ package keystrokesmod.module.impl.minigames;
 
 import com.mojang.realmsclient.gui.ChatFormatting;
 import keystrokesmod.module.Module;
+import java.util.concurrent.CopyOnWriteArrayList;
 import keystrokesmod.module.impl.world.AntiBot;
 import keystrokesmod.module.setting.impl.ButtonSetting;
+import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.utility.BlockUtils;
 import keystrokesmod.utility.render.RenderUtils;
 import keystrokesmod.utility.Utils;
@@ -27,6 +29,8 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class BedWars extends Module {
+    private final String[] SERVERS = new String[]{"Hypixel", "Pika/Jartex"};
+    private final ModeSetting serverMode;
     public static ButtonSetting whitelistOwnBed;
     private final ButtonSetting diamondArmor;
     private final ButtonSetting enderPearl;
@@ -35,13 +39,15 @@ public class BedWars extends Module {
     private BlockPos spawnPos;
     private boolean check;
     public static boolean outsideSpawn = true;
-    private final List<String> armoredPlayer = new ArrayList<>();
+    private final List<String> armoredPlayer = new CopyOnWriteArrayList<>();
     private final Map<String, String> lastHeldMap = new ConcurrentHashMap<>();
     private final Set<BlockPos> obsidianPos = new HashSet<>();
-    private final int obsidianColor = new Color(0, 0,0).getRGB();
+    private static final double MAX_SPAWN_DISTANCE_SQUARED = 800;
+    private final int obsidianColor = new Color(0, 0, 0).getRGB();
 
     public BedWars() {
         super("Bed Wars", category.minigames);
+        this.registerSetting(serverMode = new ModeSetting("Server", SERVERS, 0));
         this.registerSetting(whitelistOwnBed = new ButtonSetting("Whitelist own bed", true));
         this.registerSetting(diamondArmor = new ButtonSetting("Diamond armor", true));
         this.registerSetting(enderPearl = new ButtonSetting("Ender pearl", true));
@@ -56,8 +62,8 @@ public class BedWars extends Module {
         check = false;
         outsideSpawn = true;
 
-        if (!Utils.isHypixel()) {
-            Utils.sendMessage(this.getPrettyName() + ChatFormatting.RED + " is made for Hypixel. It may won't work on others server!");
+        if (!isCurrentServerValid()) {
+            Utils.sendMessage(this.getPrettyName() + ChatFormatting.RED + " is made for " + String.join(", ", SERVERS) + ". It may not work on other servers!");
         }
     }
 
@@ -98,8 +104,7 @@ public class BedWars extends Module {
                     }
                     RenderUtils.renderBlock(blockPos, obsidianColor, false, true);
                 }
-            }
-            catch (Exception ignored) {}
+            } catch (Exception ignored) {}
         }
     }
 
@@ -109,8 +114,8 @@ public class BedWars extends Module {
             return;
         }
         if (e.entity == mc.thePlayer) {
-            if (!Utils.isHypixel()) {
-                Utils.sendMessage(this.getPrettyName() + ChatFormatting.RED + " is made for Hypixel. It may won't work on others server!");
+            if (!isCurrentServerValid()) {
+                Utils.sendMessage(this.getPrettyName() + ChatFormatting.RED + " is made for " + String.join(", ", SERVERS) + ". It may not work on other servers!");
             }
             armoredPlayer.clear();
             lastHeldMap.clear();
@@ -161,9 +166,8 @@ public class BedWars extends Module {
                         spawnPos = mc.thePlayer.getPosition();
                         check = false;
                     }
-                    if (spawnPos != null) outsideSpawn = mc.thePlayer.getDistanceSq(spawnPos) > 800;
-                }
-                else {
+                    if (spawnPos != null) outsideSpawn = mc.thePlayer.getDistanceSq(spawnPos) > MAX_SPAWN_DISTANCE_SQUARED;
+                } else {
                     outsideSpawn = true;
                 }
             }
@@ -171,14 +175,15 @@ public class BedWars extends Module {
             Utils.sendMessage(e.getLocalizedMessage());
         }
     }
-
     @SubscribeEvent
     public void onChat(ClientChatReceivedEvent c) {
         if (!Utils.nullCheck()) {
             return;
         }
         String strippedMessage = Utils.stripColor(c.message.getUnformattedText());
-        if (strippedMessage.startsWith(" ") && strippedMessage.contains("Protect your bed and destroy the enemy beds.")) {
+        if (strippedMessage.startsWith(" ") && (strippedMessage.contains("Protect your bed and destroy the enemy beds.") || strippedMessage.contains("Goodluck with your BedWars Game"))) {
+            Utils.sendMessage(this.getPrettyName() + ChatFormatting.GREEN + " game has started!");
+            ping();
             check = true;
         }
     }
@@ -208,4 +213,17 @@ public class BedWars extends Module {
         }
     }
 
+    private boolean isCurrentServerValid() {
+        if ((int) serverMode.getInput() == 0) {
+            return Utils.isHypixel();
+        } else if ((int) serverMode.getInput() == 1) {
+            return Utils.isCraftiGames();
+        }
+        return false;
+    }
+
+    @Override
+    public String getInfo() {
+        return SERVERS[(int) serverMode.getInput()];
+    }
 }
