@@ -17,13 +17,15 @@ import java.util.concurrent.TimeUnit;
 public class AutoPlay extends Module {
     private final ModeSetting mode;
     private final SliderSetting delay;
-    private static final String winMessage = "You won! Want to play again? Click here!";
-    private static final String loseMessage = "You died! Want to play again? Click here!";
+    private static final String SkywarsWinMessage = "You won! Want to play again? Click here!";
+    private static final String SkywarsLoseMessage = "You died! Want to play again? Click here!";
+    private static final String BedwarsWinMessage = "This game has been recorded. Click here to watch the Replay!";
+    private static final String BedwarsLoseMessage = "You have been eliminated!";
 
     public AutoPlay() {
         super("AutoPlay", category.other);
-        this.registerSetting(new DescriptionSetting("Auto take you to next game."));
-        this.registerSetting(mode = new ModeSetting("Mode", new String[]{"Solo Normal", "Solo Insane"}, 0));
+        this.registerSetting(new DescriptionSetting("Auto takes you to the next game."));
+        this.registerSetting(mode = new ModeSetting("Mode", new String[]{"Skywars Solo Normal", "Skywars Solo Insane", "Skywars Teams Normal", "Skywars Teams Insane", "Bedwars Solo", "Bedwars Doubles", "Bedwars 3v3v3v3", "Bedwars 4v4v4v4", "Bedwars 4v4"}, 0));
         this.registerSetting(delay = new SliderSetting("Delay", 1500, 0, 4000, 50, "ms"));
     }
 
@@ -32,21 +34,47 @@ public class AutoPlay extends Module {
         if (event.getPacket() instanceof S02PacketChat) {
             S02PacketChat packet = (S02PacketChat)event.getPacket();
             String message = packet.getChatComponent().getUnformattedText();
-            if (message.contains(winMessage) && message.length() < message.length() + 3
-                    || message.contains(loseMessage) && message.length() < loseMessage.length() + 3) {
+            if (message.contains(SkywarsWinMessage) && message.length() < SkywarsWinMessage.length() + 3
+                    || message.contains(SkywarsLoseMessage) && message.length() < SkywarsLoseMessage.length() + 3
+					|| message.contains(BedwarsWinMessage) && message.length() < BedwarsWinMessage.length() + 3
+					|| message.contains(BedwarsLoseMessage) && message.length() < BedwarsLoseMessage.length() + 3) {
                 Utils.sendModuleMessage(this, "Sending you to a new game.");
 
                 Raven.getExecutor().schedule(() -> {
                     if (!ModuleManager.autoPlay.isEnabled()) return;
 
                     String command = "";
-                    switch ((int) this.mode.getInput()) {
-                        case 0:
+                    switch ((int) this.mode.getInput()) { // list of commands comes from https://hypixel.net/threads/guide-play-commands-useful-tools-mods-more-new-pixel-party-play-command.1025608/
+						case 0:
                             command = "/play solo_normal";
-                            break;
+                            break; 
                         case 1:
                             command = "/play solo_insane";
                             break;
+						case 2:
+							command = "/play teams_normal";
+							break;
+						case 3:
+							command = "/play teams_insane";
+							break;
+						case 4:
+							command = "/play bedwars_eight_one";
+							break;
+						case 5:
+							command = "/play bedwars_eight_two";
+							break;
+						case 6:
+							command = "/play bedwars_four_three";
+							break;
+						case 7:
+							command = "/play bedwars_four_four";
+							break;
+						case 8:
+							command = "/play bedwars_two_four";
+							break;
+						default:
+                            command = "/play solo_normal";
+							break;
                     }
                     mc.thePlayer.sendChatMessage(command);
                 }, (long) delay.getInput(), TimeUnit.MILLISECONDS);
