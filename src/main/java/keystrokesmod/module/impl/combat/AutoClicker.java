@@ -105,11 +105,7 @@ public class AutoClicker extends Module {
     public void onRenderTick(@NotNull RenderTickEvent ev) {
         if (ev.phase != Phase.END && Utils.nullCheck() && !mc.thePlayer.isEating() && mc.objectMouseOver != null && HitSelect.canAttack(mc.objectMouseOver.entityHit)) {
             if (mc.currentScreen == null && mc.inGameHasFocus) {
-                if (weaponOnly.isToggled() && !Utils.holdingWeapon()) {
-                    return;
-                }
-
-                if (leftClick.isToggled() && Mouse.isButtonDown(0)) {
+                if (leftClick.isToggled() && Mouse.isButtonDown(0) && !(weaponOnly.isToggled() && !Utils.holdingWeapon())) {
                     this.dc(mc.gameSettings.keyBindAttack.getKeyCode(), 0);
                 } else if (rightClick.isToggled() && Mouse.isButtonDown(1)) {
                     if (blocksOnly.isToggled() && (mc.thePlayer.getCurrentEquippedItem() == null || !(mc.thePlayer.getCurrentEquippedItem().getItem() instanceof ItemBlock))) {
