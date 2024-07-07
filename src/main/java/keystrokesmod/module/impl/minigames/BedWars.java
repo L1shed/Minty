@@ -61,10 +61,6 @@ public class BedWars extends Module {
         obsidianPos.clear();
         check = false;
         outsideSpawn = true;
-
-        if (!isCurrentServerValid()) {
-            Utils.sendMessage(this.getPrettyName() + ChatFormatting.RED + " is made for " + String.join(", ", SERVERS) + ". It may not work on other servers!");
-        }
     }
 
     public void onDisable() {
@@ -114,9 +110,6 @@ public class BedWars extends Module {
             return;
         }
         if (e.entity == mc.thePlayer) {
-            if (!isCurrentServerValid()) {
-                Utils.sendMessage(this.getPrettyName() + ChatFormatting.RED + " is made for " + String.join(", ", SERVERS) + ". It may not work on other servers!");
-            }
             armoredPlayer.clear();
             lastHeldMap.clear();
         }
@@ -211,15 +204,6 @@ public class BedWars extends Module {
         if (shouldPing.isToggled()) {
             mc.thePlayer.playSound("note.pling", 1.0f, 1.0f);
         }
-    }
-
-    private boolean isCurrentServerValid() {
-        if ((int) serverMode.getInput() == 0) {
-            return Utils.isHypixel();
-        } else if ((int) serverMode.getInput() == 1) {
-            return Utils.isCraftiGames();
-        }
-        return false;
     }
 
     @Override
