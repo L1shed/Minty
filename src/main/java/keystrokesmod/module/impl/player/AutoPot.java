@@ -1,23 +1,22 @@
 package keystrokesmod.module.impl.player;
 
-import keystrokesmod.event.PreMotionEvent;
+import keystrokesmod.event.RotationEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.BlockUtils;
-import keystrokesmod.utility.PacketUtils;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockAir;
 import net.minecraft.block.BlockLadder;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemPotion;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.play.client.C07PacketPlayerDigging;
-import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
-import net.minecraft.network.play.client.C09PacketHeldItemChange;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Vec3;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.apache.commons.lang3.RandomUtils;
 
@@ -46,17 +45,19 @@ public class AutoPot extends Module {
     }
 
     @SubscribeEvent
-    public void onPreMotion(final PreMotionEvent event) {
+    public void onPreMotion() {
         ticksSinceLastSplash++;
 
-        if (mc.thePlayer.isInWater() || mc.thePlayer.isInLava() || (BlockUtils.getBlock(new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY-1, mc.thePlayer.posZ )) instanceof BlockAir || BlockUtils.getBlock(new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY-1, mc.thePlayer.posZ )) instanceof BlockLadder))
+        Block blockBelow = BlockUtils.getBlock(new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY-1, mc.thePlayer.posZ ));
+
+        if (mc.thePlayer.isInWater() || mc.thePlayer.isInLava() || (blockBelow instanceof BlockAir || blockBelow instanceof BlockLadder))
             ticksSinceCanSplash = 0;
         else
             ticksSinceCanSplash++;
 
         if (switchBack) {
-            PacketUtils.sendPacket(new C07PacketPlayerDigging(C07PacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN));
-            PacketUtils.sendPacket(new C09PacketHeldItemChange(oldSlot));
+            mc.thePlayer.stopUsingItem();
+            mc.thePlayer.inventory.currentItem = oldSlot;
             switchBack = false;
             return;
         }
@@ -89,12 +90,13 @@ public class AutoPot extends Module {
                             if ((effectName.contains("regeneration") || effectName.contains("heal")) && mc.thePlayer.getHealth() > health.getInput()) {
                                 continue;
                             } else {
-                                event.setPitch(randomRot.isToggled() ? RandomUtils.nextFloat(85, 90) : 90);
+                                RotationEvent rotationEvent = new RotationEvent(mc.thePlayer.rotationYaw, randomRot.isToggled() ? RandomUtils.nextFloat(85, 90) : 90);
+                                MinecraftForge.EVENT_BUS.post(rotationEvent);
                                 if (!needSplash) {
                                     needSplash = true;
                                 } else {
-                                    PacketUtils.sendPacket(new C09PacketHeldItemChange(i - 36));
-                                    PacketUtils.sendPacket(new C08PacketPlayerBlockPlacement(itemStack));
+                                    mc.thePlayer.inventory.currentItem = i-36;
+                                    mc.playerController.onPlayerRightClick(mc.thePlayer, mc.theWorld, itemStack, new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY-1, mc.thePlayer.posZ), EnumFacing.UP, new Vec3(mc.thePlayer.posX, mc.thePlayer.posY-1, mc.thePlayer.posZ));
                                     switchBack = true;
 
                                     ticksSinceLastSplash = 0;
