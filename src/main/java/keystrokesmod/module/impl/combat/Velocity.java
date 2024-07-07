@@ -27,6 +27,8 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static keystrokesmod.utility.Utils.isLobby;
+
 public class Velocity extends Module {
     private static final String[] MODES = new String[]{"Normal", "Hypixel", "Intave"};
     public static ModeSetting mode;
@@ -200,19 +202,5 @@ public class Velocity extends Module {
     @Override
     public String getInfo() {
         return MODES[(int) mode.getInput()];
-    }
-
-    private boolean isLobby() {
-        if (Utils.isHypixel()) {
-            List<String> sidebarLines = Utils.getSidebarLines();
-            if (!sidebarLines.isEmpty()) {
-                try {
-                    String[] parts = Utils.stripColor(sidebarLines.get(1)).split(" {2}");
-                    return parts.length > 1 && parts[1].charAt(0) == 'L';
-                } catch (IndexOutOfBoundsException ignored) {
-                }
-            }
-        }
-        return false;
     }
 }
