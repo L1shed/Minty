@@ -6,7 +6,6 @@ import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.BlockUtils;
-import keystrokesmod.utility.Reflection;
 import keystrokesmod.utility.RotationUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockAir;
@@ -16,6 +15,7 @@ import net.minecraft.item.ItemPotion;
 import net.minecraft.item.ItemStack;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.apache.commons.lang3.RandomUtils;
 
@@ -95,8 +95,14 @@ public class AutoPot extends Module {
                                     needSplash = true;
                                 } else {
                                     mc.thePlayer.inventory.currentItem = i-36;
-                                    RotationUtils.rayCast(1, event.getPitch(), event.getYaw());
-                                    Reflection.rightClick();
+                                    final MovingObjectPosition hitResult = RotationUtils.rayCast(1, event.getPitch(), event.getYaw());
+                                    mc.playerController.onPlayerRightClick(
+                                            mc.thePlayer, mc.theWorld,
+                                            mc.thePlayer.getHeldItem(),
+                                            hitResult.getBlockPos(),
+                                            hitResult.sideHit,
+                                            hitResult.hitVec
+                                    );
                                     switchBack = true;
 
                                     ticksSinceLastSplash = 0;
