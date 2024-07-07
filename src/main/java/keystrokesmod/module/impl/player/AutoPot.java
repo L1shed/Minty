@@ -1,4 +1,4 @@
-package keystrokesmod.module.impl.combat;
+package keystrokesmod.module.impl.player;
 
 import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.module.Module;
@@ -34,7 +34,7 @@ public class AutoPot extends Module {
     private final ArrayList<Integer> acceptedPotions = new ArrayList<>(Arrays.asList(6, 1, 5, 8, 14, 12, 10, 16));
 
     public AutoPot() {
-        super("AutoPot", category.combat);
+        super("AutoPot", category.player);
         this.registerSetting(new DescriptionSetting("Automatically throws potions."));
         this.registerSetting(health = new SliderSetting("Health", 10, 1, 20, 1));
         this.registerSetting(randomRot = new ButtonSetting("Randomized Rotations", true));
