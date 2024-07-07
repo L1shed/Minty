@@ -1,26 +1,44 @@
 {
-  "toggle.rise.enable":{
+  "toggle.rise.enable": {
     "category": "player",
     "sounds": [
       "keystrokesmod:toggle/rise/enable"
     ]
   },
-  "toggle.rise.disable":{
+  "toggle.rise.disable": {
     "category": "player",
     "sounds": [
       "keystrokesmod:toggle/rise/disable"
     ]
   },
-  "toggle.augustus.enable":{
+  "toggle.augustus.enable": {
     "category": "player",
     "sounds": [
       "keystrokesmod:toggle/augustus/enable"
     ]
   },
-  "toggle.augustus.disable":{
+  "toggle.augustus.disable": {
     "category": "player",
     "sounds": [
       "keystrokesmod:toggle/augustus/disable"
+    ]
+  },
+  "click.alan": {
+    "category": "player",
+    "sounds": [
+      "keystrokesmod:click/alan"
+    ]
+  },
+  "click.double": {
+    "category": "player",
+    "sounds": [
+      "keystrokesmod:click/double"
+    ]
+  },
+  "click.standard": {
+    "category": "player",
+    "sounds": [
+      "keystrokesmod:click/standard"
     ]
   }
 }

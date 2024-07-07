@@ -42,6 +42,7 @@ public class AutoClicker extends Module {
     public ButtonSetting inventoryFill;
     public ButtonSetting weaponOnly;
     public ButtonSetting blocksOnly;
+    private final ModeSetting clickSound;
     private Random rand = null;
     private Method gs;
     private long nextReleaseClickTime;
@@ -67,6 +68,7 @@ public class AutoClicker extends Module {
         this.registerSetting(inventoryFill = new ButtonSetting("Inventory fill", false));
         this.registerSetting(weaponOnly = new ButtonSetting("Weapon only", false));
         this.registerSetting(blocksOnly = new ButtonSetting("Blocks only", true));
+        this.registerSetting(clickSound = new ModeSetting("Click sound", new String[]{"None", "Standard", "Double", "Alan"}, 0));
 
         try {
             this.gs = GuiScreen.class.getDeclaredMethod("func_73864_a", Integer.TYPE, Integer.TYPE, Integer.TYPE);
@@ -143,6 +145,12 @@ public class AutoClicker extends Module {
                         KeyBinding.setKeyBindState(key, true);
                         KeyBinding.onTick(key);
                         this.hol = true;
+                        if (clickSound.getInput() != 0) {
+                            mc.thePlayer.playSound(
+                                    "keystrokesmod:click." + clickSound.getOptions()[(int) clickSound.getInput()].toLowerCase()
+                                    , 1, 1
+                            );
+                        }
                     }
 
                     return;
