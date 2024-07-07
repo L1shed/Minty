@@ -87,6 +87,7 @@ public class ModuleManager {
     public static ClientSpoofer clientSpoofer;
     public static BlockHit blockHit;
     public static FullBright fullBright;
+    public static ModSpoofer modSpoofer;
 
     public void register() {
         this.addModule(autoClicker = new AutoClicker());
@@ -203,6 +204,7 @@ public class ModuleManager {
         this.addModule(clientSpoofer = new ClientSpoofer());
         this.addModule(blockHit = new BlockHit());
         this.addModule(fullBright = new FullBright());
+        this.addModule(modSpoofer = new ModSpoofer());
         antiBot.enable();
         modules.sort(Comparator.comparing(Module::getPrettyName));
     }

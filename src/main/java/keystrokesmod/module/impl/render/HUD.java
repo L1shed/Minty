@@ -28,7 +28,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class HUD extends Module {
-    public static final String VERSION = "1.11.0";
+    public static final String VERSION = "1.11.1";
     public static ModeSetting theme;
 //    public static SliderSetting font;
 //    public static SliderSetting fontSize;
@@ -125,11 +125,9 @@ public class HUD extends Module {
 
         if (showWatermark.isToggled()) {
             String text = "";
-            String text2 = "";
             switch ((int) watermarkMode.getInput()) {
                 case 0:
-                    text = "§r§f§lRaven §bB§9" + bName +"§e";
-                    text2 = "§r§7[§rxia__mc Forked§7]§r v" + VERSION;
+                    text = "§r§f§lRaven §bX§9D§e";
                     break;
                 case 1:
                     text = "§f§lAugustus b" + VERSION;
@@ -140,11 +138,6 @@ public class HUD extends Module {
                 if (lowercase.isToggled())
                     text = text.toLowerCase();
                 texts.add(text);
-            }
-            if (showInfo.isToggled() && !text2.isEmpty()) {
-                if (lowercase.isToggled())
-                    text2 = text2.toLowerCase();
-                texts.add(text2);
             }
         }
 

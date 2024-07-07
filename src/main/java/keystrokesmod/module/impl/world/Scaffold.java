@@ -67,7 +67,7 @@ public class Scaffold extends Module { // from b4 :)
     private boolean delay;
     private boolean place;
     private int add = 0;
-    private int sameY$bridged = 0;
+    private int sameY$bridged = 1;
     private boolean placedUp;
     public Scaffold() {
         super("Scaffold", category.world);
@@ -104,6 +104,7 @@ public class Scaffold extends Module { // from b4 :)
         down = false;
         place = false;
         placedUp = false;
+        sameY$bridged = 1;
     }
 
     public void onEnable() {
@@ -147,7 +148,8 @@ public class Scaffold extends Module { // from b4 :)
             }
         }
 
-        if (sameY.isToggled() && fastScaffold.getInput() == 3 && sameY$bridged != 0 && sameY$bridged % 2 == 0 && placeBlock != null) {
+        if (sameY.isToggled() && (fastScaffold.getInput() == 3 || fastScaffold.getInput() == 4 || fastScaffold.getInput() == 5)
+                && sameY$bridged != 0 && sameY$bridged % 2 == 0 && placeBlock != null && !Utils.jumpDown()) {
             List<BlockPos> possible = new ArrayList<>(Arrays.asList(
                     placeBlock.getBlockPos().west(),
                     placeBlock.getBlockPos().east(),
@@ -190,7 +192,7 @@ public class Scaffold extends Module { // from b4 :)
             down = false;
             placedUp = false;
         }
-        if (keepYPosition() && (fastScaffold.getInput() == 3 || fastScaffold.getInput() == 4 || fastScaffold.getInput() == 5) && mc.thePlayer.onGround) {
+        if (keepYPosition() && (fastScaffold.getInput() == 3 || fastScaffold.getInput() == 4 || fastScaffold.getInput() == 5) && mc.thePlayer.onGround && !sameY.isToggled()) {
             mc.thePlayer.jump();
             add = 0;
             if (Math.floor(mc.thePlayer.posY) == Math.floor(startPos) && fastScaffold.getInput() == 5) {
@@ -253,9 +255,9 @@ public class Scaffold extends Module { // from b4 :)
         }
         targetPos = targetPos.add(enumFacing.getOffset().xCoord, enumFacing.getOffset().yCoord, enumFacing.getOffset().zCoord);
         float[] targetRotation = RotationUtils.getRotations(targetPos);
-        float searchPitch[] = new float[]{78, 12};
+        float[] searchPitch = new float[]{78, 12};
         for (int i = 0; i < 2; i++) {
-            if (i == 1 && rayCasted == null && Utils.overPlaceable(-1)) {
+            if (i == 1 && Utils.overPlaceable(-1)) {
                 searchYaw = 180;
                 searchPitch = new float[]{65, 25};
             }
@@ -302,6 +304,7 @@ public class Scaffold extends Module { // from b4 :)
                 place(placeBlock, true);
             }
             place(placeBlock, false);
+            sameY$bridged++;
             place = false;
             if (placeBlock.sideHit == EnumFacing.UP && keepYPosition()) {
                 placedUp = true;
