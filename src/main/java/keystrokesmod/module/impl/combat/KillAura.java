@@ -222,14 +222,15 @@ public class KillAura extends Module {
                 mc.thePlayer.sendQueue.addToSendQueue(new C0APacketAnimation());
             }
         }
-        if (block.get() && (autoBlockMode.getInput() == 3 || autoBlockMode.getInput() == 4) && Utils.holdingSword()) {
+        int input = (int) autoBlockMode.getInput();
+        if (block.get() && (input == 3 || input == 4 || input == 5 || input == 9) && Utils.holdingSword()) {
             setBlockState(block.get(), false, false);
             if (ModuleManager.bedAura.stopAutoblock) {
                 resetBlinkState(false);
                 ModuleManager.bedAura.stopAutoblock = false;
                 return;
             }
-            switch ((int) autoBlockMode.getInput()) {
+            switch (input) {
                 case 3:
                     if (lag) {
                         blinking = true;
@@ -274,6 +275,16 @@ public class KillAura extends Module {
                         attackAndInteract(target, swingWhileBlocking); // attack while blinked
                         releasePackets(); // release
                         sendBlock(); // block after releasing unblock
+                        lag = true;
+                    }
+                    break;
+                case 9:
+                    if (lag) {
+                        sendBlock();
+                        lag = false;
+                    } else {
+                        unBlock();
+                        attackAndInteract(target, swingWhileBlocking); // attack while blinked
                         lag = true;
                     }
                     break;

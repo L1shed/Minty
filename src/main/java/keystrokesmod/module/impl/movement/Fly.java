@@ -44,7 +44,7 @@ public class Fly extends Module {
         super("Fly", category.movement);
         this.registerSetting(mode = new ModeSetting("Fly", new String[]{"Vanilla", "Fast", "Fast 2", "AirWalk", "GrimAC", "BlocksMC"}, 0));
         final ModeOnly canChangeSpeed = new ModeOnly(mode, 0, 1, 2);
-        final ModeOnly balanceMode = new ModeOnly(mode, 5);
+        final ModeOnly balanceMode = new ModeOnly(mode, 4);
         this.registerSetting(horizontalSpeed = new SliderSetting("Horizontal speed", 2.0, 1.0, 9.0, 0.1, canChangeSpeed));
         this.registerSetting(verticalSpeed = new SliderSetting("Vertical speed", 2.0, 1.0, 9.0, 0.1, canChangeSpeed));
         this.registerSetting(maxBalance = new SliderSetting("Max balance", 6000, 3000, 30000, 1000, "ms", balanceMode));

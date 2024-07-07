@@ -16,6 +16,7 @@ import keystrokesmod.utility.Utils;
 import net.minecraft.item.*;
 import net.minecraft.network.play.client.C07PacketPlayerDigging;
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
+import net.minecraft.network.play.client.C09PacketHeldItemChange;
 import net.minecraft.network.play.client.C0CPacketInput;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
@@ -115,6 +116,10 @@ public class NoSlow extends Module {
 
         final Item item = mc.thePlayer.getHeldItem().getItem();
         switch ((int) mode.getInput()) {
+            case 4:
+                PacketUtils.sendPacket(new C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem % 8 + 1));
+                PacketUtils.sendPacket(new C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem));
+                break;
             case 5:
                 if (!MoveUtil.isMoving()) return;
                 if (ContainerUtils.isRest(item)) {
