@@ -1,7 +1,7 @@
 package keystrokesmod.module.impl.movement;
 
 import keystrokesmod.event.BlockAABBEvent;
-import keystrokesmod.event.PrePlayerInput;
+import keystrokesmod.event.PrePlayerInputEvent;
 import keystrokesmod.event.ReceivePacketEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ButtonSetting;
@@ -83,7 +83,7 @@ public class Fly extends Module {
     }
 
     @SubscribeEvent
-    public void onPlayerInput(PrePlayerInput event) {
+    public void onPlayerInput(PrePlayerInputEvent event) {
         if ((int) mode.getInput() != 5) return;
 
         final AxisAlignedBB bb = mc.thePlayer.getEntityBoundingBox().offset(0, 1, 0);

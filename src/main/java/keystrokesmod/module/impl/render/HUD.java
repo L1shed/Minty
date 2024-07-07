@@ -6,7 +6,6 @@ import keystrokesmod.module.impl.player.ChestStealer;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.ModeSetting;
-import keystrokesmod.utility.Timer;
 import keystrokesmod.utility.font.Font;
 import keystrokesmod.utility.font.FontManager;
 import keystrokesmod.utility.render.RenderUtils;
@@ -29,7 +28,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class HUD extends Module {
-    public static final String VERSION = "1.10.3";
+    public static final String VERSION = "1.11.0";
     public static ModeSetting theme;
 //    public static SliderSetting font;
 //    public static SliderSetting fontSize;

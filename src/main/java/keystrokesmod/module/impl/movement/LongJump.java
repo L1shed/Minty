@@ -1,7 +1,7 @@
 package keystrokesmod.module.impl.movement;
 
 import keystrokesmod.event.PreMotionEvent;
-import keystrokesmod.event.PrePlayerInput;
+import keystrokesmod.event.PrePlayerInputEvent;
 import keystrokesmod.event.PreUpdateEvent;
 import keystrokesmod.event.ReceivePacketEvent;
 import keystrokesmod.mixins.impl.client.KeyBindingAccessor;
@@ -179,7 +179,7 @@ public class LongJump extends Module {
     }
 
     @SubscribeEvent
-    public void onPreInput(PrePlayerInput event) {
+    public void onPreInput(PrePlayerInputEvent event) {
         if ((int) mode.getInput() == 2) {
             if (ticks < 40) {
                 event.setForward(0);

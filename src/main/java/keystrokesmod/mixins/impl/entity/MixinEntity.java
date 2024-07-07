@@ -1,15 +1,10 @@
 package keystrokesmod.mixins.impl.entity;
 
-import keystrokesmod.event.PostInputEvent;
-import keystrokesmod.event.PreMotionEvent;
-import keystrokesmod.event.PrePlayerInput;
+import keystrokesmod.event.PrePlayerInputEvent;
 import keystrokesmod.event.StepEvent;
 import keystrokesmod.module.ModuleManager;
-import keystrokesmod.module.impl.client.Settings;
 import keystrokesmod.module.impl.other.RotationHandler;
 import keystrokesmod.module.impl.world.SafeWalk;
-import keystrokesmod.utility.RotationUtils;
-import keystrokesmod.utility.Utils;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockFence;
 import net.minecraft.block.BlockFenceGate;
@@ -437,7 +432,7 @@ public abstract class MixinEntity {
     public void moveFlying(float p_moveFlying_1_, float p_moveFlying_2_, float p_moveFlying_3_) {
         float yaw = this.rotationYaw;
         if((Object) this instanceof EntityPlayerSP) {
-            PrePlayerInput prePlayerInput = new PrePlayerInput(p_moveFlying_1_, p_moveFlying_2_, p_moveFlying_3_, RotationHandler.getMovementYaw((Entity) (Object) this));
+            PrePlayerInputEvent prePlayerInput = new PrePlayerInputEvent(p_moveFlying_1_, p_moveFlying_2_, p_moveFlying_3_, RotationHandler.getMovementYaw((Entity) (Object) this));
             net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(prePlayerInput);
             if (prePlayerInput.isCanceled()) {
                 return;
@@ -462,10 +457,6 @@ public abstract class MixinEntity {
             float f2 = MathHelper.cos(yaw * 3.1415927F / 180.0F);
             this.motionX += p_moveFlying_1_ * f2 - p_moveFlying_2_ * f1;
             this.motionZ += p_moveFlying_2_ * f2 + p_moveFlying_1_ * f1;
-        }
-
-        if((Object) this instanceof EntityPlayerSP) {
-            net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new PostInputEvent());
         }
     }
 }
