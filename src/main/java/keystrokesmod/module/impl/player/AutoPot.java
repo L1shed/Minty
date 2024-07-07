@@ -6,6 +6,8 @@ import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.BlockUtils;
+import keystrokesmod.utility.Reflection;
+import keystrokesmod.utility.RotationUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockAir;
 import net.minecraft.block.BlockLadder;
@@ -14,9 +16,6 @@ import net.minecraft.item.ItemPotion;
 import net.minecraft.item.ItemStack;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.BlockPos;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.Vec3;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.apache.commons.lang3.RandomUtils;
 
@@ -45,7 +44,7 @@ public class AutoPot extends Module {
     }
 
     @SubscribeEvent
-    public void onPreMotion() {
+    public void onRotation(RotationEvent event) {
         ticksSinceLastSplash++;
 
         Block blockBelow = BlockUtils.getBlock(new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY-1, mc.thePlayer.posZ ));
@@ -56,14 +55,15 @@ public class AutoPot extends Module {
             ticksSinceCanSplash++;
 
         if (switchBack) {
-            mc.thePlayer.stopUsingItem();
+            if (mc.thePlayer.isUsingItem()) {
+                mc.thePlayer.stopUsingItem();
+            }
             mc.thePlayer.inventory.currentItem = oldSlot;
             switchBack = false;
             return;
         }
 
-        if (ticksSinceCanSplash <= 1 || !mc.thePlayer.onGround)
-            return;
+        if (ticksSinceCanSplash <= 1 || !mc.thePlayer.onGround) return;
 
         oldSlot = mc.thePlayer.inventory.currentItem;
 
@@ -90,13 +90,13 @@ public class AutoPot extends Module {
                             if ((effectName.contains("regeneration") || effectName.contains("heal")) && mc.thePlayer.getHealth() > health.getInput()) {
                                 continue;
                             } else {
-                                RotationEvent rotationEvent = new RotationEvent(mc.thePlayer.rotationYaw, randomRot.isToggled() ? RandomUtils.nextFloat(85, 90) : 90);
-                                MinecraftForge.EVENT_BUS.post(rotationEvent);
+                                event.setPitch(randomRot.isToggled() ? RandomUtils.nextFloat(85, 90) : 90);
                                 if (!needSplash) {
                                     needSplash = true;
                                 } else {
                                     mc.thePlayer.inventory.currentItem = i-36;
-                                    mc.playerController.onPlayerRightClick(mc.thePlayer, mc.theWorld, itemStack, new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY-1, mc.thePlayer.posZ), EnumFacing.UP, new Vec3(mc.thePlayer.posX, mc.thePlayer.posY-1, mc.thePlayer.posZ));
+                                    RotationUtils.rayCast(1, event.getPitch(), event.getYaw());
+                                    Reflection.rightClick();
                                     switchBack = true;
 
                                     ticksSinceLastSplash = 0;
