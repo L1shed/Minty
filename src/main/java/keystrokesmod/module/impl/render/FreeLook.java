@@ -2,7 +2,7 @@ package keystrokesmod.module.impl.render;
 
 import keystrokesmod.event.JumpEvent;
 import keystrokesmod.event.PreMotionEvent;
-import keystrokesmod.event.PrePlayerInput;
+import keystrokesmod.event.PrePlayerInputEvent;
 import keystrokesmod.event.PreUpdateEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ButtonSetting;
@@ -64,7 +64,7 @@ public class FreeLook extends Module {
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public void onPreInput(@NotNull PrePlayerInput event) {
+    public void onPreInput(@NotNull PrePlayerInputEvent event) {
         if (viewData != null) {
             event.setYaw(viewData.rotationYaw);
         }

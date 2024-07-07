@@ -16,6 +16,7 @@ import keystrokesmod.utility.Utils;
 import net.minecraft.item.*;
 import net.minecraft.network.play.client.C07PacketPlayerDigging;
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
+import net.minecraft.network.play.client.C09PacketHeldItemChange;
 import net.minecraft.network.play.client.C0CPacketInput;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
@@ -30,7 +31,7 @@ public class NoSlow extends Module {
     public static ButtonSetting disablePotions;
     public static ButtonSetting swordOnly;
     public static ButtonSetting vanillaSword;
-    private final String[] modes = new String[]{"Vanilla", "Pre", "Post", "Alpha", "BlocksMC", "Intave", "Polar"};
+    private final String[] modes = new String[]{"Vanilla", "Pre", "Post", "Alpha", "Old Intave", "Intave", "Polar"};
     private boolean postPlace;
     private static ModeOnly canChangeSpeed;
 
@@ -84,20 +85,13 @@ public class NoSlow extends Module {
 
     @SubscribeEvent
     public void onPostMotion(PostMotionEvent e) {
-        switch ((int) mode.getInput()) {
-            case 3:
-                if (postPlace) {
-                    if (mc.thePlayer.ticksExisted % 3 == 0 && !Raven.badPacketsHandler.C07) {
-                        mc.thePlayer.sendQueue.addToSendQueue(new C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()));
-                    }
-                    postPlace = false;
+        if ((int) mode.getInput() == 3) {
+            if (postPlace) {
+                if (mc.thePlayer.ticksExisted % 3 == 0 && !Raven.badPacketsHandler.C07) {
+                    mc.thePlayer.sendQueue.addToSendQueue(new C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()));
                 }
-                break;
-            case 4:
-                if (mc.thePlayer.isUsingItem()) {
-                    PacketUtils.sendPacket(new C08PacketPlayerBlockPlacement(blocksMC$getItemStack()));
-                }
-                break;
+                postPlace = false;
+            }
         }
 
     }
@@ -115,6 +109,10 @@ public class NoSlow extends Module {
 
         final Item item = mc.thePlayer.getHeldItem().getItem();
         switch ((int) mode.getInput()) {
+            case 4:
+                PacketUtils.sendPacket(new C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem % 8 + 1));
+                PacketUtils.sendPacket(new C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem));
+                break;
             case 5:
                 if (!MoveUtil.isMoving()) return;
                 if (ContainerUtils.isRest(item)) {

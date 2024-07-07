@@ -122,7 +122,7 @@ public class ScriptEvents {
     }
 
     @SubscribeEvent
-    public void onPostInput(PostInputEvent e) {
+    public void onPostInput(PostPlayerInputEvent e) {
         Raven.scriptManager.invoke("onPostPlayerInput", module);
     }
 

@@ -16,12 +16,13 @@ public class LegitScaffold extends Module {
     private final ButtonSetting pitchCheck = new ButtonSetting("Pitch check", true);
     private final SliderSetting pitch = new SliderSetting("Pitch", 45, 0, 90, 5, pitchCheck::isToggled);
     private final ButtonSetting onlySPressed = new ButtonSetting("Only S pressed", false);
+    private final ButtonSetting onlySneak = new ButtonSetting("Only sneak", false);
 
     private long lastSneakTime = -1;
 
     public LegitScaffold() {
         super("Legit scaffold", category.world);
-        this.registerSetting(minDelay, maxDelay, pitchCheck, pitch, onlySPressed);
+        this.registerSetting(minDelay, maxDelay, pitchCheck, pitch, onlySPressed, onlySneak);
     }
 
     @Override
@@ -41,6 +42,7 @@ public class LegitScaffold extends Module {
 
         if ((onlySPressed.isToggled() && !mc.gameSettings.keyBindBack.isKeyDown())
                 || (pitchCheck.isToggled() && mc.thePlayer.rotationPitch < pitch.getInput())
+                || (onlySneak.isToggled() && !Keyboard.isKeyDown(mc.gameSettings.keyBindSneak.getKeyCode()))
         ) {
             setSneak(Keyboard.isKeyDown(mc.gameSettings.keyBindSneak.getKeyCode()));
             return;

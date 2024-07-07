@@ -1,6 +1,6 @@
 package keystrokesmod.module.impl.movement;
 
-import keystrokesmod.event.PrePlayerInput;
+import keystrokesmod.event.PrePlayerInputEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.impl.combat.KillAura;
 import keystrokesmod.module.setting.impl.ButtonSetting;
@@ -41,7 +41,7 @@ public class TargetStrafe extends Module {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGH)
-    public void onPreInput(PrePlayerInput input) {
+    public void onPreInput(PrePlayerInputEvent input) {
         if (KillAura.target == null || (onlySpeed.isToggled() && !speed.isEnabled())) {
             movementYaw = null;
             return;

@@ -1,23 +1,17 @@
 package keystrokesmod.module.impl.movement;
 
 import keystrokesmod.event.PreMotionEvent;
-import keystrokesmod.event.PrePlayerInput;
+import keystrokesmod.event.PrePlayerInputEvent;
 import keystrokesmod.event.ReceivePacketEvent;
 import keystrokesmod.module.Module;
-import keystrokesmod.module.impl.player.NoFall;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.utility.*;
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockAir;
-import net.minecraft.block.state.BlockState;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.network.play.client.C07PacketPlayerDigging;
 import net.minecraft.network.play.client.C0BPacketEntityAction;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraft.potion.Potion;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.jetbrains.annotations.NotNull;
@@ -133,7 +127,7 @@ public class Speed extends Module {
     }
 
     @SubscribeEvent
-    public void onPlayerInput(PrePlayerInput event) {
+    public void onPlayerInput(PrePlayerInputEvent event) {
         if (noAction()) return;
 
         if ((int) mode.getInput() == 1) {

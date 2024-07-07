@@ -2,6 +2,7 @@ package keystrokesmod.mixins.impl.client;
 
 
 import keystrokesmod.event.MoveInputEvent;
+import keystrokesmod.event.PostPlayerInputEvent;
 import net.minecraft.client.settings.GameSettings;
 import net.minecraft.util.MovementInput;
 import net.minecraft.util.MovementInputFromOptions;
@@ -58,5 +59,7 @@ public abstract class MixinMovementInputFromOptions extends MovementInput {
             this.moveStrafe = (float) ((double) this.moveStrafe * sneakMultiplier);
             this.moveForward = (float) ((double) this.moveForward * sneakMultiplier);
         }
+
+        MinecraftForge.EVENT_BUS.post(new PostPlayerInputEvent());
     }
 }

@@ -66,13 +66,18 @@ public class Velocity extends Module {
             return;
         }
 
-        if (mode.getInput() == 2)
-            if (mc.objectMouseOver.typeOfHit.equals(MovingObjectPosition.MovingObjectType.ENTITY) && mc.thePlayer.hurtTime > 0 && !attacked) {
-                mc.thePlayer.motionX *= 0.6D;
-                mc.thePlayer.motionZ *= 0.6D;
-                mc.thePlayer.setSprinting(false);
-                if (debug.isToggled()) Utils.sendMessage("reduced.");
+        try {
+            if (mode.getInput() == 2) {
+                if (mc.objectMouseOver.typeOfHit.equals(MovingObjectPosition.MovingObjectType.ENTITY) && mc.thePlayer.hurtTime > 0 && !attacked) {
+                    mc.thePlayer.motionX *= 0.6D;
+                    mc.thePlayer.motionZ *= 0.6D;
+                    mc.thePlayer.setSprinting(false);
+                    if (debug.isToggled()) Utils.sendMessage("reduced.");
+                }
             }
+        } catch (NullPointerException e) {
+            Utils.sendMessage(e.getLocalizedMessage());
+        }
 
         attacked = false;
     }

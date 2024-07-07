@@ -19,6 +19,7 @@ public class Timer extends Module {
     private final SliderSetting costMultiplier;
     private final ButtonSetting autoDisable;
     public static ButtonSetting strafeOnly;
+    private final ButtonSetting onlyOnGround;
 
     private long balance = 0;
     private long startTime = -1;
@@ -36,6 +37,7 @@ public class Timer extends Module {
         this.registerSetting(costMultiplier = new SliderSetting("Cost multiplier", 1, 0.5, 5, 0.05, "x", mode1));
         this.registerSetting(autoDisable = new ButtonSetting("Auto disable", true, mode1));
         this.registerSetting(strafeOnly = new ButtonSetting("Strafe only", false));
+        this.registerSetting(onlyOnGround = new ButtonSetting("Only onGround", false));
     }
 
     @Override
@@ -70,6 +72,10 @@ public class Timer extends Module {
             reset();
         } else {
             if (strafeOnly.isToggled() && mc.thePlayer.moveStrafing == 0.0F) {
+                reset();
+                return;
+            }
+            if (onlyOnGround.isToggled() && !mc.thePlayer.onGround) {
                 reset();
                 return;
             }

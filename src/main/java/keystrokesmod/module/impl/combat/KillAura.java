@@ -95,7 +95,7 @@ public class KillAura extends Module {
     public KillAura() {
         super("KillAura", category.combat);
         this.registerSetting(aps = new SliderSetting("APS", 16.0, 1.0, 20.0, 0.5));
-        String[] autoBlockModes = new String[]{"Manual", "Vanilla", "Post", "Swap", "Interact", "Fake", "Partial", "Watchdog 1.12.2", "BlocksMC"};
+        String[] autoBlockModes = new String[]{"Manual", "Vanilla", "Post", "Swap", "Interact A", "Interact B", "Fake", "Partial", "Watchdog 1.12.2"};
         this.registerSetting(autoBlockMode = new ModeSetting("Autoblock", autoBlockModes, 0));
         this.registerSetting(fov = new SliderSetting("FOV", 360.0, 30.0, 360.0, 4.0));
         this.registerSetting(attackRange = new SliderSetting("Attack range", 3.2, 3.0, 6.0, 0.1));
@@ -222,14 +222,15 @@ public class KillAura extends Module {
                 mc.thePlayer.sendQueue.addToSendQueue(new C0APacketAnimation());
             }
         }
-        if (block.get() && (autoBlockMode.getInput() == 3 || autoBlockMode.getInput() == 4) && Utils.holdingSword()) {
+        int input = (int) autoBlockMode.getInput();
+        if (block.get() && (input == 3 || input == 4 || input == 5 || input == 9) && Utils.holdingSword()) {
             setBlockState(block.get(), false, false);
             if (ModuleManager.bedAura.stopAutoblock) {
                 resetBlinkState(false);
                 ModuleManager.bedAura.stopAutoblock = false;
                 return;
             }
-            switch ((int) autoBlockMode.getInput()) {
+            switch (input) {
                 case 3:
                     if (lag) {
                         blinking = true;
@@ -246,19 +247,8 @@ public class KillAura extends Module {
                             mc.thePlayer.sendQueue.addToSendQueue(new C09PacketHeldItemChange(Raven.badPacketsHandler.playerSlot = mc.thePlayer.inventory.currentItem));
                             swapped = false;
                         }
-                        if (target != null && attack) {
-                            attack = false;
-                            if (noAimToEntity()) {
-                                return;
-                            }
-                            switchTargets = true;
-                            Utils.attackEntity(target, !swing && swingWhileBlocking, !swingWhileBlocking);
-                            mc.thePlayer.sendQueue.addToSendQueue(new C02PacketUseEntity(target, C02PacketUseEntity.Action.INTERACT));
-                        } else if (ModuleManager.antiFireball != null && ModuleManager.antiFireball.isEnabled() && ModuleManager.antiFireball.fireball != null && ModuleManager.antiFireball.attack) {
-                            Utils.attackEntity(ModuleManager.antiFireball.fireball, !ModuleManager.antiFireball.silentSwing.isToggled(), ModuleManager.antiFireball.silentSwing.isToggled());
-                            mc.thePlayer.sendQueue.addToSendQueue(new C02PacketUseEntity(ModuleManager.antiFireball.fireball, C02PacketUseEntity.Action.INTERACT));
-                        }
-                        mc.getNetHandler().addToSendQueue(new C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()));
+                        attackAndInteract(target, swingWhileBlocking);
+                        sendBlock();
                         releasePackets();
                         lag = true;
                     }
@@ -269,21 +259,37 @@ public class KillAura extends Module {
                         unBlock();
                         lag = false;
                     } else {
-                        if (target != null && attack) {
-                            attack = false;
-                            if (noAimToEntity()) {
-                                return;
-                            }
-                            switchTargets = true;
-                            Utils.attackEntity(target, !swing && swingWhileBlocking, !swingWhileBlocking);
-                            mc.thePlayer.sendQueue.addToSendQueue(new C02PacketUseEntity(target, C02PacketUseEntity.Action.INTERACT));
-                        } else if (ModuleManager.antiFireball != null && ModuleManager.antiFireball.isEnabled() && ModuleManager.antiFireball.fireball != null && ModuleManager.antiFireball.attack) {
-                            Utils.attackEntity(ModuleManager.antiFireball.fireball, !ModuleManager.antiFireball.silentSwing.isToggled(), ModuleManager.antiFireball.silentSwing.isToggled());
-                            mc.thePlayer.sendQueue.addToSendQueue(new C02PacketUseEntity(ModuleManager.antiFireball.fireball, C02PacketUseEntity.Action.INTERACT));
-                        }
-                        mc.getNetHandler().addToSendQueue(new C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()));
+                        attackAndInteract(target, swingWhileBlocking);
+                        sendBlock();
                         releasePackets();
                         lag = true;
+                    }
+                    break;
+                case 5:
+                    if (lag) {
+                        blinking = true;
+                        unBlock();
+                        lag = false;
+                    }
+                    else {
+                        attackAndInteract(target, swingWhileBlocking); // attack while blinked
+                        releasePackets(); // release
+                        sendBlock(); // block after releasing unblock
+                        lag = true;
+                    }
+                    break;
+                case 9:
+                    if (lag) {
+                        unBlock();
+                        lag = false;
+                    } else {
+                        if (blocking) {
+                            unBlock();
+                        } else {
+                            attackAndInteract(target, swingWhileBlocking); // attack while blinked
+                            sendBlock();
+                            lag = true;
+                        }
                     }
                     break;
             }
@@ -425,6 +431,9 @@ public class KillAura extends Module {
             block.set(false);
         }
         switch ((int) autoBlockMode.getInput()) {
+            case 0:  // manual
+                setBlockState(false, false, true);
+                break;
             case 1: // vanilla
                 setBlockState(block.get(), true, true);
                 break;
@@ -433,18 +442,19 @@ public class KillAura extends Module {
                 break;
             case 3: // interact
             case 4:
+            case 5:
                 setBlockState(block.get(), false, false);
                 break;
-            case 5: // fake
+            case 6: // fake
                 setBlockState(block.get(), false, false);
                 break;
-            case 6: // partial
+            case 7: // partial
                 boolean down = (target == null || target.hurtTime >= 5) && block.get();
                 KeyBinding.setKeyBindState(mc.gameSettings.keyBindUseItem.getKeyCode(), down);
                 Reflection.setButton(1, down);
                 blocking = down;
                 break;
-            case 7: // watchdog 1.12.2
+            case 8: // watchdog 1.12.2
                 setBlockState(block.get(), true, true);
                 PacketUtils.sendPacketNoEvent(new C0APacketAnimation());
                 /*
@@ -467,7 +477,7 @@ public class KillAura extends Module {
     private void setBlockState(boolean state, boolean sendBlock, boolean sendUnBlock) {
         if (Utils.holdingSword()) {
             if (sendBlock && !blocking && state && Utils.holdingSword() && !Raven.badPacketsHandler.C07) {
-                mc.getNetHandler().addToSendQueue(new C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()));
+                sendBlock();
             } else if (sendUnBlock && blocking && !state) {
                 unBlock();
             }
@@ -575,6 +585,26 @@ public class KillAura extends Module {
             blockingTime = 0;
         }
         return mc.currentScreen != null && disableInInventory.isToggled();
+    }
+
+    private void attackAndInteract(EntityLivingBase target, boolean swingWhileBlocking) {
+        if (target != null && attack) {
+            attack = false;
+            if (noAimToEntity()) {
+                return;
+            }
+            switchTargets = true;
+            Utils.attackEntity(target, !swing && swingWhileBlocking, !swingWhileBlocking);
+            mc.thePlayer.sendQueue.addToSendQueue(new C02PacketUseEntity(target, C02PacketUseEntity.Action.INTERACT));
+        }
+        else if (ModuleManager.antiFireball != null && ModuleManager.antiFireball.isEnabled() && ModuleManager.antiFireball.fireball != null && ModuleManager.antiFireball.attack) {
+            Utils.attackEntity(ModuleManager.antiFireball.fireball, !ModuleManager.antiFireball.silentSwing.isToggled(), ModuleManager.antiFireball.silentSwing.isToggled());
+            mc.thePlayer.sendQueue.addToSendQueue(new C02PacketUseEntity(ModuleManager.antiFireball.fireball, C02PacketUseEntity.Action.INTERACT));
+        }
+    }
+
+    private void sendBlock() {
+        mc.getNetHandler().addToSendQueue(new C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()));
     }
 
     private boolean isMining() {

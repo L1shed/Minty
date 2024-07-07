@@ -137,12 +137,18 @@ public class BedAura extends Module {
         }
 
         if (delayStart) {
-            resetSlot();
             int breakTickDelay = 0;
             if (ticksAfterBreak++ <= breakTickDelay) {
+                if (currentSlot != -1 && currentSlot != mc.thePlayer.inventory.currentItem) {
+                    stopAutoblock = true;
+                }
                 return;
             }
             else {
+                if (currentSlot != -1 && currentSlot != mc.thePlayer.inventory.currentItem) {
+                    stopAutoblock = true;
+                }
+                resetSlot();
                 delayStart = false;
                 ticksAfterBreak = 0;
             }
@@ -230,6 +236,8 @@ public class BedAura extends Module {
 
     private void resetSlot() {
         if (currentSlot != -1 && currentSlot != mc.thePlayer.inventory.currentItem && mode.getInput() == 2) {
+            stopAutoblock = true;
+            delayStart = true;
             setPacketSlot(mc.thePlayer.inventory.currentItem);
         }
         else if (lastSlot != -1) {

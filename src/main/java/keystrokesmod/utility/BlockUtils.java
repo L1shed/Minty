@@ -97,6 +97,10 @@ public class BlockUtils {
         return getBlockState(blockPos).getBlock();
     }
 
+    public static Block getBlock(double x, double y, double z) {
+        return getBlock(new BlockPos(x, y, z));
+    }
+
     public static IBlockState getBlockState(BlockPos blockPos) {
         return mc.theWorld.getBlockState(blockPos);
     }
