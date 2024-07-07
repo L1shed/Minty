@@ -95,7 +95,7 @@ public class KillAura extends Module {
     public KillAura() {
         super("KillAura", category.combat);
         this.registerSetting(aps = new SliderSetting("APS", 16.0, 1.0, 20.0, 0.5));
-        String[] autoBlockModes = new String[]{"Manual", "Vanilla", "Post", "Swap", "Interact A", "Interact B", "Fake", "Partial", "Watchdog 1.12.2", "BlocksMC"};
+        String[] autoBlockModes = new String[]{"Manual", "Vanilla", "Post", "Swap", "Interact A", "Interact B", "Fake", "Partial", "Watchdog 1.12.2"};
         this.registerSetting(autoBlockMode = new ModeSetting("Autoblock", autoBlockModes, 0));
         this.registerSetting(fov = new SliderSetting("FOV", 360.0, 30.0, 360.0, 4.0));
         this.registerSetting(attackRange = new SliderSetting("Attack range", 3.2, 3.0, 6.0, 0.1));
@@ -280,12 +280,16 @@ public class KillAura extends Module {
                     break;
                 case 9:
                     if (lag) {
-                        sendBlock();
+                        unBlock();
                         lag = false;
                     } else {
-                        unBlock();
-                        attackAndInteract(target, swingWhileBlocking); // attack while blinked
-                        lag = true;
+                        if (blocking) {
+                            unBlock();
+                        } else {
+                            attackAndInteract(target, swingWhileBlocking); // attack while blinked
+                            sendBlock();
+                            lag = true;
+                        }
                     }
                     break;
             }

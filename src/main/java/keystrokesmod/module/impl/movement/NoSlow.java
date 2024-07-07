@@ -31,7 +31,7 @@ public class NoSlow extends Module {
     public static ButtonSetting disablePotions;
     public static ButtonSetting swordOnly;
     public static ButtonSetting vanillaSword;
-    private final String[] modes = new String[]{"Vanilla", "Pre", "Post", "Alpha", "BlocksMC", "Intave", "Polar"};
+    private final String[] modes = new String[]{"Vanilla", "Pre", "Post", "Alpha", "Old Intave", "Intave", "Polar"};
     private boolean postPlace;
     private static ModeOnly canChangeSpeed;
 
@@ -85,20 +85,13 @@ public class NoSlow extends Module {
 
     @SubscribeEvent
     public void onPostMotion(PostMotionEvent e) {
-        switch ((int) mode.getInput()) {
-            case 3:
-                if (postPlace) {
-                    if (mc.thePlayer.ticksExisted % 3 == 0 && !Raven.badPacketsHandler.C07) {
-                        mc.thePlayer.sendQueue.addToSendQueue(new C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()));
-                    }
-                    postPlace = false;
+        if ((int) mode.getInput() == 3) {
+            if (postPlace) {
+                if (mc.thePlayer.ticksExisted % 3 == 0 && !Raven.badPacketsHandler.C07) {
+                    mc.thePlayer.sendQueue.addToSendQueue(new C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()));
                 }
-                break;
-            case 4:
-                if (mc.thePlayer.isUsingItem()) {
-                    PacketUtils.sendPacket(new C08PacketPlayerBlockPlacement(blocksMC$getItemStack()));
-                }
-                break;
+                postPlace = false;
+            }
         }
 
     }
