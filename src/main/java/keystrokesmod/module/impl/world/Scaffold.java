@@ -70,7 +70,7 @@ public class Scaffold extends Module { // from b4 :)
     private int sameY$bridged = 0;
     private boolean placedUp;
     public Scaffold() {
-        super("Scaffold", category.player);
+        super("Scaffold", category.world);
         this.registerSetting(motion = new SliderSetting("Motion", 1.0, 0.5, 1.2, 0.01));
         this.registerSetting(rotation = new ModeSetting("Rotation", rotationModes, 1));
         this.registerSetting(fastScaffold = new ModeSetting("Fast scaffold", fastScaffoldModes, 0));
