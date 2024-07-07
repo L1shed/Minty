@@ -203,6 +203,7 @@ public class ModuleManager {
         this.addModule(clientSpoofer = new ClientSpoofer());
         this.addModule(blockHit = new BlockHit());
         this.addModule(fullBright = new FullBright());
+        this.addModule(new AutoPot());
         antiBot.enable();
         modules.sort(Comparator.comparing(Module::getPrettyName));
     }
