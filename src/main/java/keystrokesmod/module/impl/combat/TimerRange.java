@@ -5,6 +5,7 @@ import keystrokesmod.module.Module;
 import keystrokesmod.module.impl.world.AntiBot;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
+import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.script.classes.Vec3;
 import keystrokesmod.utility.Utils;
@@ -15,6 +16,7 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import java.util.Comparator;
 
 public class TimerRange extends Module {
+    private final ModeSetting orderMode;
     private final SliderSetting lagTicks;
     private final SliderSetting timerTicks;
     private final SliderSetting minRange;
@@ -30,6 +32,7 @@ public class TimerRange extends Module {
     public TimerRange() {
         super("TimerRange", category.combat);
         this.registerSetting(new DescriptionSetting("Use timer help you to beat opponent."));
+        this.registerSetting(orderMode = new ModeSetting("Order Mode", new String[]{"Pre", "Post"}, 0));
         this.registerSetting(lagTicks = new SliderSetting("Lag ticks", 2, 0, 10, 1));
         this.registerSetting(timerTicks = new SliderSetting("Timer ticks", 2, 0, 10, 1));
         this.registerSetting(minRange = new SliderSetting("Min range", 3.6, 0, 8, 0.1));
@@ -44,20 +47,37 @@ public class TimerRange extends Module {
     public void onRender(TickEvent.RenderTickEvent e) {
         if (!shouldStart()) return;
 
-        if (hasLag < lagTicks.getInput()) {
-            Utils.getTimer().timerSpeed = 0.0F;
-            if (System.currentTimeMillis() - lastLagTime >= 50) {
-                hasLag++;
-                lastLagTime = System.currentTimeMillis();
-            }
-            return;
+        switch ((int) orderMode.getInput()) {
+            case 0:
+                if (hasLag < lagTicks.getInput()) {
+                    lag();
+                    return;
+                }
+                timer();
+                break;
+            case 1:
+                timer();
+                if (hasLag < lagTicks.getInput()) {
+                    lag();
+                    return;
+                }
+                break;
         }
+    }
 
-        Utils.getTimer().timerSpeed = 1.0F;
+    private void lag() {
+        Utils.getTimer().timerSpeed = 0.0F;
+        if (System.currentTimeMillis() - lastLagTime >= 50) {
+            hasLag++;
+            lastLagTime = System.currentTimeMillis();
+        }
+    }
+
+    private void timer() {
+        Utils.resetTimer();
         for (int i = 0; i < timerTicks.getInput(); i++) {
             mc.thePlayer.onUpdate();
         }
-
         hasLag = 0;
         lastTimerTime = System.currentTimeMillis();
     }
@@ -67,6 +87,7 @@ public class TimerRange extends Module {
         lastTimerTime = 0;
         lastLagTime = 0;
         hasLag = 0;
+        Utils.resetTimer();
     }
 
     private boolean shouldStart() {
