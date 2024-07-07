@@ -56,11 +56,10 @@ public class PlayerManager {
                 activeMap.replace(uuid, true);
                 try {
                     final TRPlayer trPlayer = dataMap.get(uuid);
-                    if (LatencyAlerts.isFreeze() || Utils.getTimer().timerSpeed != 1.0F) {
+                    if (LatencyAlerts.isFreeze() || Utils.getTimer().timerSpeed != 1.0F || (Anticheat.getDisableInLobby().isToggled() && Utils.isLobby())) {
                         trPlayer.manager.disableTick = 30;
-                    } else {
-                        trPlayer.update(player);
                     }
+                    trPlayer.update(player);
                 } catch (Exception e) {
                     LogUtils.custom(Arrays.toString(e.getStackTrace()));
                     LogUtils.LOGGER.error("遇到了异常，丢弃玩家 {} 数据。{}", player, e.getLocalizedMessage());

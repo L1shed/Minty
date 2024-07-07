@@ -17,6 +17,7 @@ import org.jetbrains.annotations.NotNull;
 public class Anticheat extends Module {
     private static SliderSetting latency;
     private static SliderSetting threshold;
+    private static ButtonSetting disableInLobby;
     private static ButtonSetting checkForSelf;
     private static ButtonSetting checkForTeammates;
     private static SliderSetting vlClearTime;
@@ -35,6 +36,7 @@ public class Anticheat extends Module {
         this.registerSetting(new DescriptionSetting("Tries to detect cheaters."));
         this.registerSetting(latency = new SliderSetting("Latency compensation", 600.0, 0.0, 1000.0, 1.0, "ms"));
         this.registerSetting(threshold = new SliderSetting("Movement threshold", 1.0, 0.0, 3.0, 0.01, "blocks"));
+        this.registerSetting(disableInLobby = new ButtonSetting("Disable in lobby", true));
         this.registerSetting(checkForSelf = new ButtonSetting("Check for self", true));
         this.registerSetting(checkForTeammates = new ButtonSetting("Check for teammates", true));
         this.registerSetting(vlClearTime = new SliderSetting("VL clear time", 6000, -1, 12000, 1, "ticks"));
@@ -56,9 +58,14 @@ public class Anticheat extends Module {
         return threshold;
     }
 
+    public static ButtonSetting getDisableInLobby() {
+        return disableInLobby;
+    }
+
     public static ButtonSetting getCheckForSelf() {
         return checkForSelf;
     }
+
     public static ButtonSetting getCheckForTeammates() {
         return checkForTeammates;
     }

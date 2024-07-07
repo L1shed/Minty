@@ -35,7 +35,6 @@ public class AutoClicker extends Module {
     public SliderSetting minCPS;
     public SliderSetting maxCPS;
     public SliderSetting jitter;
-    public SliderSetting blockHitChance;
     public static ButtonSetting leftClick;
     public ButtonSetting rightClick;
     public ButtonSetting breakBlocks;
@@ -61,7 +60,6 @@ public class AutoClicker extends Module {
         this.registerSetting(minCPS = new SliderSetting("Min CPS", 9.0, 1.0, 20.0, 0.5, mode0));
         this.registerSetting(maxCPS = new SliderSetting("Max CPS", 12.0, 1.0, 20.0, 0.5, mode0));
         this.registerSetting(jitter = new SliderSetting("Jitter", 0.0, 0.0, 3.0, 0.1));
-        this.registerSetting(blockHitChance = new SliderSetting("Block hit chance", 0.0, 0.0, 100.0, 1.0, "%"));
         this.registerSetting(leftClick = new ButtonSetting("Left click", true));
         this.registerSetting(rightClick = new ButtonSetting("Right click", false));
         this.registerSetting(breakBlocks = new ButtonSetting("Break blocks", false));
@@ -184,26 +182,21 @@ public class AutoClicker extends Module {
         }
 
         if (this.nextClickTime > 0L && this.nextReleaseClickTime > 0L) {
-            double c = blockHitChance.getInput();
             if (System.currentTimeMillis() > this.nextClickTime && KillAura.target == null && !ModuleManager.killAura.swing) {
                 KeyBinding.setKeyBindState(key, true);
                 RecordClick.click();
                 KeyBinding.onTick(key);
                 Reflection.setButton(mouse, true);
-                if (mouse == 0 && c > 0.0 && Mouse.isButtonDown(1) && Math.random() >= (100.0 - c) / 100.0) {
-                    final int getKeyCode = mc.gameSettings.keyBindUseItem.getKeyCode();
-                    KeyBinding.setKeyBindState(getKeyCode, true);
-                    KeyBinding.onTick(getKeyCode);
-                    Reflection.setButton(1, true);
+                if (clickSound.getInput() != 0) {
+                    mc.thePlayer.playSound(
+                            "keystrokesmod:click." + clickSound.getOptions()[(int) clickSound.getInput()].toLowerCase()
+                            , 1, 1
+                    );
                 }
                 this.gd();
             } else if (System.currentTimeMillis() > this.nextReleaseClickTime) {
                 KeyBinding.setKeyBindState(key, false);
                 Reflection.setButton(mouse, false);
-                if (mouse == 0 && c > 0.0 && Math.random() >= (100.0 - c) / 100.0) {
-                    KeyBinding.setKeyBindState(mc.gameSettings.keyBindUseItem.getKeyCode(), false);
-                    Reflection.setButton(1, false);
-                }
             }
         } else {
             this.gd();

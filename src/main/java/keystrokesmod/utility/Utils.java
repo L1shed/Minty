@@ -870,4 +870,18 @@ public static List<String> getSidebarLines() {
     public static boolean inLiquid() {
         return mc.thePlayer.isInWater() || mc.thePlayer.isInLava();
     }
+
+    public static boolean isLobby() {
+        if (Utils.isHypixel()) {
+            List<String> sidebarLines = Utils.getSidebarLines();
+            if (!sidebarLines.isEmpty()) {
+                try {
+                    String[] parts = Utils.stripColor(sidebarLines.get(1)).split(" {2}");
+                    return parts.length > 1 && parts[1].charAt(0) == 'L';
+                } catch (IndexOutOfBoundsException ignored) {
+                }
+            }
+        }
+        return false;
+    }
 }
