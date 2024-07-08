@@ -43,6 +43,7 @@ public class BedAura extends Module {
     private final SliderSetting fov;
     private final SliderSetting range;
     private final SliderSetting rate;
+    private final ButtonSetting lobbyCheck;
     public ButtonSetting allowAura;
     private final ButtonSetting breakNearBlock;
     private final ButtonSetting cancelKnockback;
@@ -77,6 +78,7 @@ public class BedAura extends Module {
         this.registerSetting(fov = new SliderSetting("FOV", 360.0, 30.0, 360.0, 4.0));
         this.registerSetting(range = new SliderSetting("Range", 4.5, 1.0, 8.0, 0.5));
         this.registerSetting(rate = new SliderSetting("Rate", 0.2, 0.05, 3.0, 0.05, " second"));
+        this.registerSetting(lobbyCheck = new ButtonSetting("Lobby check", false));
         this.registerSetting(allowAura = new ButtonSetting("Allow aura", true));
         this.registerSetting(breakNearBlock = new ButtonSetting("Break near block", false));
         this.registerSetting(cancelKnockback = new ButtonSetting("Cancel knockBack", false));
@@ -104,6 +106,12 @@ public class BedAura extends Module {
         if (!Utils.nullCheck()) {
             return;
         }
+
+        if (lobbyCheck.isToggled() && Utils.isLobby()) {
+            currentBlock = null;
+            reset(true);
+        }
+
         if (currentBlock != null) {
             if (new Vec3(mc.thePlayer).distanceTo(Vec3.convert(currentBlock)) > Math.max(6, range.getInput())) {
                 currentBlock = null;
