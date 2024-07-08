@@ -266,7 +266,18 @@ public class Commands {
                         print("&a" + module.getName() + " is now visible in HUD", 1);
                     }
                 }
-            } else if (args.get(0).equals("rename")) {
+            } else if (args.get(0).equals("panic")) {
+                List<Module> modulesToDisable = new ArrayList<>();
+                for (Module m : Raven.getModuleManager().getModules()) {
+                    if (m.isEnabled()) {
+                        modulesToDisable.add(m);
+                    }
+                }
+                for (Module m : modulesToDisable) {
+                    m.disable();
+
+                }
+            }else if (args.get(0).equals("rename")) {
                 if (!hasArgs) {
                     print(invSyn, 1);
                     return;
@@ -477,6 +488,7 @@ public class Commands {
                 print("6 hide/show [module]", 0);
                 print("7 rename [module] [name]", 0);
                 print("8 say [message]", 0);
+                print("9 panic", 0);
                 print("&eProfiles:", 0);
                 print("1 profiles", 0);
                 print("2 profiles save [profile]", 0);
