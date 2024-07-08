@@ -10,6 +10,7 @@ import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.module.setting.utils.ModeOnly;
 import keystrokesmod.utility.AimSimulator;
 import keystrokesmod.utility.MoveUtil;
+import keystrokesmod.utility.RotationUtils;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.MathHelper;
 import net.minecraftforge.common.MinecraftForge;
@@ -47,7 +48,7 @@ public final class RotationHandler extends Module {
     }
 
     public static void setRotationYaw(float rotationYaw) {
-        RotationHandler.rotationYaw = rotationYaw;
+        RotationHandler.rotationYaw = RotationUtils.normalize(rotationYaw);
     }
 
     public static void setRotationPitch(float rotationPitch) {
@@ -56,8 +57,8 @@ public final class RotationHandler extends Module {
 
     public static float getRotationYaw() {
         if (rotationYaw != null)
-            return rotationYaw;
-        return mc.thePlayer.rotationYaw;
+            return RotationUtils.normalize(rotationYaw);
+        return RotationUtils.normalize(mc.thePlayer.rotationYaw);
     }
 
     public static float getRotationPitch() {
@@ -72,7 +73,7 @@ public final class RotationHandler extends Module {
      */
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void onPreMotion(MoveInputEvent event) {
-        if (isSet && mc.thePlayer.openContainer == null) {
+        if (isSet) {
             switch ((int) smoothBack.getInput()) {
                 case 0:
                     rotationYaw = mc.thePlayer.rotationYaw;
@@ -91,8 +92,8 @@ public final class RotationHandler extends Module {
         RotationEvent rotationEvent = new RotationEvent(getRotationYaw(), getRotationPitch());
         MinecraftForge.EVENT_BUS.post(rotationEvent);
         isSet = rotationEvent.isSet() || rotationYaw != null || rotationPitch != null;
-        if (isSet && mc.thePlayer.openContainer == null) {
-            rotationYaw = rotationEvent.getYaw();
+        if (isSet) {
+            rotationYaw = RotationUtils.normalize(rotationEvent.getYaw());
             rotationPitch = rotationEvent.getPitch();
         }
 
@@ -129,10 +130,8 @@ public final class RotationHandler extends Module {
                     }
                 }
 
-                if (closestForward != (-event.getForward()) || closestStrafe != (-event.getStrafe())) {
-                    event.setForward(closestForward);
-                    event.setStrafe(closestStrafe);
-                }
+                event.setForward(closestForward);
+                event.setStrafe(closestStrafe);
                 break;
             case 2:
                 movementYaw = getRotationYaw();

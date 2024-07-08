@@ -231,4 +231,14 @@ public class RotationUtils {
 
         return new keystrokesmod.script.classes.Vec3(pointX, pointY, pointZ);
     }
+
+    public static float normalize(float yaw) {
+        while (yaw > 180) {
+            yaw -= 360;
+        }
+        while (yaw < -180) {
+            yaw += 360;
+        }
+        return yaw;
+    }
 }

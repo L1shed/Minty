@@ -5,6 +5,7 @@ import keystrokesmod.Raven;
 import keystrokesmod.event.*;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
+import keystrokesmod.module.impl.other.RotationHandler;
 import keystrokesmod.module.impl.world.AntiBot;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.ModeSetting;
@@ -690,11 +691,7 @@ public class KillAura extends Module {
 
     private boolean behindBlocks(float[] rotations, EntityLivingBase target) {
         try {
-            Vec3 from = Utils.getEyePos();
-            MovingObjectPosition hitResult = RotationUtils.rayCast(
-                    RotationUtils.getNearestPoint(target.getEntityBoundingBox(), from).distanceTo(from) + 0.2,
-                    rotations[0], rotations[1]
-            );
+            MovingObjectPosition hitResult = RotationUtils.rayCast(attackRange.getInput(), RotationHandler.getRotationYaw(), RotationHandler.getRotationPitch());
             return hitResult != null;
         } catch (NullPointerException ignored) {
         }

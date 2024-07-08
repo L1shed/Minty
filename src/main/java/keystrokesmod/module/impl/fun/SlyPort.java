@@ -19,7 +19,6 @@ public class SlyPort extends Module {
         public ButtonSetting b;
         public ButtonSetting playersOnly;
         public ButtonSetting e;
-        private boolean s = false;
 
         public SlyPort() {
             super("SlyPort", Module.category.fun, 0);
@@ -58,7 +57,7 @@ public class SlyPort extends Module {
             Entity en = null;
             double r = Math.pow(this.r.getInput(), 2.0D);
             double dist = r + 1.0D;
-            Iterator var6 = mc.theWorld.loadedEntityList.iterator();
+            Iterator<Entity> var6 = mc.theWorld.loadedEntityList.iterator();
 
             while (true) {
                 Entity ent;
@@ -70,7 +69,7 @@ public class SlyPort extends Module {
                                     return en;
                                 }
 
-                                ent = (Entity) var6.next();
+                                ent = var6.next();
                             } while (ent == mc.thePlayer);
                         } while (!(ent instanceof EntityLivingBase));
                     } while (((EntityLivingBase) ent).deathTime != 0);

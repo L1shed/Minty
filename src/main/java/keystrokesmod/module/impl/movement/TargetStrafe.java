@@ -30,16 +30,6 @@ public class TargetStrafe extends Module {
         this.registerSetting(strafeMove = new SliderSetting("Strafe move", 0, -1, 1, 0.5));
     }
 
-    private float normalize(float yaw) {
-        while (yaw > 180) {
-            yaw -= 360;
-        }
-        while (yaw < -180) {
-            yaw += 360;
-        }
-        return yaw;
-    }
-
     @SubscribeEvent(priority = EventPriority.HIGH)
     public void onPreInput(PrePlayerInputEvent input) {
         if (KillAura.target == null || (onlySpeed.isToggled() && !speed.isEnabled())) {
@@ -47,7 +37,7 @@ public class TargetStrafe extends Module {
             return;
         }
 
-        float current = normalize(mc.thePlayer.rotationYaw);
+        float current = RotationUtils.normalize(mc.thePlayer.rotationYaw);
         float toTarget = RotationUtils.getRotations(KillAura.target)[0];
         float diff = toTarget - current;
 
