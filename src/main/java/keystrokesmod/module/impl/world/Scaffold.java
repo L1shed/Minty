@@ -190,7 +190,7 @@ public class Scaffold extends Module { // from b4 :)
             }
         }
 
-        if (fastScaffold.getInput() == 7 && sameY$bridged != 0 && sameY$bridged % 2 == 0 && placeBlock != null && !Utils.jumpDown()) {
+        if (fastScaffold.getInput() == 7 && !Utils.jumpDown() && sameY$bridged != 0 && sameY$bridged % 2 == 0 && placeBlock != null && !Utils.jumpDown()) {
             List<BlockPos> possible = new ArrayList<>(Arrays.asList(
                     placeBlock.getBlockPos().west(),
                     placeBlock.getBlockPos().east(),
