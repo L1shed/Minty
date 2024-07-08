@@ -82,7 +82,7 @@ public final class RotationHandler extends Module {
 
         RotationEvent rotationEvent = new RotationEvent(getRotationYaw(), getRotationPitch());
         MinecraftForge.EVENT_BUS.post(rotationEvent);
-        isSet = rotationEvent.isSet() || (!Objects.equals(rotationYaw, mc.thePlayer.rotationYaw) || !Objects.equals(rotationPitch, mc.thePlayer.rotationPitch));
+        isSet = rotationEvent.isSet() || rotationYaw != null || rotationPitch != null;
         if (isSet) {
             rotationYaw = rotationEvent.getYaw();
             rotationPitch = rotationEvent.getPitch();
@@ -121,8 +121,10 @@ public final class RotationHandler extends Module {
                     }
                 }
 
-                event.setForward(closestForward);
-                event.setStrafe(closestStrafe);
+                if (closestForward != (-event.getForward()) || closestStrafe != (-event.getStrafe())) {
+                    event.setForward(closestForward);
+                    event.setStrafe(closestStrafe);
+                }
                 break;
             case 2:
                 movementYaw = getRotationYaw();

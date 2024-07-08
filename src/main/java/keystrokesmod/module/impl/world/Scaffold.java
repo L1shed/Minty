@@ -35,6 +35,7 @@ import java.util.*;
 public class Scaffold extends Module { // from b4 :)
     private final SliderSetting motion;
     private final ModeSetting rotation;
+    private final SliderSetting strafe;
     private final ModeSetting fastScaffold;
     private final ModeSetting precision;
     private final ButtonSetting autoSwap;
@@ -52,7 +53,7 @@ public class Scaffold extends Module { // from b4 :)
 
     protected MovingObjectPosition placeBlock;
     private int lastSlot;
-    private static final String[] rotationModes = new String[]{"None", "Backwards", "Strict", "Precise"};
+    private static final String[] rotationModes = new String[]{"None", "Backwards", "Strict", "Precise", "Telly"};
     private static final String[] fastScaffoldModes = new String[]{"Disabled", "Sprint", "Edge", "Jump A", "Jump B", "Jump C", "Float"};
     private static final String[] precisionModes = new String[]{"Very low", "Low", "Moderate", "High", "Very high"};
     public float placeYaw;
@@ -69,10 +70,13 @@ public class Scaffold extends Module { // from b4 :)
     private int add = 0;
     private int sameY$bridged = 1;
     private boolean placedUp;
+    private int offGroundTicks = 0;
+    private boolean telly$noBlockPlace = false;
     public Scaffold() {
         super("Scaffold", category.world);
         this.registerSetting(motion = new SliderSetting("Motion", 1.0, 0.5, 1.2, 0.01));
         this.registerSetting(rotation = new ModeSetting("Rotation", rotationModes, 1));
+        this.registerSetting(strafe = new SliderSetting("Strafe", 0, -45, 45, 5));
         this.registerSetting(fastScaffold = new ModeSetting("Fast scaffold", fastScaffoldModes, 0));
         this.registerSetting(precision = new ModeSetting("Precision", precisionModes, 4));
         this.registerSetting(autoSwap = new ButtonSetting("AutoSwap", true));
@@ -105,6 +109,8 @@ public class Scaffold extends Module { // from b4 :)
         place = false;
         placedUp = false;
         sameY$bridged = 1;
+        offGroundTicks = 0;
+        telly$noBlockPlace = false;
     }
 
     public void onEnable() {
@@ -117,16 +123,49 @@ public class Scaffold extends Module { // from b4 :)
         if (!Utils.nullCheck()) {
             return;
         }
-        if (rotation.getInput() > 0) {
-            if ((rotation.getInput() == 2 && forceStrict) || rotation.getInput() == 3) {
-                event.setYaw(placeYaw);
-                event.setPitch(placePitch);
-            } else {
-                event.setYaw(getYaw());
-                event.setPitch(85);
+            switch ((int) rotation.getInput()) {
+                case 0:
+                    break;
+                case 1:
+                    event.setYaw(getYaw() + (float) strafe.getInput());
+                    event.setPitch(85);
+                    break;
+                case 2:
+                    if (!forceStrict) {
+                        event.setYaw(getYaw() + (float) strafe.getInput());
+                        event.setPitch(85);
+                        break;
+                    }
+                case 3:
+                    event.setYaw(placeYaw);
+                    event.setPitch(placePitch);
+                    break;
+                case 4:
+                    if (offGroundTicks >= 3 && placeBlock != null) {
+                        if (!overBlock(new float[]{event.getYaw(), event.getPitch()}, placeBlock.getBlockPos())) {
+                            telly$noBlockPlace = true;
+                            event.setYaw(event.getYaw());
+                            event.setPitch(event.getPitch());
+                        }
+                    } else {
+                        event.setYaw(placeYaw);
+                        event.setPitch(placePitch);
+                        telly$noBlockPlace = false;
+                    }
+                    break;
             }
-        }
         place = true;
+    }
+
+    public static boolean overBlock(final float @NotNull [] rotation, final BlockPos pos) {
+        final MovingObjectPosition movingObjectPosition = RotationUtils.rayTraceCustom(4.5f, rotation[0], rotation[1]);
+
+        if (movingObjectPosition == null) return false;
+
+        final Vec3 hitVec = movingObjectPosition.hitVec;
+        if (hitVec == null) return false;
+
+        return movingObjectPosition.getBlockPos().equals(pos);
     }
 
     @SubscribeEvent
@@ -136,6 +175,11 @@ public class Scaffold extends Module { // from b4 :)
 
     @SubscribeEvent
     public void onPreUpdate(PreUpdateEvent e) { // place here
+        if (mc.thePlayer.onGround) {
+            offGroundTicks = 0;
+        } else {
+            offGroundTicks++;
+        }
         if (onlyOffGround.isToggled() && mc.thePlayer.onGround) return;
 
         if (fast.isToggled() && mc.gameSettings.keyBindJump.isKeyDown()) {
@@ -559,6 +603,8 @@ public class Scaffold extends Module { // from b4 :)
     }
 
     protected void place(MovingObjectPosition block, boolean extra) {
+        if (rotation.getInput() == 4 && telly$noBlockPlace) return;
+
         ItemStack heldItem = mc.thePlayer.getHeldItem();
         if (heldItem == null || !(heldItem.getItem() instanceof ItemBlock)) {
             return;
