@@ -21,7 +21,7 @@ import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
 
-public class Nametags extends Module { // skidded from raven source code as well
+public class Nametags extends Module {
     private SliderSetting scale;
     private ButtonSetting autoScale;
     private ButtonSetting drawBackground;

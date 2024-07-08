@@ -273,7 +273,7 @@ public class Scaffold extends Module { // from b4 :)
                 }
                 for (float checkPitch : generateSearchSequence(searchPitch[1])) {
                     float fixedPitch = RotationUtils.clampTo90((float) (targetRotation[1] + checkPitch + getRandom()));
-                    MovingObjectPosition raycast = RotationUtils.rayCast(mc.playerController.getBlockReachDistance(), fixedYaw, fixedPitch);
+                    MovingObjectPosition raycast = RotationUtils.rayTraceCustom(mc.playerController.getBlockReachDistance(), fixedYaw, fixedPitch);
                     if (raycast != null) {
                         if (raycast.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
                             if (raycast.getBlockPos().equals(targetPos) && raycast.sideHit == enumFacing.getEnumFacing()) {
