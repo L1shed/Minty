@@ -46,6 +46,14 @@ public final class RotationHandler extends Module {
         return entity.rotationYaw;
     }
 
+    public static void setRotationYaw(float rotationYaw) {
+        RotationHandler.rotationYaw = rotationYaw;
+    }
+
+    public static void setRotationPitch(float rotationPitch) {
+        RotationHandler.rotationYaw = rotationPitch;
+    }
+
     public static float getRotationYaw() {
         if (rotationYaw != null)
             return rotationYaw;
@@ -64,7 +72,7 @@ public final class RotationHandler extends Module {
      */
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void onPreMotion(MoveInputEvent event) {
-        if (isSet) {
+        if (isSet && mc.thePlayer.openContainer == null) {
             switch ((int) smoothBack.getInput()) {
                 case 0:
                     rotationYaw = mc.thePlayer.rotationYaw;
@@ -83,7 +91,7 @@ public final class RotationHandler extends Module {
         RotationEvent rotationEvent = new RotationEvent(getRotationYaw(), getRotationPitch());
         MinecraftForge.EVENT_BUS.post(rotationEvent);
         isSet = rotationEvent.isSet() || rotationYaw != null || rotationPitch != null;
-        if (isSet) {
+        if (isSet && mc.thePlayer.openContainer == null) {
             rotationYaw = rotationEvent.getYaw();
             rotationPitch = rotationEvent.getPitch();
         }

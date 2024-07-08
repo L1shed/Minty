@@ -366,7 +366,7 @@ public class ContainerUtils {
             final ItemStack stack = getItemStack(i);
             if (stack != null && stack.getItem() instanceof ItemFood) {
                 float thisFoodLevel = ((ItemFood) stack.getItem()).getSaturationModifier(stack);
-                if (thisFoodLevel > foodLevel) {
+                if (thisFoodLevel > foodLevel + 1) {
                     foodLevel = thisFoodLevel;
                     slot = i;
                 }
