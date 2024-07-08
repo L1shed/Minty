@@ -192,7 +192,7 @@ public class InvManager extends Module {
         result.add(() -> sort(ContainerUtils.getMostBlocks((int) blockSlot.getInput()), (int) blockSlot.getInput()));
         result.add(() -> sort(ContainerUtils.getBiggestStack(Items.ender_pearl, (int) enderPearlSlot.getInput()), (int) enderPearlSlot.getInput()));
         result.add(() -> sort(ContainerUtils.getBestBow(null), (int) bowSlot.getInput()));
-        result.add(() -> sort(ContainerUtils.getBestFood(), (int) foodSlot.getInput()));
+        result.add(() -> sort(ContainerUtils.getBestFood((int) foodSlot.getInput()), (int) foodSlot.getInput()));
         result.add(() -> sort(ContainerUtils.getMostProjectiles((int) throwableSlot.getInput()), (int) throwableSlot.getInput()));
 
         return result;

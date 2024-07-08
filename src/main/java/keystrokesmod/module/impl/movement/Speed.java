@@ -6,12 +6,16 @@ import keystrokesmod.event.ReceivePacketEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.ModeSetting;
+import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.module.setting.utils.ModeOnly;
 import keystrokesmod.utility.*;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockAir;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.network.play.client.C0BPacketEntityAction;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraft.potion.Potion;
+import net.minecraft.util.BlockPos;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.jetbrains.annotations.NotNull;
@@ -20,11 +24,12 @@ import static keystrokesmod.module.ModuleManager.scaffold;
 
 public class Speed extends Module {
     private final ModeSetting mode;
+    private final SliderSetting vulcan$lowHop;
     private final ButtonSetting liquidDisable;
     private final ButtonSetting sneakDisable;
     private final ButtonSetting stopMotion;
     private final ButtonSetting stopSprint;
-    private final String[] modes = new String[]{"Ground", "BlocksMC"};
+    private final String[] modes = new String[]{"Ground", "BlocksMC", "Vulcan"};
     private int offGroundTicks = 0;
     public static int ticksSinceVelocity = Integer.MAX_VALUE;
 
@@ -43,6 +48,7 @@ public class Speed extends Module {
     public Speed() {
         super("Speed", Module.category.movement);
         this.registerSetting(mode = new ModeSetting("Mode", modes, 0));
+        this.registerSetting(vulcan$lowHop = new SliderSetting("Low hop", 2, 0, 4, 1, "ticks", new ModeOnly(mode, 2)));
         this.registerSetting(liquidDisable = new ButtonSetting("Disable in liquid", true));
         this.registerSetting(sneakDisable = new ButtonSetting("Disable while sneaking", true));
         this.registerSetting(stopMotion = new ButtonSetting("Stop motion", false));
@@ -130,41 +136,73 @@ public class Speed extends Module {
     public void onPlayerInput(PrePlayerInputEvent event) {
         if (noAction()) return;
 
-        if ((int) mode.getInput() == 1) {
-            final double base = MoveUtil.getAllowedHorizontalDistance();
+        switch ((int) mode.getInput()) {
+            case 1:
+                final double base = MoveUtil.getAllowedHorizontalDistance();
 
-            if (!Utils.jumpDown() && Utils.isMoving() && mc.currentScreen == null) {
-                switch (offGroundTicks) {
-                    case 0:
-                        mc.thePlayer.motionY = MoveUtil.jumpBoostMotion(0.42f);
-                        speed = base * 2.15;
-                        break;
+                if (!Utils.jumpDown() && Utils.isMoving() && mc.currentScreen == null) {
+                    switch (offGroundTicks) {
+                        case 0:
+                            mc.thePlayer.motionY = MoveUtil.jumpBoostMotion(0.42f);
+                            speed = base * 2.15;
+                            break;
 
-                    case 1:
-                        speed -= 0.8 * (speed - base);
-                        break;
+                        case 1:
+                            speed -= 0.8 * (speed - base);
+                            break;
 
-                    default:
-                        speed -= speed / MoveUtil.BUNNY_FRICTION;
-                        break;
+                        default:
+                            speed -= speed / MoveUtil.BUNNY_FRICTION;
+                            break;
+                    }
+
+                    reset = false;
+                } else if (!reset) {
+                    speed = 0;
+
+                    reset = true;
+                    speed = MoveUtil.getAllowedHorizontalDistance();
                 }
 
-                reset = false;
-            } else if (!reset) {
-                speed = 0;
+                if (mc.thePlayer.isCollidedHorizontally || BlockUtils.getSurroundBlocks(mc.thePlayer).stream()
+                        .map(BlockUtils::getBlockState)
+                        .map(IBlockState::getBlock)
+                        .allMatch(Block::isFullCube)) {
+                    speed = MoveUtil.getAllowedHorizontalDistance();
+                }
 
-                reset = true;
-                speed = MoveUtil.getAllowedHorizontalDistance();
-            }
+                event.setSpeed(Math.max(speed, base), Math.random() / 2000);
+                break;
+            case 2:
+                if (!MoveUtil.isMoving()) break;
+                switch (offGroundTicks) {
+                    case 0:
+                        mc.thePlayer.jump();
 
-            if (mc.thePlayer.isCollidedHorizontally || BlockUtils.getSurroundBlocks(mc.thePlayer).stream()
-                    .map(BlockUtils::getBlockState)
-                    .map(IBlockState::getBlock)
-                    .allMatch(Block::isFullCube)) {
-                speed = MoveUtil.getAllowedHorizontalDistance();
-            }
+                        if (mc.thePlayer.isPotionActive(Potion.moveSpeed)) {
+                            MoveUtil.strafe(0.6);
+                        } else {
+                            MoveUtil.strafe(0.485);
+                        }
+                        break;
 
-            event.setSpeed(Math.max(speed, base), Math.random() / 2000);
+                    case 9:
+                        if (!(blockRelativeToPlayer(0, mc.thePlayer.motionY,
+                                0) instanceof BlockAir)) {
+                            MoveUtil.strafe();
+                        }
+                        break;
+
+                    case 2:
+                    case 1:
+                        MoveUtil.strafe();
+                        break;
+
+                    case 5:
+                        mc.thePlayer.motionY = MoveUtil.predictedMotion(mc.thePlayer.motionY, (int) vulcan$lowHop.getInput());
+                        break;
+                }
+                break;
         }
     }
 
@@ -173,6 +211,10 @@ public class Speed extends Module {
         if (event.getPacket() instanceof S08PacketPlayerPosLook) {
             speed = 0;
         }
+    }
+
+    public Block blockRelativeToPlayer(final double offsetX, final double offsetY, final double offsetZ) {
+        return mc.theWorld.getBlockState(new BlockPos(mc.thePlayer).add(offsetX, offsetY, offsetZ)).getBlock();
     }
 
     private boolean isYAxisChange() {

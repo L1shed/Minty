@@ -17,6 +17,7 @@ import net.minecraft.item.*;
 import net.minecraft.util.MathHelper;
 import net.minecraftforge.client.event.RenderLivingEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import org.jetbrains.annotations.NotNull;
 import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
@@ -58,7 +59,7 @@ public class Nametags extends Module {
     }
 
     @SubscribeEvent
-    public void onRenderLiving(RenderLivingEvent.Specials.Pre e) {
+    public void onRenderLiving(RenderLivingEvent.Specials.@NotNull Pre e) {
         if (e.entity instanceof EntityPlayer && (e.entity != mc.thePlayer || renderSelf.isToggled()) && e.entity.deathTime == 0) {
             final EntityPlayer entityPlayer = (EntityPlayer) e.entity;
             if (!showInvis.isToggled() && entityPlayer.isInvisible()) {

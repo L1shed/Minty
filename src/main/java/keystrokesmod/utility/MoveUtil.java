@@ -2,6 +2,7 @@ package keystrokesmod.utility;
 
 import keystrokesmod.mixins.impl.entity.EntityAccessor;
 import keystrokesmod.module.impl.movement.TargetStrafe;
+import keystrokesmod.module.impl.other.anticheats.utils.world.PlayerMove;
 import keystrokesmod.script.classes.Entity;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.potion.Potion;
@@ -245,5 +246,14 @@ public class MoveUtil {
         }
 
         return motionY;
+    }
+
+    /**
+     * Gets the players predicted jump motion the specified amount of ticks ahead
+     *
+     * @return predicted jump motion
+     */
+    public static double predictedMotion(final double motion, final int ticks) {
+        return PlayerMove.predictedMotion(motion, ticks);
     }
 }

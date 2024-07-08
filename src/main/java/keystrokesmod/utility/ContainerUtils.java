@@ -25,6 +25,14 @@ public class ContainerUtils {
     public static final List<Integer> ARMOR_TYPES = new ArrayList<>(Arrays.asList(0, 1, 2, 3));
     public static final Set<Item> THROWABLES = new HashSet<>(Arrays.asList(Items.snowball, Items.egg));
 
+    public static boolean canBePlaced(ItemBlock itemBlock) {
+        Block block = itemBlock.getBlock();
+        if (block == null) {
+            return false;
+        }
+        return !BlockUtils.isInteractable(block) && !(block instanceof BlockTNT) && !(block instanceof BlockLever) && !(block instanceof BlockButton) && !(block instanceof BlockSkull) && !(block instanceof BlockLiquid) && !(block instanceof BlockCactus) && !(block instanceof BlockCarpet) && !(block instanceof BlockTripWire) && !(block instanceof BlockTripWireHook) && !(block instanceof BlockTallGrass) && !(block instanceof BlockFlower) && !(block instanceof BlockFlowerPot) && !(block instanceof BlockSign) && !(block instanceof BlockLadder) && !(block instanceof BlockTorch) && !(block instanceof BlockRedstoneTorch) && !(block instanceof BlockFence) && !(block instanceof BlockPane) && !(block instanceof BlockStainedGlassPane) && !(block instanceof BlockGravel) && !(block instanceof BlockClay) && !(block instanceof BlockSand) && !(block instanceof BlockSoulSand);
+    }
+
     public static <T extends Item> int getSlot(Class<T> item, Predicate<T> predicate) {
         int slot = -1;
         int highestStack = -1;
@@ -342,9 +350,17 @@ public class ContainerUtils {
         return false;
     }
 
-    public static int getBestFood() {
+    public static int getBestFood(int desiredSlot) {
         float foodLevel = 0;
         int slot = -1;
+
+        if (desiredSlot != -1) {
+            final ItemStack stack = getItemStack(desiredSlot);
+            if (stack != null && stack.getItem() instanceof ItemFood) {
+                foodLevel = ((ItemFood) stack.getItem()).getSaturationModifier(stack);
+                slot = desiredSlot;
+            }
+        }
 
         for (int i = 9; i < 45; i++) {
             final ItemStack stack = getItemStack(i);
@@ -365,14 +381,6 @@ public class ContainerUtils {
             return null;
         }
         return slot.getStack();
-    }
-
-    public static boolean canBePlaced(ItemBlock itemBlock) {
-        Block block = itemBlock.getBlock();
-        if (block == null) {
-            return false;
-        }
-        return !BlockUtils.isInteractable(block) && !(block instanceof BlockLever) && !(block instanceof BlockButton) && !(block instanceof BlockSkull) && !(block instanceof BlockLiquid) && !(block instanceof BlockCactus) && !(block instanceof BlockCarpet) && !(block instanceof BlockTripWire) && !(block instanceof BlockTripWireHook) && !(block instanceof BlockTallGrass) && !(block instanceof BlockFlower) && !(block instanceof BlockFlowerPot) && !(block instanceof BlockSign) && !(block instanceof BlockLadder) && !(block instanceof BlockTorch) && !(block instanceof BlockRedstoneTorch) && !(block instanceof BlockFence) && !(block instanceof BlockPane) && !(block instanceof BlockStainedGlassPane) && !(block instanceof BlockGravel) && !(block instanceof BlockClay) && !(block instanceof BlockSand) && !(block instanceof BlockSoulSand);
     }
 
     public static boolean isChest(boolean customChest) {
@@ -458,7 +466,7 @@ public class ContainerUtils {
 
         if (desiredSlot != -1) {
             ItemStack item = getItemStack(desiredSlot);
-            if (item != null && item.getItem() instanceof ItemBlock && item.stackSize > count && canBePlaced((ItemBlock) item.getItem())) {
+            if (item != null && item.getItem() instanceof ItemBlock && canBePlaced((ItemBlock) item.getItem())) {
                 count = item.stackSize;
                 biggestSlot = desiredSlot;
             }
@@ -466,7 +474,7 @@ public class ContainerUtils {
 
         for (int i = 9; i < 45; i++) {
             ItemStack item = getItemStack(i);
-            if (item != null && item.getItem() instanceof ItemBlock && item.stackSize > count + 1 && canBePlaced((ItemBlock) item.getItem())) {
+            if (item != null && item.getItem() instanceof ItemBlock && item.stackSize > count && canBePlaced((ItemBlock) item.getItem())) {
                 count = item.stackSize;
                 biggestSlot = i;
             }
