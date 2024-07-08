@@ -1,6 +1,7 @@
 package keystrokesmod.module.setting.impl;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import keystrokesmod.module.setting.Setting;
 import org.jetbrains.annotations.NotNull;
 
@@ -68,8 +69,11 @@ public class ButtonSetting extends Setting {
     @Override
     public void loadProfile(JsonObject data) {
         if (data.has(getName()) && data.get(getName()).isJsonPrimitive() && !this.isMethodButton) {
-            boolean booleanValue = data.getAsJsonPrimitive(getName()).getAsBoolean();
-            setEnabled(booleanValue);
+            JsonPrimitive jsonPrimitive = data.getAsJsonPrimitive(getName());
+            if (jsonPrimitive.isBoolean()) {
+                boolean booleanValue = jsonPrimitive.getAsBoolean();
+                setEnabled(booleanValue);
+            }
         }
     }
 }

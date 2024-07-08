@@ -175,7 +175,7 @@ public class Module {
         this.settings.add(setting);
     }
 
-public void registerSetting(Setting @NotNull ... setting) {
+    public void registerSetting(Setting @NotNull ... setting) {
         for (Setting set : setting) {
             registerSetting(set);
         }

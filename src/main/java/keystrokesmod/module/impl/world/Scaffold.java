@@ -1,9 +1,11 @@
 package keystrokesmod.module.impl.world;
 
 import keystrokesmod.event.JumpEvent;
+import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.event.PreUpdateEvent;
 import keystrokesmod.event.RotationEvent;
 import keystrokesmod.module.Module;
+import keystrokesmod.module.impl.other.RotationHandler;
 import keystrokesmod.module.impl.render.HUD;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.ModeSetting;
@@ -37,6 +39,7 @@ public class Scaffold extends Module { // from b4 :)
     private final ModeSetting rotation;
     private final SliderSetting strafe;
     private final ModeSetting fastScaffold;
+    private final ButtonSetting cancelSprint;
     private final ModeSetting precision;
     private final ButtonSetting autoSwap;
     private final ButtonSetting fastOnRMB;
@@ -48,13 +51,12 @@ public class Scaffold extends Module { // from b4 :)
     private final ButtonSetting silentSwing;
     public final ButtonSetting tower;
     public final ButtonSetting fast;
-    public final ButtonSetting onlyOffGround;
     public final ButtonSetting sameY;
 
     protected MovingObjectPosition placeBlock;
     private int lastSlot;
     private static final String[] rotationModes = new String[]{"None", "Backwards", "Strict", "Precise", "Telly"};
-    private static final String[] fastScaffoldModes = new String[]{"Disabled", "Sprint", "Edge", "Jump A", "Jump B", "Jump C", "Float"};
+    private static final String[] fastScaffoldModes = new String[]{"Disabled", "Sprint", "Edge", "Jump A", "Jump B", "Jump C", "Float", "Side", "Legit"};
     private static final String[] precisionModes = new String[]{"Very low", "Low", "Moderate", "High", "Very high"};
     public float placeYaw;
     public float placePitch;
@@ -78,6 +80,7 @@ public class Scaffold extends Module { // from b4 :)
         this.registerSetting(rotation = new ModeSetting("Rotation", rotationModes, 1));
         this.registerSetting(strafe = new SliderSetting("Strafe", 0, -45, 45, 5));
         this.registerSetting(fastScaffold = new ModeSetting("Fast scaffold", fastScaffoldModes, 0));
+        this.registerSetting(cancelSprint = new ButtonSetting("Cancel sprint", false, () -> fastScaffold.getInput() != 0));
         this.registerSetting(precision = new ModeSetting("Precision", precisionModes, 4));
         this.registerSetting(autoSwap = new ButtonSetting("AutoSwap", true));
         this.registerSetting(delayOnJump = new ButtonSetting("Delay on jump", true));
@@ -89,8 +92,7 @@ public class Scaffold extends Module { // from b4 :)
         this.registerSetting(silentSwing = new ButtonSetting("Silent swing", false));
         this.registerSetting(tower = new ButtonSetting("Tower", false));
         this.registerSetting(fast = new ButtonSetting("Fast", false));
-        this.registerSetting(onlyOffGround = new ButtonSetting("Only offGround", false));
-        this.registerSetting(sameY = new ButtonSetting("SameY", false, new ModeOnly(fastScaffold, 3, 4, 5)));
+        this.registerSetting(sameY = new ButtonSetting("SameY", false));
     }
 
     public void onDisable() {
@@ -119,7 +121,7 @@ public class Scaffold extends Module { // from b4 :)
     }
 
     @SubscribeEvent
-    public void onPreMotion(RotationEvent event) {
+    public void onRotation(RotationEvent event) {
         if (!Utils.nullCheck()) {
             return;
         }
@@ -141,12 +143,10 @@ public class Scaffold extends Module { // from b4 :)
                     event.setPitch(placePitch);
                     break;
                 case 4:
-                    if (offGroundTicks >= 3 && placeBlock != null) {
-                        if (!overBlock(new float[]{event.getYaw(), event.getPitch()}, placeBlock.getBlockPos())) {
-                            telly$noBlockPlace = true;
-                            event.setYaw(event.getYaw());
-                            event.setPitch(event.getPitch());
-                        }
+                    if (offGroundTicks >= 3 && offGroundTicks < 8 && placeBlock != null && MoveUtil.isMoving()) {
+                        telly$noBlockPlace = true;
+                        event.setYaw(event.getYaw());
+                        event.setPitch(event.getPitch());
                     } else {
                         event.setYaw(placeYaw);
                         event.setPitch(placePitch);
@@ -157,15 +157,11 @@ public class Scaffold extends Module { // from b4 :)
         place = true;
     }
 
-    public static boolean overBlock(final float @NotNull [] rotation, final BlockPos pos) {
-        final MovingObjectPosition movingObjectPosition = RotationUtils.rayTraceCustom(4.5f, rotation[0], rotation[1]);
-
-        if (movingObjectPosition == null) return false;
-
-        final Vec3 hitVec = movingObjectPosition.hitVec;
-        if (hitVec == null) return false;
-
-        return movingObjectPosition.getBlockPos().equals(pos);
+    @SubscribeEvent
+    public void onPreMotion(PreMotionEvent event) {
+        if (cancelSprint.isToggled()) {
+            event.setSprinting(false);
+        }
     }
 
     @SubscribeEvent
@@ -180,7 +176,9 @@ public class Scaffold extends Module { // from b4 :)
         } else {
             offGroundTicks++;
         }
-        if (onlyOffGround.isToggled() && mc.thePlayer.onGround) return;
+        if (rotation.getInput() == 4 && mc.thePlayer.onGround && MoveUtil.isMoving()) {
+            mc.thePlayer.jump();
+        }
 
         if (fast.isToggled() && mc.gameSettings.keyBindJump.isKeyDown()) {
             if (mc.gameSettings.keyBindForward.isKeyDown() && mc.thePlayer.onGround) {
@@ -192,8 +190,7 @@ public class Scaffold extends Module { // from b4 :)
             }
         }
 
-        if (sameY.isToggled() && (fastScaffold.getInput() == 3 || fastScaffold.getInput() == 4 || fastScaffold.getInput() == 5)
-                && sameY$bridged != 0 && sameY$bridged % 2 == 0 && placeBlock != null && !Utils.jumpDown()) {
+        if (fastScaffold.getInput() == 6 && sameY$bridged != 0 && sameY$bridged % 2 == 0 && placeBlock != null && !Utils.jumpDown()) {
             List<BlockPos> possible = new ArrayList<>(Arrays.asList(
                     placeBlock.getBlockPos().west(),
                     placeBlock.getBlockPos().east(),
@@ -236,7 +233,7 @@ public class Scaffold extends Module { // from b4 :)
             down = false;
             placedUp = false;
         }
-        if (keepYPosition() && (fastScaffold.getInput() == 3 || fastScaffold.getInput() == 4 || fastScaffold.getInput() == 5) && mc.thePlayer.onGround && !sameY.isToggled()) {
+        if (keepYPosition() && (fastScaffold.getInput() == 3 || fastScaffold.getInput() == 4 || fastScaffold.getInput() == 5) && mc.thePlayer.onGround) {
             mc.thePlayer.jump();
             add = 0;
             if (Math.floor(mc.thePlayer.posY) == Math.floor(startPos) && fastScaffold.getInput() == 5) {
@@ -493,6 +490,7 @@ public class Scaffold extends Module { // from b4 :)
         if (this.isEnabled() && fastScaffold.getInput() > 0 && placeBlock != null && (!fastOnRMB.isToggled() || Mouse.isButtonDown(1))) {
             switch ((int) fastScaffold.getInput()) {
                 case 1:
+                case 7:
                     return true;
                 case 2:
                     return Utils.onEdge();
@@ -501,6 +499,8 @@ public class Scaffold extends Module { // from b4 :)
                 case 5:
                 case 6:
                     return keepYPosition();
+                case 8:
+                    return Math.abs(MathHelper.wrapAngleTo180_float(mc.thePlayer.rotationYaw) - MathHelper.wrapAngleTo180_float(RotationHandler.getRotationYaw())) <= 90;
             }
         }
         return false;
@@ -511,7 +511,8 @@ public class Scaffold extends Module { // from b4 :)
     }
 
     private boolean keepYPosition() {
-        return this.isEnabled() && Utils.keysDown() && (fastScaffold.getInput() == 4 || fastScaffold.getInput() == 3 || fastScaffold.getInput() == 5 || fastScaffold.getInput() == 6) && (!Utils.jumpDown() || fastScaffold.getInput() == 6) && (!fastOnRMB.isToggled() || Mouse.isButtonDown(1));
+        boolean sameYSca = fastScaffold.getInput() == 4 || fastScaffold.getInput() == 3 || fastScaffold.getInput() == 5 || fastScaffold.getInput() == 6;
+        return this.isEnabled() && Utils.keysDown() && (sameYSca || sameY.isToggled()) && (!Utils.jumpDown() || fastScaffold.getInput() == 6) && (!fastOnRMB.isToggled() || Mouse.isButtonDown(1));
     }
 
     public boolean safewalk() {

@@ -5,6 +5,7 @@ import keystrokesmod.module.Module;
 import keystrokesmod.module.impl.other.anticheats.PlayerManager;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
+import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -23,7 +24,7 @@ public class Anticheat extends Module {
     private static SliderSetting vlClearTime;
     private static ButtonSetting noAlertBuffer;
     private static ButtonSetting shouldPing;
-    private static ButtonSetting autoReport;
+    private static ModeSetting autoReport;
     private static ButtonSetting experimentalMode;
     private static ButtonSetting aimCheck;
     private static ButtonSetting combatCheck;
@@ -42,7 +43,7 @@ public class Anticheat extends Module {
         this.registerSetting(vlClearTime = new SliderSetting("VL clear time", 6000, -1, 12000, 1, "ticks"));
         this.registerSetting(noAlertBuffer = new ButtonSetting("Remove alert buffer", false));
         this.registerSetting(shouldPing = new ButtonSetting("Should ping", true));
-        this.registerSetting(autoReport = new ButtonSetting("Auto report", false));
+        this.registerSetting(autoReport = new ModeSetting("Auto report", new String[]{"None", "/wdr", "/report"}, 0));
         this.registerSetting(experimentalMode = new ButtonSetting("Experimental mode", true));
         this.registerSetting(aimCheck = new ButtonSetting("Aim checks", true));
         this.registerSetting(combatCheck = new ButtonSetting("Combat checks", true));
@@ -82,7 +83,7 @@ public class Anticheat extends Module {
         return shouldPing;
     }
 
-    public static ButtonSetting getAutoReport() {
+    public static ModeSetting getAutoReport() {
         return autoReport;
     }
 

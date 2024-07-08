@@ -1,6 +1,7 @@
 package keystrokesmod.module.setting.impl;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import keystrokesmod.module.setting.Setting;
 import keystrokesmod.module.setting.interfaces.InputSetting;
 import org.jetbrains.annotations.NotNull;
@@ -86,7 +87,11 @@ public class ModeSetting extends Setting implements InputSetting {
     @Override
     public void loadProfile(@NotNull JsonObject data) {
         if (data.has(getName()) && data.get(getName()).isJsonPrimitive()) {
-            setValue((int) data.getAsJsonPrimitive(getName()).getAsDouble());
+            JsonPrimitive jsonPrimitive = data.getAsJsonPrimitive(getName());
+            if (jsonPrimitive.isNumber()) {
+                int newValue = jsonPrimitive.getAsInt();
+                setValue(newValue);
+            }
         }
     }
 }

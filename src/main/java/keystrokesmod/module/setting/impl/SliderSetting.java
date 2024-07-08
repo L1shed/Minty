@@ -1,6 +1,7 @@
 package keystrokesmod.module.setting.impl;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import keystrokesmod.module.setting.Setting;
 import keystrokesmod.module.setting.interfaces.InputSetting;
 import org.jetbrains.annotations.NotNull;
@@ -121,8 +122,11 @@ public class SliderSetting extends Setting implements InputSetting {
     @Override
     public void loadProfile(JsonObject data) {
         if (data.has(getName()) && data.get(getName()).isJsonPrimitive()) {
-            double newValue = data.getAsJsonPrimitive(getName()).getAsDouble();
-            setValue(newValue);
+            JsonPrimitive jsonPrimitive = data.getAsJsonPrimitive(getName());
+            if (jsonPrimitive.isNumber()) {
+                double newValue = jsonPrimitive.getAsDouble();
+                setValue(newValue);
+            }
         }
     }
 }

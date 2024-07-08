@@ -23,8 +23,12 @@ public class LogUtils {
             if (Anticheat.getShouldPing().isToggled()) {
                 Raven.mc.thePlayer.playSound("note.pling", 1.0f, 1.0f);
             }
-            if (Anticheat.getAutoReport().isToggled()) {
-                Raven.mc.thePlayer.sendChatMessage("/wdr " + Utils.stripColor(player));
+            if (Anticheat.getAutoReport().getInput() != 0) {
+                Raven.mc.thePlayer.sendChatMessage(
+                        Anticheat.getAutoReport().getOptions()[(int) Anticheat.getAutoReport().getInput()]
+                                + " "
+                                + Utils.stripColor(player)
+                );
             }
         }
     }

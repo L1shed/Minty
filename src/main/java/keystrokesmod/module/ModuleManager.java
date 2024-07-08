@@ -207,6 +207,8 @@ public class ModuleManager {
         this.addModule(new AutoPot());
         this.addModule(modSpoofer = new ModSpoofer());
         antiBot.enable();
+        commandChat.enable();
+        modSpoofer.enable();
         modules.sort(Comparator.comparing(Module::getPrettyName));
     }
 
