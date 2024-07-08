@@ -87,8 +87,7 @@ public class ClickGui extends GuiScreen {
             this.fontRendererObj.drawCenteredString("v", wd - w_c, h - 5, Utils.getChroma(2L, 900L));
             this.fontRendererObj.drawCenteredString("e", wd - w_c, h + 5, Utils.getChroma(2L, 600L));
             this.fontRendererObj.drawCenteredString("n", wd - w_c, h + 15, Utils.getChroma(2L, 300L));
-            this.fontRendererObj.drawCenteredString("bS", wd + 1 + w_c, h + 30, Utils.getChroma(2L, 0L));
-            this.fontRendererObj.drawCenteredString("(xia__mc forked)", wd + 1 + w_c, h + 45, Utils.getChroma(2L, 0L));
+            this.fontRendererObj.drawCenteredString("XD", wd + 1 + w_c, h + 30, Utils.getChroma(2L, 0L));
             this.drawVerticalLine(wd - 10 - w_c, h - 30, h + 43, Color.white.getRGB());
             this.drawVerticalLine(wd + 10 + w_c, h - 30, h + 43, Color.white.getRGB());
             if (this.aL != null) {

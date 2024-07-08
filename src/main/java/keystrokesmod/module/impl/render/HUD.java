@@ -1,5 +1,6 @@
 package keystrokesmod.module.impl.render;
 
+import com.mojang.realmsclient.gui.ChatFormatting;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.player.ChestStealer;
@@ -127,10 +128,10 @@ public class HUD extends Module {
             String text = "";
             switch ((int) watermarkMode.getInput()) {
                 case 0:
-                    text = "§r§f§lRaven §bX§9D§e";
+                    text = "§r§f§lRaven §bX§9D " + ChatFormatting.GRAY + VERSION;
                     break;
                 case 1:
-                    text = "§f§lAugustus b" + VERSION;
+                    text = "§f§lAugustus " + VERSION;
                     break;
             }
 
