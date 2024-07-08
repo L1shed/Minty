@@ -64,7 +64,6 @@ public class ModuleManager {
     public static NoHurtCam noHurtCam;
     public static NoCameraClip noCameraClip;
     public static AutoPlay autoPlay;
-    public static NyaProxy nyaProxy;
     public static CustomName customName;
     public static CommandChat commandChat;
     public static Phase phase;
@@ -182,7 +181,6 @@ public class ModuleManager {
         this.addModule(noHurtCam = new NoHurtCam());
         this.addModule(noCameraClip = new NoCameraClip());
         this.addModule(autoPlay = new AutoPlay());
-        this.addModule(nyaProxy = new NyaProxy());
         this.addModule(customName = new CustomName());
         this.addModule(commandChat = new CommandChat());
         this.addModule(phase = new Phase());
