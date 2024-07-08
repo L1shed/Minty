@@ -488,6 +488,7 @@ public class Commands {
                 print("6 hide/show [module]", 0);
                 print("7 rename [module] [name]", 0);
                 print("8 say [message]", 0);
+                print("9 panic", 0);
                 print("&eProfiles:", 0);
                 print("1 profiles", 0);
                 print("2 profiles save [profile]", 0);
