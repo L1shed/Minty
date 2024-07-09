@@ -1,35 +1,48 @@
 package keystrokesmod.module.impl.combat;
 
+import com.viaversion.viaversion.api.Via;
+import com.viaversion.viaversion.api.protocol.packet.PacketWrapper;
+import com.viaversion.viaversion.api.type.Type;
 import keystrokesmod.Raven;
+import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.event.PreUpdateEvent;
 import keystrokesmod.event.ReceivePacketEvent;
+import keystrokesmod.event.RotationEvent;
+import keystrokesmod.mixins.impl.entity.EntityPlayerSPAccessor;
 import keystrokesmod.mixins.impl.network.S12PacketEntityVelocityAccessor;
 import keystrokesmod.mixins.impl.network.S27PacketExplosionAccessor;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.movement.LongJump;
+import keystrokesmod.module.impl.other.RotationHandler;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.module.setting.utils.ModeOnly;
-import keystrokesmod.utility.BlockUtils;
-import keystrokesmod.utility.MoveUtil;
-import keystrokesmod.utility.Utils;
+import keystrokesmod.utility.*;
+import net.minecraft.client.entity.EntityPlayerSP;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.network.play.client.C02PacketUseEntity;
+import net.minecraft.network.play.client.C0APacketAnimation;
+import net.minecraft.network.play.client.C0BPacketEntityAction;
 import net.minecraft.network.play.server.S12PacketEntityVelocity;
 import net.minecraft.network.play.server.S27PacketExplosion;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.TimeUnit;
 
 import static keystrokesmod.utility.Utils.isLobby;
 
 public class Velocity extends Module {
-    private static final String[] MODES = new String[]{"Normal", "Hypixel", "Intave"};
+    private static final String[] MODES = new String[]{"Normal", "Hypixel", "Intave", "GrimAC"};
     public static ModeSetting mode;
     public static SliderSetting horizontal;
     public static SliderSetting vertical;
@@ -45,6 +58,7 @@ public class Velocity extends Module {
     private final ButtonSetting debug;
 
     private boolean attacked = false;
+    private Entity lastAttack = null;
     private long lastVelocityTime = -1;
 
     public Velocity() {
@@ -63,7 +77,7 @@ public class Velocity extends Module {
         this.registerSetting(lobbyCheck = new ButtonSetting("Lobby check", false));
         this.registerSetting(onlyFirstHit = new ButtonSetting("Only first hit", false));
         this.registerSetting(resetTime = new SliderSetting("Reset time", 5000, 500, 10000, 500, "ms", onlyFirstHit::isToggled));
-        this.registerSetting(debug = new ButtonSetting("Debug", false, new ModeOnly(mode, 2)));
+        this.registerSetting(debug = new ButtonSetting("Debug", false, new ModeOnly(mode, 2, 3)));
     }
 
     @SubscribeEvent
@@ -75,10 +89,13 @@ public class Velocity extends Module {
         try {
             if (mode.getInput() == 2) {
                 if (mc.objectMouseOver.typeOfHit.equals(MovingObjectPosition.MovingObjectType.ENTITY) && mc.thePlayer.hurtTime > 0 && !attacked) {
-                    mc.thePlayer.motionX *= 0.6D;
-                    mc.thePlayer.motionZ *= 0.6D;
+                    final double motionX = mc.thePlayer.motionX;
+                    final double motionZ = mc.thePlayer.motionZ;
+
+                    mc.thePlayer.motionX = motionX * 0.6;
+                    mc.thePlayer.motionZ = motionZ * 0.6;
                     mc.thePlayer.setSprinting(false);
-                    if (debug.isToggled()) Utils.sendMessage("reduced.");
+                    if (debug.isToggled()) Utils.sendMessage(String.format("reduced %.2f %.2f", motionX - mc.thePlayer.motionX, motionZ - mc.thePlayer.motionZ));
                 }
             }
         } catch (NullPointerException e) {
@@ -89,8 +106,42 @@ public class Velocity extends Module {
     }
 
     @SubscribeEvent
-    public void onAttack(AttackEntityEvent event) {
+    public void onRotation(PreMotionEvent event) {
+        if (lobbyCheck.isToggled() && isLobby()) {
+            return;
+        }
+
+        if (mode.getInput() == 3) {
+            if (attacked && lastAttack != null
+                    && RotationUtils.isMouseOver(RotationHandler.getRotationYaw(), RotationHandler.getRotationPitch(), lastAttack, 3)) {
+                final double motionX = mc.thePlayer.motionX;
+                final double motionZ = mc.thePlayer.motionZ;
+                if (((EntityPlayerSPAccessor) mc.thePlayer).isServerSprint() && MoveUtil.isMoving()) {
+                    grimAC$reduce();
+                } else {
+                    mc.getNetHandler().addToSendQueue(new C0BPacketEntityAction(mc.thePlayer, C0BPacketEntityAction.Action.START_SPRINTING));
+                    grimAC$reduce();
+                    mc.getNetHandler().addToSendQueue(new C0BPacketEntityAction(mc.thePlayer, C0BPacketEntityAction.Action.STOP_SPRINTING));
+                }
+                if (debug.isToggled()) Utils.sendMessage(String.format("reduced %.2f %.2f", motionX - mc.thePlayer.motionX, motionZ - mc.thePlayer.motionZ));
+            }
+            attacked = false;
+        }
+    }
+
+    private void grimAC$reduce() {
+        for (int i = 0; i < 5; i++) {
+            PacketUtils.sendPacketNoEvent(new C0APacketAnimation());
+            PacketUtils.sendPacketNoEvent(new C02PacketUseEntity(KillAura.target, C02PacketUseEntity.Action.ATTACK));
+            mc.thePlayer.motionX *= 0.6;
+            mc.thePlayer.motionZ *= 0.6;
+        }
+    }
+
+    @SubscribeEvent
+    public void onAttack(@NotNull AttackEntityEvent event) {
         attacked = true;
+        lastAttack = event.target;
     }
 
     private boolean overAir() {
@@ -159,6 +210,10 @@ public class Velocity extends Module {
             }
         }
         else if (e.getPacket() instanceof S27PacketExplosion) {
+            if (onlyFirstHit.isToggled() && System.currentTimeMillis() - lastVelocityTime < resetTime.getInput()) {
+                return;
+            }
+            lastVelocityTime = System.currentTimeMillis();
             if (lobbyCheck.isToggled() && isLobby()) {
                 return;
             }
