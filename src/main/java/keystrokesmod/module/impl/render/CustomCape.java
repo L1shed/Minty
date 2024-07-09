@@ -71,8 +71,8 @@ public final class CustomCape extends Module {
         }
 
         for (String s : CAPES_NAME) {
+            String name = s.toLowerCase();
             try {
-                String name = s.toLowerCase();
                 InputStream stream = Raven.class.getResourceAsStream("/assets/keystrokesmod/textures/capes/" + name + ".png");
                 if (stream == null)
                     stream = Raven.class.getResourceAsStream("/assets/keystrokesmod/textures/capes/" + s + ".png");
@@ -80,6 +80,7 @@ public final class CustomCape extends Module {
                     continue;
                 BufferedImage bufferedImage = ImageIO.read(stream);
                 LOADED_CAPES.add(Minecraft.getMinecraft().renderEngine.getDynamicTextureLocation(name, new DynamicTexture(bufferedImage)));
+                stream.close();
             } catch (Exception e) {
                 Utils.sendMessage(RED + "Failed to load cape '" + RESET + s + RED + "'");
             }

@@ -73,12 +73,9 @@ public class HUD extends Module {
         this.registerSetting(showInfo = new ButtonSetting("Show module info", true));
         this.registerSetting(showWatermark = new ButtonSetting("Show Watermark", true));
         this.registerSetting(watermarkMode = new ModeSetting("Watermark mode", new String[]{"Text", "Augustus", "Enders", "Augustus 2"}, 0, showWatermark::isToggled));
-    }
 
-    static {
         for (String s : Arrays.asList("enders", "augustus")) {
-            try {
-                InputStream stream = Objects.requireNonNull(Raven.class.getResourceAsStream("/assets/keystrokesmod/textures/watermarks/" + s + ".png"));
+            try (InputStream stream = Objects.requireNonNull(Raven.class.getResourceAsStream("/assets/keystrokesmod/textures/watermarks/" + s + ".png"))) {
                 BufferedImage image = ImageIO.read(stream);
                 WATERMARK.put(s, Minecraft.getMinecraft().renderEngine.getDynamicTextureLocation(s, new DynamicTexture(image)));
             } catch (NullPointerException | IOException ignored) {

@@ -89,6 +89,7 @@ public class ModuleManager {
     public static ModSpoofer modSpoofer;
     public static Panic panic;
     public static SlotHandler slotHandler;
+    public static StaffDetector staffDetector;
     
     public void register() {
         this.addModule(autoClicker = new AutoClicker());
@@ -208,6 +209,7 @@ public class ModuleManager {
         this.addModule(modSpoofer = new ModSpoofer());
         this.addModule(panic = new Panic());
         this.addModule(slotHandler = new SlotHandler());
+        this.addModule(staffDetector = new StaffDetector());
         antiBot.enable();
         commandChat.enable();
         modSpoofer.enable();
