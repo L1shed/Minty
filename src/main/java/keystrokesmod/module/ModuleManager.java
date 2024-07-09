@@ -87,7 +87,8 @@ public class ModuleManager {
     public static BlockHit blockHit;
     public static FullBright fullBright;
     public static ModSpoofer modSpoofer;
-
+    public static Panic panic;
+    
     public void register() {
         this.addModule(autoClicker = new AutoClicker());
         this.addModule(longJump = new LongJump());
@@ -204,6 +205,7 @@ public class ModuleManager {
         this.addModule(fullBright = new FullBright());
         this.addModule(new AutoPot());
         this.addModule(modSpoofer = new ModSpoofer());
+        this.addModule(panic = new Panic());
         antiBot.enable();
         commandChat.enable();
         modSpoofer.enable();
