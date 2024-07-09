@@ -76,18 +76,18 @@ public final class RotationHandler extends Module {
         if (isSet) {
             switch ((int) smoothBack.getInput()) {
                 case 0:
-                    rotationYaw = mc.thePlayer.rotationYaw;
+                    rotationYaw = RotationUtils.normalize(mc.thePlayer.rotationYaw);
                     rotationPitch = mc.thePlayer.rotationPitch;
                     break;
                 case 1:
-                    rotationYaw = AimSimulator.rotMove(mc.thePlayer.rotationYaw, getRotationYaw(), (float) aimSpeed.getInput());
+                    rotationYaw = AimSimulator.rotMove(RotationUtils.normalize(mc.thePlayer.rotationYaw), getRotationYaw(), (float) aimSpeed.getInput());
                     rotationPitch = AimSimulator.rotMove(mc.thePlayer.rotationPitch, getRotationPitch(), (float) aimSpeed.getInput());
                     break;
             }
         }
 
-        if (rotationYaw != null && rotationYaw == mc.thePlayer.rotationYaw) rotationYaw = null;
-        if (rotationPitch != null && rotationPitch == mc.thePlayer.rotationPitch) rotationPitch = null;
+        if (getRotationYaw() == RotationUtils.normalize(mc.thePlayer.rotationYaw)) rotationYaw = null;
+        if (getRotationPitch() == mc.thePlayer.rotationPitch) rotationPitch = null;
 
         RotationEvent rotationEvent = new RotationEvent(getRotationYaw(), getRotationPitch());
         MinecraftForge.EVENT_BUS.post(rotationEvent);

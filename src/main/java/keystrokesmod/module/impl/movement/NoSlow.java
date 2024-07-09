@@ -23,6 +23,8 @@ import net.minecraft.util.EnumFacing;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
+
 public class NoSlow extends Module {
     public static ModeSetting mode;
     public static SliderSetting slowed;
@@ -31,7 +33,7 @@ public class NoSlow extends Module {
     public static ButtonSetting disablePotions;
     public static ButtonSetting swordOnly;
     public static ButtonSetting vanillaSword;
-    private final String[] modes = new String[]{"Vanilla", "Pre", "Post", "Alpha", "Old Intave", "Intave", "Polar"};
+    private final String[] modes = new String[]{"Vanilla", "Pre", "Post", "Alpha", "Old Intave", "Intave", "Polar", "GrimAC"};
     private boolean postPlace;
     private static ModeOnly canChangeSpeed;
 
@@ -40,7 +42,7 @@ public class NoSlow extends Module {
     public NoSlow() {
         super("NoSlow", Module.category.movement, 0);
         this.registerSetting(mode = new ModeSetting("Mode", modes, 0));
-        canChangeSpeed = new ModeOnly(mode, 5, 6).reserve();
+        canChangeSpeed = new ModeOnly(mode, 5, 6, 7).reserve();
         this.registerSetting(slowed = new SliderSetting("Slow %", 5.0D, 0.0D, 80.0D, 1.0D, canChangeSpeed));
         this.registerSetting(disableSword = new ButtonSetting("Disable sword", false));
         this.registerSetting(disableBow = new ButtonSetting("Disable bow", false, canChangeSpeed));
@@ -144,6 +146,11 @@ public class NoSlow extends Module {
                     }
                 }
                 break;
+            case 7:
+                PacketUtils.sendPacket(new C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem % 8 + 1));
+                PacketUtils.sendPacket(new C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem % 7 + 2));
+                PacketUtils.sendPacket(new C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem));
+                break;
         }
     }
 
@@ -157,7 +164,7 @@ public class NoSlow extends Module {
         }
         if (mc.thePlayer.getHeldItem().getItem() instanceof ItemSword && disableSword.isToggled()) {
             return 0.2f;
-        } if (mc.thePlayer.getHeldItem().getItem() instanceof ItemBow && (disableBow.isToggled() || !canChangeSpeed.get())) {
+        } if (mc.thePlayer.getHeldItem().getItem() instanceof ItemBow && (disableBow.isToggled() || Arrays.asList(5, 6).contains((int) mode.getInput()))) {
             return 0.2f;
         } else if (mc.thePlayer.getHeldItem().getItem() instanceof ItemPotion && !ItemPotion.isSplash(mc.thePlayer.getHeldItem().getItemDamage()) && disablePotions.isToggled()) {
             return 0.2f;
