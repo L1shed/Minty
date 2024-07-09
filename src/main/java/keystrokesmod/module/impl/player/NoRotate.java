@@ -14,6 +14,7 @@ public class NoRotate extends Module {
 
     public NoRotate() {
         super("NoRotate", category.player);
+        this.registerSetting(mode);
     }
 
     @SubscribeEvent
