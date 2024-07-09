@@ -1,5 +1,6 @@
 package keystrokesmod.module.impl.world;
 
+import keystrokesmod.Raven;
 import keystrokesmod.event.JumpEvent;
 import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.event.PreUpdateEvent;
@@ -34,6 +35,7 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class Scaffold extends Module { // from b4 :)
     private final SliderSetting aimSpeed;
@@ -43,6 +45,9 @@ public class Scaffold extends Module { // from b4 :)
     private final ModeSetting fastScaffold;
     private final ButtonSetting cancelSprint;
     private final ButtonSetting rayCast;
+    private final ButtonSetting sneak;
+    private final SliderSetting sneakEveryBlocks;
+    private final SliderSetting sneakTime;
     private final ModeSetting precision;
     private final ButtonSetting autoSwap;
     private final ButtonSetting fastOnRMB;
@@ -74,6 +79,7 @@ public class Scaffold extends Module { // from b4 :)
     private boolean place;
     private int add = 0;
     private int sameY$bridged = 1;
+    private int sneak$bridged = 0;
     private boolean placedUp;
     private int offGroundTicks = 0;
     private boolean telly$noBlockPlace = false;
@@ -87,6 +93,9 @@ public class Scaffold extends Module { // from b4 :)
         this.registerSetting(precision = new ModeSetting("Precision", precisionModes, 4));
         this.registerSetting(cancelSprint = new ButtonSetting("Cancel sprint", false, new ModeOnly(fastScaffold, 0, 9).reserve()));
         this.registerSetting(rayCast = new ButtonSetting("Ray cast", false));
+        this.registerSetting(sneak = new ButtonSetting("Sneak", false));
+        this.registerSetting(sneakEveryBlocks = new SliderSetting("Sneak every blocks", 1, 1, 10, 1, sneak::isToggled));
+        this.registerSetting(sneakTime = new SliderSetting("Sneak time", 50, 0, 500, 10, "ms", sneak::isToggled));
         this.registerSetting(autoSwap = new ButtonSetting("AutoSwap", true));
         this.registerSetting(delayOnJump = new ButtonSetting("Delay on jump", true));
         this.registerSetting(fastOnRMB = new ButtonSetting("Fast on RMB", false));
@@ -617,6 +626,14 @@ public class Scaffold extends Module { // from b4 :)
     protected void place(MovingObjectPosition block, boolean extra) {
         if (rotation.getInput() == 4 && telly$noBlockPlace) return;
 
+        if (sneak.isToggled()) {
+            if (sneak$bridged >= sneakEveryBlocks.getInput()) {
+                sneak$bridged = 0;
+                mc.thePlayer.setSneaking(true);
+                Raven.getExecutor().schedule(() -> mc.thePlayer.setSneaking(false), (long) sneakTime.getInput(), TimeUnit.MILLISECONDS);
+            }
+        }
+
         ItemStack heldItem = SlotHandler.getHeldItem();
         if (heldItem == null || !(heldItem.getItem() instanceof ItemBlock)) {
             return;
@@ -633,6 +650,7 @@ public class Scaffold extends Module { // from b4 :)
         }
 
         if (mc.playerController.onPlayerRightClick(mc.thePlayer, mc.theWorld, heldItem, block.getBlockPos(), block.sideHit, block.hitVec)) {
+            sneak$bridged++;
             if (silentSwing.isToggled()) {
                 mc.thePlayer.sendQueue.addToSendQueue(new C0APacketAnimation());
             }

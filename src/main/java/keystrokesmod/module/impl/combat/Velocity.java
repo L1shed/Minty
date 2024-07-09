@@ -62,7 +62,7 @@ public class Velocity extends Module {
         this.registerSetting(groundCheck = new ButtonSetting("Ground check", false, damageBoost::isToggled));
         this.registerSetting(lobbyCheck = new ButtonSetting("Lobby check", false));
         this.registerSetting(ignoreFirstHit = new ButtonSetting("Ignore first hit", false));
-        this.registerSetting(resetTime = new SliderSetting("Reset time", 5000, 500, 10000, 500, "ms"));
+        this.registerSetting(resetTime = new SliderSetting("Reset time", 5000, 500, 10000, 500, "ms", ignoreFirstHit::isToggled));
         this.registerSetting(debug = new ButtonSetting("Debug", false, new ModeOnly(mode, 2)));
     }
 
