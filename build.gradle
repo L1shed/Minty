@@ -22,7 +22,7 @@ apply plugin: 'org.spongepowered.mixin'
 apply plugin: 'java'
 
 group = "keystrokesmod"
-archivesBaseName = "raven-bS"
+archivesBaseName = "raven-XD"
 
 compileJava {
     sourceCompatibility = '1.8'
