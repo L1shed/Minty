@@ -70,15 +70,17 @@ public class HUD extends Module {
         this.registerSetting(lowercase = new ButtonSetting("Lowercase", false));
         this.registerSetting(showInfo = new ButtonSetting("Show module info", true));
         this.registerSetting(showWatermark = new ButtonSetting("Show Watermark", true));
-        this.registerSetting(watermarkMode = new ModeSetting("Watermark mode", new String[]{"Text", "Augustus", "Enders"}, 0, showWatermark::isToggled));
+        this.registerSetting(watermarkMode = new ModeSetting("Watermark mode", new String[]{"Text", "Augustus", "Enders", "Augustus 2"}, 0, showWatermark::isToggled));
     }
 
     static {
-        try {
-            InputStream stream = Objects.requireNonNull(Raven.class.getResourceAsStream("/assets/keystrokesmod/textures/watermarks/enders.png"));
-            BufferedImage image = ImageIO.read(stream);
-            WATERMARK.put("enders", Minecraft.getMinecraft().renderEngine.getDynamicTextureLocation("enders", new DynamicTexture(image)));
-        } catch (NullPointerException | IOException ignored) {
+        for (String s : Arrays.asList("enders", "augustus")) {
+            try {
+                InputStream stream = Objects.requireNonNull(Raven.class.getResourceAsStream("/assets/keystrokesmod/textures/watermarks/" + s + ".png"));
+                BufferedImage image = ImageIO.read(stream);
+                WATERMARK.put(s, Minecraft.getMinecraft().renderEngine.getDynamicTextureLocation(s, new DynamicTexture(image)));
+            } catch (NullPointerException | IOException ignored) {
+            }
         }
     }
 
@@ -111,9 +113,18 @@ public class HUD extends Module {
         int n = hudY;
         double n2 = 0.0;
         try {
-            if (showWatermark.isToggled() && watermarkMode.getInput() == 2 && WATERMARK.containsKey("enders")) {
-                RenderUtils.drawImage(WATERMARK.get("enders"), hudX, (float) n, 150, 45, new Color(255, 255, 255));
-                n += 60;
+            if (showWatermark.isToggled()) {
+                int input = (int) watermarkMode.getInput();
+                switch (input) {
+                    case 2:
+                        RenderUtils.drawImage(WATERMARK.get("enders"), hudX, (float) n, 150, 45, new Color(255, 255, 255));
+                        n += 45;
+                        break;
+                    case 3:
+                        RenderUtils.drawImage(WATERMARK.get("augustus"), hudX, (float) n, 50, 50, new Color(255, 255, 255));
+                        n += 50;
+                        break;
+                }
             }
 
             List<String> texts = getDrawTexts();
@@ -126,8 +137,9 @@ public class HUD extends Module {
                     n2 -= 12;
                 }
                 int n3 = hudX;
+                int width = getFontRenderer().getStringWidth(text);
                 if (alignRight.isToggled()) {
-                    n3 -= getFontRenderer().getStringWidth(text);
+                    n3 -= width;
                 }
                 getFontRenderer().drawString(text, n3, (float) n, e, dropShadow.isToggled());
                 n += Math.round(getFontRenderer().height() + 2);
