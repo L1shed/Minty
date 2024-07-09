@@ -40,7 +40,7 @@ public class Velocity extends Module {
     private final SliderSetting boostDelay;
     private final ButtonSetting groundCheck;
     private final ButtonSetting lobbyCheck;
-    private final ButtonSetting ignoreFirstHit;
+    private final ButtonSetting onlyFirstHit;
     private final SliderSetting resetTime;
     private final ButtonSetting debug;
 
@@ -61,8 +61,8 @@ public class Velocity extends Module {
         this.registerSetting(boostDelay = new SliderSetting("Boost delay", 0, 0, 1000, 5, "ms", damageBoost::isToggled));
         this.registerSetting(groundCheck = new ButtonSetting("Ground check", false, damageBoost::isToggled));
         this.registerSetting(lobbyCheck = new ButtonSetting("Lobby check", false));
-        this.registerSetting(ignoreFirstHit = new ButtonSetting("Ignore first hit", false));
-        this.registerSetting(resetTime = new SliderSetting("Reset time", 5000, 500, 10000, 500, "ms", ignoreFirstHit::isToggled));
+        this.registerSetting(onlyFirstHit = new ButtonSetting("Only first hit", false));
+        this.registerSetting(resetTime = new SliderSetting("Reset time", 5000, 500, 10000, 500, "ms", onlyFirstHit::isToggled));
         this.registerSetting(debug = new ButtonSetting("Debug", false, new ModeOnly(mode, 2)));
     }
 
@@ -109,7 +109,7 @@ public class Velocity extends Module {
         }
         if (e.getPacket() instanceof S12PacketEntityVelocity) {
             if (((S12PacketEntityVelocity) e.getPacket()).getEntityID() == mc.thePlayer.getEntityId()) {
-                if (ignoreFirstHit.isToggled() && System.currentTimeMillis() - lastVelocityTime < resetTime.getInput()) {
+                if (onlyFirstHit.isToggled() && System.currentTimeMillis() - lastVelocityTime < resetTime.getInput()) {
                     return;
                 }
                 lastVelocityTime = System.currentTimeMillis();
