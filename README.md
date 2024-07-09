@@ -1,7 +1,7 @@
 
 <div align="center">
   
-# Raven Bs (forked)
+# Raven XD
 <p align="center">
     <a href="https://github.com/xia-mc/Raven-bS/issues">
       <img src="https://img.shields.io/github/issues/xia-mc/Raven-bS?style=flat" alt="issues" />
@@ -36,7 +36,7 @@ Raven B4, but not only for Hypixel.
     - NoSlow
     - AntiVoid
     - Tower
- 3. Intave/Polar
+ 3. Intave/Polar/GrimAC
     - NoSlow
  4. Undetectable
     - AimAssist
