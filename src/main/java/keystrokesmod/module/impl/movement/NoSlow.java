@@ -34,7 +34,7 @@ public class NoSlow extends Module {
     public static ButtonSetting disablePotions;
     public static ButtonSetting swordOnly;
     public static ButtonSetting vanillaSword;
-    private final String[] modes = new String[]{"Vanilla", "Pre", "Post", "Alpha", "Old Intave", "Intave", "Polar", "GrimAC", "Watchdog"};
+    private final String[] modes = new String[]{"Vanilla", "Pre", "Post", "Alpha", "Old Intave", "Intave", "Polar", "GrimAC", "WatchdogTest"};
     private boolean postPlace;
     private static ModeOnly canChangeSpeed;
 
@@ -78,6 +78,8 @@ public class NoSlow extends Module {
             case 2:
                 postPlace = true;
                 break;
+            case 8:
+                ModuleManager.blink.enable();
             case 3:
                 if (mc.thePlayer.ticksExisted % 3 == 0 && !Raven.badPacketsHandler.C07) {
                     mc.thePlayer.sendQueue.addToSendQueue(new C08PacketPlayerBlockPlacement(new BlockPos(-1, -1, -1), 1, null, 0, 0, 0));
@@ -88,13 +90,16 @@ public class NoSlow extends Module {
 
     @SubscribeEvent
     public void onPostMotion(PostMotionEvent e) {
-        if ((int) mode.getInput() == 3) {
-            if (postPlace) {
-                if (mc.thePlayer.ticksExisted % 3 == 0 && !Raven.badPacketsHandler.C07) {
-                    mc.thePlayer.sendQueue.addToSendQueue(new C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()));
+        switch ((int) mode.getInput()) {
+            case 8:
+            case 3:
+                if (postPlace) {
+                    if (mc.thePlayer.ticksExisted % 3 == 0 && !Raven.badPacketsHandler.C07) {
+                        mc.thePlayer.sendQueue.addToSendQueue(new C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()));
+                    }
+                    postPlace = false;
                 }
-                postPlace = false;
-            }
+                break;
         }
 
     }
@@ -148,9 +153,6 @@ public class NoSlow extends Module {
                 PacketUtils.sendPacket(new C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem % 8 + 1));
                 PacketUtils.sendPacket(new C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem % 7 + 2));
                 PacketUtils.sendPacket(new C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem));
-                break;
-            case 8:
-                ModuleManager.blink.enable();
                 break;
         }
 

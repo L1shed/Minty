@@ -1,6 +1,7 @@
 package keystrokesmod.module.impl.render;
 
 import com.mojang.realmsclient.gui.ChatFormatting;
+import keystrokesmod.Raven;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.player.ChestStealer;
@@ -12,8 +13,11 @@ import keystrokesmod.utility.font.FontManager;
 import keystrokesmod.utility.render.RenderUtils;
 import keystrokesmod.utility.Theme;
 import keystrokesmod.utility.Utils;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.*;
 import net.minecraft.client.gui.inventory.GuiChest;
+import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.client.config.GuiButtonExt;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -22,14 +26,17 @@ import net.minecraftforge.fml.common.gameevent.TickEvent.RenderTickEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.io.InputStream;
+import java.util.*;
 import java.util.List;
 
 public class HUD extends Module {
     public static final String VERSION = "1.12.1";
+    public static final HashMap<String, ResourceLocation> WATERMARK = new HashMap<>();
     public static ModeSetting theme;
 //    public static SliderSetting font;
 //    public static SliderSetting fontSize;
@@ -63,7 +70,16 @@ public class HUD extends Module {
         this.registerSetting(lowercase = new ButtonSetting("Lowercase", false));
         this.registerSetting(showInfo = new ButtonSetting("Show module info", true));
         this.registerSetting(showWatermark = new ButtonSetting("Show Watermark", true));
-        this.registerSetting(watermarkMode = new ModeSetting("Watermark mode", new String[]{"Fork", "Augustus"}, 0, showWatermark::isToggled));
+        this.registerSetting(watermarkMode = new ModeSetting("Watermark mode", new String[]{"Text", "Augustus", "Enders"}, 0, showWatermark::isToggled));
+    }
+
+    static {
+        try {
+            InputStream stream = Objects.requireNonNull(Raven.class.getResourceAsStream("/assets/keystrokesmod/textures/watermarks/enders.png"));
+            BufferedImage image = ImageIO.read(stream);
+            WATERMARK.put("enders", Minecraft.getMinecraft().renderEngine.getDynamicTextureLocation("enders", new DynamicTexture(image)));
+        } catch (NullPointerException | IOException ignored) {
+        }
     }
 
     public void onEnable() {
@@ -95,6 +111,11 @@ public class HUD extends Module {
         int n = hudY;
         double n2 = 0.0;
         try {
+            if (showWatermark.isToggled() && watermarkMode.getInput() == 2 && WATERMARK.containsKey("enders")) {
+                RenderUtils.drawImage(WATERMARK.get("enders"), hudX, (float) n, 150, 45, new Color(255, 255, 255));
+                n += 60;
+            }
+
             List<String> texts = getDrawTexts();
 
             for (String text : texts) {
@@ -112,10 +133,10 @@ public class HUD extends Module {
                 n += Math.round(getFontRenderer().height() + 2);
             }
         }
-        catch (Exception e) {
+        catch (Exception exception) {
             Utils.sendMessage("&cAn error occurred rendering HUD. check your logs");
-            Utils.sendDebugMessage(Arrays.toString(e.getStackTrace()));
-            Utils.log.error(e);
+            Utils.sendDebugMessage(Arrays.toString(exception.getStackTrace()));
+            Utils.log.error(exception);
         }
     }
 

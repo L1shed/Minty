@@ -47,6 +47,7 @@ public final class SlotHandler extends Module {
         switch ((int) mode.getInput()) {
             case 0:
                 mc.thePlayer.inventory.currentItem = getCurrentSlot();
+                currentSlot = null;
                 break;
             case 1:
                 if (currentSlot != null && System.currentTimeMillis() - lastSetCurrentSlotTime > switchBackDelay.getInput())
