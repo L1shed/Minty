@@ -102,11 +102,13 @@ public class AimAssist extends Module {
     }
 
     private @Nullable EntityPlayer getEnemy() {
-        final int n = (int)fov.getInput();
+        final int n = (int) fov.getInput();
 
         List<EntityPlayer> players = mc.theWorld.playerEntities;
-        if (target != null && singleTarget.isToggled() && players.contains(target)) {
+        if (target != null && new Vec3(target).distanceTo(mc.thePlayer) <= distance.getInput() && singleTarget.isToggled() && players.contains(target)) {
             return target;
+        } else {
+            target = null;
         }
         EntityPlayer target = null;
         double targetDist = Double.MAX_VALUE;

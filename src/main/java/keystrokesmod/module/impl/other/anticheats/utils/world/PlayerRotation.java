@@ -12,9 +12,9 @@ public class PlayerRotation {
         return getYaw(new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5));
     }
     public static float getYaw(@NotNull AbstractClientPlayer from, @NotNull Vec3 pos) {
-        return from.getRotationYawHead() +
+        return from.rotationYaw +
                 MathHelper.wrapAngleTo180_float(
-                        (float) Math.toDegrees(Math.atan2(pos.z() - from.posZ, pos.x() - from.posX)) - 90f - from.getRotationYawHead()
+                        (float) Math.toDegrees(Math.atan2(pos.z() - from.posZ, pos.x() - from.posX)) - 90f - from.rotationYaw
                 );
     }
 
