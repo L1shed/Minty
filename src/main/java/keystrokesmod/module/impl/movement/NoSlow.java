@@ -5,6 +5,7 @@ import keystrokesmod.event.PostMotionEvent;
 import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
+import keystrokesmod.module.impl.player.Blink;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
@@ -33,7 +34,7 @@ public class NoSlow extends Module {
     public static ButtonSetting disablePotions;
     public static ButtonSetting swordOnly;
     public static ButtonSetting vanillaSword;
-    private final String[] modes = new String[]{"Vanilla", "Pre", "Post", "Alpha", "Old Intave", "Intave", "Polar", "GrimAC"};
+    private final String[] modes = new String[]{"Vanilla", "Pre", "Post", "Alpha", "Old Intave", "Intave", "Polar", "GrimAC", "Watchdog"};
     private boolean postPlace;
     private static ModeOnly canChangeSpeed;
 
@@ -105,6 +106,9 @@ public class NoSlow extends Module {
     @SubscribeEvent
     public void onPreMotion(PreMotionEvent event) {
         if (!mc.thePlayer.isUsingItem()) {
+            if (lastUsingRestItem && mode.getInput() == 8)
+                ModuleManager.blink.disable();
+
             lastUsingRestItem = false;
             return;
         }
@@ -121,10 +125,7 @@ public class NoSlow extends Module {
                     if (!lastUsingRestItem) {
                         PacketUtils.sendPacket(new C07PacketPlayerDigging(C07PacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.UP));
                     }
-                    lastUsingRestItem = true;
                 } else {
-                    lastUsingRestItem = false;
-
                     if (item instanceof ItemSword) {
                         PacketUtils.sendPacket(new C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()));
                     }
@@ -136,10 +137,7 @@ public class NoSlow extends Module {
                         PacketUtils.sendPacket(new C07PacketPlayerDigging(C07PacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.UP));
                     }
                     PacketUtils.sendPacket(new C0CPacketInput(0, 0.82f, false, false));
-                    lastUsingRestItem = true;
                 } else {
-                    lastUsingRestItem = false;
-
                     if (item instanceof ItemSword) {
                         PacketUtils.sendPacket(new C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()));
                         PacketUtils.sendPacket(new C0CPacketInput(0, 0.82f, false, false));
@@ -151,7 +149,12 @@ public class NoSlow extends Module {
                 PacketUtils.sendPacket(new C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem % 7 + 2));
                 PacketUtils.sendPacket(new C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem));
                 break;
+            case 8:
+                ModuleManager.blink.enable();
+                break;
         }
+
+        lastUsingRestItem = ContainerUtils.isRest(item);
     }
 
     public static float getSlowed() {

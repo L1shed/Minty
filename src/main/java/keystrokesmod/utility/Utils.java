@@ -3,6 +3,7 @@ package keystrokesmod.utility;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.mojang.realmsclient.gui.ChatFormatting;
+import keystrokesmod.module.impl.other.SlotHandler;
 import net.minecraftforge.client.event.MouseEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
@@ -804,10 +805,10 @@ public static List<String> getSidebarLines() {
     }
 
     public static boolean holdingSword() {
-        if (mc.thePlayer.getHeldItem() == null) {
+        if (SlotHandler.getHeldItem() == null) {
             return false;
         }
-        return mc.thePlayer.getHeldItem().getItem() instanceof ItemSword;
+        return SlotHandler.getHeldItem().getItem() instanceof ItemSword;
     }
 
     public static double getDamage(final ItemStack itemStack) {

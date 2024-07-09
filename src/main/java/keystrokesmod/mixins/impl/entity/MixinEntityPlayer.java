@@ -1,6 +1,5 @@
 package keystrokesmod.mixins.impl.entity;
 
-import keystrokesmod.Raven;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.combat.Reduce;
 import keystrokesmod.module.impl.movement.KeepSprint;
@@ -10,8 +9,6 @@ import net.minecraft.entity.*;
 import net.minecraft.entity.boss.EntityDragonPart;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.entity.player.PlayerCapabilities;
 import net.minecraft.item.EnumAction;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.server.S12PacketEntityVelocity;
@@ -20,16 +17,12 @@ import net.minecraft.stats.AchievementList;
 import net.minecraft.stats.StatBase;
 import net.minecraft.stats.StatList;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.EnumParticleTypes;
-import net.minecraft.util.FoodStats;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeHooks;
-import net.minecraftforge.event.ForgeEventFactory;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
 
 @Mixin(value = EntityPlayer.class)
 public abstract class MixinEntityPlayer extends EntityLivingBase {

@@ -5,6 +5,7 @@ import keystrokesmod.event.*;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.minigames.BedWars;
+import keystrokesmod.module.impl.other.SlotHandler;
 import keystrokesmod.module.impl.render.HUD;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.ModeSetting;
@@ -333,7 +334,7 @@ public class BedAura extends Module {
 
     private double getEfficiency(BlockPos pos) {
         Block block = BlockUtils.getBlock(pos);
-        ItemStack tool = (mode.getInput() == 2 && Utils.getTool(block) != -1) ? mc.thePlayer.inventory.getStackInSlot(Utils.getTool(block)) : mc.thePlayer.getHeldItem();
+        ItemStack tool = (mode.getInput() == 2 && Utils.getTool(block) != -1) ? mc.thePlayer.inventory.getStackInSlot(Utils.getTool(block)) : SlotHandler.getHeldItem();
         double efficiency = BlockUtils.getBlockHardness(block, tool, false, ignoreSlow.isToggled() || groundSpoof.isToggled());
 
         if (breakProgressMap.get(pos) != null) {
@@ -443,7 +444,7 @@ public class BedAura extends Module {
                     rotate = true;
                 }
             }
-            double progress = vanillaProgress = (float) (BlockUtils.getBlockHardness(block, (mode.getInput() == 2 && Utils.getTool(block) != -1) ? mc.thePlayer.inventory.getStackInSlot(Utils.getTool(block)) : mc.thePlayer.getHeldItem(), false, ignoreSlow.isToggled() || groundSpoof.isToggled()) * breakSpeed.getInput());
+            double progress = vanillaProgress = (float) (BlockUtils.getBlockHardness(block, (mode.getInput() == 2 && Utils.getTool(block) != -1) ? mc.thePlayer.inventory.getStackInSlot(Utils.getTool(block)) : SlotHandler.getHeldItem(), false, ignoreSlow.isToggled() || groundSpoof.isToggled()) * breakSpeed.getInput());
             if (lastProgress != 0 && breakProgress >= lastProgress) {
                 ModuleManager.killAura.resetBlinkState(false);
                 stopAutoblock = true;

@@ -4,6 +4,7 @@ import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.event.PreUpdateEvent;
 import keystrokesmod.event.SendPacketEvent;
 import keystrokesmod.module.Module;
+import keystrokesmod.module.impl.other.SlotHandler;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.ModeSetting;
@@ -124,7 +125,7 @@ public class AntiVoid extends Module {
                         if ((slot = ContainerUtils.getSlot(ItemSword.class)) != -1) {
                             lastSlot = mc.thePlayer.inventory.currentItem;
                             mc.thePlayer.inventory.currentItem = slot;
-                            mc.playerController.sendUseItem(mc.thePlayer, mc.theWorld, mc.thePlayer.getHeldItem());
+                            mc.playerController.sendUseItem(mc.thePlayer, mc.theWorld, SlotHandler.getHeldItem());
                         }
                     }
                 } else {

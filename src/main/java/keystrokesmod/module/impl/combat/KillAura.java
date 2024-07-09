@@ -6,6 +6,7 @@ import keystrokesmod.event.*;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.other.RotationHandler;
+import keystrokesmod.module.impl.other.SlotHandler;
 import keystrokesmod.module.impl.world.AntiBot;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.ModeSetting;
@@ -323,7 +324,7 @@ public class KillAura extends Module {
     @SubscribeEvent
     public void onPostMotion(PostMotionEvent e) {
         if (autoBlockMode.getInput() == 2 && block.get() && Utils.holdingSword()) {
-            mc.getNetHandler().addToSendQueue(new C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()));
+            mc.getNetHandler().addToSendQueue(new C08PacketPlayerBlockPlacement(SlotHandler.getHeldItem()));
         }
     }
 

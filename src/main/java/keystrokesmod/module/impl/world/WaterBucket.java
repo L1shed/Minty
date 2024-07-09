@@ -2,6 +2,7 @@ package keystrokesmod.module.impl.world;
 
 import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.module.Module;
+import keystrokesmod.module.impl.other.SlotHandler;
 import keystrokesmod.module.impl.other.anticheats.utils.world.PlayerMove;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
@@ -57,12 +58,12 @@ public class WaterBucket extends Module {
     }
 
     private boolean holdWaterBucket(boolean setSlot) {
-        if (this.containsWater(mc.thePlayer.getHeldItem())) {
+        if (this.containsWater(SlotHandler.getHeldItem())) {
             return true;
         } else {
             for (int i = 0; i < InventoryPlayer.getHotbarSize(); ++i) {
                 if (this.containsWater(mc.thePlayer.inventory.mainInventory[i]) && setSlot) {
-                    mc.thePlayer.inventory.currentItem = i;
+                    SlotHandler.setCurrentSlot(i);
                     return true;
                 }
             }

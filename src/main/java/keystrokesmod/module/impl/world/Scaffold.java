@@ -6,6 +6,7 @@ import keystrokesmod.event.PreUpdateEvent;
 import keystrokesmod.event.RotationEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.impl.other.RotationHandler;
+import keystrokesmod.module.impl.other.SlotHandler;
 import keystrokesmod.module.impl.render.HUD;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.ModeSetting;
@@ -98,7 +99,7 @@ public class Scaffold extends Module { // from b4 :)
     public void onDisable() {
         placeBlock = null;
         if (lastSlot != -1) {
-            mc.thePlayer.inventory.currentItem = lastSlot;
+            SlotHandler.setCurrentSlot(lastSlot);
             lastSlot = -1;
         }
         delay = false;
@@ -219,7 +220,7 @@ public class Scaffold extends Module { // from b4 :)
             delay = false;
             return;
         }
-        final ItemStack heldItem = mc.thePlayer.getHeldItem();
+        final ItemStack heldItem = SlotHandler.getHeldItem();
         if (!autoSwap.isToggled() || getSlot() == -1) {
             if (heldItem == null || !(heldItem.getItem() instanceof ItemBlock)) {
                 return;
@@ -266,9 +267,9 @@ public class Scaffold extends Module { // from b4 :)
             return;
         }
         if (lastSlot == -1) {
-            lastSlot = mc.thePlayer.inventory.currentItem;
+            lastSlot = SlotHandler.getCurrentSlot();
         }
-        mc.thePlayer.inventory.currentItem = slot;
+        SlotHandler.setCurrentSlot(slot);
         if (heldItem == null || !(heldItem.getItem() instanceof ItemBlock)) {
             return;
         }
@@ -500,7 +501,7 @@ public class Scaffold extends Module { // from b4 :)
                 case 6:
                     return keepYPosition();
                 case 8:
-                    return Math.abs(MathHelper.wrapAngleTo180_float(mc.thePlayer.rotationYaw) - MathHelper.wrapAngleTo180_float(RotationHandler.getRotationYaw())) <= 90;
+                    return Math.abs(MathHelper.wrapAngleTo180_float(mc.thePlayer.rotationYaw) - MathHelper.wrapAngleTo180_float(RotationHandler.getRotationYaw())) <= 45;
             }
         }
         return false;
@@ -606,7 +607,7 @@ public class Scaffold extends Module { // from b4 :)
     protected void place(MovingObjectPosition block, boolean extra) {
         if (rotation.getInput() == 4 && telly$noBlockPlace) return;
 
-        ItemStack heldItem = mc.thePlayer.getHeldItem();
+        ItemStack heldItem = SlotHandler.getHeldItem();
         if (heldItem == null || !(heldItem.getItem() instanceof ItemBlock)) {
             return;
         }

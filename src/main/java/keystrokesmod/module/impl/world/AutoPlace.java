@@ -2,6 +2,7 @@ package keystrokesmod.module.impl.world;
 
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
+import keystrokesmod.module.impl.other.SlotHandler;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
@@ -66,7 +67,7 @@ public class AutoPlace extends Module {
         if (mc.currentScreen != null || mc.thePlayer.capabilities.isFlying) {
             return;
         }
-        final ItemStack getHeldItem = mc.thePlayer.getHeldItem();
+        final ItemStack getHeldItem = SlotHandler.getHeldItem();
         if (getHeldItem == null || !(getHeldItem.getItem() instanceof ItemBlock)) {
             return;
         }

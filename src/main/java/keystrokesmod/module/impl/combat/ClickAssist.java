@@ -1,6 +1,7 @@
 package keystrokesmod.module.impl.combat;
 
 import keystrokesmod.module.Module;
+import keystrokesmod.module.impl.other.SlotHandler;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
@@ -95,7 +96,7 @@ public class ClickAssist extends Module {
                             return;
                         }
                         if (blocksOnly.isToggled()) {
-                            ItemStack item = mc.thePlayer.getHeldItem();
+                            ItemStack item = SlotHandler.getHeldItem();
                             if (item == null || !(item.getItem() instanceof ItemBlock)) {
                                 this.fix(1);
                                 return;

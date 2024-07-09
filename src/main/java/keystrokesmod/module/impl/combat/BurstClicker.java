@@ -2,6 +2,7 @@ package keystrokesmod.module.impl.combat;
 
 import keystrokesmod.Raven;
 import keystrokesmod.module.Module;
+import keystrokesmod.module.impl.other.SlotHandler;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
@@ -86,7 +87,7 @@ public class BurstClicker extends Module {
     }
 
     private void c(boolean st) {
-        boolean r = placeWhenBlock.isToggled() && mc.thePlayer.getHeldItem() != null && mc.thePlayer.getHeldItem().getItem() instanceof ItemBlock;
+        boolean r = placeWhenBlock.isToggled() && SlotHandler.getHeldItem() != null && mc.thePlayer.getHeldItem().getItem() instanceof ItemBlock;
         if (r) {
             Reflection.rightClick();
         } else {

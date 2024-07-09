@@ -2,6 +2,7 @@ package keystrokesmod.module.impl.world;
 
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
+import keystrokesmod.module.impl.other.SlotHandler;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.Reflection;
@@ -31,7 +32,7 @@ public class FastPlace extends Module {
             }
             if (Utils.nullCheck() && mc.inGameHasFocus && Reflection.rightClickDelayTimerField != null) {
                 if (blocksOnly.isToggled()) {
-                    ItemStack item = mc.thePlayer.getHeldItem();
+                    ItemStack item = SlotHandler.getHeldItem();
                     if (item == null || !(item.getItem() instanceof ItemBlock)) {
                         return;
                     }

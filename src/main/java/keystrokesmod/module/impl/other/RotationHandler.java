@@ -102,7 +102,7 @@ public final class RotationHandler extends Module {
                 movementYaw = null;
                 break;
             case 1:
-                movementYaw = null;
+                movementYaw = getRotationYaw();
 
                 final float forward = event.getForward();
                 final float strafe = event.getStrafe();
@@ -119,7 +119,7 @@ public final class RotationHandler extends Module {
                     for (float predictedStrafe = -1F; predictedStrafe <= 1F; predictedStrafe += 1F) {
                         if (predictedStrafe == 0 && predictedForward == 0) continue;
 
-                        final double predictedAngle = MathHelper.wrapAngleTo180_double(Math.toDegrees(MoveUtil.direction(getRotationYaw(), predictedForward, predictedStrafe)));
+                        final double predictedAngle = MathHelper.wrapAngleTo180_double(Math.toDegrees(MoveUtil.direction(movementYaw, predictedForward, predictedStrafe)));
                         final double difference = Math.abs(angle - predictedAngle);
 
                         if (difference < closestDifference) {
