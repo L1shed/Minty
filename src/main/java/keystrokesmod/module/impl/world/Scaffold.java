@@ -36,11 +36,13 @@ import org.lwjgl.input.Mouse;
 import java.util.*;
 
 public class Scaffold extends Module { // from b4 :)
+    private final SliderSetting aimSpeed;
     private final SliderSetting motion;
     private final ModeSetting rotation;
     private final SliderSetting strafe;
     private final ModeSetting fastScaffold;
     private final ButtonSetting cancelSprint;
+    private final ButtonSetting rayCast;
     private final ModeSetting precision;
     private final ButtonSetting autoSwap;
     private final ButtonSetting fastOnRMB;
@@ -57,7 +59,7 @@ public class Scaffold extends Module { // from b4 :)
     protected MovingObjectPosition placeBlock;
     private int lastSlot;
     private static final String[] rotationModes = new String[]{"None", "Backwards", "Strict", "Precise", "Telly"};
-    private static final String[] fastScaffoldModes = new String[]{"Disabled", "Sprint", "Edge", "Jump A", "Jump B", "Jump C", "Float", "Side", "Legit"};
+    private static final String[] fastScaffoldModes = new String[]{"Disabled", "Sprint", "Edge", "Jump A", "Jump B", "Jump C", "Float", "Side", "Legit", "Auto Jump"};
     private static final String[] precisionModes = new String[]{"Very low", "Low", "Moderate", "High", "Very high"};
     public float placeYaw;
     public float placePitch;
@@ -77,12 +79,14 @@ public class Scaffold extends Module { // from b4 :)
     private boolean telly$noBlockPlace = false;
     public Scaffold() {
         super("Scaffold", category.world);
+        this.registerSetting(aimSpeed = new SliderSetting("Aim speed", 20, 5, 20, 0.1));
         this.registerSetting(motion = new SliderSetting("Motion", 1.0, 0.5, 1.2, 0.01));
         this.registerSetting(rotation = new ModeSetting("Rotation", rotationModes, 1));
         this.registerSetting(strafe = new SliderSetting("Strafe", 0, -45, 45, 5));
         this.registerSetting(fastScaffold = new ModeSetting("Fast scaffold", fastScaffoldModes, 0));
-        this.registerSetting(cancelSprint = new ButtonSetting("Cancel sprint", false, () -> fastScaffold.getInput() != 0));
         this.registerSetting(precision = new ModeSetting("Precision", precisionModes, 4));
+        this.registerSetting(cancelSprint = new ButtonSetting("Cancel sprint", false, new ModeOnly(fastScaffold, 0, 9).reserve()));
+        this.registerSetting(rayCast = new ButtonSetting("Ray cast", false));
         this.registerSetting(autoSwap = new ButtonSetting("AutoSwap", true));
         this.registerSetting(delayOnJump = new ButtonSetting("Delay on jump", true));
         this.registerSetting(fastOnRMB = new ButtonSetting("Fast on RMB", false));
@@ -93,7 +97,7 @@ public class Scaffold extends Module { // from b4 :)
         this.registerSetting(silentSwing = new ButtonSetting("Silent swing", false));
         this.registerSetting(tower = new ButtonSetting("Tower", false));
         this.registerSetting(fast = new ButtonSetting("Fast", false));
-        this.registerSetting(sameY = new ButtonSetting("SameY", false));
+        this.registerSetting(sameY = new ButtonSetting("SameY", false, new ModeOnly(fastScaffold, 9).reserve()));
     }
 
     public void onDisable() {
@@ -126,41 +130,47 @@ public class Scaffold extends Module { // from b4 :)
         if (!Utils.nullCheck()) {
             return;
         }
-            switch ((int) rotation.getInput()) {
-                case 0:
+        float yaw = event.getYaw();
+        float pitch = event.getPitch();
+        switch ((int) rotation.getInput()) {
+            case 0:
+                break;
+            case 1:
+                yaw = getYaw() + (float) strafe.getInput();
+                pitch = 85;
+                break;
+            case 2:
+                if (!forceStrict) {
+                    yaw = getYaw() + (float) strafe.getInput();
+                    pitch = 85;
                     break;
-                case 1:
-                    event.setYaw(getYaw() + (float) strafe.getInput());
-                    event.setPitch(85);
-                    break;
-                case 2:
-                    if (!forceStrict) {
-                        event.setYaw(getYaw() + (float) strafe.getInput());
-                        event.setPitch(85);
-                        break;
-                    }
-                case 3:
-                    event.setYaw(placeYaw);
-                    event.setPitch(placePitch);
-                    break;
-                case 4:
-                    if (offGroundTicks >= 3 && offGroundTicks < 8 && placeBlock != null && MoveUtil.isMoving()) {
-                        telly$noBlockPlace = true;
-                        event.setYaw(event.getYaw());
-                        event.setPitch(event.getPitch());
-                    } else {
-                        event.setYaw(placeYaw);
-                        event.setPitch(placePitch);
-                        telly$noBlockPlace = false;
-                    }
-                    break;
-            }
+                }
+            case 3:
+                yaw = placeYaw;
+                pitch = placePitch;
+                break;
+            case 4:
+                if (offGroundTicks >= 3 && offGroundTicks < 8 && placeBlock != null && MoveUtil.isMoving()) {
+                    telly$noBlockPlace = true;
+                    yaw = event.getYaw();
+                    pitch = event.getPitch();
+                } else {
+                    yaw = placeYaw;
+                    pitch = placePitch;
+                    telly$noBlockPlace = false;
+                }
+                break;
+        }
+        boolean instant = aimSpeed.getInput() == aimSpeed.getMax();
+        event.setYaw(instant ? yaw : AimSimulator.rotMove(yaw, RotationHandler.getLastRotationYaw(), (float) aimSpeed.getInput()));
+        event.setPitch(instant ? pitch : AimSimulator.rotMove(pitch, RotationHandler.getLastRotationPitch(), (float) aimSpeed.getInput()));
+
         place = true;
     }
 
     @SubscribeEvent
     public void onPreMotion(PreMotionEvent event) {
-        if (cancelSprint.isToggled()) {
+        if (cancelSprint.isToggled() || fastScaffold.getInput() == 9) {
             event.setSprinting(false);
         }
     }
@@ -177,7 +187,7 @@ public class Scaffold extends Module { // from b4 :)
         } else {
             offGroundTicks++;
         }
-        if (rotation.getInput() == 4 && mc.thePlayer.onGround && MoveUtil.isMoving()) {
+        if ((rotation.getInput() == 4 || fastScaffold.getInput() == 9) && mc.thePlayer.onGround && MoveUtil.isMoving() && !Utils.jumpDown()) {
             mc.thePlayer.jump();
         }
 
@@ -512,7 +522,7 @@ public class Scaffold extends Module { // from b4 :)
     }
 
     private boolean keepYPosition() {
-        boolean sameYSca = fastScaffold.getInput() == 4 || fastScaffold.getInput() == 3 || fastScaffold.getInput() == 5 || fastScaffold.getInput() == 6;
+        boolean sameYSca = fastScaffold.getInput() == 4 || fastScaffold.getInput() == 3 || fastScaffold.getInput() == 5 || fastScaffold.getInput() == 6 || fastScaffold.getInput() == 9;
         return this.isEnabled() && Utils.keysDown() && (sameYSca || sameY.isToggled()) && (!Utils.jumpDown() || fastScaffold.getInput() == 6) && (!fastOnRMB.isToggled() || Mouse.isButtonDown(1));
     }
 
@@ -611,6 +621,17 @@ public class Scaffold extends Module { // from b4 :)
         if (heldItem == null || !(heldItem.getItem() instanceof ItemBlock)) {
             return;
         }
+
+        if (rayCast.isToggled()) {
+            MovingObjectPosition hitResult = RotationUtils.rayCast(4.5, RotationHandler.getRotationYaw(), RotationHandler.getRotationPitch());
+            if (hitResult == null) return;
+            if (hitResult.getBlockPos().equals(block.getBlockPos())) {
+                block.hitVec = hitResult.hitVec;
+            } else {
+                return;
+            }
+        }
+
         if (mc.playerController.onPlayerRightClick(mc.thePlayer, mc.theWorld, heldItem, block.getBlockPos(), block.sideHit, block.hitVec)) {
             if (silentSwing.isToggled()) {
                 mc.thePlayer.sendQueue.addToSendQueue(new C0APacketAnimation());

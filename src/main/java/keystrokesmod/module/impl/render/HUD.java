@@ -41,6 +41,7 @@ public class HUD extends Module {
 //    public static SliderSetting font;
 //    public static SliderSetting fontSize;
     public static ButtonSetting dropShadow;
+    private final ButtonSetting background;
     public static ButtonSetting alphabeticalSort;
     private static ButtonSetting alignRight;
     private static ButtonSetting lowercase;
@@ -67,6 +68,7 @@ public class HUD extends Module {
         this.registerSetting(alignRight = new ButtonSetting("Align right", false));
         this.registerSetting(alphabeticalSort = new ButtonSetting("Alphabetical sort", false));
         this.registerSetting(dropShadow = new ButtonSetting("Drop shadow", true));
+        this.registerSetting(background = new ButtonSetting("Background", false));
         this.registerSetting(lowercase = new ButtonSetting("Lowercase", false));
         this.registerSetting(showInfo = new ButtonSetting("Show module info", true));
         this.registerSetting(showWatermark = new ButtonSetting("Show Watermark", true));
@@ -141,7 +143,10 @@ public class HUD extends Module {
                 if (alignRight.isToggled()) {
                     n3 -= width;
                 }
-                getFontRenderer().drawString(text, n3, (float) n, e, dropShadow.isToggled());
+                if (background.isToggled()) {
+                    RenderUtils.drawRect(n3 - 1, n - 1, n3 + width, n + Math.round(getFontRenderer().height() + 1), new Color(0, 0, 0, 100).getRGB());
+                }
+                getFontRenderer().drawString(text, n3, n, e, dropShadow.isToggled());
                 n += Math.round(getFontRenderer().height() + 2);
             }
         }
@@ -161,7 +166,7 @@ public class HUD extends Module {
             String text = "";
             switch ((int) watermarkMode.getInput()) {
                 case 0:
-                    text = "§r§f§lRaven §bX§9D " + ChatFormatting.GRAY + VERSION;
+                    text = "§r§f§lRaven §bX§9D §7" + VERSION;
                     break;
                 case 1:
                     text = "§f§lAugustus " + VERSION;

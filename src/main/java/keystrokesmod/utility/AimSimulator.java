@@ -64,6 +64,8 @@ public class AimSimulator {
     }
 
     public static float rotMove(float target, float current, float diff) {
+        target = RotationUtils.normalize(target);
+        current = RotationUtils.normalize(current);
         diff *= (float) Math.min(Math.random() + diff * 0.2, diff);
 
         return rotMoveNoRandom(target, current, diff);

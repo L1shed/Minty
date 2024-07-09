@@ -34,7 +34,7 @@ public class ModeOnly implements Supplier<Boolean> {
     
     public ModeOnly reserve() {
         List<Integer> options = new ArrayList<>(modeSetting.getMax() + 1 - activeMode.size());
-        for (int i = 0; i < modeSetting.getMax(); i++) {
+        for (int i = 0; i <= modeSetting.getMax(); i++) {
             if (!activeMode.contains(i))
                 options.add(i);
         }
