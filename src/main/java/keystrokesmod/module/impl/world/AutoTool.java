@@ -1,6 +1,7 @@
 package keystrokesmod.module.impl.world;
 
 import keystrokesmod.module.Module;
+import keystrokesmod.module.impl.other.SlotHandler;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.BlockUtils;
@@ -33,7 +34,7 @@ public class AutoTool extends Module {
         if (currentItem == -1) {
             return;
         }
-        mc.thePlayer.inventory.currentItem = currentItem;
+        SlotHandler.setCurrentSlot(currentItem);
     }
 
     public void onUpdate() {
@@ -64,7 +65,7 @@ public class AutoTool extends Module {
                 return;
             }
             if (previousSlot == -1) {
-                previousSlot = mc.thePlayer.inventory.currentItem;
+                previousSlot = SlotHandler.getCurrentSlot();
             }
             setSlot(slot);
         }
