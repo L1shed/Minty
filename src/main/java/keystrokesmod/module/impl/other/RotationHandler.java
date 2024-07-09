@@ -18,17 +18,17 @@ import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
-
 public final class RotationHandler extends Module {
     private static @Nullable Float movementYaw = null;
     private static @Nullable Float rotationYaw = null;
     private static @Nullable Float rotationPitch = null;
+    private static @Nullable Float lastRotationYaw = null;
+    private static @Nullable Float lastRotationPitch = null;
     private boolean isSet = false;
 
     private final ModeSetting moveFix = new ModeSetting("Move fix", new String[]{"None", "Default", "Advanced"}, 0);
     private final ModeSetting smoothBack = new ModeSetting("Smooth back", new String[]{"None", "Default"}, 0);
-    private final SliderSetting aimSpeed = new SliderSetting("Aim speed", 5, 0, 10, 0.1, new ModeOnly(smoothBack, 1));
+    private final SliderSetting aimSpeed = new SliderSetting("Aim speed", 5, 1, 15, 0.1, new ModeOnly(smoothBack, 1));
     public static final ButtonSetting rotateBody = new ButtonSetting("Rotate body", true);
     public static final ButtonSetting fullBody = new ButtonSetting("Full body", false);
     public static final SliderSetting randomYawFactor = new SliderSetting("Random yaw factor", 1.0, 0.0, 10.0, 1.0);
@@ -67,6 +67,18 @@ public final class RotationHandler extends Module {
         return mc.thePlayer.rotationPitch;
     }
 
+    public static float getLastRotationYaw() {
+        if (lastRotationYaw != null)
+            return RotationUtils.normalize(lastRotationYaw);
+        return getRotationYaw();
+    }
+
+    public static float getLastRotationPitch() {
+        if (lastRotationPitch != null)
+            return lastRotationPitch;
+        return getRotationPitch();
+    }
+
     /**
      * Fix movement
      * @param event before update living entity (move)
@@ -74,6 +86,8 @@ public final class RotationHandler extends Module {
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void onPreMotion(MoveInputEvent event) {
         if (isSet) {
+            lastRotationYaw = rotationYaw;
+            lastRotationPitch = rotationPitch;
             switch ((int) smoothBack.getInput()) {
                 case 0:
                     rotationYaw = RotationUtils.normalize(mc.thePlayer.rotationYaw);

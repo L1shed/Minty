@@ -112,7 +112,7 @@ public class BlockIn extends Module {
 
             if ((int) rotationMode.getInput() == 2) {
                 MovingObjectPosition hitResult = RotationUtils.rayCast(4.5, rotation.x, rotation.y);
-                if (hitPos.distanceTo(hitResult.hitVec) > 0.05) continue;
+                if (hitResult != null && hitPos.distanceTo(hitResult.hitVec) > 0.05) continue;
             }
 
             if (currentRot == null) {

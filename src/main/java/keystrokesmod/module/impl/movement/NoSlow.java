@@ -37,7 +37,7 @@ public class NoSlow extends Module {
     private boolean postPlace;
     private static ModeOnly canChangeSpeed;
 
-    private boolean lastUsingRestItem = false;
+    private boolean lastUsingItem = false;
 
     public NoSlow() {
         super("NoSlow", Module.category.movement, 0);
@@ -53,7 +53,7 @@ public class NoSlow extends Module {
 
     @Override
     public void onDisable() {
-        lastUsingRestItem = false;
+        lastUsingItem = false;
     }
 
     public void onUpdate() {
@@ -110,10 +110,10 @@ public class NoSlow extends Module {
     @SubscribeEvent
     public void onPreMotion(PreMotionEvent event) {
         if (!mc.thePlayer.isUsingItem()) {
-            if (lastUsingRestItem && mode.getInput() == 8)
+            if (lastUsingItem && mode.getInput() == 8)
                 ModuleManager.blink.disable();
 
-            lastUsingRestItem = false;
+            lastUsingItem = false;
             return;
         }
 
@@ -126,7 +126,7 @@ public class NoSlow extends Module {
             case 5:
                 if (!MoveUtil.isMoving()) return;
                 if (ContainerUtils.isRest(item)) {
-                    if (!lastUsingRestItem) {
+                    if (!lastUsingItem) {
                         PacketUtils.sendPacket(new C07PacketPlayerDigging(C07PacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.UP));
                     }
                 } else {
@@ -137,7 +137,7 @@ public class NoSlow extends Module {
                 break;
             case 6:
                 if (ContainerUtils.isRest(item)) {
-                    if (!lastUsingRestItem) {
+                    if (!lastUsingItem) {
                         PacketUtils.sendPacket(new C07PacketPlayerDigging(C07PacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.UP));
                     }
                     PacketUtils.sendPacket(new C0CPacketInput(0, 0.82f, false, false));
@@ -160,7 +160,7 @@ public class NoSlow extends Module {
                 break;
         }
 
-        lastUsingRestItem = ContainerUtils.isRest(item);
+        lastUsingItem = true;
     }
 
     public static float getSlowed() {
