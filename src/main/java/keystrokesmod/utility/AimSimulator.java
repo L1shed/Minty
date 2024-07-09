@@ -64,23 +64,20 @@ public class AimSimulator {
     }
 
     public static float rotMove(float target, float current, float diff) {
-        target = RotationUtils.normalize(target);
-        current = RotationUtils.normalize(current);
         diff *= (float) Math.min(Math.random() + diff * 0.2, diff);
 
         return rotMoveNoRandom(target, current, diff);
     }
 
     public static float rotMoveNoRandom(float target, float current, float diff) {
-        if (target > current)
-            if (target - current > diff)
-                return current + diff;
-            else
-                return target;
+        float fixedTarget = RotationUtils.normalize(target);
+        float fixedCurrent = RotationUtils.normalize(current);
+
+        float delta;
+        if (fixedTarget > fixedCurrent)
+            delta = Math.min(fixedTarget - fixedCurrent, diff);
         else
-        if (current - target > diff)
-            return current - diff;
-        else
-            return target;
+            delta = Math.min(fixedCurrent - fixedTarget, diff);
+        return current + delta;
     }
 }
