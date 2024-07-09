@@ -210,6 +210,7 @@ public class ModuleManager {
         this.addModule(panic = new Panic());
         this.addModule(slotHandler = new SlotHandler());
         this.addModule(staffDetector = new StaffDetector());
+        this.addModule(new AutoWeapon());
         antiBot.enable();
         commandChat.enable();
         modSpoofer.enable();
