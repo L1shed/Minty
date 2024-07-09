@@ -691,7 +691,11 @@ public class KillAura extends Module {
 
     private boolean behindBlocks(float[] rotations, EntityLivingBase target) {
         try {
-            MovingObjectPosition hitResult = RotationUtils.rayCast(attackRange.getInput(), RotationHandler.getRotationYaw(), RotationHandler.getRotationPitch());
+            Vec3 eyePos = Utils.getEyePos();
+            MovingObjectPosition hitResult = RotationUtils.rayCast(
+                    RotationUtils.getNearestPoint(target.getEntityBoundingBox(), eyePos).distanceTo(eyePos) + 0.05,
+                    RotationHandler.getRotationYaw(), RotationHandler.getRotationPitch()
+            );
             return hitResult != null;
         } catch (NullPointerException ignored) {
         }
