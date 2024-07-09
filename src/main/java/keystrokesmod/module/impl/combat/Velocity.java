@@ -24,7 +24,6 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static keystrokesmod.utility.Utils.isLobby;
@@ -41,9 +40,12 @@ public class Velocity extends Module {
     private final SliderSetting boostDelay;
     private final ButtonSetting groundCheck;
     private final ButtonSetting lobbyCheck;
+    private final ButtonSetting ignoreFirstHit;
+    private final SliderSetting resetTime;
     private final ButtonSetting debug;
 
     private boolean attacked = false;
+    private long lastVelocityTime = -1;
 
     public Velocity() {
         super("Velocity", category.combat);
@@ -59,6 +61,8 @@ public class Velocity extends Module {
         this.registerSetting(boostDelay = new SliderSetting("Boost delay", 0, 0, 1000, 5, "ms", damageBoost::isToggled));
         this.registerSetting(groundCheck = new ButtonSetting("Ground check", false, damageBoost::isToggled));
         this.registerSetting(lobbyCheck = new ButtonSetting("Lobby check", false));
+        this.registerSetting(ignoreFirstHit = new ButtonSetting("Ignore first hit", false));
+        this.registerSetting(resetTime = new SliderSetting("Reset time", 5000, 500, 10000, 500, "ms"));
         this.registerSetting(debug = new ButtonSetting("Debug", false, new ModeOnly(mode, 2)));
     }
 
@@ -105,6 +109,10 @@ public class Velocity extends Module {
         }
         if (e.getPacket() instanceof S12PacketEntityVelocity) {
             if (((S12PacketEntityVelocity) e.getPacket()).getEntityID() == mc.thePlayer.getEntityId()) {
+                if (ignoreFirstHit.isToggled() && System.currentTimeMillis() - lastVelocityTime < resetTime.getInput()) {
+                    return;
+                }
+                lastVelocityTime = System.currentTimeMillis();
                 if (lobbyCheck.isToggled() && isLobby()) {
                     return;
                 }
