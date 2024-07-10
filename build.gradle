@@ -22,7 +22,7 @@ apply plugin: 'org.spongepowered.mixin'
 apply plugin: 'java'
 
 group = "keystrokesmod"
-archivesBaseName = "raven-XD"
+archivesBaseName = "Minty"
 
 compileJava {
     sourceCompatibility = '1.8'
@@ -72,7 +72,10 @@ dependencies {
         exclude module: 'asm-commons'
         exclude module: 'slf4j-api'
     }
+    compile 'org.java-websocket:Java-WebSocket:1.5.7'
+
     implementation 'org.jetbrains:annotations:24.1.0'
+
     implementation files('libraries/snakeyaml-2.1.jar')
     implementation files('libraries/ViaRewind-3.1.2.jar')
     implementation files('libraries/ViaBackwards-4.10.2.jar')
