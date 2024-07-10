@@ -35,21 +35,14 @@ public class FreeLook extends Module {
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public void onPreUpdate(PreUpdateEvent event) {
-        mc.gameSettings.thirdPersonView = 1;
+    public void onPreMotion(PreMotionEvent event) {
         if (onlyIfPressed.isToggled() && !Keyboard.isKeyDown(this.getKeycode())) {
             disable();
             return;
         }
 
-        if (viewData != null) {
-            mc.objectMouseOver = RotationUtils.rayCast(mc.playerController.getBlockReachDistance(), viewData.rotationYaw, viewData.rotationPitch);
-        }
-    }
-
-    @SubscribeEvent(priority = EventPriority.LOWEST)
-    public void onPreMotion(PreMotionEvent event) {
         if (viewData != null){
+            mc.objectMouseOver = RotationUtils.rayCast(mc.playerController.getBlockReachDistance(), viewData.rotationYaw, viewData.rotationPitch);
             if (event.getYaw() == mc.thePlayer.rotationYaw && event.getPitch() == mc.thePlayer.rotationPitch) {
                 event.setYaw(viewData.rotationYaw);
                 event.setPitch(viewData.rotationPitch);
@@ -60,6 +53,7 @@ public class FreeLook extends Module {
                     event.getYaw(),
                     event.getPitch()
             );
+            mc.gameSettings.thirdPersonView = 1;
         }
     }
 
