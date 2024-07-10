@@ -102,4 +102,8 @@ public class AimSimulator {
             }
         }
     }
+
+    public static boolean yawEquals(float yaw1, float yaw2) {
+        return RotationUtils.normalize(yaw1) == RotationUtils.normalize(yaw2);
+    }
 }
