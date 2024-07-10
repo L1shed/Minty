@@ -11,7 +11,7 @@ public class IRCClient {
 
     public static void connect() {
         try {
-            WebSocketClient client = new WebSocketClient(new URI("ws://localhost:8080/irc")) {
+            WebSocketClient client = new WebSocketClient(new URI("ws://improved-happiness-v9x7wj9wq962x46g.github.dev/irc")) {
 
                 @Override
                 public void onOpen(ServerHandshake handshakedata) {
