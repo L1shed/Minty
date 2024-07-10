@@ -1,9 +1,6 @@
 package keystrokesmod.module.impl.render;
 
-import keystrokesmod.event.JumpEvent;
-import keystrokesmod.event.PreMotionEvent;
-import keystrokesmod.event.PrePlayerInputEvent;
-import keystrokesmod.event.PreUpdateEvent;
+import keystrokesmod.event.*;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.utility.RotationUtils;
@@ -34,8 +31,8 @@ public class FreeLook extends Module {
         viewData = null;
     }
 
-    @SubscribeEvent(priority = EventPriority.LOWEST)
-    public void onPreMotion(PreMotionEvent event) {
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public void onPreMotion(RotationEvent event) {
         if (onlyIfPressed.isToggled() && !Keyboard.isKeyDown(this.getKeycode())) {
             disable();
             return;
@@ -43,7 +40,7 @@ public class FreeLook extends Module {
 
         if (viewData != null){
             mc.objectMouseOver = RotationUtils.rayCast(mc.playerController.getBlockReachDistance(), viewData.rotationYaw, viewData.rotationPitch);
-            if (event.getYaw() == mc.thePlayer.rotationYaw && event.getPitch() == mc.thePlayer.rotationPitch) {
+            if (!event.isSet()) {
                 event.setYaw(viewData.rotationYaw);
                 event.setPitch(viewData.rotationPitch);
             }
