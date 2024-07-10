@@ -222,7 +222,7 @@ public class Scaffold extends Module { // from b4 :)
             for (BlockPos pos : possible) {
                 if (!BlockUtils.replaceable(pos)) continue;
 
-                Optional<Triple<BlockPos, EnumFacing, keystrokesmod.script.classes.Vec3>> placeSide = BlockIn.getPlaceSide(pos);
+                Optional<Triple<BlockPos, EnumFacing, keystrokesmod.script.classes.Vec3>> placeSide = RotationUtils.getPlaceSide(pos);
                 if (!placeSide.isPresent()) continue;
 
                 place(new MovingObjectPosition(MovingObjectPosition.MovingObjectType.BLOCK,
@@ -665,7 +665,7 @@ public class Scaffold extends Module { // from b4 :)
         }
     }
 
-    private int getSlot() {
+    public static int getSlot() {
         int slot = -1;
         int highestStack = -1;
         for (int i = 0; i < 9; ++i) {
