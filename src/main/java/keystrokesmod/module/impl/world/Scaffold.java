@@ -66,7 +66,7 @@ public class Scaffold extends Module { // from b4 :)
 
     protected MovingObjectPosition placeBlock;
     private int lastSlot;
-    private static final String[] rotationModes = new String[]{"None", "Backwards", "Strict", "Precise", "Telly"};
+    private static final String[] rotationModes = new String[]{"None", "Backwards", "Strict", "Precise", "Telly", "Constant", "Snap"};
     private static final String[] fastScaffoldModes = new String[]{"Disabled", "Sprint", "Edge", "Jump A", "Jump B", "Jump C", "Float", "Side", "Legit", "Auto Jump", "GrimAC"};
     private static final String[] precisionModes = new String[]{"Very low", "Low", "Moderate", "High", "Very high"};
     public float placeYaw;
@@ -173,6 +173,21 @@ public class Scaffold extends Module { // from b4 :)
                     pitch = placePitch;
                     telly$noBlockPlace = false;
                 }
+                break;
+            case 5:
+                yaw = getYaw();
+                pitch = placePitch;
+                break;
+            case 6:
+                if (MoveUtil.isMoving()) {
+                    mc.thePlayer.setSprinting(true);
+                }
+                if (place || !MoveUtil.isMoving()) {
+                    yaw = forceStrict ? placeYaw : getYaw();
+                } else {
+                    yaw = event.getYaw();
+                }
+                pitch = placePitch;
                 break;
         }
         boolean instant = aimSpeed.getInput() == aimSpeed.getMax();
@@ -654,9 +669,8 @@ public class Scaffold extends Module { // from b4 :)
         }
 
         if (rayCast.isToggled()) {
-            MovingObjectPosition hitResult = RotationUtils.rayCast(4.5, RotationHandler.getRotationYaw(), RotationHandler.getRotationPitch());
-            if (hitResult == null) return;
-            if (hitResult.getBlockPos().equals(block.getBlockPos())) {
+            MovingObjectPosition hitResult = RotationUtils.rayCast(4.5, placeYaw, placePitch);
+            if (hitResult != null && hitResult.getBlockPos().equals(block.getBlockPos())) {
                 block.hitVec = hitResult.hitVec;
             } else {
                 return;

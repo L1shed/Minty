@@ -3,6 +3,7 @@ package keystrokesmod.module.impl.world;
 import keystrokesmod.event.PreUpdateEvent;
 import keystrokesmod.event.RotationEvent;
 import keystrokesmod.module.Module;
+import keystrokesmod.module.impl.other.RotationHandler;
 import keystrokesmod.module.impl.other.SlotHandler;
 import keystrokesmod.module.impl.other.anticheats.utils.phys.Vec2;
 import keystrokesmod.module.impl.other.anticheats.utils.world.PlayerRotation;
@@ -43,7 +44,7 @@ public class BlockIn extends Module {
         super("Block-In", category.world);
         this.registerSetting(new DescriptionSetting("make you block in."));
         this.registerSetting(rotationMode = new ModeSetting("Rotation mode", rotationModes, 2));
-        this.registerSetting(aimSpeed = new SliderSetting("Aim speed", 5, 0, 10, 0.05, new ModeOnly(rotationMode, 1, 2)));
+        this.registerSetting(aimSpeed = new SliderSetting("Aim speed", 10, 0, 20, 0.05, new ModeOnly(rotationMode, 1, 2)));
         this.registerSetting(lookView = new ButtonSetting("Look view", false, new ModeOnly(rotationMode, 1, 2)));
         this.registerSetting(placeDelay = new SliderSetting("Place delay", 50, 0, 500, 1, "ms"));
         this.registerSetting(silentSwing = new ButtonSetting("Silent swing", false));
@@ -82,12 +83,12 @@ public class BlockIn extends Module {
         }
 
         try {
-            if (!(mc.thePlayer.getHeldItem().getItem() instanceof ItemBlock)) {
+            if (!(Objects.requireNonNull(SlotHandler.getHeldItem()).getItem() instanceof ItemBlock)) {
                 Utils.sendMessage("No blocks found.");
                 disable();
                 return;
             }
-        } catch (Exception e) {
+        } catch (NullPointerException e) {
             Utils.sendMessage("No blocks found.");
             disable();
             return;
@@ -118,10 +119,10 @@ public class BlockIn extends Module {
             }
 
             if (currentRot == null) {
-                currentRot = new Vec2(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
+                currentRot = new Vec2(RotationHandler.getRotationYaw(), RotationHandler.getRotationPitch());
             }
             if (rotationMode.getInput() != 0 && !currentRot.equals(rotation)) {
-                if (aimSpeed.getInput() == 10) {
+                if (aimSpeed.getInput() == 20) {
                     currentRot = rotation;
                 } else {
                     currentRot = new Vec2(
@@ -135,13 +136,14 @@ public class BlockIn extends Module {
                     mc.thePlayer.rotationYaw = currentRot.x;
                     mc.thePlayer.rotationPitch = currentRot.y;
                 }
+                Utils.sendMessage(String.format("Yaw delta: %.2f  Pitch delta: %.2f", rotation.x - currentRot.x, rotation.y - currentRot.y));
                 if (rotating) return;
             }
 
             if (rotationMode.getInput() == 0 || currentRot.equals(rotation)) {
                 if (mc.playerController.onPlayerRightClick(
                         mc.thePlayer, mc.theWorld,
-                        mc.thePlayer.getHeldItem(),
+                        SlotHandler.getHeldItem(),
                         placeSideBlock.getLeft(), placeSideBlock.getMiddle(),
                         hitPos.toVec3()
                 )) {

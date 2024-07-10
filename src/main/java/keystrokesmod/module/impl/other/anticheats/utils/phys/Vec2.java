@@ -1,5 +1,6 @@
 package keystrokesmod.module.impl.other.anticheats.utils.phys;
 
+import keystrokesmod.utility.AimSimulator;
 import net.minecraft.util.MathHelper;
 import org.jetbrains.annotations.NotNull;
 
@@ -47,7 +48,7 @@ public class Vec2 {
     }
 
     public boolean equals(@NotNull Vec2 vec2) {
-        return this.x == vec2.x && this.y == vec2.y;
+        return AimSimulator.yawEquals(this.x, vec2.x) && this.y == vec2.y;
     }
 
     @Override

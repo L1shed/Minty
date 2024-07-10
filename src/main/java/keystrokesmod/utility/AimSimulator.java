@@ -64,7 +64,7 @@ public class AimSimulator {
     }
 
     public static float rotMove(float target, float current, float diff) {
-        diff *= (float) Math.min(Math.random() + diff * 0.2, diff);
+        diff *= (float) Math.min(Math.random() + diff * 0.4, diff);
 
         return rotMoveNoRandom(target, current, diff);
     }
@@ -104,6 +104,6 @@ public class AimSimulator {
     }
 
     public static boolean yawEquals(float yaw1, float yaw2) {
-        return RotationUtils.normalize(yaw1) == RotationUtils.normalize(yaw2);
+        return Math.abs(RotationUtils.normalize(yaw1) - RotationUtils.normalize(yaw2)) < 0.05;
     }
 }
