@@ -36,16 +36,20 @@ Raven B4, but not only for Hypixel.
     - NoSlow
     - AntiVoid
     - Tower
- 3. Intave/Polar/GrimAC
+ 3. Intave
+    - KillAura
+    - Scaffold
     - NoSlow
- 4. Undetectable
+ 5. Polar/GrimAC
+    - NoSlow
+ 6. Undetectable
     - AimAssist
     - AutoClicker
     - HitSelect
     - MoreKB
     - Block-In
     - Legit Scaffold
- 5. Common
+ 7. Common
     - Client-side AntiCheat
     - TimerRange
     - Backtrack
