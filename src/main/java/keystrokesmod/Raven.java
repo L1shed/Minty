@@ -3,6 +3,7 @@ package keystrokesmod;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
+import keystrokesmod.backend.IRC;
 import keystrokesmod.florianmichael.viamcp.ViaMCP;
 import keystrokesmod.keystroke.KeySrokeRenderer;
 import keystrokesmod.keystroke.KeyStrokeConfigGui;
@@ -75,6 +76,8 @@ public class Raven {
         FMLCommonHandler.instance().bus().register(ModuleManager.tower);
         FMLCommonHandler.instance().bus().register(ModuleManager.rotationHandler);
         FMLCommonHandler.instance().bus().register(ModuleManager.slotHandler);
+
+        IRC.connect();
 
         try {
             ViaMCP.create();
