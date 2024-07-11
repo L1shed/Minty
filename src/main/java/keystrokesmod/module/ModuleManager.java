@@ -216,7 +216,6 @@ public class ModuleManager {
         this.addModule(autoRespawn = new AutoRespawn());
         antiBot.enable();
         commandChat.enable();
-        modSpoofer.enable();
         modules.sort(Comparator.comparing(Module::getPrettyName));
     }
 

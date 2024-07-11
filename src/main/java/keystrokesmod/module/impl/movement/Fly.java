@@ -188,7 +188,8 @@ public class Fly extends Module {
                     AxisAlignedBB grimACBox = playerBox.expand(1, 1, 1);
                     if (entity instanceof EntityBoat) {
                         AxisAlignedBB boatBox = entity.getEntityBoundingBox();
-                        if (boatBox.intersectsWith(grimACBox) && !(boatBox.intersectsWith(playerBox))) {
+                        if (boatBox.intersectsWith(grimACBox) && !(boatBox.intersectsWith(playerBox))) {  // if grimAC disabled simulation
+                            // normal fly code
                             if (Utils.jumpDown()) {
                                 mc.thePlayer.motionY = 0.5 * verticalSpeed.getInput();
                             } else if (mc.thePlayer.isSneaking()) {
