@@ -206,4 +206,9 @@ public class InvManager extends Module {
         BEFORE,
         TASKING
     }
+
+    @Override
+    public String getInfo() {
+        return mode.getOptions()[(int) mode.getInput()];
+    }
 }
