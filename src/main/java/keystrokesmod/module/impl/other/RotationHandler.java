@@ -3,6 +3,7 @@ package keystrokesmod.module.impl.other;
 import keystrokesmod.event.MoveInputEvent;
 import keystrokesmod.event.RotationEvent;
 import keystrokesmod.module.Module;
+import keystrokesmod.module.impl.world.Scaffold;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.ModeSetting;
@@ -83,7 +84,7 @@ public final class RotationHandler extends Module {
      * Fix movement
      * @param event before update living entity (move)
      */
-    @SubscribeEvent(priority = EventPriority.LOWEST)
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onPreMotion(MoveInputEvent event) {
         if (isSet) {
             lastRotationYaw = rotationYaw;
@@ -144,7 +145,10 @@ public final class RotationHandler extends Module {
                     }
                 }
 
-                event.setForward(closestForward);
+                if (!Scaffold.sprint() || Math.abs(closestForward) != Math.abs(forward))
+                    event.setForward(closestForward);
+                else
+                    event.setForward(-forward);
                 event.setStrafe(closestStrafe);
                 break;
             case 2:

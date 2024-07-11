@@ -38,6 +38,7 @@ public class Velocity extends Module {
     public static ModeSetting mode;
     public static SliderSetting horizontal;
     public static SliderSetting vertical;
+    private final SliderSetting reduce;
     private final ButtonSetting cancelExplosion;
     private final ButtonSetting cancelAir;
     private final ButtonSetting damageBoost;
@@ -61,6 +62,7 @@ public class Velocity extends Module {
         final ModeOnly canChangeMode = new ModeOnly(mode, 0, 1);
         this.registerSetting(horizontal = new SliderSetting("Horizontal", 0.0, -100.0, 100.0, 1.0, canChangeMode));
         this.registerSetting(vertical = new SliderSetting("Vertical", 0.0, 0.0, 100.0, 1.0, canChangeMode));
+        this.registerSetting(reduce = new SliderSetting("Reduce", 5, 0, 5, 1, new ModeOnly(mode, 3)));
         this.registerSetting(cancelExplosion = new ButtonSetting("Cancel explosion packet", true, canChangeMode));
         this.registerSetting(cancelAir = new ButtonSetting("Cancel air", false, canChangeMode));
         this.registerSetting(damageBoost = new ButtonSetting("Damage boost", false));
@@ -123,7 +125,7 @@ public class Velocity extends Module {
     }
 
     private void grimAC$reduce() {
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < (int) reduce.getInput(); i++) {
             PacketUtils.sendPacketNoEvent(new C0APacketAnimation());
             PacketUtils.sendPacketNoEvent(new C02PacketUseEntity(lastAttack, C02PacketUseEntity.Action.ATTACK));
             mc.thePlayer.motionX *= 0.6;

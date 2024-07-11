@@ -1,12 +1,10 @@
 package keystrokesmod.module.impl.world;
 
 import keystrokesmod.Raven;
-import keystrokesmod.event.JumpEvent;
-import keystrokesmod.event.PreMotionEvent;
-import keystrokesmod.event.PreUpdateEvent;
-import keystrokesmod.event.RotationEvent;
+import keystrokesmod.event.*;
 import keystrokesmod.mixins.impl.client.KeyBindingAccessor;
 import keystrokesmod.module.Module;
+import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.other.RotationHandler;
 import keystrokesmod.module.impl.other.SlotHandler;
 import keystrokesmod.module.impl.render.HUD;
@@ -67,7 +65,7 @@ public class Scaffold extends Module { // from b4 :)
     protected MovingObjectPosition placeBlock;
     private int lastSlot;
     private static final String[] rotationModes = new String[]{"None", "Backwards", "Strict", "Precise", "Telly", "Constant", "Snap"};
-    private static final String[] fastScaffoldModes = new String[]{"Disabled", "Sprint", "Edge", "Jump A", "Jump B", "Jump C", "Float", "Side", "Legit", "Auto Jump", "GrimAC"};
+    private static final String[] fastScaffoldModes = new String[]{"Disabled", "Sprint", "Edge", "Jump A", "Jump B", "Jump C", "Float", "Side", "Legit", "Auto Jump", "GrimAC", "Sneak"};
     private static final String[] precisionModes = new String[]{"Very low", "Low", "Moderate", "High", "Very high"};
     public float placeYaw;
     public float placePitch;
@@ -154,7 +152,7 @@ public class Scaffold extends Module { // from b4 :)
                 pitch = 85;
                 break;
             case 2:
-                if (!forceStrict) {
+                if (!forceStrict && MoveUtil.isMoving()) {
                     yaw = getYaw() + (float) strafe.getInput();
                     pitch = 85;
                     break;
@@ -182,10 +180,12 @@ public class Scaffold extends Module { // from b4 :)
                 if (MoveUtil.isMoving()) {
                     mc.thePlayer.setSprinting(true);
                 }
-                if (place || !MoveUtil.isMoving()) {
+                if (!MoveUtil.isMoving()) {
+                    yaw = placeYaw;
+                } else if (place) {
                     yaw = forceStrict ? placeYaw : getYaw();
                 } else {
-                    yaw = event.getYaw();
+                    yaw = (float) (event.getYaw() + (Math.random() - 0.5) * 0.940004);
                 }
                 pitch = placePitch;
                 break;
@@ -215,6 +215,14 @@ public class Scaffold extends Module { // from b4 :)
     @SubscribeEvent
     public void onJump(JumpEvent e) {
         delay = true;
+    }
+
+    @SubscribeEvent
+    public void onMoveInput(@NotNull MoveInputEvent event) {
+        if (fastScaffold.getInput() == 11) {
+            event.setSneak(true);
+            event.setSneakSlowDownMultiplier(1);
+        }
     }
 
     @SubscribeEvent
@@ -261,7 +269,6 @@ public class Scaffold extends Module { // from b4 :)
                 break;
             }
         }
-
 
         if (delay && delayOnJump.isToggled()) {
             delay = false;
@@ -534,12 +541,16 @@ public class Scaffold extends Module { // from b4 :)
         }
     }
 
-    public boolean sprint() {
-        if (this.isEnabled() && fastScaffold.getInput() > 0 && placeBlock != null && (!fastOnRMB.isToggled() || Mouse.isButtonDown(1))) {
-            switch ((int) fastScaffold.getInput()) {
+    public static boolean sprint() {
+        if (ModuleManager.scaffold.isEnabled()
+                && ModuleManager.scaffold.fastScaffold.getInput() > 0
+                && ModuleManager.scaffold.placeBlock != null
+                && (!ModuleManager.scaffold.fastOnRMB.isToggled() || Mouse.isButtonDown(1))) {
+            switch ((int) ModuleManager.scaffold.fastScaffold.getInput()) {
                 case 1:
                 case 7:
                 case 10:
+                case 11:
                     return true;
                 case 2:
                     return Utils.onEdge();
@@ -547,7 +558,7 @@ public class Scaffold extends Module { // from b4 :)
                 case 4:
                 case 5:
                 case 6:
-                    return keepYPosition();
+                    return ModuleManager.scaffold.keepYPosition();
                 case 8:
                     return Math.abs(MathHelper.wrapAngleTo180_float(mc.thePlayer.rotationYaw) - MathHelper.wrapAngleTo180_float(RotationHandler.getRotationYaw())) <= 45;
             }

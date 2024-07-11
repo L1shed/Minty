@@ -9,6 +9,7 @@ import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.movement.NoSlow;
 import keystrokesmod.module.impl.movement.Sprint;
 import keystrokesmod.module.impl.other.RotationHandler;
+import keystrokesmod.module.impl.world.Scaffold;
 import keystrokesmod.utility.RotationUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.PositionedSoundRecord;
