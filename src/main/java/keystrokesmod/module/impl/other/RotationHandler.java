@@ -145,10 +145,7 @@ public final class RotationHandler extends Module {
                     }
                 }
 
-                if (!Scaffold.sprint() || Math.abs(closestForward) != Math.abs(forward))
-                    event.setForward(closestForward);
-                else
-                    event.setForward(-forward);
+                event.setForward(closestForward);
                 event.setStrafe(closestStrafe);
                 break;
             case 2:

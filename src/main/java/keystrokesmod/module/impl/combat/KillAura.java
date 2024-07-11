@@ -574,6 +574,8 @@ public class KillAura extends Module {
         } else if (fixNoSlowFlag.isToggled() && blockingTime > 10) {
             unBlock();
             blockingTime = 0;
+        } else if (ModuleManager.scaffold.isEnabled()) {
+            return true;
         }
         return mc.currentScreen != null && disableInInventory.isToggled();
     }

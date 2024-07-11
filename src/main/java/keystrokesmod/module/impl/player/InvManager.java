@@ -7,7 +7,9 @@ import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.module.setting.utils.ModeOnly;
 import keystrokesmod.utility.ContainerUtils;
+import keystrokesmod.utility.MoveUtil;
 import keystrokesmod.utility.PacketUtils;
 import keystrokesmod.utility.Utils;
 import net.minecraft.client.gui.inventory.GuiInventory;
@@ -24,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 
 public class InvManager extends Module {
     private final ModeSetting mode = new ModeSetting("Mode", new String[]{"Basic", "OpenInv"}, 1);
+    private final ButtonSetting notWhileMoving = new ButtonSetting("Not while moving", false, new ModeOnly(mode, 1));
     private final SliderSetting minStartDelay = new SliderSetting("Min start delay", 100, 0, 500, 10, "ms");
     private final SliderSetting maxStartDelay = new SliderSetting("Max start delay", 200, 0, 500, 10, "ms");
     private final ButtonSetting armor = new ButtonSetting("Armor", false);
@@ -50,7 +53,7 @@ public class InvManager extends Module {
     public InvManager() {
         super("InvManager", category.player);
         this.registerSetting(
-                mode, minStartDelay, maxStartDelay,
+                mode, notWhileMoving, minStartDelay, maxStartDelay,
                 armor, minArmorDelay, maxArmorDelay,
                 clean, minCleanDelay, maxCleanDelay,
                 sort, minSortDelay, maxSortDelay, swordSlot, blockSlot, enderPearlSlot, bowSlot, foodSlot, throwableSlot,
@@ -79,7 +82,7 @@ public class InvManager extends Module {
     public void onUpdate() {
         switch ((int) mode.getInput()) {
             case 0:
-                invOpen = true;
+                invOpen = mc.currentScreen == null && !(notWhileMoving.isToggled() && MoveUtil.isMoving());
                 break;
             case 1:
                 invOpen = mc.currentScreen instanceof GuiInventory;
