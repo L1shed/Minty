@@ -1,9 +1,6 @@
 package keystrokesmod.module.impl.movement;
 
-import keystrokesmod.event.BlockAABBEvent;
-import keystrokesmod.event.PrePlayerInputEvent;
-import keystrokesmod.event.ReceivePacketEvent;
-import keystrokesmod.event.RotationEvent;
+import keystrokesmod.event.*;
 import keystrokesmod.mixins.impl.client.KeyBindingAccessor;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
@@ -145,7 +142,8 @@ public class Fly extends Module {
         Utils.getTimer().timerSpeed = 0.4f;
     }
 
-    public void onUpdate() {
+    @SubscribeEvent
+    public void onPreUpdate(PreUpdateEvent event) {
         if (mc.thePlayer.onGround) {
             offGroundTicks = 0;
         } else {
