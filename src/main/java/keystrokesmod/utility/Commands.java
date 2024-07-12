@@ -2,6 +2,7 @@ package keystrokesmod.utility;
 
 import com.mojang.realmsclient.gui.ChatFormatting;
 import keystrokesmod.Raven;
+import keystrokesmod.clickgui.ClickGui;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.client.Settings;
@@ -296,6 +297,9 @@ public class Commands {
                         print("&a" + module.getName() + " is now called " + module.getRawPrettyName(), 1);
                     }
                 }
+            } else if (firstArg.equals("resetgui")) {
+                ClickGui.resetPosition();
+                print(ChatFormatting.GREEN + "Reset ClickGUI position!", 1);
             } else if (firstArg.equals("say")) {
                 if (!hasArgs) {
                     print(invSyn, 1);
@@ -481,6 +485,7 @@ public class Commands {
                 print("7 rename [module] [name]", 0);
                 print("8 say [message]", 0);
                 print("9 panic", 0);
+                print("10 resetGUI", 0);
                 print("&eProfiles:", 0);
                 print("1 profiles", 0);
                 print("2 profiles save [profile]", 0);
