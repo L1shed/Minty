@@ -192,9 +192,9 @@ public class Fly extends Module {
                  * @see ac.grim.grimac.predictionengine.UncertaintyHandler#hasHardCollision
                  * SUPER⭐GrimAC⭐TIME
                  */
+                AxisAlignedBB playerBox = mc.thePlayer.getEntityBoundingBox();
+                AxisAlignedBB grimACBox = playerBox.expand(1, 1, 1);
                 for (Entity entity : mc.theWorld.loadedEntityList) {
-                    AxisAlignedBB playerBox = mc.thePlayer.getEntityBoundingBox();
-                    AxisAlignedBB grimACBox = playerBox.expand(1, 1, 1);
                     if (entity instanceof EntityBoat) {
                         AxisAlignedBB boatBox = entity.getEntityBoundingBox();
                         if (boatBox.intersectsWith(grimACBox) && !(boatBox.intersectsWith(playerBox))) {  // if grimAC disabled simulation
