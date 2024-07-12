@@ -39,7 +39,7 @@ import java.util.concurrent.TimeUnit;
 import static keystrokesmod.utility.Utils.isLobby;
 
 public class Velocity extends Module {
-    private static final String[] MODES = new String[]{"Normal", "Hypixel", "Intave", "GrimAC", "Karhu", "Tick", "7-Zip"};
+    private static final String[] MODES = new String[]{"Normal", "Hypixel", "Old Intave", "GrimAC", "Karhu", "Tick", "7-Zip"};
     public static ModeSetting mode;
     public static SliderSetting horizontal;
     public static SliderSetting vertical;
