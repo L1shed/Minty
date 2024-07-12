@@ -3,23 +3,27 @@ package keystrokesmod.module.impl.movement;
 import keystrokesmod.event.BlockAABBEvent;
 import keystrokesmod.event.PrePlayerInputEvent;
 import keystrokesmod.event.ReceivePacketEvent;
+import keystrokesmod.event.RotationEvent;
 import keystrokesmod.mixins.impl.client.KeyBindingAccessor;
 import keystrokesmod.module.Module;
+import keystrokesmod.module.ModuleManager;
+import keystrokesmod.module.impl.other.SlotHandler;
+import keystrokesmod.module.impl.world.Scaffold;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.module.setting.utils.ModeOnly;
-import keystrokesmod.script.classes.Vec3;
-import keystrokesmod.utility.MoveUtil;
-import keystrokesmod.utility.PacketUtils;
+import keystrokesmod.utility.*;
 import keystrokesmod.utility.render.RenderUtils;
-import keystrokesmod.utility.Utils;
 import net.minecraft.block.BlockAir;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityBoat;
 import net.minecraft.network.play.client.C03PacketPlayer;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.BlockPos;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Vec3;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.apache.commons.lang3.RandomUtils;
@@ -46,7 +50,7 @@ public class Fly extends Module {
 
     public Fly() {
         super("Fly", category.movement);
-        this.registerSetting(mode = new ModeSetting("Fly", new String[]{"Vanilla", "Fast", "Fast 2", "AirWalk", "GrimAC", "BlocksMC", "GrimACBoat"}, 0));
+        this.registerSetting(mode = new ModeSetting("Fly", new String[]{"Vanilla", "Fast", "Fast 2", "AirWalk", "GrimAC", "BlocksMC", "GrimACBoat", "AirPlace"}, 0));
         final ModeOnly canChangeSpeed = new ModeOnly(mode, 0, 1, 2, 6);
         final ModeOnly balanceMode = new ModeOnly(mode, 4);
         this.registerSetting(horizontalSpeed = new SliderSetting("Horizontal speed", 2.0, 0.0, 9.0, 0.1, canChangeSpeed));
@@ -83,6 +87,13 @@ public class Fly extends Module {
                 teleport = false;
                 Utils.sendMessage("Teleported!");
             }
+        }
+    }
+
+    @SubscribeEvent
+    public void onRotation(RotationEvent event) {
+        if (mode.getInput() == 7) {
+            event.setPitch(90);
         }
     }
 
@@ -205,8 +216,27 @@ public class Fly extends Module {
                     }
                 }
                 break;
-        }
+            case 7:
+                SlotHandler.setCurrentSlot(Scaffold.getSlot());
 
+                if (mc.thePlayer.onGround) {
+                    if (!Utils.jumpDown()) mc.thePlayer.jump();
+                } else if (mc.thePlayer.motionY < 0) {
+                    if (!Utils.jumpDown() && mc.thePlayer.motionY > -0.25) {
+                        return;
+                    }
+
+                    BlockPos pos = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ).down();
+                    if (BlockUtils.replaceable(pos)) {
+                        mc.playerController.onPlayerRightClick(
+                                mc.thePlayer, mc.theWorld, SlotHandler.getHeldItem(),
+                                pos, EnumFacing.UP, new Vec3(mc.thePlayer.posX, pos.getY(), mc.thePlayer.posZ)
+                        );
+                        mc.thePlayer.swingItem();
+                    }
+                }
+                break;
+        }
     }
 
     public void onDisable() {
