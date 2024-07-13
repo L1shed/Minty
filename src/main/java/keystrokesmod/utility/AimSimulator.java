@@ -91,6 +91,8 @@ public class AimSimulator {
             return current;
         }
 
+        delta = RotationUtils.normalize(delta);
+
         if (Math.abs(delta) <= diff) {
             return current + delta;
         } else {
