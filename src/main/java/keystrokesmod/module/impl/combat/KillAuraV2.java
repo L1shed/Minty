@@ -189,10 +189,10 @@ public class KillAuraV2 extends Module {
                         pitch = aimResult.second();
                     }
             }
-            event.setYaw(AimSimulator.rotMove(yaw, lastYaw, rotationSpeed));
-            event.setPitch(AimSimulator.rotMove(pitch, lastPitch, rotationSpeed));
+            event.setYaw(lastYaw = AimSimulator.rotMove(yaw, lastYaw, rotationSpeed));
+            event.setPitch(lastPitch = AimSimulator.rotMove(pitch, lastPitch, rotationSpeed));
 
-            if (RayCast.isToggled() && !RotationUtils.isMouseOver(RotationHandler.getRotationYaw(), RotationHandler.getRotationPitch(), target, (float) attackRange.getInput()))
+            if (RayCast.isToggled() && !RotationUtils.isMouseOver(lastYaw, lastPitch, target, (float) attackRange.getInput()))
                 return;
 
             if (attackTimer.hasTimeElapsed(cps, true)) {
