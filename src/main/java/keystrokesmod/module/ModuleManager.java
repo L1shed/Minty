@@ -76,6 +76,7 @@ public class ModuleManager {
     public static ClickRecorder clickRecorder;
     public static InfiniteAura infiniteAura;
     public static LegitScaffold legitScaffold;
+    public static FreeLook freeLook;
     public static Step step;
     public static Animations animations;
     public static ChestStealer chestStealer;
@@ -92,6 +93,8 @@ public class ModuleManager {
     public static AutoRespawn autoRespawn;
     public static Clutch clutch;
     public static Ambience ambience;
+    public static KillAuraV2 killAuraV2;
+    public static DynamicManager dynamicManager;
     
     public void register() {
         this.addModule(autoClicker = new AutoClicker());
@@ -198,6 +201,7 @@ public class ModuleManager {
         this.addModule(clickRecorder = new ClickRecorder());
         this.addModule(infiniteAura = new InfiniteAura());
         this.addModule(legitScaffold = new LegitScaffold());
+        this.addModule(freeLook = new FreeLook());
         this.addModule(step = new Step());
         this.addModule(animations = new Animations());
         this.addModule(chestStealer = new ChestStealer());
@@ -214,6 +218,9 @@ public class ModuleManager {
         this.addModule(new AutoWeapon());
         this.addModule(autoRespawn = new AutoRespawn());
         this.addModule(ambience = new Ambience());
+        this.addModule(clutch = new Clutch());
+        this.addModule(killAuraV2 = new KillAuraV2());
+        this.addModule(dynamicManager = new DynamicManager());
         this.addModule(new ScreenshotHelper());
         antiBot.enable();
         commandChat.enable();

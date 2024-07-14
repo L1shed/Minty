@@ -172,7 +172,7 @@ public class Utils {
         }
     }
 
-    public static void attackEntity(Entity e, boolean clientSwing, boolean silentSwing) {
+    public static void attackEntity(Entity e, boolean clientSwing) {
         boolean attack = HitSelect.canAttack(e);
         if (clientSwing) {
             if (attack || HitSelect.canSwing()) mc.thePlayer.swingItem();
@@ -181,6 +181,10 @@ public class Utils {
             if (attack || HitSelect.canSwing()) mc.thePlayer.sendQueue.addToSendQueue(new C0APacketAnimation());
         }
         if (attack) mc.playerController.attackEntity(mc.thePlayer, e);
+    }
+
+    public static void attackEntityNoSwing(Entity e) {
+        if (HitSelect.canAttack(e)) mc.playerController.attackEntity(mc.thePlayer, e);
     }
 
     public static void sendRawMessage(String txt) {
@@ -835,7 +839,7 @@ public static List<String> getSidebarLines() {
             return false;
         }
         Item getItem = item.getItem();
-        return (Settings.weaponSword.isToggled() || getItem instanceof ItemSword) || (Settings.weaponAxe.isToggled() && getItem instanceof ItemAxe) || (Settings.weaponRod.isToggled() && getItem instanceof ItemFishingRod) || (Settings.weaponStick.isToggled() && getItem == Items.stick);
+        return (!Settings.weaponSword.isToggled() || getItem instanceof ItemSword) || (Settings.weaponAxe.isToggled() && getItem instanceof ItemAxe) || (Settings.weaponRod.isToggled() && getItem instanceof ItemFishingRod) || (Settings.weaponStick.isToggled() && getItem == Items.stick);
     }
 
     public static boolean holdingSword() {
@@ -918,5 +922,30 @@ public static List<String> getSidebarLines() {
             }
         }
         return false;
+    }
+
+    public static String getKeyName(int keyCode) {
+        if (keyCode >= 1000)
+            return "M" + (keyCode - 1000);
+        try {
+            return Keyboard.getKeyName(keyCode);
+        } catch (Exception e) {
+            return "Unknown";
+        }
+    }
+
+    public static int getKeyCode(@NotNull String keyName) {
+        try {
+            if (keyName.startsWith("M") && keyName.length() > 1) {
+                final String number = keyName.substring(1);
+                if (number.chars().allMatch(Character::isDigit)) {
+                    return Integer.parseInt(number) + 1000;
+                }
+            }
+
+            return Keyboard.getKeyIndex(keyName);
+        } catch (Exception e) {
+            return Keyboard.KEY_NONE;
+        }
     }
 }
