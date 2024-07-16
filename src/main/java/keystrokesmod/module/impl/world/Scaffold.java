@@ -86,6 +86,7 @@ public class Scaffold extends Module { // from b4 :)
     private boolean placedUp;
     private int offGroundTicks = 0;
     private boolean telly$noBlockPlace = false;
+    private Float lastYaw = null, lastPitch = null;
     public Scaffold() {
         super("Scaffold", category.world);
         this.registerSetting(aimSpeed = new SliderSetting("Aim speed", 20, 5, 20, 0.1));
@@ -113,7 +114,7 @@ public class Scaffold extends Module { // from b4 :)
         this.registerSetting(tower = new ButtonSetting("Tower", false));
         this.registerSetting(fast = new ButtonSetting("Fast", false));
         this.registerSetting(sameY = new ButtonSetting("SameY", false));
-        this.registerSetting(autoJump = new ButtonSetting("Auto jump", false, sameY::isToggled));
+        this.registerSetting(autoJump = new ButtonSetting("Auto jump", false));
     }
 
     public void onDisable() {
@@ -134,6 +135,7 @@ public class Scaffold extends Module { // from b4 :)
         sameY$bridged = 1;
         offGroundTicks = 0;
         telly$noBlockPlace = false;
+        lastYaw = lastPitch = null;
     }
 
     public void onEnable() {
@@ -195,8 +197,14 @@ public class Scaffold extends Module { // from b4 :)
                 break;
         }
         boolean instant = aimSpeed.getInput() == aimSpeed.getMax();
-        event.setYaw(instant ? yaw : AimSimulator.rotMove(yaw, RotationHandler.getLastRotationYaw(), (float) aimSpeed.getInput()));
-        event.setPitch(instant ? pitch : AimSimulator.rotMove(pitch, RotationHandler.getLastRotationPitch(), (float) aimSpeed.getInput()));
+
+        if (lastYaw == null || lastPitch == null) {
+            lastYaw = event.getYaw();
+            lastPitch = event.getPitch();
+        }
+
+        event.setYaw(lastYaw = instant ? yaw : AimSimulator.rotMove(yaw, lastYaw, (float) aimSpeed.getInput()));
+        event.setPitch(lastPitch = instant ? pitch : AimSimulator.rotMove(pitch, lastPitch, (float) aimSpeed.getInput()));
         event.setMoveFix(moveFix.isToggled() ? RotationHandler.MoveFix.SILENT : RotationHandler.MoveFix.NONE);
 
         place = true;
@@ -237,7 +245,7 @@ public class Scaffold extends Module { // from b4 :)
         } else {
             offGroundTicks++;
         }
-        if (rotation.getInput() == 4 && mc.thePlayer.onGround && MoveUtil.isMoving() && !Utils.jumpDown()) {
+        if ((rotation.getInput() == 4 || autoJump.isToggled()) && mc.thePlayer.onGround && MoveUtil.isMoving() && !Utils.jumpDown()) {
             mc.thePlayer.jump();
         }
 
@@ -577,7 +585,7 @@ public class Scaffold extends Module { // from b4 :)
 
     private boolean keepYPosition() {
         boolean sameYSca = fastScaffold.getInput() == 4 || fastScaffold.getInput() == 3 || fastScaffold.getInput() == 5 || fastScaffold.getInput() == 6;
-        return this.isEnabled() && Utils.keysDown() && (sameYSca || sameY.isToggled()) && (!Utils.jumpDown() || fastScaffold.getInput() == 6) && (!fastOnRMB.isToggled() || Mouse.isButtonDown(1));
+        return this.isEnabled() && Utils.keysDown() && (sameYSca || (sameY.isToggled() && !Utils.jumpDown())) && (!Utils.jumpDown() || fastScaffold.getInput() == 6) && (!fastOnRMB.isToggled() || Mouse.isButtonDown(1));
     }
 
     public boolean safewalk() {
@@ -685,7 +693,7 @@ public class Scaffold extends Module { // from b4 :)
         }
 
         if (rayCast.isToggled()) {
-            MovingObjectPosition hitResult = RotationUtils.rayCast(4.5, placeYaw, placePitch);
+            MovingObjectPosition hitResult = RotationUtils.rayCast(4.5, lastYaw, lastPitch);
             if (hitResult != null && hitResult.getBlockPos().equals(block.getBlockPos())) {
                 block.hitVec = hitResult.hitVec;
             } else {

@@ -1,10 +1,7 @@
 package keystrokesmod.module.impl.movement;
 
 import keystrokesmod.Raven;
-import keystrokesmod.event.JumpEvent;
-import keystrokesmod.event.PostMotionEvent;
-import keystrokesmod.event.PreMotionEvent;
-import keystrokesmod.event.RotationEvent;
+import keystrokesmod.event.*;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.other.RotationHandler;
@@ -24,8 +21,8 @@ import net.minecraft.network.play.client.C09PacketHeldItemChange;
 import net.minecraft.network.play.client.C0CPacketInput;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.Vec3;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -34,22 +31,27 @@ import java.util.Objects;
 public class NoSlow extends Module {
     public static ModeSetting mode;
     public static SliderSetting slowed;
+    public static SliderSetting sneakSlowed;
     public static ButtonSetting disableBow;
     public static ButtonSetting disableSword;
     public static ButtonSetting disablePotions;
     public static ButtonSetting swordOnly;
     public static ButtonSetting vanillaSword;
-    private final String[] modes = new String[]{"Vanilla", "Pre", "Post", "Alpha", "Old Intave", "Intave", "Polar", "GrimAC", "HypixelTest A", "HypixelTest B", "Blink"};
+    private final String[] modes = new String[]{"Vanilla", "Pre", "Post", "Alpha", "Old Intave", "Intave", "Polar", "GrimAC", "HypixelTest A", "HypixelTest B", "Blink", "Beta", "Sneak"};
     private boolean postPlace;
     private static ModeOnly canChangeSpeed;
 
     private boolean lastUsingItem = false;
 
+    private int offGroundTicks = 0;
+    private boolean send = false;
+
     public NoSlow() {
         super("NoSlow", Module.category.movement, 0);
         this.registerSetting(mode = new ModeSetting("Mode", modes, 0));
         canChangeSpeed = new ModeOnly(mode, 5, 6, 7).reserve();
-        this.registerSetting(slowed = new SliderSetting("Slow %", 5.0D, 0.0D, 80.0D, 1.0D, canChangeSpeed));
+        this.registerSetting(slowed = new SliderSetting("Slow %", 5.0D, 0.0D, 100.0D, 1.0D, canChangeSpeed));
+        this.registerSetting(sneakSlowed = new SliderSetting("Sneak slowed %", 0, 0, 100, 1, new ModeOnly(mode, 12)));
         this.registerSetting(disableSword = new ButtonSetting("Disable sword", false));
         this.registerSetting(disableBow = new ButtonSetting("Disable bow", false, canChangeSpeed));
         this.registerSetting(disablePotions = new ButtonSetting("Disable potions", false));
@@ -60,6 +62,16 @@ public class NoSlow extends Module {
     @Override
     public void onDisable() {
         lastUsingItem = false;
+        offGroundTicks = 0;
+        send = false;
+    }
+
+    @SubscribeEvent
+    public void onMoveInput(@NotNull MoveInputEvent event) {
+        if (mc.thePlayer.isUsingItem() && mode.getInput() == 12) {
+            event.setSneak(true);
+            event.setSneakSlowDownMultiplier(1 - sneakSlowed.getInput() / 100);
+        }
     }
 
     public void onUpdate() {
@@ -182,6 +194,46 @@ public class NoSlow extends Module {
         }
 
         lastUsingItem = true;
+    }
+
+    @SubscribeEvent
+    public void onPreMotion$Beta(PreMotionEvent event) {
+        if (mc.thePlayer.onGround) {
+            offGroundTicks = 0;
+        } else {
+            offGroundTicks++;
+        }
+
+        final @Nullable ItemStack item = SlotHandler.getHeldItem();
+        if (offGroundTicks == 2 && send) {
+            send = false;
+            PacketUtils.sendPacketNoEvent(new C08PacketPlayerBlockPlacement(
+                    new BlockPos(-1, -1, -1),
+                    255, item,
+                    0, 0, 0
+            ));
+
+        } else if (item != null && mc.thePlayer.isUsingItem()
+                && (ContainerUtils.isRest(item.getItem()) || item.getItem() instanceof ItemBow)) {
+            event.setPosY(event.getPosY() + 1E-14);
+        }
+    }
+
+    @SubscribeEvent
+    public void onPacketSent(@NotNull SendPacketEvent event) {
+        if (mode.getInput() == 11) {
+            if (event.getPacket() instanceof C08PacketPlayerBlockPlacement && !mc.thePlayer.isUsingItem()) {
+                C08PacketPlayerBlockPlacement blockPlacement = (C08PacketPlayerBlockPlacement) event.getPacket();
+                if (SlotHandler.getHeldItem() != null && blockPlacement.getPlacedBlockDirection() == 255
+                        && ContainerUtils.isRest(SlotHandler.getHeldItem().getItem()) && offGroundTicks < 2) {
+                    if (mc.thePlayer.onGround) {
+                        mc.thePlayer.setJumping(false);
+                        mc.thePlayer.jump();
+                    }
+                    send = true;
+                }
+            }
+        }
     }
 
     public static float getSlowed() {

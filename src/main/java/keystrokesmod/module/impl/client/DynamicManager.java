@@ -2,16 +2,20 @@ package keystrokesmod.module.impl.client;
 
 import com.mojang.realmsclient.gui.ChatFormatting;
 import keystrokesmod.Raven;
+import keystrokesmod.clickgui.ClickGui;
+import keystrokesmod.clickgui.components.impl.ModuleComponent;
 import keystrokesmod.dynamic.Dynamic;
+import keystrokesmod.event.PreUpdateEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.Setting;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.utility.Utils;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.jetbrains.annotations.NotNull;
 
-import javax.tools.JavaCompiler;
-import javax.tools.ToolProvider;
+import javax.tools.*;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -21,6 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -30,14 +35,28 @@ public final class DynamicManager extends Module {
     public static final JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 
     private static final Set<Dynamic> activeDynamics = new HashSet<>();
+    private boolean needToLoad = false;
 
     public DynamicManager() {
-        super("DynamicManager", category.experimental);
+        super("DynamicManager", category.client);
+        this.registerSetting(new ButtonSetting("Load dynamics", () -> needToLoad = true));
+        this.registerSetting(new ButtonSetting("Open folder", () -> {
+            try {
+                Desktop.getDesktop().open(directory);
+            }
+            catch (IOException ex) {
+                Raven.profileManager.directory.mkdirs();
+                Utils.sendMessage("&cError locating folder, recreated.");
+            }
+        }));
+        this.registerSetting(new DescriptionSetting("Dynamics:", () -> !activeDynamics.isEmpty()));
+        this.canBeEnabled = false;
+      
         directory = new File(Raven.mc.mcDataDir + File.separator + "keystrokes", "dynamics");
         if (!directory.exists()) {
             boolean success = directory.mkdirs();
             if (!success) {
-                System.out.println("There was an issue creating dynamics directory.");
+                Utils.sendMessage("There was an issue creating dynamics directory.");
                 return;
             }
         }
@@ -45,21 +64,39 @@ public final class DynamicManager extends Module {
         if (!cacheDirectory.exists()) {
             boolean success = cacheDirectory.mkdirs();
             if (!success) {
-                System.out.println("There was an issue creating dynamics cache directory.");
+                Utils.sendMessage("There was an issue creating dynamics cache directory.");
                 return;
             }
         }
 
-        this.registerSetting(new ButtonSetting("Load dynamics", this::loadDynamics));
-        this.registerSetting(new DescriptionSetting("Dynamics:", () -> !activeDynamics.isEmpty()));
-        this.canBeEnabled = false;
-
         loadDynamics();
+    }
+
+    @SubscribeEvent
+    public void onPreUpdate(PreUpdateEvent event) {
+        if (needToLoad) {
+            needToLoad = false;
+            loadDynamics();
+        }
     }
 
     public void loadDynamics() {
         if (!directory.exists() || !directory.isDirectory())
             return;
+
+        unregister:
+        for (Setting setting : (List<Setting>) settings.clone()) {
+            if (!(setting instanceof ButtonSetting)) continue;
+
+            for (Dynamic dynamic : activeDynamics) {
+                if (dynamic.getClass().getSimpleName().equals(setting.getName())) {
+                    this.unregisterSetting(setting);
+                    if (((ButtonSetting) setting).isToggled())
+                        dynamic.exit();
+                    continue unregister;
+                }
+            }
+        }
 
         try {
             for (File file : Objects.requireNonNull(cacheDirectory.listFiles())) {
@@ -72,22 +109,38 @@ public final class DynamicManager extends Module {
         File[] files = directory.listFiles();
         if (files == null) return;
 
-        for (File file : files) {
-            if (!file.exists() || !file.isFile() || !file.getName().endsWith(".java"))
-                continue;
+        try (StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, null)) {
+            Set<File> classPath = new HashSet<>();
 
-            int compilationResult = compiler.run(null, null, null, "-d", cacheDirectory.getPath(), file.getPath());
-
-            if (compilationResult == 0) {
-                System.out.println(ChatFormatting.GREEN + "Compilation successful." + ChatFormatting.RESET + "(" + file.getName() + ")");
-            } else {
-                System.out.println(ChatFormatting.RED + "Compilation failed." + ChatFormatting.RESET + "(" + file.getName() + ")");
+            for (File file : Objects.requireNonNull(new File(mc.mcDataDir, "mods").listFiles())) {
+                if (file.exists() && file.isFile() && file.getName().endsWith(".jar"))
+                    classPath.add(file);
             }
+            classPath.add(new File(DynamicManager.class.getProtectionDomain().getCodeSource().getLocation().getFile()));
+
+            fileManager.setLocation(StandardLocation.CLASS_PATH, classPath);
+            fileManager.setLocation(StandardLocation.CLASS_OUTPUT, Collections.singletonList(cacheDirectory));
+
+            Iterable<? extends JavaFileObject> compilationUnits = fileManager.getJavaFileObjectsFromFiles(
+                    Arrays.stream(files)
+                            .filter(File::exists)
+                            .filter(File::isFile)
+                            .filter(file -> file.getName().endsWith(".java"))
+                            .collect(Collectors.toSet())
+            );
+            boolean compilationResult = compiler.getTask(null, fileManager, null, null, null, compilationUnits).call();
+
+            if (compilationResult) {
+                Utils.sendMessage(ChatFormatting.GREEN + "Compilation successful.");
+            } else {
+                Utils.sendMessage(ChatFormatting.RED + "Compilation failed.");
+            }
+        } catch (IOException | NullPointerException ignored) {
         }
 
         List<File> classFiles = findClassFiles(cacheDirectory.getPath());
         if (classFiles.isEmpty()) {
-            System.out.println("No class files found");
+            Utils.sendMessage("No class files found");
         }
 
         URL[] urls = new URL[1];
@@ -96,36 +149,31 @@ public final class DynamicManager extends Module {
         } catch (MalformedURLException ignored) {
         }
 
-        unregister:
-        for (Setting setting : this.getSettings()) {
-            if (!(setting instanceof ButtonSetting)) continue;
-
-            for (Dynamic dynamic : activeDynamics) {
-                if (dynamic.getClass().getName().equals(setting.getName())) {
-                    this.unregisterSetting(setting);
-                    if (((ButtonSetting) setting).isToggled())
-                        dynamic.exit();
-                    continue unregister;
-                }
-            }
-        }
-
         activeDynamics.clear();
-        try (URLClassLoader classLoader = new URLClassLoader(urls)) {
-            Class<?> interfaceClass = Dynamic.class; // 指定要检查的接口类
+        try (URLClassLoader classLoader = new URLClassLoader(urls, getClass().getClassLoader())) {
+            Class<?> dynamicInterface = classLoader.loadClass("keystrokesmod.dynamic.Dynamic");
 
             for (File classFile : classFiles) {
-                String className = getClassName(cacheDirectory.getPath(), classFile);
-                Class<?> compiledClass = classLoader.loadClass(className);
+                if (!classFile.exists() || !classFile.isFile() || !classFile.getName().endsWith(".class")) continue;
 
-                if (interfaceClass.isAssignableFrom(compiledClass)) {
-                    System.out.println("The class " + className + " implements the interface.");
-                    activeDynamics.add((Dynamic) compiledClass.newInstance());
-                } else {
-                    System.out.println("The class " + className + " does not implement the interface.");
+                String className = getClassName(cacheDirectory.getPath(), classFile);
+                try {
+                    Class<?> compiledClass = classLoader.loadClass(className);
+                    Utils.sendMessage("Loaded class: " + className);
+
+                    if (dynamicInterface.isAssignableFrom(compiledClass)) {
+                        activeDynamics.add((Dynamic) compiledClass.newInstance());
+                    } else {
+                        Utils.sendMessage("Class " + className + " does not implement Dynamic interface.");
+                    }
+                } catch (ClassCastException e) {
+                    Utils.sendMessage("ClassCastException: The class '" + className + "' does not implement the interface.");
+                } catch (NullPointerException e) {
+                    Utils.sendMessage("NullPointerException: " + e.getLocalizedMessage());
                 }
             }
-        } catch (IOException | ClassNotFoundException | ClassCastException | InstantiationException | IllegalAccessException ignored) {
+        } catch (IOException | ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+            Utils.sendMessage("Exception: " + e.getMessage());
         }
 
         Utils.sendMessage(ChatFormatting.GREEN + "Loaded " + activeDynamics.size() + " dynamics.");
@@ -133,12 +181,22 @@ public final class DynamicManager extends Module {
         for (Dynamic dynamic : activeDynamics) {
             String name = dynamic.getClass().getSimpleName();
 
-            this.registerSetting(new ButtonSetting(name, false, () -> activeDynamics.contains(dynamic), setting -> {
+            this.registerSetting(new ButtonSetting(name, false, setting -> {
                 if (setting.isToggled())
                     dynamic.init();
                 else
                     dynamic.exit();
             }));
+        }
+
+        try {
+            for (ModuleComponent module : ClickGui.categories.get(this.moduleCategory()).getModules()) {
+                if (module.mod == this) {
+                    module.updateSetting();
+                    break;
+                }
+            }
+        } catch (NullPointerException ignored) {
         }
     }
 
