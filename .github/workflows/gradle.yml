@@ -52,7 +52,7 @@ jobs:
 
     - name: Execute Gradle build
       run: ./gradlew build --stacktrace
-
+      
     - name: Send JAR to Discord Webhook
       env:
         DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
@@ -64,18 +64,25 @@ jobs:
           echo "No JAR file found"
           exit 1
         fi
-        FILENAME=$(basename $JAR_PATH)
+        FILENAME=$(basename "$JAR_PATH")
         COMMIT_SHA="${GITHUB_SHA:0:7}"
-        BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/})
+        BRANCH_NAME=$(echo "${GITHUB_REF#refs/heads/}")
         EMBED_TITLE="New Build Available"
         EMBED_DESCRIPTION="**Build:** $FILENAME\n**Commit:** $COMMIT_SHA\n**Branch:** $BRANCH_NAME\n\nThese builds are just for testing; please don't use them for playing."
-        EMBED_COLOR=5814783
-        PAYLOAD=$(jq -n \
-          --arg title "$EMBED_TITLE" \
-          --arg description "$EMBED_DESCRIPTION" \
-          --argjson color "$EMBED_COLOR" \
-          '{embeds: [{title: $title, description: $description, color: $color}]}')
-        curl -X POST -H "Content-Type: application/json" \
+        EMBED_COLOR=5814783 # Blue color in decimal format
+    
+        PAYLOAD=$(cat <<EOF
+        {
+          "embeds": [{
+            "title": "$EMBED_TITLE",
+            "description": "$EMBED_DESCRIPTION",
+            "color": $EMBED_COLOR
+          }]
+        }
+        EOF
+        )
+    
+        curl -X POST -H "Content-Type: multipart/form-data" \
           -F "file=@$JAR_PATH" \
           -F "payload_json=$PAYLOAD" \
           $DISCORD_WEBHOOK_URL
