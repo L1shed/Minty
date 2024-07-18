@@ -59,30 +59,22 @@ jobs:
         GITHUB_SHA: ${{ github.sha }}
         GITHUB_REF: ${{ github.ref }}
       run: |
-        JAR_PATH=$(find build/libs -name "*.jar" | head -n 1)
-        if [ -z "$JAR_PATH" ]; then
-          echo "No JAR file found"
-          exit 1
-        fi
-        FILENAME=$(basename "$JAR_PATH")
-        COMMIT_SHA="${GITHUB_SHA:0:7}"
-        BRANCH_NAME=$(echo "${GITHUB_REF#refs/heads/}")
-        EMBED_TITLE="New Build Available"
-        EMBED_DESCRIPTION="**Build:** $FILENAME\n**Commit:** $COMMIT_SHA\n**Branch:** $BRANCH_NAME\n\nThese builds are just for testing; please don't use them for playing."
-        EMBED_COLOR=5814783 # Blue color in decimal format
-    
-        PAYLOAD=$(cat <<EOF
-        {
-          "embeds": [{
-            "title": "$EMBED_TITLE",
-            "description": "$EMBED_DESCRIPTION",
-            "color": $EMBED_COLOR
-          }]
-        }
-        EOF
-        )
-    
-        curl -X POST -H "Content-Type: multipart/form-data" \
-          -F "file=@$JAR_PATH" \
-          -F "payload_json=$PAYLOAD" \
-          $DISCORD_WEBHOOK_URL
+          JAR_PATH=$(find build/libs -name "*.jar" | head -n 1)
+          if [ -z "$JAR_PATH" ]; then
+            echo "No JAR file found"
+            exit 1
+          fi
+          FILENAME=$(basename "$JAR_PATH")
+          COMMIT_SHA="${GITHUB_SHA:0:7}"
+          BRANCH_NAME=$(echo "${GITHUB_REF#refs/heads/}")
+          EMBED_TITLE="New Build Available"
+          EMBED_DESCRIPTION="**Build:** $FILENAME\n**Commit:** $COMMIT_SHA\n**Branch:** $BRANCH_NAME\n\nThese builds are just for testing; please don't use them for playing."
+          EMBED_COLOR=5814783 # Blue color in decimal format
+
+          PAYLOAD=$(jq -n --arg title "$EMBED_TITLE" --arg description "$EMBED_DESCRIPTION" --arg color "$EMBED_COLOR" \
+            '{embeds: [{title: $title, description: $description, color: ($color | tonumber)}]}')
+
+          curl -X POST -H "Content-Type: multipart/form-data" \
+            -F "file=@$JAR_PATH" \
+            -F "payload_json=$PAYLOAD" \
+            $DISCORD_WEBHOOK_URL
