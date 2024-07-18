@@ -67,8 +67,14 @@ jobs:
         COMMIT_SHA=$(git rev-parse --short HEAD)
         BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
         MESSAGE="New build available: $FILENAME\n\nCommit: $COMMIT_SHA\nBranch: $BRANCH_NAME\n\n(These builds are just for testing; please don't use them for playing)"
-            ESCAPED_MESSAGE=$(echo "$MESSAGE" | sed 's/"/\\"/g')
-            curl -X POST -H "Content-Type: application/json" \
-          -d "{\"content\": \"$ESCAPED_MESSAGE\"}" \
+        ESCAPED_MESSAGE=$(echo "$MESSAGE" | sed 's/"/\\"/g')
+    
+        JSON_PAYLOAD=$(mktemp)
+        echo "{\"content\": \"$ESCAPED_MESSAGE\"}" > "$JSON_PAYLOAD"
+    
+        curl -X POST -H "Content-Type: multipart/form-data" \
           -F "file=@$JAR_PATH" \
+          -F "payload_json=@$JSON_PAYLOAD;type=application/json" \
           $DISCORD_WEBHOOK_URL
+    
+        rm "$JSON_PAYLOAD"
