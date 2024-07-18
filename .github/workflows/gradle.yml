@@ -70,11 +70,6 @@ jobs:
           EMBED_TITLE="New Build Available"
           EMBED_DESCRIPTION="**Build:** $FILENAME\n**Commit:** $COMMIT_SHA\n**Branch:** $BRANCH_NAME\n\nThese builds are just for testing; please don't use them for playing."
           EMBED_COLOR=5814783 # Blue color in decimal format
-
           PAYLOAD=$(jq -n --arg title "$EMBED_TITLE" --arg description "$EMBED_DESCRIPTION" --arg color "$EMBED_COLOR" \
             '{embeds: [{title: $title, description: $description, color: ($color | tonumber)}]}')
-
-          curl -X POST -H "Content-Type: multipart/form-data" \
-            -F "file=@$JAR_PATH" \
-            -F "payload_json=$PAYLOAD" \
-            $DISCORD_WEBHOOK_URL
+          curl -X POST -H "Content-Type: application/json" -d "$PAYLOAD" $DISCORD_WEBHOOK_URL
