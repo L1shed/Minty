@@ -5,9 +5,8 @@ import keystrokesmod.event.PrePlayerInputEvent;
 import keystrokesmod.event.PreUpdateEvent;
 import keystrokesmod.event.ReceivePacketEvent;
 import keystrokesmod.module.Module;
-import keystrokesmod.module.setting.impl.ButtonSetting;
-import keystrokesmod.module.setting.impl.ModeSetting;
-import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.module.impl.movement.speed.HypixelDSpeed;
+import keystrokesmod.module.setting.impl.*;
 import keystrokesmod.module.setting.utils.ModeOnly;
 import keystrokesmod.utility.*;
 import net.minecraft.block.Block;
@@ -17,17 +16,17 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.network.play.client.C0BPacketEntityAction;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
+import net.minecraft.network.play.server.S12PacketEntityVelocity;
 import net.minecraft.potion.Potion;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
-import net.minecraft.util.MovingObjectPosition;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.jetbrains.annotations.NotNull;
 
 import static keystrokesmod.module.ModuleManager.scaffold;
 
 public class Speed extends Module {
-    private final ModeSetting mode;
+    private final ModeValue mode;
     private final SliderSetting vulcan$lowHop;
     private final SliderSetting grimAC$boost;
     private final ButtonSetting autoJump;
@@ -35,7 +34,6 @@ public class Speed extends Module {
     private final ButtonSetting sneakDisable;
     private final ButtonSetting stopMotion;
     private final ButtonSetting stopSprint;
-    private final String[] modes = new String[]{"Hypixel A", "BlocksMC", "Vulcan", "GrimAC", "Hypixel B"};
     private int offGroundTicks = 0;
     public static int ticksSinceVelocity = Integer.MAX_VALUE;
 
@@ -44,18 +42,29 @@ public class Speed extends Module {
 
     double lastAngle = 0;
 
-    int groundYPos = -1;
-
     private boolean reset;
     private double speed;
 
+    public TimerUtil timeUtil = new TimerUtil();
+    public int ticks = 0;
+    private boolean start = false;
+
     public Speed() {
         super("Speed", Module.category.movement);
-        this.registerSetting(mode = new ModeSetting("Mode", modes, 0));
+        this.registerSetting(mode = new ModeValue("Mode", this)
+                .add(new LiteralSubMode("Hypixel A", this))
+                .add(new LiteralSubMode("BlocksMC", this))
+                .add(new LiteralSubMode("Vulcan", this))
+                .add(new LiteralSubMode("GrimAC", this))
+                .add(new LiteralSubMode("Hypixel B", this))
+                .add(new LiteralSubMode("Hypixel C", this))
+                .add(new LiteralSubMode("Polar", this))
+                .add(new HypixelDSpeed("Hypixel D", this))
+        );
         this.registerSetting(vulcan$lowHop = new SliderSetting("Low hop", 2, 0, 4, 1, "ticks", new ModeOnly(mode, 2)));
         ModeOnly grimAC = new ModeOnly(mode, 3);
         this.registerSetting(grimAC$boost = new SliderSetting("Boost", 4, 0, 10, 1, grimAC));
-        this.registerSetting(autoJump = new ButtonSetting("Auto jump", false, grimAC));
+        this.registerSetting(autoJump = new ButtonSetting("Auto jump", false, new ModeOnly(mode, 3, 6)));
         this.registerSetting(liquidDisable = new ButtonSetting("Disable in liquid", true));
         this.registerSetting(sneakDisable = new ButtonSetting("Disable while sneaking", true));
         this.registerSetting(stopMotion = new ButtonSetting("Stop motion", false));
@@ -64,7 +73,7 @@ public class Speed extends Module {
 
     @Override
     public String getInfo() {
-        return modes[(int) mode.getInput()];
+        return mode.getSubModeValues().get((int) mode.getInput()).getInfo();
     }
 
     @SubscribeEvent
@@ -74,7 +83,7 @@ public class Speed extends Module {
         }
 
         if (noAction()) return;
-        if ((int) mode.getInput() == 6) {
+        if ((int) mode.getInput() == 1) {
             if (!MoveUtil.isMoving()) {
                 event.setPosX(event.getPosX() + (Math.random() - 0.5) / 100);
                 event.setPosZ(event.getPosZ() + (Math.random() - 0.5) / 100);
@@ -86,36 +95,68 @@ public class Speed extends Module {
 
     @Override
     public void onEnable() {
+        mode.enable();
+
         ticksSinceVelocity = Integer.MAX_VALUE;
+        ticks = 0;
+        start = false;
     }
 
     @SubscribeEvent
     public void onPreUpdate(PreUpdateEvent event) {
-        if (mode.getInput() == 4) {
-            if ((mc.thePlayer.hurtTime > 0 && offGroundTicks != 0) || !MoveUtil.isMoving() || Utils.jumpDown()) {
-                Utils.resetTimer();
-                return;
-            }
+        switch ((int) mode.getInput()) {
+            case 4:
+                if ((mc.thePlayer.hurtTime > 0 && offGroundTicks != 0) || !MoveUtil.isMoving() || Utils.jumpDown()) {
+                    Utils.resetTimer();
+                    return;
+                }
 
-            switch (offGroundTicks) {
-                case 0:
-                    mc.thePlayer.motionY = 0.42;
-                    MoveUtil.strafe(0.45);
-                    Utils.getTimer().timerSpeed = 1.0f;
-                    break;
-                case 10:
-                    mc.thePlayer.motionY = -0.28;
-                    MoveUtil.strafe(0.315);
-                    Utils.getTimer().timerSpeed = 1.8f;
-                    break;
-                case 11:
-                    MoveUtil.strafe();
-                    Utils.getTimer().timerSpeed = 1.0f;
-                    break;
-                case 12:
-                    MoveUtil.stop();
-                    break;
-            }
+                switch (offGroundTicks) {
+                    case 0:
+                        mc.thePlayer.motionY = 0.42;
+                        MoveUtil.strafe(mc.thePlayer.hurtTime > 0 ? 0.415 : 0.45);
+                        Utils.getTimer().timerSpeed = 1.0f;
+                        break;
+                    case 10:
+                        mc.thePlayer.motionY = -0.28;
+                        MoveUtil.strafe(0.315);
+                        Utils.getTimer().timerSpeed = 1.8f;
+                        break;
+                    case 11:
+                        MoveUtil.strafe();
+                        Utils.getTimer().timerSpeed = 1.0f;
+                        break;
+                    case 12:
+                        MoveUtil.stop();
+                        break;
+                }
+                break;
+            case 5:
+                if ((mc.thePlayer.hurtTime > 0 && offGroundTicks != 0) || !MoveUtil.isMoving() || Utils.jumpDown()) {
+                    Utils.resetTimer();
+                    return;
+                }
+
+                switch (offGroundTicks) {
+                    case 0:
+                        mc.thePlayer.motionY = 0.42;
+                        MoveUtil.strafe(0.415);
+                    case 1:
+                        Utils.getTimer().timerSpeed = 1.0f;
+                        break;
+                    case 10:
+                        mc.thePlayer.motionY = -0.3;
+                        Utils.getTimer().timerSpeed = 1.6f;
+                        break;
+                    case 11:
+                        MoveUtil.strafe();
+                        Utils.getTimer().timerSpeed = 1.0f;
+                        break;
+                    case 12:
+                        Utils.getTimer().timerSpeed = 1.0f;
+                        break;
+                }
+                break;
         }
     }
 
@@ -175,6 +216,30 @@ public class Speed extends Module {
                 double yaw = Math.toRadians(MoveYaw());
                 double boost = grimAC$boost.getInput() / 100 * collisions;
                 mc.thePlayer.addVelocity(-Math.sin(yaw) * boost, 0.0, Math.cos(yaw) * boost);
+                break;
+            case 6:
+                if (mc.thePlayer.onGround && autoJump.isToggled() && MoveUtil.isMoving()) {
+                    mc.thePlayer.jump();
+                }
+
+                if (start) {
+
+                    if (this.timeUtil.hasTimeElapsed(20)) {
+                        start = false;
+                    }
+
+                    if (mc.thePlayer.motionY <= -0.10) {
+                        ticks++;
+                        if (ticks % 2 == 0) {
+                            mc.thePlayer.motionY = -0.1;
+                        } else {
+                            mc.thePlayer.motionY = -0.16;
+                        }
+                        mc.thePlayer.jumpMovementFactor = 0.0265f;
+                    } else {
+                        ticks = 0;
+                    }
+                }
                 break;
         }
     }
@@ -270,8 +335,25 @@ public class Speed extends Module {
 
     @SubscribeEvent
     public void onReceivePacket(@NotNull ReceivePacketEvent event) {
-        if (event.getPacket() instanceof S08PacketPlayerPosLook) {
-            speed = 0;
+        if (noAction()) return;
+
+        switch ((int) mode.getInput()) {
+            case 1:
+                if (event.getPacket() instanceof S08PacketPlayerPosLook) {
+                    speed = 0;
+                }
+                break;
+            case 6:
+                if (event.getPacket() instanceof S12PacketEntityVelocity) {
+
+                    S12PacketEntityVelocity s = (S12PacketEntityVelocity) event.getPacket();
+
+                    if (s.getEntityID() == mc.thePlayer.getEntityId()) {
+                        start = true;
+                        timeUtil.reset();
+                    }
+
+                }
         }
     }
 
@@ -279,12 +361,10 @@ public class Speed extends Module {
         return mc.theWorld.getBlockState(new BlockPos(mc.thePlayer).add(offsetX, offsetY, offsetZ)).getBlock();
     }
 
-    private boolean isYAxisChange() {
-        MovingObjectPosition hitResult = RotationUtils.rayCast(3, 0, 90);
-        return hitResult == null || hitResult.getBlockPos().getY() != groundYPos;
-    }
-
+    @Override
     public void onDisable() {
+        mode.disable();
+
         if (stopMotion.isToggled()) {
             MoveUtil.stop();
         }

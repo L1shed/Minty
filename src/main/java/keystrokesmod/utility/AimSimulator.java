@@ -64,8 +64,6 @@ public class AimSimulator {
     }
 
     public static float rotMove(float target, float current, float diff) {
-        diff *= (float) Math.min(Math.random() * diff + diff * 0.2, diff);
-
         return rotMoveNoRandom(target, current, diff);
     }
 

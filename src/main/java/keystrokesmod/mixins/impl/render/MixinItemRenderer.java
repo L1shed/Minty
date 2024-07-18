@@ -67,6 +67,7 @@ public abstract class MixinItemRenderer {
         if (!Utils.nullCheck() || !ModuleManager.animations.isEnabled()) {
             return;
         }
+        ci.cancel();
 
         try {
             float animationProgression = 1.0F - (this.prevEquippedProgress + (this.equippedProgress - this.prevEquippedProgress) * partialTicks);
@@ -82,6 +83,9 @@ public abstract class MixinItemRenderer {
 
             ItemStack itemToRender = SlotHandler.getRenderHeldItem();
             if (itemToRender != null) {
+                if (itemToRender != SlotHandler.getHeldItem())
+                    animationProgression = 0.0F;
+
                 EnumAction enumaction = itemToRender.getItemUseAction();
                 final int itemInUseCount = thePlayer.getItemInUseCount();
                 boolean useItem = itemInUseCount > 0;
@@ -93,7 +97,6 @@ public abstract class MixinItemRenderer {
                 animationProgression = event.getAnimationProgression();
                 swingProgress = event.getSwingProgress();
 
-                ci.cancel();
                 if (itemToRender.getItem() instanceof ItemMap) {
                     this.renderItemMap(thePlayer, f2, animationProgression, swingProgress);
                 } else if (useItem) {
