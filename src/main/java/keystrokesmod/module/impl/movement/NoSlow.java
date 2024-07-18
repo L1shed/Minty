@@ -94,6 +94,7 @@ public class NoSlow extends Module {
             case 2:
                 postPlace = true;
                 break;
+            case 9:
             case 3:
                 if (mc.thePlayer.ticksExisted % 3 == 0 && !Raven.badPacketsHandler.C07) {
                     mc.thePlayer.sendQueue.addToSendQueue(new C08PacketPlayerBlockPlacement(new BlockPos(-1, -1, -1), 1, null, 0, 0, 0));
@@ -104,7 +105,8 @@ public class NoSlow extends Module {
 
     @SubscribeEvent
     public void onPostMotion(PostMotionEvent e) {
-        if ((int) mode.getInput() == 3) {
+        int input = (int) mode.getInput();
+        if (input == 3 || input == 9) {
             if (postPlace) {
                 if (mc.thePlayer.ticksExisted % 3 == 0 && !Raven.badPacketsHandler.C07) {
                     mc.thePlayer.sendQueue.addToSendQueue(new C08PacketPlayerBlockPlacement(SlotHandler.getHeldItem()));
@@ -210,6 +212,7 @@ public class NoSlow extends Module {
                         mc.thePlayer.jump();
                     }
                     send = true;
+                    event.setCanceled(true);
                 }
             }
         }
