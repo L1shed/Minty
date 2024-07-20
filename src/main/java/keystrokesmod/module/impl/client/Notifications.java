@@ -1,6 +1,7 @@
 package keystrokesmod.module.impl.client;
 
 import keystrokesmod.module.Module;
+import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.utility.CoolDown;
 import keystrokesmod.utility.Utils;
@@ -13,6 +14,7 @@ import keystrokesmod.utility.render.RRectUtils;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -25,15 +27,23 @@ public class Notifications extends Module {
     private static final List<AnimationUtils> animationsX = new ArrayList<>();
     private static final List<AnimationUtils> animationsY = new ArrayList<>();
     public static ButtonSetting chatNoti;
+    public static ButtonSetting moduleToggled;
     private final Font fontRegular = FontManager.getRegular(16);
     private final Font fontIcon = FontManager.getIcons(20);
 
     public Notifications() {
         super("Notifications", category.client);
         this.registerSetting(chatNoti = new ButtonSetting("Show in chat", false));
+        this.registerSetting(moduleToggled = new ButtonSetting("Module toggled", true));
+    }
+
+    public static void sendNotification(NotificationTypes notificationType, String message) {
+        sendNotification(notificationType, message, 2000);
     }
 
     public static void sendNotification(NotificationTypes notificationType, String message, long duration) {
+        if (!ModuleManager.notifications.isEnabled()) return;
+
         if (!chatNoti.isToggled()) {
             ScaledResolution sr = new ScaledResolution(mc);
             notifs.add(notificationType);
@@ -49,11 +59,11 @@ public class Notifications extends Module {
     }
 
     @SubscribeEvent
-    public void onTick(RenderGameOverlayEvent event) {
+    public void onTick(TickEvent.RenderTickEvent event) {
         ScaledResolution sr = new ScaledResolution(mc);
         for (int index = 0; index < notifs.size(); index++) {
             animationsY.get(index).setAnimation(sr.getScaledHeight() - ((index + 1) * 30), 16);
-            RRectUtils.drawRound(animationsX.get(index).getValue(), animationsY.get(index).getValue(), 120, 25, 3, new Color(0, 0, 0, 92));
+            RRectUtils.drawRound(animationsX.get(index).getValue(), animationsY.get(index).getValue(), 120, 25, 3, new Color(0, 0, 0, 128));
             fontIcon.drawString(notifs.get(index) == NotificationTypes.INFO ? "G" : "R", animationsX.get(index).getValue() + 12.5, animationsY.get(index).getValue() + 15.5, MinecraftFontRenderer.CenterMode.XY, false, ColorUtils.getFontColor(2).getRGB());
             fontRegular.wrapText(messages.get(index), animationsX.get(index).getValue() + 25, animationsY.get(index).getValue() + 12.5, MinecraftFontRenderer.CenterMode.Y, false, ColorUtils.getFontColor(2).getRGB(), 95);
             if (durations.get(index).hasFinished()) {
