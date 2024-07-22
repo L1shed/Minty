@@ -28,7 +28,7 @@ Raven B4, but not only for Hypixel.
 
 ## Additional Modules
  1. Hypixel
-    - Tower (Lowhop)
+    - TowerMove
     - LongJump (Fireball)
     - NoFall
     - AntiVoid
@@ -40,16 +40,17 @@ Raven B4, but not only for Hypixel.
     - KillAura
     - Scaffold
     - NoSlow
- 4. GrimAC
+    - WallClimb
+ 4. Polar
+    - NoSlow
+ 5. GrimAC
     - KillAura
     - Scaffold
     - NoSlow
     - Velocity (1.9+)
     - Speed (1.9+)
     - Fly
- 5. Polar
-    - NoSlow
- 6. Minemen
+ 6. Minemen/Matrix
     - Fly
  6. Undetectable
     - AimAssist
