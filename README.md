@@ -1,4 +1,3 @@
-![image](https://github.com/user-attachments/assets/1fb5b85f-8782-4f25-8a60-21091c87a4f3)
 <div align="center">
   
 # Raven XD
