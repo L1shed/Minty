@@ -7,8 +7,8 @@ import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.utils.ModeOnly;
 import keystrokesmod.utility.Theme;
-import keystrokesmod.utility.font.Font;
 import keystrokesmod.utility.font.FontManager;
+import keystrokesmod.utility.font.impl.MinecraftFontRenderer;
 import keystrokesmod.utility.render.RenderUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiChat;
@@ -28,7 +28,7 @@ import java.util.HashMap;
 import java.util.Objects;
 
 public class Watermark extends Module {
-    public static final String VERSION = "1.19.0";
+    public static final String VERSION = "1.20.0";
     public static final HashMap<String, ResourceLocation> WATERMARK = new HashMap<>();
 
     public static String customName = "CustomClient";
@@ -97,11 +97,11 @@ public class Watermark extends Module {
                     if (lowercase.isToggled())
                         text = text.toLowerCase();
 
-                    Font font = FontManager.getMinecraft();
+                    MinecraftFontRenderer font = FontManager.getMinecraft();
                     font.drawString(text, posX, posY, Theme.getGradient((int) theme.getInput(), 0), shadow.isToggled());
 
                     current$minX = posX;
-                    current$maxX = current$minX + font.getStringWidth(text);
+                    current$maxX = current$minX + font.width(text);
                     current$minY = posY;
                     current$maxY = current$minY + Math.round(font.height());
                 }

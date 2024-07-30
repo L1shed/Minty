@@ -44,7 +44,6 @@ public class ModuleManager {
     public static Potions potions;
     public static NoFall noFall;
     public static PlayerESP playerESP;
-    public static Reduce reduce;
     public static SafeWalk safeWalk;
     public static KeepSprint keepSprint;
     public static Velocity velocity;
@@ -100,6 +99,9 @@ public class ModuleManager {
     public static Notifications notifications;
     public static WallClimb wallClimb;
     public static Jesus jesus;
+    public static ExploitFixer exploitFixer;
+    public static AutoRegister autoRegister;
+    public static NoteBot noteBot;
 
     public void register() {
 
@@ -112,6 +114,7 @@ public class ModuleManager {
         this.addModule(new Settings());
         this.addModule(new MiddleClick());
         this.addModule(notifications = new Notifications());
+        this.addModule(new DiscordRpc());
 
         // combat
         this.addModule(new AimAssist());
@@ -128,7 +131,6 @@ public class ModuleManager {
         this.addModule(killAuraV2 = new KillAuraV2());
         this.addModule(moreKB = new MoreKB());
         this.addModule(reach = new Reach());
-        this.addModule(reduce = new Reduce());
         this.addModule(new RodAimbot());
         this.addModule(timerRange = new TimerRange());
         this.addModule(velocity = new Velocity());
@@ -138,6 +140,7 @@ public class ModuleManager {
         this.addModule(new FlameTrail());
         this.addModule(new SlyPort());
         this.addModule(new Spin());
+        this.addModule(noteBot = new NoteBot());
 
         // minigames
         this.addModule(new AutoWho());
@@ -179,6 +182,7 @@ public class ModuleManager {
         this.addModule(slotHandler = new SlotHandler());
         this.addModule(staffDetector = new StaffDetector());
         this.addModule(new BedProximityAlert());
+        this.addModule(autoRegister = new AutoRegister());
 
         // player
         this.addModule(new AntiAFK());
@@ -229,6 +233,7 @@ public class ModuleManager {
         this.addModule(new Xray());
         this.addModule(new BedPlates());
         this.addModule(watermark = new Watermark());
+        this.addModule(new Explosions());
 
         // world
         this.addModule(antiBot = new AntiBot());
@@ -253,6 +258,7 @@ public class ModuleManager {
         this.addModule(infiniteAura = new InfiniteAura());
         this.addModule(modSpoofer = new ModSpoofer());
         this.addModule(pingSpoof = new PingSpoof());
+        this.addModule(exploitFixer = new ExploitFixer());
 
         // enable
         antiBot.enable();

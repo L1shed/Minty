@@ -7,13 +7,13 @@ import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.client.Settings;
 import keystrokesmod.module.impl.combat.Velocity;
+import keystrokesmod.module.impl.fun.NoteBot;
 import keystrokesmod.module.impl.minigames.DuelsStats;
 import keystrokesmod.module.impl.movement.Fly;
 import keystrokesmod.module.impl.other.FakeChat;
 import keystrokesmod.module.impl.other.NameHider;
-import keystrokesmod.module.impl.render.HUD;
 import keystrokesmod.module.impl.render.Watermark;
-import keystrokesmod.utility.font.Font;
+import keystrokesmod.utility.font.impl.MinecraftFontRenderer;
 import keystrokesmod.utility.profile.Profile;
 import keystrokesmod.utility.render.RenderUtils;
 import net.minecraft.client.Minecraft;
@@ -155,39 +155,6 @@ public class Commands {
                     }
 
                 });
-            } else if (firstArg.equals("setspeed")) {
-                if (!hasArgs) {
-                    print(invSyn, 1);
-                    return;
-                }
-
-                if (args.size() != 3) {
-                    print(invSyn, 1);
-                    return;
-                }
-
-                double value;
-
-                try {
-                    value = Double.parseDouble(args.get(2));
-                } catch (Exception e) {
-                    print("&cInvalid value. [0 - 100)", 1);
-                    return;
-                }
-
-                if (value > 100 || value < 0) {
-                    print("&cInvalid value. [0 - 100)", 1);
-                    return;
-                }
-
-                if (args.get(1).equals("fly")) {
-                    Fly.horizontalSpeed.setValueRaw(value);
-                } else {
-                    print(invSyn, 1);
-                    return;
-                }
-                print("&aSet speed to ", 1);
-                print(args.get(2), 0);
             } else if (firstArg.equals("setvelocity")) {
                 if (!hasArgs) {
                     print(invSyn, 1);
@@ -314,7 +281,7 @@ public class Commands {
                     return;
                 }
 
-                String s = c.substring(10);
+                String s = c.substring(11);
                 s = s.replace('&', '§');
                 Watermark.customName = s;
                 print("&aSet client name to " + Watermark.customName, 1);
@@ -355,6 +322,14 @@ public class Commands {
 
                 targetModule.setBind(keyCode);
                 print(ChatFormatting.GREEN + "Bind '" + ChatFormatting.RESET + args.get(2) + ChatFormatting.GREEN + "' to " + targetModule.getPrettyName() + ".", 1);
+            } else if (firstArg.equals("notebot")) {
+                if (!hasArgs) {
+                    print(invSyn, 1);
+                    return;
+                }
+
+                NoteBot.fileName = c.substring(8);
+                print("&aSet noteBot file to " + NoteBot.fileName, 1);
             } else if (firstArg.equals("friend") || firstArg.equals("f")) {
                 if (!hasArgs) {
                     print(invSyn, 1);
@@ -493,8 +468,7 @@ public class Commands {
                 print("&eModule-specific:", 0);
                 print("1 cname [name]", 0);
                 print("2 " + FakeChat.command + " [msg]", 0);
-                print("3 setspeed [fly] [value]", 0);
-                print("4 setvelocity [h/v] [value]", 0);
+                print("3 setvelocity [h/v] [value]", 0);
                 print(String.format("5 clientname [name (current is '%s')]", Watermark.customName), 0);
             }
 
@@ -521,7 +495,7 @@ public class Commands {
         }
     }
 
-    public static void rc(Font fr, int h, int w, int s) {
+    public static void rc(MinecraftFontRenderer fr, int h, int w, int s) {
         int x = w - 195;
         int y = h - 130;
         int sY = h - 345;
@@ -534,7 +508,7 @@ public class Commands {
         GL11.glDisable(3089);
     }
 
-    private static void rss(Font fr, List<String> rs, int x, int y) {
+    private static void rss(MinecraftFontRenderer fr, List<String> rs, int x, int y) {
         if (f) {
             f = false;
             print("Welcome,", 0);

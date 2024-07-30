@@ -5,6 +5,7 @@ import com.google.gson.JsonPrimitive;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.Setting;
 import keystrokesmod.module.setting.interfaces.InputSetting;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -14,7 +15,9 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 public class ModeValue extends Setting implements InputSetting {
+    @Getter
     private final String settingName;
+    @Getter
     private final Module parent;
     private final List<SubMode<?>> subModes = new ArrayList<>();
     private int selected = 0;
@@ -33,6 +36,7 @@ public class ModeValue extends Setting implements InputSetting {
         for (Setting setting : subMode.getSettings()) {
             final Supplier<Boolean> fromVisibleCheck = setting.visibleCheck;
             setting.visibleCheck = () -> subModes.get((int) this.getInput()) == subMode && fromVisibleCheck.get();
+            setting.viewOnly = true;
             parent.registerSetting(setting);
         }
         return this;
@@ -44,7 +48,7 @@ public class ModeValue extends Setting implements InputSetting {
         Optional<SubMode<?>> subMode = subModes.stream().filter(mode -> Objects.equals(mode.getName(), name)).findFirst();
         if (!subMode.isPresent()) return this;
 
-        setValue(subModes.indexOf(subMode.get()));
+        setValueRaw(subModes.indexOf(subMode.get()));
         return this;
     }
     @Override
@@ -53,17 +57,9 @@ public class ModeValue extends Setting implements InputSetting {
             JsonPrimitive jsonPrimitive = profile.getAsJsonPrimitive(getName());
             if (jsonPrimitive.isNumber()) {
                 int newValue = jsonPrimitive.getAsInt();
-                setValue(newValue);
+                setValueRaw(newValue);
             }
         }
-    }
-
-    public String getSettingName() {
-        return settingName;
-    }
-
-    public Module getParent() {
-        return parent;
     }
 
     @Override
@@ -73,14 +69,17 @@ public class ModeValue extends Setting implements InputSetting {
 
     @Override
     public void setValue(double value) {
-        this.selected = (int) value;
+        if (value > getMax() || value < getMin()) {
+            this.selected = (int) getMin();
+        } else {
+            this.selected = (int) value;
+        }
         if (this.parent.isEnabled() || !parent.canBeEnabled) {
             this.subModes.get(selected).enable();
         }
     }
     public void setValueRaw(int n) {
         disable();
-        this.selected = n;
         this.setValue(n);
     }
     public double getMax() {

@@ -29,6 +29,7 @@ import net.minecraft.network.play.server.S23PacketBlockChange;
 import net.minecraft.util.*;
 import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -108,16 +109,14 @@ public class Scaffold extends IAutoClicker {
         this.registerSetting(clickMode = new ModeValue("Click mode", this)
                 .add(new LiteralSubMode("Basic", this))
                 .add(new NormalAutoClicker("Normal", this, false, true))
-                .add(new DragClickAutoClicker("Drag Click", this, false, true))
-                .add(new RecordAutoClicker("Record", this, false, true))
                 .setDefaultValue("Basic")
         );
-        this.registerSetting(aimSpeed = new SliderSetting("Aim speed", 20, 5, 20, 0.1));
-        this.registerSetting(moveFix = new ButtonSetting("MoveFix", false));
-        this.registerSetting(motion = new SliderSetting("Motion", 1.0, 0.5, 1.2, 0.01, () -> !moveFix.isToggled()));
         this.registerSetting(rotation = new ModeSetting("Rotation", rotationModes, 1));
+        this.registerSetting(aimSpeed = new SliderSetting("Aim speed", 20, 5, 20, 0.1, new ModeOnly(rotation, 0).reserve()));
         this.registerSetting(tellyStartTick = new SliderSetting("Telly start", 3, 0, 11, 1, "tick", new ModeOnly(rotation, 4)));
         this.registerSetting(tellyStopTick = new SliderSetting("Telly stop", 8, 0, 11, 1, "tick", new ModeOnly(rotation, 4)));
+        this.registerSetting(moveFix = new ButtonSetting("MoveFix", false, new ModeOnly(rotation, 0).reserve()));
+        this.registerSetting(motion = new SliderSetting("Motion", 1.0, 0.5, 1.2, 0.01, () -> !moveFix.isToggled()));
         this.registerSetting(strafe = new SliderSetting("Strafe", 0, -45, 45, 5));
         this.registerSetting(fastScaffold = new ModeSetting("Fast scaffold", fastScaffoldModes, 0));
         this.registerSetting(precision = new ModeSetting("Precision", precisionModes, 4));
@@ -830,6 +829,13 @@ public class Scaffold extends IAutoClicker {
                 return;
             }
         }
+
+        ScaffoldPlaceEvent event = new ScaffoldPlaceEvent(block, extra);
+        MinecraftForge.EVENT_BUS.post(event);
+        if (event.isCanceled()) return;
+
+        block = event.getHitResult();
+        extra = event.isExtra();
 
         if (mc.playerController.onPlayerRightClick(mc.thePlayer, mc.theWorld, heldItem, block.getBlockPos(), block.sideHit, block.hitVec)) {
             sneak$bridged++;

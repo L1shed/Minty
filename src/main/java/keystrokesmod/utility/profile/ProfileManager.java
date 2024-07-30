@@ -13,6 +13,7 @@ import keystrokesmod.module.setting.Setting;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.ModeValue;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.module.setting.impl.SubMode;
 import keystrokesmod.module.setting.interfaces.InputSetting;
 import keystrokesmod.script.Manager;
 import keystrokesmod.utility.Utils;
@@ -117,6 +118,8 @@ public class ProfileManager {
             moduleInformation.add("catPos", jsonArray);
         }
         for (Setting setting : module.getSettings()) {
+            if (setting.viewOnly && !(module instanceof SubMode)) continue;
+
             if (setting instanceof ButtonSetting && !((ButtonSetting) setting).isMethodButton) {
                 moduleInformation.addProperty(setting.getName(), ((ButtonSetting) setting).isToggled());
             } else if (setting instanceof InputSetting) {
@@ -187,6 +190,9 @@ public class ProfileManager {
                         case "SuperKB":
                             moduleName = "MoreKB";
                             break;
+                        case "Reduce":
+                            moduleName = "KeepSprint";
+                            break;
                     }
 
                     if (moduleName.isEmpty()) {
@@ -210,7 +216,7 @@ public class ProfileManager {
                         module.setPrettyName(moduleInformation.get("prettyName").getAsString());
                     }
 
-                    if (module.canBeEnabled()) {
+                    if (module.canBeEnabled() && !(module instanceof SubMode)) {
                         if (moduleInformation.has("enabled")) {
                             boolean enabled = moduleInformation.get("enabled").getAsBoolean();
                             if (enabled) {
