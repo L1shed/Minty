@@ -31,7 +31,7 @@ public class ModuleManager {
     public static Module antiShuffle;
     public static Module commandLine;
     public static Module antiBot;
-    public static Module noSlow;
+    public static NoSlow noSlow;
     public static KillAura killAura;
     public static AutoClicker autoClicker;
     public static HitBox hitBox;
@@ -102,6 +102,9 @@ public class ModuleManager {
     public static ExploitFixer exploitFixer;
     public static AutoRegister autoRegister;
     public static NoteBot noteBot;
+    public static ViewPackets viewPackets;
+    public static ArmedAura armedAura;
+    public static HitLog hitLog;
 
     public void register() {
 
@@ -129,6 +132,7 @@ public class ModuleManager {
         this.addModule(new JumpReset());
         this.addModule(killAura = new KillAura());
         this.addModule(killAuraV2 = new KillAuraV2());
+        this.addModule(armedAura = new ArmedAura());
         this.addModule(moreKB = new MoreKB());
         this.addModule(reach = new Reach());
         this.addModule(new RodAimbot());
@@ -139,7 +143,8 @@ public class ModuleManager {
         this.addModule(new ExtraBobbing());
         this.addModule(new FlameTrail());
         this.addModule(new SlyPort());
-        this.addModule(new Spin());
+        this.addModule(new AntiAim());
+        this.addModule(hitLog = new HitLog());
         this.addModule(noteBot = new NoteBot());
 
         // minigames
@@ -183,6 +188,7 @@ public class ModuleManager {
         this.addModule(staffDetector = new StaffDetector());
         this.addModule(new BedProximityAlert());
         this.addModule(autoRegister = new AutoRegister());
+        this.addModule(viewPackets = new ViewPackets());
 
         // player
         this.addModule(new AntiAFK());
