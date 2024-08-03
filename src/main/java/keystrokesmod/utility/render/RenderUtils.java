@@ -6,7 +6,9 @@ import keystrokesmod.module.impl.render.HUD;
 import keystrokesmod.script.classes.Vec3;
 import keystrokesmod.utility.Theme;
 import keystrokesmod.utility.Utils;
-import keystrokesmod.utility.font.impl.MinecraftFontRenderer;
+import keystrokesmod.utility.font.FontManager;
+import keystrokesmod.utility.font.IFont;
+import keystrokesmod.utility.font.impl.FontRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.ScaledResolution;
@@ -543,8 +545,8 @@ public class RenderUtils {
         net.minecraft.client.gui.Gui.drawRect(0, 0, w, h, c);
     }
 
-    public static void dct(String text, char lineSplit, int x, int y, long s, long shift, boolean rect, MinecraftFontRenderer fontRenderer) {
-        int bX = x;
+    public static void dct(String text, char lineSplit, double x, double y, long s, long shift, boolean rect, IFont fontRenderer) {
+        double bX = x;
         int l = 0;
         long r = 0L;
 
@@ -998,5 +1000,22 @@ public class RenderUtils {
             return 0;
         }
         return (int) i;
+    }
+
+    private static final int TOOLTIP_BACKGROUND = new Color(0, 0, 0, 220).getRGB();
+    private static final int TOOLTIP_TEXT = new Color(229, 229, 229, 255).getRGB();
+
+    public static void drawToolTip(@NotNull String toolTip, int x, int y) {
+        if (toolTip.isEmpty()) return;
+        final FontRenderer font = FontManager.productSans16;
+        final String[] split = toolTip.split("\n");
+        final double width = font.getStringWidth(split[0]);
+        final double height = font.getHeight();
+
+        drawRect(x + 5, y + height - 3, x + 6 + width + 1, y + (height + 1) * split.length, TOOLTIP_BACKGROUND);
+        for (String s : split) {
+            font.drawString(s, x + 6, y + height - 1, FontRenderer.CenterMode.NONE, false, TOOLTIP_TEXT);
+            y += (int) Math.round(height);
+        }
     }
 }

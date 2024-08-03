@@ -105,6 +105,9 @@ public class ModuleManager {
     public static ViewPackets viewPackets;
     public static ArmedAura armedAura;
     public static HitLog hitLog;
+    public static LagRange lagRange;
+    public static FakePotion fakePotion;
+    public static NoWeb noWeb;
 
     public void register() {
 
@@ -133,6 +136,7 @@ public class ModuleManager {
         this.addModule(killAura = new KillAura());
         this.addModule(killAuraV2 = new KillAuraV2());
         this.addModule(armedAura = new ArmedAura());
+        this.addModule(lagRange = new LagRange());
         this.addModule(moreKB = new MoreKB());
         this.addModule(reach = new Reach());
         this.addModule(new RodAimbot());
@@ -171,6 +175,7 @@ public class ModuleManager {
         this.addModule(new VClip());
         this.addModule(wallClimb = new WallClimb());
         this.addModule(jesus = new Jesus());
+        this.addModule(noWeb = new NoWeb());
 
         // other
         this.addModule(new Anticheat());
@@ -207,6 +212,7 @@ public class ModuleManager {
         this.addModule(invManager = new InvManager());
         this.addModule(noFall = new NoFall());
         this.addModule(new NoRotate());
+        this.addModule(fakePotion = new FakePotion());
 
         // render
         this.addModule(ambience = new Ambience());
@@ -240,6 +246,7 @@ public class ModuleManager {
         this.addModule(new BedPlates());
         this.addModule(watermark = new Watermark());
         this.addModule(new Explosions());
+        this.addModule(new KillMessage());
 
         // world
         this.addModule(antiBot = new AntiBot());

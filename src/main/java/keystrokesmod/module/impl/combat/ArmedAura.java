@@ -3,7 +3,6 @@ package keystrokesmod.module.impl.combat;
 import akka.japi.Pair;
 import keystrokesmod.event.PreUpdateEvent;
 import keystrokesmod.event.RotationEvent;
-import keystrokesmod.module.impl.client.Notifications;
 import keystrokesmod.module.impl.combat.autoclicker.DragClickAutoClicker;
 import keystrokesmod.module.impl.combat.autoclicker.IAutoClicker;
 import keystrokesmod.module.impl.combat.autoclicker.NormalAutoClicker;
@@ -18,13 +17,18 @@ import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.ModeValue;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.module.setting.utils.ModeOnly;
 import keystrokesmod.script.classes.Vec3;
+import keystrokesmod.utility.BlockUtils;
 import keystrokesmod.utility.MoveUtil;
 import keystrokesmod.utility.RotationUtils;
 import keystrokesmod.utility.Utils;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemHoe;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.BlockPos;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.apache.commons.lang3.tuple.Triple;
@@ -36,6 +40,9 @@ import java.util.Optional;
 import java.util.Set;
 
 public class ArmedAura extends IAutoClicker {
+    private final ModeSetting mode;
+    private final SliderSetting switchDelay;
+    private final ModeSetting sortMode;
     private final ModeValue clickMode;
     private final SliderSetting range;
     private final ButtonSetting perfect;
@@ -47,18 +54,26 @@ public class ArmedAura extends IAutoClicker {
     private final ButtonSetting autoSwitch;
     private final ButtonSetting fastFire;
     private final SliderSetting fastFireAmount;
+    private final ButtonSetting targetPlayers;
+    private final ButtonSetting targetEntities;
     private final ButtonSetting targetInvisible;
     private final ButtonSetting ignoreTeammates;
+    private final ButtonSetting notWhileKillAura;
 
     private boolean targeted = false;
-    private Pair<Pair<EntityPlayer, Vec3>, Triple<Double, Float, Float>> target = null;
+    private Pair<Pair<EntityLivingBase, Vec3>, Triple<Double, Float, Float>> target = null;
     private boolean click = false;
     private int predTicks = 0;
     private net.minecraft.util.Vec3 pos = null;
-    private final Set<Integer> fired = new HashSet<>();
+    private final Set<Integer> firedSlots = new HashSet<>();
+    private final Set<EntityLivingBase> switchedTarget = new HashSet<>();
+    private long lastSwitched = -1;
 
     public ArmedAura() {
         super("ArmedAura", category.combat);
+        this.registerSetting(mode = new ModeSetting("Mode", new String[]{"Single", "Switch"}, 0));
+        this.registerSetting(switchDelay = new SliderSetting("Switch delay", 200, 50, 1000, 50, "ms", new ModeOnly(mode, 1)));
+        this.registerSetting(sortMode = new ModeSetting("Sort mode", new String[]{"Distance", "Health", "Hurt time", "Yaw"}, 0));
         this.registerSetting(clickMode = new ModeValue("Click mode", this)
                 .add(new NormalAutoClicker("Normal", this, false, true))
                 .add(new DragClickAutoClicker("Drag Click", this, false, true))
@@ -75,23 +90,40 @@ public class ArmedAura extends IAutoClicker {
         this.registerSetting(autoSwitch = new ButtonSetting("Auto switch", true));
         this.registerSetting(fastFire = new ButtonSetting("Fast fire", false, autoSwitch::isToggled));
         this.registerSetting(fastFireAmount = new SliderSetting("Fast fire amount", 1, 1, 4, 1, () -> autoSwitch.isToggled() && fastFire.isToggled()));
+        this.registerSetting(targetPlayers = new ButtonSetting("Target players", true));
+        this.registerSetting(targetEntities = new ButtonSetting("Target entities", false));
         this.registerSetting(targetInvisible = new ButtonSetting("Target invisible", false));
         this.registerSetting(ignoreTeammates = new ButtonSetting("Ignore teammates", true));
+        this.registerSetting(notWhileKillAura = new ButtonSetting("Not while killAura", true));
     }
 
     @SubscribeEvent
     public void onRotation(RotationEvent event) {
-        if (!targeted && !(perfect.isToggled() && mc.thePlayer.experience % 1 != 0)) {
-            final Optional<Pair<Pair<EntityPlayer, Vec3>, Triple<Double, Float, Float>>> target = mc.theWorld.playerEntities.parallelStream()
-                    .filter(p -> p != mc.thePlayer)
-                    .filter(p -> !AntiBot.isBot(p))
-                    .filter(p -> !Utils.isTeamMate(p) || !ignoreTeammates.isToggled())
+        if (!targeted && !(perfect.isToggled() && mc.thePlayer.experience % 1 != 0) && !(notWhileKillAura.isToggled() && KillAura.target != null)) {
+            final Optional<Pair<Pair<EntityLivingBase, Vec3>, Triple<Double, Float, Float>>> target = mc.theWorld.loadedEntityList.parallelStream()
+                    .filter(entity -> entity instanceof EntityLivingBase)
+                    .map(entity -> (EntityLivingBase) entity)
+                    .filter(entity -> entity != mc.thePlayer)
+                    .filter(entity -> !(mode.getInput() == 1 && switchedTarget.contains(entity)))
+                    .filter(entity -> {
+                        if (entity instanceof EntityArmorStand) return false;
+                        if (entity instanceof EntityPlayer) {
+                            if (!targetPlayers.isToggled()) return false;
+                            if (Utils.isFriended((EntityPlayer) entity)) {
+                                return false;
+                            }
+                            if (entity.deathTime != 0) {
+                                return false;
+                            }
+                            return !AntiBot.isBot(entity) && !(ignoreTeammates.isToggled() && Utils.isTeamMate(entity));
+                        } else return targetEntities.isToggled();
+                    })
                     .filter(entity -> targetInvisible.isToggled() || !entity.isInvisible())
                     .filter(p -> p.getDistanceToEntity(mc.thePlayer) < range.getInput())
-                    .map(p -> new Pair<>(p, doPrediction(Utils.getEyePos(p), new Vec3(p.motionX, p.motionY, p.motionZ))))
+                    .map(p -> new Pair<>(p, doPrediction(p, new Vec3(p.motionX, p.motionY, p.motionZ))))
                     .map(pair -> new Pair<>(pair, Triple.of(pair.second().distanceTo(Utils.getEyePos()), PlayerRotation.getYaw(pair.second()), PlayerRotation.getPitch(pair.second()))))
                     .filter(pair -> RotationUtils.rayCast(pair.second().getLeft(), pair.second().getMiddle(), pair.second().getRight()) == null)
-                    .min(Comparator.comparingDouble(pair -> mc.thePlayer.getDistanceSqToEntity(pair.first().first())));
+                    .min(fromSortMode());
             if (target.isPresent()) {
                 if (SlotHandler.getHeldItem() != null && SlotHandler.getHeldItem().getItem() instanceof ItemHoe) {
                     event.setYaw(target.get().second().getMiddle());
@@ -99,11 +131,33 @@ public class ArmedAura extends IAutoClicker {
                     event.setMoveFix(RotationHandler.MoveFix.values()[(int) moveFix.getInput()]);
                     pos = target.get().first().second().add(0, -target.get().first().first().getEyeHeight(), 0).toVec3();
                     this.target = target.get();
+                    long time = System.currentTimeMillis();
+                    if (time - lastSwitched > switchDelay.getInput()) {
+                        switchedTarget.add(target.get().first().first());
+                        lastSwitched = time;
+                    }
                 }
                 targeted = true;
             } else {
+                if (!switchedTarget.isEmpty()) {
+                    switchedTarget.clear();
+                    onRotation(event);
+                }
                 targeted = false;
+                pos = null;
             }
+        }
+    }
+
+    private Comparator<Pair<Pair<EntityLivingBase, Vec3>, Triple<Double, Float, Float>>> fromSortMode() {
+        switch ((int) sortMode.getInput()) {
+            default:
+            case 0:
+                return Comparator.comparingDouble(pair -> mc.thePlayer.getDistanceSqToEntity(pair.first().first()));
+            case 1:
+                return Comparator.comparingDouble(pair -> pair.first().first().getHealth());
+            case 2:
+                return Comparator.comparingDouble(pair -> pair.first().first().hurtTime);
         }
     }
 
@@ -127,7 +181,6 @@ public class ArmedAura extends IAutoClicker {
         }
 
         if (targeted && click) {
-            Notifications.sendNotification(Notifications.NotificationTypes.INFO, "attack");
             mc.playerController.sendUseItem(mc.thePlayer, mc.theWorld, SlotHandler.getHeldItem());
             if (fastFire.isToggled() && autoSwitch.isToggled()) {
                 for (int i = 0; i < (int) fastFireAmount.getInput(); i++) {
@@ -148,7 +201,7 @@ public class ArmedAura extends IAutoClicker {
         for (int i = 0; i < 9; i++) {
             ItemStack stack = mc.thePlayer.inventory.mainInventory[i];
             if (stack != null && stack.getItem() instanceof ItemHoe) {
-                if (fastFire.isToggled() && fired.contains(i))
+                if (fastFire.isToggled() && firedSlots.contains(i))
                     continue;
 
                 int curLevel;
@@ -179,11 +232,11 @@ public class ArmedAura extends IAutoClicker {
             }
         }
 
-        if (arm == -1 && !fired.isEmpty()) {
-            fired.clear();
+        if (arm == -1 && !firedSlots.isEmpty()) {
+            firedSlots.clear();
             return getBestArm();
         }
-        fired.add(arm);
+        firedSlots.add(arm);
         return arm;
     }
 
@@ -200,13 +253,13 @@ public class ArmedAura extends IAutoClicker {
         }
     }
 
-    private @NotNull Vec3 doPrediction(@NotNull Vec3 pos, Vec3 motion) {
-        Vec3 result = new Vec3(pos.toVec3());
+    private @NotNull Vec3 doPrediction(@NotNull EntityLivingBase entity, Vec3 motion) {
+        Vec3 result = Utils.getEyePos(entity);
         for (int i = 0; i < predTicks; i++) {
             result = result.add(
-                    MoveUtil.predictedMotionXZ(motion.x(), i),
-                    mc.thePlayer.onGround ? 0 : MoveUtil.predictedMotion(motion.y(), i),
-                    MoveUtil.predictedMotionXZ(motion.z(), i)
+                    MoveUtil.predictedMotionXZ(motion.x(), i, MoveUtil.isMoving(entity)),
+                    entity.onGround || !BlockUtils.replaceable(new BlockPos(result.toVec3())) ? 0 : MoveUtil.predictedMotion(motion.y(), i),
+                    MoveUtil.predictedMotionXZ(motion.z(), i, MoveUtil.isMoving(entity))
             );
         }
         return result;
@@ -218,7 +271,7 @@ public class ArmedAura extends IAutoClicker {
         targeted = false;
         click = false;
         predTicks = 0;
-        fired.clear();
+        firedSlots.clear();
         pos = null;
     }
 

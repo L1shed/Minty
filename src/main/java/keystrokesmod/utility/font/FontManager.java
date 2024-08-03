@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class FontManager {
-    public static FontRenderer regular16, icon20;
+    public static FontRenderer regular16, regular22, icon20, productSans16, productSans20;
     private static int prevScale;
 
     public static void init() {
@@ -23,8 +23,11 @@ public class FontManager {
         if (scale != prevScale) {
             prevScale = scale;
 
-            FontManager.regular16 = new FontRenderer(FontUtil.getResource(locationMap, "regular.ttf", 16));
-            FontManager.icon20 = new FontRenderer(FontUtil.getResource(locationMap, "icon.ttf", 20));
+            regular16 = new FontRenderer(FontUtil.getResource(locationMap, "regular.ttf", 16));
+            regular22 = new FontRenderer(FontUtil.getResource(locationMap, "regular.ttf", 22));
+            icon20 = new FontRenderer(FontUtil.getResource(locationMap, "icon.ttf", 20));
+            productSans16 = new FontRenderer(FontUtil.getResource(locationMap, "product_sans_regular.ttf", 16));
+            productSans20 = new FontRenderer(FontUtil.getResource(locationMap, "product_sans_regular.ttf", 20));
         }
     }
     public static MinecraftFontRenderer getMinecraft() {
