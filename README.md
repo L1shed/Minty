@@ -25,44 +25,6 @@ Raven B4, but not only for Hypixel.
 <a href="https://discord.gg/zSgDKArSH4"><img src="https://invidget.switchblade.xyz/zSgDKArSH4" alt="https://discord.gg/zSgDKArSH4"/></a><br>
 </div>
 
-## Additional Modules
- 1. Hypixel
-    - TowerMove
-    - LongJump (Fireball)
-    - NoFall
-    - AntiVoid
- 2. BlocksMC
-    - NoSlow
-    - AntiVoid
-    - Tower
- 3. Intave
-    - KillAura
-    - Scaffold
-    - NoSlow
-    - WallClimb
- 4. Polar
-    - NoSlow
- 5. GrimAC
-    - KillAura
-    - Scaffold
-    - NoSlow
-    - Velocity (1.9+)
-    - Speed (1.9+)
-    - Fly
- 6. Minemen/Matrix
-    - Fly
- 6. Undetectable
-    - AimAssist
-    - AutoClicker
-    - HitSelect
-    - MoreKB
-    - Block-In
-    - Legit Scaffold
- 7. Common
-    - Client-side AntiCheat
-    - TimerRange
-    - Backtrack
-
 ## How do I build this client?
 
 ### Steps:
