@@ -155,47 +155,6 @@ public class Commands {
                     }
 
                 });
-            } else if (firstArg.equals("setvelocity")) {
-                if (!hasArgs) {
-                    print(invSyn, 1);
-                    return;
-                }
-
-                if (args.size() != 3) {
-                    print(invSyn, 1);
-                    return;
-                }
-
-                double value;
-
-                try {
-                    value = Double.parseDouble(args.get(2));
-                } catch (Exception e) {
-                    print("&cInvalid value. [-100 - 300)", 1);
-                    return;
-                }
-
-                if (value > 300 || value < -100) {
-                    print("&cInvalid value. [-100 - 300)", 1);
-                    return;
-                }
-
-                switch (args.get(1)) {
-                    case "horizontal":
-                    case "h":
-                        Velocity.horizontal.setValueRaw(value);
-                        break;
-                    case "vertical":
-                    case "v":
-                        Velocity.vertical.setValueRaw(value);
-                        break;
-                    default:
-                        print(invSyn, 1);
-                        return;
-                }
-
-                print("&aSet " + args.get(1) + " velocity to ", 1);
-                print(args.get(2), 0);
             } else if (firstArg.equals("ping")) {
                 Ping.checkPing();
             } else if (firstArg.equals("clear")) {
@@ -253,7 +212,7 @@ public class Commands {
                     return;
                 }
 
-                if (args.size() != 3) {
+                if (args.size() != 3 && args.size() != 4) {
                     print(invSyn, 1);
                     return;
                 }
@@ -261,8 +220,14 @@ public class Commands {
                 for (Module module : Raven.getModuleManager().getModules()) {
                     String name = module.getName().toLowerCase().replace(" ", "");
                     if (name.equals(args.get(1).toLowerCase())) {
-                        module.setPrettyName(args.get(2));
-                        print("&a" + module.getName() + " is now called " + module.getRawPrettyName(), 1);
+                        if (args.size() == 3) {
+                            module.setPrettyName(args.get(2));
+                            print("&a" + module.getName() + " is now called " + module.getRawPrettyName(), 1);
+                        } else {
+                            module.setPrettyName(args.get(2));
+                            module.setPrettyInfo(args.get(3));
+                            print("&a'" + module.getName() + " " + module.getInfo() + "' is now called '" + module.getRawPrettyName() + " " + module.getRawPrettyInfo() + "'", 1);
+                        }
                     }
                 }
             } else if (firstArg.equals("resetgui")) {
@@ -462,7 +427,7 @@ public class Commands {
                 print("4 nick [name/reset]", 0);
                 print("5 ping", 0);
                 print("6 hide/show [module]", 0);
-                print("7 rename [module] [name]", 0);
+                print("7 rename [module] [name] <info>", 0);
                 print("8 say [message]", 0);
                 print("9 panic", 0);
                 print("10 resetGUI", 0);
@@ -476,7 +441,6 @@ public class Commands {
                 print("&eModule-specific:", 0);
                 print("1 cname [name]", 0);
                 print("2 " + FakeChat.command + " [msg]", 0);
-                print("3 setvelocity [h/v] [value]", 0);
                 print("4 killmessage [message]", 0);
                 print(String.format("5 clientname [name (current is '%s')]", Watermark.customName), 0);
             }

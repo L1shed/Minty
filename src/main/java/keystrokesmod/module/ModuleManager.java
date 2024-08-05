@@ -108,6 +108,9 @@ public class ModuleManager {
     public static LagRange lagRange;
     public static FakePotion fakePotion;
     public static NoWeb noWeb;
+    public static ProjectileAimBot projectileAimBot;
+    public static AutoWeb autoWeb;
+    public static BlockOut blockOut;
 
     public void register() {
 
@@ -132,7 +135,6 @@ public class ModuleManager {
         this.addModule(criticals = new Criticals());
         this.addModule(hitBox = new HitBox());
         this.addModule(hitSelect = new HitSelect());
-        this.addModule(new JumpReset());
         this.addModule(killAura = new KillAura());
         this.addModule(killAuraV2 = new KillAuraV2());
         this.addModule(armedAura = new ArmedAura());
@@ -142,6 +144,7 @@ public class ModuleManager {
         this.addModule(new RodAimbot());
         this.addModule(timerRange = new TimerRange());
         this.addModule(velocity = new Velocity());
+        this.addModule(projectileAimBot = new ProjectileAimBot());
 
         // fun
         this.addModule(new ExtraBobbing());
@@ -150,6 +153,7 @@ public class ModuleManager {
         this.addModule(new AntiAim());
         this.addModule(hitLog = new HitLog());
         this.addModule(noteBot = new NoteBot());
+        this.addModule(blockOut = new BlockOut());
 
         // minigames
         this.addModule(new AutoWho());
@@ -194,6 +198,7 @@ public class ModuleManager {
         this.addModule(new BedProximityAlert());
         this.addModule(autoRegister = new AutoRegister());
         this.addModule(viewPackets = new ViewPackets());
+        this.addModule(new FlagDetector());
 
         // player
         this.addModule(new AntiAFK());
@@ -213,6 +218,7 @@ public class ModuleManager {
         this.addModule(noFall = new NoFall());
         this.addModule(new NoRotate());
         this.addModule(fakePotion = new FakePotion());
+        this.addModule(autoWeb = new AutoWeb());
 
         // render
         this.addModule(ambience = new Ambience());
@@ -263,7 +269,6 @@ public class ModuleManager {
         this.addModule(safeWalk = new SafeWalk());
         this.addModule(scaffold = new Scaffold());
         this.addModule(tower = new Tower());
-        this.addModule(new WaterBucket());
 
         // exploit
         this.addModule(clientSpoofer = new ClientSpoofer());
