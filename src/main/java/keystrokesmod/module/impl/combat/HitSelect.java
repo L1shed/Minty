@@ -5,7 +5,6 @@ import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.MoveUtil;
-import net.minecraft.entity.Entity;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -49,12 +48,15 @@ public class HitSelect extends Module {
             return;
         }
 
-        attackTime = System.currentTimeMillis();
+        if (canAttack())
+            attackTime = System.currentTimeMillis();
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onPreUpdate(PreUpdateEvent event) {
-        if (Math.random() > hitSelect.chance.getInput()) {
+        currentShouldAttack = false;
+
+        if (Math.random() * 100 > hitSelect.chance.getInput()) {
             currentShouldAttack = true;
         } else {
             switch ((int) preference.getInput()) {
@@ -71,7 +73,7 @@ public class HitSelect extends Module {
         }
     }
 
-    public static boolean canAttack(Entity target) {
+    public static boolean canAttack() {
         return canSwing();
     }
 
