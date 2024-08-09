@@ -51,6 +51,14 @@ public abstract class MixinMinecraft {
         }
     }
 
+    @Inject(method = "clickMouse", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/entity/EntityPlayerSP;swingItem()V"), cancellable = true)
+    private void beforeSwingByClick(CallbackInfo ci) {
+        ClickEvent event = new ClickEvent();
+        MinecraftForge.EVENT_BUS.post(event);
+        if (event.isCanceled())
+            ci.cancel();
+    }
+
     /**
      * @author xia__mc
      * @reason to fix reach and hitBox won't work with autoClicker
@@ -62,22 +70,12 @@ public abstract class MixinMinecraft {
         HitBox.call();
     }
 
-    @Inject(method = "clickMouse", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/entity/EntityPlayerSP;swingItem()V"), cancellable = true)
-    private void beforeSwingByClick(CallbackInfo ci) {
-        ClickEvent event = new ClickEvent();
-        MinecraftForge.EVENT_BUS.post(event);
-        if (event.isCanceled())
-            ci.cancel();
-    }
-
     /**
      * @author xia__mc
      * @reason to fix freelook do impossible action
      */
     @Inject(method = "rightClickMouse", at = @At("HEAD"), cancellable = true)
     private void onRightClickMouse(CallbackInfo ci) {
-        FreeLook.call();
-
         RightClickEvent event = new RightClickEvent();
         MinecraftForge.EVENT_BUS.post(event);
         if (event.isCanceled())

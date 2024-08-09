@@ -12,12 +12,15 @@ import keystrokesmod.module.setting.utils.ModeOnly;
 import keystrokesmod.utility.AimSimulator;
 import keystrokesmod.utility.MoveUtil;
 import keystrokesmod.utility.RotationUtils;
+import lombok.Getter;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.MathHelper;
+import net.minecraft.util.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -25,7 +28,11 @@ import java.util.Arrays;
 public final class RotationHandler extends Module {
     private static @Nullable Float movementYaw = null;
     private static @Nullable Float rotationYaw = null;
+    @Getter
+    private static float prevRotationYaw;
     private static @Nullable Float rotationPitch = null;
+    @Getter
+    private static float prevRotationPitch;
     private boolean isSet = false;
     private static MoveFix moveFix = MoveFix.NONE;
 
@@ -100,12 +107,25 @@ public final class RotationHandler extends Module {
         return pitch;
     }
 
+    @NotNull
+    public static Vec3 getLook(float partialTicks) {
+        if (partialTicks == 1.0F) {
+            return RotationUtils.getVectorForRotation(RotationHandler.getRotationPitch(), RotationHandler.getRotationYaw());
+        } else {
+            float f = RotationHandler.getPrevRotationPitch() + (RotationHandler.getRotationPitch() - RotationHandler.getPrevRotationPitch()) * partialTicks;
+            float f1 = RotationHandler.getPrevRotationYaw() + (RotationHandler.getRotationYaw() - RotationHandler.getPrevRotationYaw()) * partialTicks;
+            return RotationUtils.getVectorForRotation(f, f1);
+        }
+    }
+
     /**
      * Fix movement
      * @param event before update living entity (move)
      */
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onPreMotion(MoveInputEvent event) {
+        prevRotationYaw = getRotationYaw();
+        prevRotationPitch = getRotationPitch();
         if (isSet && mc.currentScreen == null) {
             float viewYaw = RotationUtils.normalize(mc.thePlayer.rotationYaw);
             float viewPitch = RotationUtils.normalize(mc.thePlayer.rotationPitch);

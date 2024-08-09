@@ -1,11 +1,16 @@
-package keystrokesmod.module.impl.movement.fly;
+package keystrokesmod.module.impl.movement.longjump;
 
 import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.event.ReceivePacketEvent;
 import keystrokesmod.event.SendPacketEvent;
 import keystrokesmod.module.impl.client.Notifications;
-import keystrokesmod.module.impl.movement.Fly;
+import keystrokesmod.module.impl.movement.LongJump;
+import keystrokesmod.module.impl.other.SlotHandler;
+import keystrokesmod.module.setting.impl.ButtonSetting;
+import keystrokesmod.module.setting.impl.ModeSetting;
+import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.module.setting.impl.SubMode;
+import keystrokesmod.module.setting.utils.ModeOnly;
 import keystrokesmod.utility.MoveUtil;
 import keystrokesmod.utility.PacketUtils;
 import keystrokesmod.utility.Utils;
@@ -18,16 +23,28 @@ import net.minecraft.network.play.server.S12PacketEntityVelocity;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.jetbrains.annotations.NotNull;
 
-public class HypixelFireball extends SubMode<Fly> {
+public class HypixelFireballLongJump extends SubMode<LongJump> {
+    private final SliderSetting speed;
+    private final ButtonSetting autoDisable;
+    private final ModeSetting longer;
+    private final ButtonSetting fakeGround;
+    private final SliderSetting longerTick;
+
     private int lastSlot = -1;
     private int ticks = -1;
+    private int offGroundTicks = 0;
     private boolean setSpeed;
     private boolean sentPlace;
     private int initTicks;
     private boolean thrown;
 
-    public HypixelFireball(String name, @NotNull Fly parent) {
+    public HypixelFireballLongJump(String name, @NotNull LongJump parent) {
         super(name, parent);
+        this.registerSetting(speed = new SliderSetting("Speed", 1.5, 1, 2, 0.01));
+        this.registerSetting(autoDisable = new ButtonSetting("Auto disable", true));
+        this.registerSetting(longer = new ModeSetting("Longer", new String[]{"Disable", "Stop motion", "Air jump"}, 1));
+        this.registerSetting(fakeGround = new ButtonSetting("Fake ground", false, new ModeOnly(longer, 1, 2)));
+        this.registerSetting(longerTick = new SliderSetting("Longer tick", 20, 10, 30, 1, new ModeOnly(longer, 1, 2)));
     }
 
     @SubscribeEvent
@@ -37,7 +54,7 @@ public class HypixelFireball extends SubMode<Fly> {
                 && ((C08PacketPlayerBlockPlacement) event.getPacket()).getStack() != null
                 && ((C08PacketPlayerBlockPlacement) event.getPacket()).getStack().getItem() instanceof ItemFireball) {
             thrown = true;
-            if (mc.thePlayer.onGround) {
+            if (mc.thePlayer.onGround && !Utils.jumpDown()) {
                 mc.thePlayer.jump();
             }
         }
@@ -67,35 +84,58 @@ public class HypixelFireball extends SubMode<Fly> {
         if (!Utils.nullCheck()) {
             return;
         }
-        if (initTicks == 0) {
-            event.setYaw(mc.thePlayer.rotationYaw - 180);
-            event.setPitch(89);
-            int fireballSlot = getFireball();
-            if (fireballSlot != -1 && fireballSlot != mc.thePlayer.inventory.currentItem) {
-                lastSlot = mc.thePlayer.inventory.currentItem;
-                mc.thePlayer.inventory.currentItem = fireballSlot;
-            }
+
+        if (mc.thePlayer.onGround)
+            offGroundTicks = 0;
+        else
+            offGroundTicks++;
+
+        switch (initTicks) {
+            case 0:
+                int fireballSlot = getFireball();
+                if (fireballSlot != -1 && fireballSlot != SlotHandler.getCurrentSlot()) {
+                    lastSlot = SlotHandler.getCurrentSlot();
+                    SlotHandler.setCurrentSlot(fireballSlot);
+                }
+            case 1:
+                event.setYaw(mc.thePlayer.rotationYaw - 180);
+                event.setPitch(89);
+                break;
+            case 2:
+                if (!sentPlace) {
+                    PacketUtils.sendPacket(new C08PacketPlayerBlockPlacement(SlotHandler.getHeldItem()));
+                    sentPlace = true;
+                }
+                break;
+            case 3:
+                if (lastSlot != -1) {
+                    SlotHandler.setCurrentSlot(lastSlot);
+                    lastSlot = -1;
+                }
+                break;
         }
-        if (initTicks == 1) {
-            if (!sentPlace) {
-                PacketUtils.sendPacket(new C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()));
-                sentPlace = true;
+
+        if (longer.getInput() != 0) {
+            if (offGroundTicks == (int) longerTick.getInput()) {
+                if (fakeGround.isToggled())
+                    event.setOnGround(true);
+                if (longer.getInput() == 1)
+                    mc.thePlayer.motionY = 0;
+                else if (longer.getInput() == 2)
+                    mc.thePlayer.jump();
+                if (autoDisable.isToggled())
+                    parent.disable();
             }
-        } else if (initTicks == 2) {
-            if (lastSlot != -1) {
-                mc.thePlayer.inventory.currentItem = lastSlot;
-                lastSlot = -1;
-            }
+        } else if (ticks > 1) {
+            if (autoDisable.isToggled())
+                parent.disable();
         }
-        if (ticks > 1) {
-            this.toggle();
-            return;
-        }
+
         if (setSpeed) {
             this.setSpeed();
             ticks++;
         }
-        if (initTicks < 3) {
+        if (initTicks <= 3) {
             initTicks++;
         }
 
@@ -112,7 +152,7 @@ public class HypixelFireball extends SubMode<Fly> {
 
     public void onDisable() {
         if (lastSlot != -1) {
-            mc.thePlayer.inventory.currentItem = lastSlot;
+            SlotHandler.setCurrentSlot(lastSlot);
         }
         ticks = lastSlot = -1;
         setSpeed = sentPlace = false;
@@ -126,10 +166,11 @@ public class HypixelFireball extends SubMode<Fly> {
             return;
         }
         initTicks = 0;
+        offGroundTicks = 0;
     }
 
     private void setSpeed() {
-        MoveUtil.strafe(1.5f);
+        MoveUtil.strafe((float) speed.getInput());
     }
 
     private int getFireball() {

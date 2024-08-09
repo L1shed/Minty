@@ -24,7 +24,6 @@ import net.minecraft.entity.monster.EntityZombie;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.BlockPos;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.apache.commons.lang3.tuple.Triple;
@@ -102,7 +101,8 @@ public class ArmedAura extends IAutoClicker {
 
     @SubscribeEvent
     public void onRotation(RotationEvent event) {
-        if (!targeted && !(perfect.isToggled() && mc.thePlayer.experience % 1 != 0) && !(notWhileKillAura.isToggled() && KillAura.target != null)) {
+        if (!(perfect.isToggled() && mc.thePlayer.experience % 1 != 0) && !(notWhileKillAura.isToggled() && KillAura.target != null)) {
+            final Vec3 eyePos = Utils.getEyePos();
             final Optional<Pair<Pair<EntityLivingBase, Vec3>, Triple<Double, Float, Float>>> target = mc.theWorld.loadedEntityList.parallelStream()
                     .filter(entity -> entity instanceof EntityLivingBase)
                     .map(entity -> (EntityLivingBase) entity)
@@ -125,8 +125,8 @@ public class ArmedAura extends IAutoClicker {
                     .filter(p -> p.getDistanceToEntity(mc.thePlayer) < range.getInput())
                     .filter(p -> fov.getInput() == 360 || Utils.inFov((float) fov.getInput(), p))
                     .map(p -> new Pair<>(p, getHitPos(p, new Vec3(p.motionX, p.motionY, p.motionZ))))
-                    .map(pair -> new Pair<>(pair, Triple.of(pair.second().distanceTo(Utils.getEyePos()), PlayerRotation.getYaw(pair.second()), PlayerRotation.getPitch(pair.second()))))
-                    .filter(pair -> RotationUtils.isMouseOver(pair.second().getMiddle(), pair.second().getRight(), pair.first().first(), pair.second().getLeft().floatValue()))
+                    .map(pair -> new Pair<>(pair, Triple.of(pair.second().distanceTo(eyePos), PlayerRotation.getYaw(pair.second()), PlayerRotation.getPitch(pair.second()))))
+                    .filter(pair -> RotationUtils.rayCast(eyePos.toVec3(), pair.second().getLeft(), pair.second().getMiddle(), pair.second().getRight()) == null)
                     .min(fromSortMode());
             if (target.isPresent()) {
                 if (armed) {
@@ -138,7 +138,7 @@ public class ArmedAura extends IAutoClicker {
                         event.setPitch(target.get().second().getRight());
                         event.setMoveFix(RotationHandler.MoveFix.values()[(int) moveFix.getInput()]);
                     }
-                    pos = target.get().first().second().add(0, -target.get().first().first().getEyeHeight(), 0).toVec3();
+                    pos = target.get().first().second().add(0, -getYOffSetForHitPos(target.get().first().first()), 0).toVec3();
                     this.target = target.get();
                     long time = System.currentTimeMillis();
                     if (time - lastSwitched > switchDelay.getInput()) {
@@ -206,7 +206,9 @@ public class ArmedAura extends IAutoClicker {
             SlotHandler.setCurrentSlot(bestArm);
         }
 
-        if (!isArmed()) {
+        if (isArmed()) {
+            armed = true;
+        } else {
             targeted = false;
             armed = false;
         }
@@ -268,29 +270,21 @@ public class ArmedAura extends IAutoClicker {
     }
 
     private @NotNull Vec3 getHitPos(@NotNull EntityLivingBase entity, Vec3 motion) {
-        Vec3 result;
+        Vec3 result = new Vec3(entity).add(0, getYOffSetForHitPos(entity), 0);
 
+        return MoveUtil.predictedPos(entity, motion, result, predTicks);
+    }
+
+    private double getYOffSetForHitPos(EntityLivingBase entity) {
         switch ((int) priorityHitBox.getInput()) {
             default:
             case 0:
-                result = Utils.getEyePos(entity);
-                break;
+                return entity.getEyeHeight();
             case 1:
-                result = Utils.getEyePos(entity).add(0, -1, 0);
-                break;
+                return entity.getEyeHeight() - 1;
             case 2:
-                result = new Vec3(entity).add(0, 0.5, 0);
-                break;
+                return 0.5;
         }
-
-        for (int i = 0; i < predTicks; i++) {
-            result = result.add(
-                    MoveUtil.predictedMotionXZ(motion.x(), i, MoveUtil.isMoving(entity)),
-                    entity.onGround || !BlockUtils.replaceable(new BlockPos(result.toVec3())) ? 0 : MoveUtil.predictedMotion(motion.y(), i),
-                    MoveUtil.predictedMotionXZ(motion.z(), i, MoveUtil.isMoving(entity))
-            );
-        }
-        return result;
     }
 
     @Override
@@ -310,12 +304,12 @@ public class ArmedAura extends IAutoClicker {
     @Override
     public boolean click() {
         if (targeted && armed) {
-            Utils.sendClick(1, true);
+            mc.playerController.sendUseItem(mc.thePlayer, mc.theWorld, SlotHandler.getHeldItem());
             if (rapidFire.isToggled() && autoSwitch.isToggled() && !rapidFireLegit.isToggled()) {
                 for (int i = 0; i < (int) rapidFireAmount.getInput(); i++) {
                     int bestArm = getBestArm();
                     SlotHandler.setCurrentSlot(bestArm);
-                    Utils.sendClick(1, true);
+                    mc.playerController.sendUseItem(mc.thePlayer, mc.theWorld, SlotHandler.getHeldItem());
                 }
             }
             if (target != null)
