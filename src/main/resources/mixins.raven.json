@@ -23,7 +23,8 @@
     "render.MixinRendererLivingEntity",
     "world.BlockNoteAccessor",
     "world.MixinBlock",
-    "world.MixinBlockWeb"
+    "world.MixinBlockWeb",
+    "world.ScoreAccessor"
   ],
   "client": [
     "client.GuiConnectingAccessor",
@@ -36,15 +37,17 @@
     "client.MixinPlayerControllerMP",
     "client.PlayerControllerMPAccessor",
     "entity.EntityPlayerSPAccessor",
+    "gui.MixinGuiButton",
+    "gui.MixinGuiConnecting",
+    "gui.MixinGuiContainer",
+    "gui.MixinGuiDownloadTerrain",
+    "gui.MixinGuiMainMenu",
+    "gui.MixinGuiScreen",
     "network.MixinClientSpoofer",
     "network.MixinNetHandlerPlayClient",
     "render.ItemRendererAccessor",
     "render.MixinBlockRendererDispatcher",
     "render.MixinEntityRenderer",
-    "render.MixinGuiConnecting",
-    "render.MixinGuiContainer",
-    "render.MixinGuiMainMenu",
-    "render.MixinGuiScreen",
     "render.MixinItemRenderer",
     "render.RenderManagerAccessor"
   ],

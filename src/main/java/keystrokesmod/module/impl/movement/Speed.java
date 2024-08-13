@@ -2,6 +2,7 @@ package keystrokesmod.module.impl.movement;
 
 import keystrokesmod.module.Module;
 import keystrokesmod.module.impl.movement.speed.*;
+import keystrokesmod.module.impl.movement.speed.hypixel.RiseWatchdogSpeed;
 import keystrokesmod.module.setting.impl.*;
 import keystrokesmod.utility.*;
 
@@ -18,14 +19,12 @@ public class Speed extends Module {
         super("Speed", Module.category.movement);
         this.registerSetting(mode = new ModeValue("Mode", this)
                 .add(new LegitSpeed("Legit", this))
-                .add(new HypixelASpeed("HypixelA", this))
-                .add(new HypixelBSpeed("HypixelB", this))
-                .add(new HypixelCSpeed("HypixelC", this))
+                .add(new HypixelSpeed("Hypixel", this))
                 .add(new VanillaSpeed("Vanilla", this))
                 .add(new BlocksMCSpeed("BlocksMC", this))
                 .add(new VulcanSpeed("Vulcan", this))
                 .add(new GrimACSpeed("GrimAC", this))
-//                .add(new IntaveSpeed("Intave", this))
+                .add(new IntaveSpeed("Intave", this))
         );
         this.registerSetting(liquidDisable = new ButtonSetting("Disable in liquid", true));
         this.registerSetting(sneakDisable = new ButtonSetting("Disable while sneaking", true));

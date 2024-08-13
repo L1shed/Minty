@@ -11,7 +11,7 @@ import keystrokesmod.module.impl.other.*;
 import keystrokesmod.module.impl.player.*;
 import keystrokesmod.module.impl.render.*;
 import keystrokesmod.module.impl.world.*;
-import keystrokesmod.utility.Utils;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -120,6 +120,9 @@ public class ModuleManager {
     public static BedDefender bedDefender;
     public static ChestAura chestAura;
     public static AutoRod autoRod;
+//    public static AbilitiesBedWars abilitiesBedWars;
+    public static ClientTheme clientTheme;
+    public static ScaffoldHelper scaffoldHelper;
 
     public void register() {
 
@@ -166,6 +169,8 @@ public class ModuleManager {
         this.addModule(hitLog = new HitLog());
         this.addModule(noteBot = new NoteBot());
         this.addModule(blockOut = new BlockOut());
+//        this.addModule(abilitiesBedWars = new AbilitiesBedWars());
+        this.addModule(scaffoldHelper = new ScaffoldHelper());
 
         // minigames
         this.addModule(new AutoWho());
@@ -268,6 +273,7 @@ public class ModuleManager {
         this.addModule(watermark = new Watermark());
         this.addModule(new Explosions());
         this.addModule(new KillMessage());
+        this.addModule(clientTheme = new ClientTheme());
 
         // world
         this.addModule(antiBot = new AntiBot());
@@ -299,6 +305,7 @@ public class ModuleManager {
         antiBot.enable();
         commandChat.enable();
         notifications.enable();
+        clientTheme.enable();
         modules.sort(Comparator.comparing(Module::getPrettyName));
     }
 
@@ -332,11 +339,18 @@ public class ModuleManager {
         return null;
     }
 
+    private static double getWidth(@NotNull Module module) {
+        return HUD.getFontRenderer().width(
+                module.getPrettyName()
+                        + ((HUD.showInfo.isToggled() && !module.getPrettyInfo().isEmpty()) ? " " + module.getPrettyInfo() : "")
+        );
+    }
+
     public static void sort() {
         if (HUD.alphabeticalSort.isToggled()) {
             organizedModules.sort(Comparator.comparing(Module::getPrettyName));
         } else {
-            organizedModules.sort((o1, o2) -> Utils.mc.fontRendererObj.getStringWidth(o2.getPrettyName() + ((HUD.showInfo.isToggled() && !o2.getInfo().isEmpty()) ? " " + o2.getInfo() : "")) - Utils.mc.fontRendererObj.getStringWidth(o1.getPrettyName() + (HUD.showInfo.isToggled() && !(o1.getInfo().isEmpty()) ? " " + o1.getInfo() : "")));
+            organizedModules.sort((c1, c2) -> Double.compare(getWidth(c2), getWidth(c1)));
         }
     }
 }

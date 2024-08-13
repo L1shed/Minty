@@ -7,16 +7,19 @@ import keystrokesmod.module.impl.combat.autoclicker.IAutoClicker;
 import keystrokesmod.module.impl.combat.autoclicker.LowCPSAutoClicker;
 import keystrokesmod.module.impl.combat.autoclicker.NormalAutoClicker;
 import keystrokesmod.module.impl.combat.autoclicker.RecordAutoClicker;
+import keystrokesmod.module.impl.other.RotationHandler;
 import keystrokesmod.module.impl.other.SlotHandler;
 import keystrokesmod.module.impl.other.anticheats.utils.world.PlayerRotation;
 import keystrokesmod.module.impl.player.Blink;
 import keystrokesmod.module.impl.world.AntiBot;
 import keystrokesmod.module.setting.impl.ButtonSetting;
+import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.ModeValue;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.script.classes.Vec3;
 import keystrokesmod.utility.*;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.init.Items;
 import net.minecraft.item.EnumAction;
 import net.minecraft.item.ItemFishingRod;
 import net.minecraft.item.ItemStack;
@@ -31,6 +34,7 @@ public class AutoRod extends IAutoClicker {
     private final ButtonSetting onlyWhileKillAura;
     private final SliderSetting range;
     private final SliderSetting aimSpeed;
+    private final ModeSetting moveFix;
     private final ButtonSetting prediction;
     private final ButtonSetting smart;
     private final SliderSetting predictionTicks;
@@ -53,6 +57,7 @@ public class AutoRod extends IAutoClicker {
         this.registerSetting(onlyWhileKillAura = new ButtonSetting("Only while killAura", false));
         this.registerSetting(range = new SliderSetting("Range", 10, 5, 15, 0.1, () -> !onlyWhileKillAura.isToggled()));
         this.registerSetting(aimSpeed = new SliderSetting("Aim speed", 10, 5, 20, 0.1, () -> !onlyWhileKillAura.isToggled()));
+        this.registerSetting(moveFix = new ModeSetting("MoveFix", RotationHandler.MoveFix.MODES, 0));
         this.registerSetting(prediction = new ButtonSetting("Prediction", false));
         this.registerSetting(smart = new ButtonSetting("Smart", true, prediction::isToggled));
         this.registerSetting(predictionTicks = new SliderSetting("Prediction ticks", 2, 0, 10, 1, "ticks", () -> prediction.isToggled() && !smart.isToggled()));
@@ -85,20 +90,38 @@ public class AutoRod extends IAutoClicker {
                     .filter(p -> !AntiBot.isBot(p))
                     .filter(p -> !ignoreTeammates.isToggled() || !Utils.isTeamMate(p))
                     .filter(p -> !Utils.isFriended(p))
+                    .filter(this::notBehindWall)
                     .min(Comparator.comparingDouble(p -> mc.thePlayer.getDistanceToEntity(p)))
                     .filter(p -> mc.thePlayer.getDistanceToEntity(p) <= range.getInput())
                     .ifPresent(p -> target = p);
         }
 
         if (target != null) {
-            int slot = ContainerUtils.getBestRod(null);
+            int slot = getRod();
             if (slot == -1) return;
-            if (slot >= 9)
-                slot -= 36;
             if (fromSlot == -1)
                 fromSlot = SlotHandler.getCurrentSlot();
             SlotHandler.setCurrentSlot(slot);
         }
+    }
+
+    private boolean notBehindWall(EntityLivingBase entity) {
+        Vec3 target = Utils.getEyePos(entity);
+        Vec3 from = Utils.getEyePos();
+
+        return RotationUtils.rayCast(target.distanceTo(from), PlayerRotation.getYaw(target), PlayerRotation.getPitch(target)) == null;
+    }
+
+    private int getRod() {
+        int a = -1;
+        for (int i = 0; i < 9; ++i) {
+            final ItemStack getStackInSlot = mc.thePlayer.inventory.getStackInSlot(i);
+            if (getStackInSlot != null && getStackInSlot.getItem() == Items.fishing_rod) {
+                a = i;
+                break;
+            }
+        }
+        return a;
     }
 
     @SubscribeEvent
@@ -117,6 +140,7 @@ public class AutoRod extends IAutoClicker {
                     : new Vec3(target.posX - target.lastTickPosX, target.posY - target.lastTickPosY, target.posZ - target.lastTickPosZ));
             event.setYaw(lastYaw = AimSimulator.rotMove(PlayerRotation.getYaw(hitPos), lastYaw, (float) aimSpeed.getInput()));
             event.setPitch(lastPitch = AimSimulator.rotMove(PlayerRotation.getPitch(hitPos), lastPitch, (float) aimSpeed.getInput()));
+            event.setMoveFix(RotationHandler.MoveFix.values()[(int) moveFix.getInput()]);
             pos = new net.minecraft.util.Vec3(hitPos.x, hitPos.y - target.getEyeHeight(), hitPos.z);
         }
     }
