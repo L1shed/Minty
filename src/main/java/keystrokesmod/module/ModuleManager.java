@@ -123,6 +123,7 @@ public class ModuleManager {
 //    public static AbilitiesBedWars abilitiesBedWars;
     public static ClientTheme clientTheme;
     public static ScaffoldHelper scaffoldHelper;
+    public static AutoChest autoChest;
 
     public void register() {
 
@@ -171,6 +172,7 @@ public class ModuleManager {
         this.addModule(blockOut = new BlockOut());
 //        this.addModule(abilitiesBedWars = new AbilitiesBedWars());
         this.addModule(scaffoldHelper = new ScaffoldHelper());
+        this.addModule(new Yeet());
 
         // minigames
         this.addModule(new AutoWho());
@@ -238,6 +240,7 @@ public class ModuleManager {
         this.addModule(fakePotion = new FakePotion());
         this.addModule(autoWeb = new AutoWeb());
         this.addModule(chestAura = new ChestAura());
+        this.addModule(autoChest = new AutoChest());
 
         // render
         this.addModule(ambience = new Ambience());
@@ -311,7 +314,6 @@ public class ModuleManager {
 
     public void addModule(Module m) {
         modules.add(m);
-        Raven.moduleCounter++;
     }
 
     public List<Module> getModules() {

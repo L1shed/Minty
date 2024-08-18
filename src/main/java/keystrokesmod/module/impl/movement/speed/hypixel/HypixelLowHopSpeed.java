@@ -1,11 +1,12 @@
 package keystrokesmod.module.impl.movement.speed.hypixel;
 
 import keystrokesmod.event.PrePlayerInputEvent;
+import keystrokesmod.module.impl.exploit.disabler.hypixel.HypixelMotionDisabler;
 import keystrokesmod.module.impl.movement.speed.HypixelSpeed;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SubMode;
 import keystrokesmod.utility.MoveUtil;
-import net.minecraft.potion.Potion;
+import keystrokesmod.utility.Utils;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,24 +30,23 @@ public class HypixelLowHopSpeed extends SubMode<HypixelSpeed> {
 
     @SubscribeEvent
     public void onPrePlayerInput(PrePlayerInputEvent event) {
-        if (!MoveUtil.isMoving()) return;
+        if (!MoveUtil.isMoving() || !HypixelMotionDisabler.isDisabled() || parent.parent.noAction()) return;
         switch (parent.parent.offGroundTicks) {
             case 0:
-                mc.thePlayer.jump();
-
-                if (mc.thePlayer.isPotionActive(Potion.moveSpeed)) {
-                    MoveUtil.strafe(0.6);
-                } else {
+                if (!Utils.jumpDown()) {
+                    mc.thePlayer.jump();
                     MoveUtil.strafe(0.485);
                 }
                 break;
             case 5:
+                if (strafe.isToggled())
+                    MoveUtil.strafe(0.315);
                 mc.thePlayer.motionY = MoveUtil.predictedMotion(mc.thePlayer.motionY, 2);
                 angle = (float) Math.toDegrees(MoveUtil.direction());
                 break;
-            default:
-                if (strafe.isToggled() && parent.parent.offGroundTicks > 5)
-                    angle = MoveUtil.simulationStrafeAngle(angle, 10.0F);
+            case 6:
+                if (strafe.isToggled())
+                    MoveUtil.strafe();
                 break;
         }
     }
