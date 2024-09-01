@@ -5,6 +5,7 @@ import keystrokesmod.event.MoveEvent;
 import keystrokesmod.event.RotationEvent;
 import keystrokesmod.event.SendPacketEvent;
 import keystrokesmod.module.Module;
+import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.other.RotationHandler;
 import keystrokesmod.module.impl.world.AntiBot;
 import keystrokesmod.module.setting.impl.ButtonSetting;
@@ -34,6 +35,7 @@ public class TimerRange extends Module {
     private final ButtonSetting onlyOnGround;
     private final ButtonSetting clearMotion;
     private final ButtonSetting notWhileKB;
+    private final ButtonSetting notWhileScaffold;
 
     private State state = State.NONE;
     private int hasLag = 0;
@@ -54,6 +56,7 @@ public class TimerRange extends Module {
         this.registerSetting(onlyOnGround = new ButtonSetting("Only onGround", false));
         this.registerSetting(clearMotion = new ButtonSetting("Clear motion", false));
         this.registerSetting(notWhileKB = new ButtonSetting("Not while kb", false));
+        this.registerSetting(notWhileScaffold = new ButtonSetting("Not while scaffold", true));
     }
 
     @Override
@@ -154,9 +157,10 @@ public class TimerRange extends Module {
     private boolean shouldStart() {
         if (!Utils.nullCheck()) return false;
         if (onlyOnGround.isToggled() && !mc.thePlayer.onGround) return false;
+        if (notWhileKB.isToggled() && mc.thePlayer.hurtTime > 0) return false;
+        if (notWhileScaffold.isToggled() && ModuleManager.scaffold.isEnabled()) return false;
         if (!Utils.isMoving()) return false;
         if (fov.getInput() == 0) return false;
-        if (notWhileKB.isToggled() && mc.thePlayer.hurtTime > 0) return false;
         if (System.currentTimeMillis() - lastTimerTime < delay.getInput()) return false;
 
         EntityPlayer target = mc.theWorld.playerEntities.parallelStream()
