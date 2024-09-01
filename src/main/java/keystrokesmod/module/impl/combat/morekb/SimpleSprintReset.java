@@ -1,6 +1,5 @@
-package keystrokesmod.module.impl.combat.morekb.impl;
+package keystrokesmod.module.impl.combat.morekb;
 
-import keystrokesmod.module.impl.combat.morekb.IMoreKB;
 import keystrokesmod.module.impl.world.AntiBot;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
