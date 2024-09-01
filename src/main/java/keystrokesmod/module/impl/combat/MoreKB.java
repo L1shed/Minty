@@ -8,6 +8,7 @@ import keystrokesmod.module.impl.combat.morekb.IMoreKB;
 import keystrokesmod.module.impl.combat.morekb.SimpleSprintReset;
 import keystrokesmod.module.setting.impl.ModeValue;
 import keystrokesmod.utility.MoveUtil;
+import keystrokesmod.utility.Utils;
 import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -78,7 +79,7 @@ public class MoreKB extends IMoreKB {
                 ((KeyBindingAccessor) mc.gameSettings.keyBindForward).setPressed(false);
                 break;
             case 5:
-                ((KeyBindingAccessor) mc.gameSettings.keyBindUseItem).setPressed(true);
+                Utils.sendClick(1, true);
                 break;
             case 6:
                 ((KeyBindingAccessor) mc.gameSettings.keyBindInventory).setPressed(true);
@@ -97,15 +98,11 @@ public class MoreKB extends IMoreKB {
                 ((KeyBindingAccessor) mc.gameSettings.keyBindForward).setPressed(Keyboard.isKeyDown(mc.gameSettings.keyBindForward.getKeyCode()));
                 break;
             case 5:
-                ((KeyBindingAccessor) mc.gameSettings.keyBindUseItem).setPressed(Keyboard.isKeyDown(mc.gameSettings.keyBindUseItem.getKeyCode()));
+                Utils.sendClick(1, false);
                 break;
             case 6:
-                if (mc.currentScreen instanceof GuiInventory) {
-                    ((KeyBindingAccessor) mc.gameSettings.keyBindInventory).setPressed(true);
-                    KeyBinding.onTick(mc.gameSettings.keyBindInventory.getKeyCode());
-                    ((KeyBindingAccessor) mc.gameSettings.keyBindInventory).setPressed(false);
-                    KeyBinding.onTick(mc.gameSettings.keyBindInventory.getKeyCode());
-                }
+                if (mc.currentScreen instanceof GuiInventory)
+                    mc.thePlayer.closeScreen();
                 break;
         }
     }

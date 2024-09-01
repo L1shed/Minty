@@ -125,6 +125,7 @@ public class ModuleManager {
     public static AutoChest autoChest;
     public static SilenceIRC silenceIRC;
     public static Teleport teleport;
+    public static AntiFalseFlag antiFalseFlag;
 
     public void register() {
 
@@ -306,6 +307,7 @@ public class ModuleManager {
         this.addModule(pingSpoof = new PingSpoof());
         this.addModule(exploitFixer = new ExploitFixer());
         this.addModule(ghostBlock = new GhostBlock());
+        this.addModule(antiFalseFlag = new AntiFalseFlag());
 
         // enable
         antiBot.enable();

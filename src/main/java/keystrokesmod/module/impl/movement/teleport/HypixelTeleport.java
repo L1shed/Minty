@@ -24,7 +24,6 @@ public class HypixelTeleport extends SubMode<Teleport> {
     private int timerTicks = -1;
     private final Queue<Packet<?>> delayedPackets = new ConcurrentLinkedQueue<>();
     private float yaw, pitch;
-    private double motionX, motionY, motionZ;
 
     public HypixelTeleport(String name, @NotNull Teleport parent) {
         super(name, parent);
@@ -33,9 +32,10 @@ public class HypixelTeleport extends SubMode<Teleport> {
     @SubscribeEvent
     public void onClick(ClickEvent event) {
         if (timerTicks != -1) return;
-        MovingObjectPosition hitResult = RotationUtils.rayCast(10, RotationHandler.getRotationYaw(), RotationHandler.getRotationPitch());
+        MovingObjectPosition hitResult = RotationUtils.rayCast(15, RotationHandler.getRotationYaw(), RotationHandler.getRotationPitch());
         if (hitResult != null && hitResult.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
             timerTicks = (int) Math.floor(new Vec3(hitResult.getBlockPos()).distanceTo(mc.thePlayer) / MoveUtil.getAllowedHorizontalDistance());
+            event.setCanceled(true);
         }
     }
 
@@ -60,9 +60,6 @@ public class HypixelTeleport extends SubMode<Teleport> {
                 }
                 yaw = RotationHandler.getRotationYaw();
                 pitch = RotationHandler.getRotationPitch();
-                motionX = mc.thePlayer.motionX;
-                motionY = mc.thePlayer.motionY;
-                motionZ = mc.thePlayer.motionZ;
                 hasLag = 0;
                 state = State.LAG;
                 break;
@@ -101,9 +98,7 @@ public class HypixelTeleport extends SubMode<Teleport> {
     public void onMove(@NotNull MoveEvent event) {
         if (state == State.LAG) {
             event.setCanceled(true);
-            mc.thePlayer.motionX = motionX;
-            mc.thePlayer.motionY = motionY;
-            mc.thePlayer.motionZ = motionZ;
+            mc.thePlayer.motionX = mc.thePlayer.motionY = mc.thePlayer.motionZ = 0;
         }
     }
 
