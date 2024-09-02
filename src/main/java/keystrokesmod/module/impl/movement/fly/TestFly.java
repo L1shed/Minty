@@ -3,24 +3,30 @@ package keystrokesmod.module.impl.movement.fly;
 import keystrokesmod.event.*;
 import keystrokesmod.module.impl.movement.Fly;
 import keystrokesmod.module.impl.other.SlotHandler;
+import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.module.setting.impl.SubMode;
 import keystrokesmod.utility.ContainerUtils;
 import keystrokesmod.utility.MoveUtil;
-import keystrokesmod.utility.Utils;
 import net.minecraft.item.ItemBow;
+import net.minecraft.util.MathHelper;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.jetbrains.annotations.NotNull;
 
-public class MatrixBowFly extends SubMode<Fly> {
+public class TestFly extends SubMode<Fly> {
     private int ticksSinceVelocity = 999;
     private float yaw;
 
-    public MatrixBowFly(String name, @NotNull Fly parent) {
+    private final SliderSetting speed;
+    private final SliderSetting motionY;
+
+    public TestFly(String name, @NotNull Fly parent) {
         super(name, parent);
+        this.registerSetting(speed = new SliderSetting("Speed", 1.0, 1.0, 2.0, 0.01));
+        this.registerSetting(motionY = new SliderSetting("MotionY", 0.42, 0.2, 1, 0.01));
     }
 
     @SubscribeEvent
-    public void onRotation(@NotNull RotationEvent event) {
+    public void onPreMotionEvent(@NotNull PreMotionEvent event) {
         event.setPitch(-89);
         event.setYaw(yaw);
     }
@@ -39,10 +45,11 @@ public class MatrixBowFly extends SubMode<Fly> {
     @SubscribeEvent
     public void onPreVelocity(@NotNull PreVelocityEvent event) {
         ticksSinceVelocity = 0;
-        mc.thePlayer.motionY = Math.abs(event.getMotionY() / 8000.0);
-        MoveUtil.strafe(Math.hypot(event.getMotionX() / 8000.0, event.getMotionZ() / 8000.0));
-        yaw = mc.thePlayer.rotationYaw;
-        event.setCanceled(true);
+        final float yaw = (float) MoveUtil.direction();
+        event.setMotionX((int) (-MathHelper.sin(yaw) * event.getMotionX() * speed.getInput()));
+        event.setMotionY((int) (motionY.getInput() * 8000.0));
+        event.setMotionZ((int) (MathHelper.cos(yaw) * event.getMotionZ() * speed.getInput()));
+        this.yaw = mc.thePlayer.rotationYaw;
     }
 
     @SubscribeEvent
