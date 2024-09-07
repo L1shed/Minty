@@ -1,15 +1,15 @@
-package keystrokesmod.module.impl.exploit.disabler;
+package keystrokesmod.module.impl.movement.fly;
 
 import keystrokesmod.event.ReceivePacketEvent;
 import keystrokesmod.module.impl.client.Notifications;
-import keystrokesmod.module.impl.exploit.Disabler;
-import keystrokesmod.module.setting.impl.ButtonSetting;
+import keystrokesmod.module.impl.movement.Fly;
+import keystrokesmod.module.impl.movement.motionmodifier.SimpleMotionModifier;
+import keystrokesmod.module.setting.impl.ModeValue;
 import keystrokesmod.module.setting.impl.SubMode;
 import keystrokesmod.utility.PacketUtils;
 import keystrokesmod.utility.Utils;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.INetHandlerPlayClient;
-import net.minecraft.network.play.client.C0FPacketConfirmTransaction;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraft.network.play.server.S32PacketConfirmTransaction;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -18,25 +18,36 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class GrimSpecDisabler extends SubMode<Disabler> {
+public class PolarTestFly extends SubMode<Fly> {
+    private final ModeValue editMotion;
+
     private final Queue<Packet<INetHandlerPlayClient>> delayedPackets = new ConcurrentLinkedQueue<>();
     private boolean delayed = false;
 
-    private final ButtonSetting ver117;
-
-    public GrimSpecDisabler(String name, @NotNull Disabler parent) {
+    public PolarTestFly(String name, @NotNull Fly parent) {
         super(name, parent);
-        this.registerSetting(ver117 = new ButtonSetting("1.17", false));
+        this.registerSetting(editMotion = new ModeValue("Edit motion", this, () -> false)
+                .add(new SimpleMotionModifier("MotionModifier", this))
+        );
     }
 
     @Override
-    public void onDisable() {
+    public void onDisable() throws Throwable {
+        editMotion.disable();
         if (Utils.nullCheck()) {
             delayedPackets.forEach(PacketUtils::receivePacketNoEvent);
         }
 
         delayedPackets.clear();
         delayed = false;
+        Utils.resetTimer();
+    }
+
+    @Override
+    public void onEnable() throws Throwable {
+        Utils.getTimer().timerSpeed = 0.1f;
+        editMotion.enable();
+        ((SimpleMotionModifier) editMotion.getSelected()).update();
     }
 
     @SubscribeEvent
@@ -53,11 +64,12 @@ public class GrimSpecDisabler extends SubMode<Disabler> {
             if (event.getPacket() instanceof S32PacketConfirmTransaction) {
                 delayedPackets.add((Packet<INetHandlerPlayClient>) event.getPacket());
                 event.setCanceled(true);
-
-                if (ver117.isToggled()) {
-                    PacketUtils.sendPacket(new C0FPacketConfirmTransaction(0, (short) 0, true));
-                }
             }
         }
+    }
+
+    @Override
+    public void onUpdate() throws Throwable {
+        ((SimpleMotionModifier) editMotion.getSelected()).update();
     }
 }
