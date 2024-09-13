@@ -21,7 +21,7 @@ public class ModuleManager {
     public static List<Module> organizedModules = new ArrayList<>();
 
     public static Module longJump;
-    public static Module blink;
+    public static Blink blink;
     public static Module nameHider;
     public static Module fastPlace;
     public static MurderMystery murderMystery;
@@ -121,12 +121,12 @@ public class ModuleManager {
     public static AutoRod autoRod;
 //    public static AbilitiesBedWars abilitiesBedWars;
     public static ClientTheme clientTheme;
-    public static ScaffoldHelper scaffoldHelper;
     public static AutoChest autoChest;
     public static SilenceIRC silenceIRC;
     public static Teleport teleport;
     public static AntiFalseFlag antiFalseFlag;
     public static ViaVersionFix viaVersionFix;
+    public static AutoGapple autoGapple;
 
     public void register() {
 
@@ -164,6 +164,7 @@ public class ModuleManager {
         this.addModule(projectileAimBot = new ProjectileAimBot());
         this.addModule(airStuck = new AirStuck());
         this.addModule(autoRod = new AutoRod());
+        this.addModule(autoGapple = new AutoGapple());
 
         // fun
         this.addModule(new ExtraBobbing());
@@ -174,7 +175,6 @@ public class ModuleManager {
         this.addModule(noteBot = new NoteBot());
         this.addModule(blockOut = new BlockOut());
 //        this.addModule(abilitiesBedWars = new AbilitiesBedWars());
-        this.addModule(scaffoldHelper = new ScaffoldHelper());
         this.addModule(new Yeet());
 
         // minigames
