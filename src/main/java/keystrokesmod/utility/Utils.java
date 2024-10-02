@@ -1081,8 +1081,8 @@ public class Utils {
     }
 
     public static void inventoryClick(@NotNull GuiScreen s) {
-        int x = Mouse.getX() / mc.displayWidth * s.width;
-        int y = s.height - Mouse.getY() / mc.displayHeight * s.height;
+        int x = Mouse.getX() * s.width / mc.displayWidth;
+        int y = s.height - Mouse.getY() * s.height / mc.displayHeight - 1;
 
         ClickEvent event = new ClickEvent();
         MinecraftForge.EVENT_BUS.post(event);
