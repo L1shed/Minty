@@ -377,6 +377,8 @@ public class KillAura extends IAutoClicker {
         if (!fixHypixelSwitch.isToggled() || moveFixMode.getInput() != 0) {
             RotationData data = doRotationAction(new RotationData(event.getYaw(), event.getPitch()));
             if (data != null) {
+                event.setYaw(data.getYaw());
+                event.setPitch(data.getPitch());
                 event.setMoveFix(RotationHandler.MoveFix.values()[(int) moveFixMode.getInput()]);
             }
         }
