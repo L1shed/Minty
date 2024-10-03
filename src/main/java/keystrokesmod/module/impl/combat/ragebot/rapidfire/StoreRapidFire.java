@@ -67,7 +67,6 @@ public class StoreRapidFire extends LegitRapidFire {
             for (int i = 0; i < storeTicks; i++) {
                 mc.thePlayer.onUpdate();
             }
-            storeTicks = 0;
             releaseAll();
         }
 
@@ -107,6 +106,11 @@ public class StoreRapidFire extends LegitRapidFire {
                 return;
             }
 
+            if (packetQueue.element().getCold().getCum((long) maxStoreTime.getInput())) {
+                releaseAll();
+                return;
+            }
+
             if (e.isCanceled())
                 return;
 
@@ -130,7 +134,7 @@ public class StoreRapidFire extends LegitRapidFire {
         synchronized (packetQueue) {
             while (!packetQueue.isEmpty()) {
                 try {
-                    if (packetQueue.element().getCold().getCum(storing ? (long) ticks.getInput() * 50 : (long) maxStoreTime.getInput())) {
+                    if (!storing && packetQueue.element().getCold().getCum((long) ticks.getInput() * 50)) {
                         Packet<?> packet = packetQueue.remove().getPacket();
                         skipPackets.add(packet);
                         PacketUtils.receivePacket(packet);
@@ -159,6 +163,7 @@ public class StoreRapidFire extends LegitRapidFire {
     }
 
     private void releaseAll() {
+        storeTicks = 0;
         if (!packetQueue.isEmpty()) {
             for (TimedPacket timedPacket : packetQueue) {
                 Packet<?> packet = timedPacket.getPacket();
@@ -172,7 +177,6 @@ public class StoreRapidFire extends LegitRapidFire {
     @Override
     public void onDisable() throws Throwable {
         storing = false;
-        storeTicks = 0;
         releaseAll();
 
         animation.setValue(0);
