@@ -4,6 +4,7 @@ import keystrokesmod.module.impl.exploit.ExploitFixer;
 import keystrokesmod.script.classes.Vec3;
 import net.minecraft.network.INetHandler;
 import net.minecraft.network.Packet;
+import net.minecraft.network.ThreadQuickExitException;
 import net.minecraft.network.play.INetHandlerPlayClient;
 import net.minecraft.network.play.INetHandlerPlayServer;
 import net.minecraft.network.play.client.C03PacketPlayer;
@@ -26,7 +27,7 @@ public class PacketUtils {
             Packet<INetHandlerPlayServer> casted = castPacket(packet);
             skipSendEvent.add(casted);
             mc.thePlayer.sendQueue.addToSendQueue(casted);
-        } catch (ClassCastException ignored) {
+        } catch (ThreadQuickExitException | ClassCastException ignored) {
         }
     }
 
@@ -36,7 +37,7 @@ public class PacketUtils {
         try {
             Packet<INetHandlerPlayServer> casted = castPacket(packet);
             mc.thePlayer.sendQueue.addToSendQueue(casted);
-        } catch (ClassCastException ignored) {
+        } catch (ThreadQuickExitException | ClassCastException ignored) {
         }
     }
 
@@ -47,6 +48,7 @@ public class PacketUtils {
             Packet<INetHandlerPlayClient> casted = castPacket(packet);
             skipReceiveEvent.add(casted);
             casted.processPacket(mc.getNetHandler());
+        } catch (ThreadQuickExitException ignored) {
         } catch (Exception e) {
             ExploitFixer.onBadPacket(packet, e);
         }
@@ -58,6 +60,7 @@ public class PacketUtils {
         try {
             Packet<INetHandlerPlayClient> casted = castPacket(packet);
             casted.processPacket(mc.getNetHandler());
+        } catch (ThreadQuickExitException ignored) {
         } catch (Exception e) {
             ExploitFixer.onBadPacket(packet, e);
         }

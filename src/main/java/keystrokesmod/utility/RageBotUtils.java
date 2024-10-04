@@ -166,16 +166,16 @@ public class RageBotUtils {
 
         if (armor1 == armor2)
             return true;
-        if (armor1.getArmorMaterial() == ItemArmor.ArmorMaterial.IRON && armor2.getArmorMaterial() == ItemArmor.ArmorMaterial.LEATHER && armor2.getColor(stack2) == 0) {
+        if (armor1.getArmorMaterial() == ItemArmor.ArmorMaterial.IRON && armor2.getArmorMaterial() == ItemArmor.ArmorMaterial.LEATHER && armor2.getColor(stack2) == 255) {
             return true;
         }
-        if (armor2.getArmorMaterial() == ItemArmor.ArmorMaterial.IRON && armor1.getArmorMaterial() == ItemArmor.ArmorMaterial.LEATHER && armor1.getColor(stack2) == 0) {
+        if (armor2.getArmorMaterial() == ItemArmor.ArmorMaterial.IRON && armor1.getArmorMaterial() == ItemArmor.ArmorMaterial.LEATHER && armor1.getColor(stack2) == 255) {
             return true;
         }
-        if (armor1.getArmorMaterial() == ItemArmor.ArmorMaterial.IRON && armor2.getArmorMaterial() == ItemArmor.ArmorMaterial.LEATHER && armor2.getColor(stack2) == 1) {
+        if (armor1.getArmorMaterial() == ItemArmor.ArmorMaterial.CHAIN && armor2.getArmorMaterial() == ItemArmor.ArmorMaterial.LEATHER && armor2.getColor(stack2) == 16711680) {
             return true;
         }
-        if (armor2.getArmorMaterial() == ItemArmor.ArmorMaterial.IRON && armor1.getArmorMaterial() == ItemArmor.ArmorMaterial.LEATHER && armor1.getColor(stack2) == 1) {
+        if (armor2.getArmorMaterial() == ItemArmor.ArmorMaterial.CHAIN && armor1.getArmorMaterial() == ItemArmor.ArmorMaterial.LEATHER && armor1.getColor(stack2) == 16711680) {
             return true;
         }
         return false;

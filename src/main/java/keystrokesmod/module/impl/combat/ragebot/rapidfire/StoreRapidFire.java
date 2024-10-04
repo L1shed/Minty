@@ -4,7 +4,6 @@ import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.event.PreTickEvent;
 import keystrokesmod.event.ReceivePacketEvent;
 import keystrokesmod.module.impl.combat.RageBot;
-import keystrokesmod.module.impl.other.RotationHandler;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.utility.MoveUtil;
@@ -151,7 +150,7 @@ public class StoreRapidFire extends LegitRapidFire {
             return false;
         if (!mc.thePlayer.onGround)
             return false;
-        return parent.target == null && !parent.targeted;
+        return !parent.targeted;
     }
 
     private void releaseAll() {

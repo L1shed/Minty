@@ -1,6 +1,7 @@
 package keystrokesmod.module.impl.combat;
 
 import akka.japi.Pair;
+import keystrokesmod.Raven;
 import keystrokesmod.event.PreUpdateEvent;
 import keystrokesmod.event.RotationEvent;
 import keystrokesmod.module.impl.combat.autoclicker.*;
@@ -23,8 +24,12 @@ import net.minecraft.entity.monster.EntityGiantZombie;
 import net.minecraft.entity.monster.EntityZombie;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.apache.commons.lang3.tuple.Triple;
 
 import java.util.*;
@@ -58,7 +63,6 @@ public class RageBot extends IAutoClicker {
     private boolean armed = false;
     public Pair<Pair<EntityLivingBase, Vec3>, Triple<Double, Float, Float>> target = null;
     private int predTicks = 0;
-    private net.minecraft.util.Vec3 pos = null;
     private final Set<EntityLivingBase> switchedTarget = new HashSet<>();
     private long lastSwitched = -1;
 
@@ -105,6 +109,14 @@ public class RageBot extends IAutoClicker {
     }
 
     @SubscribeEvent
+    public void onRender(TickEvent.RenderTickEvent event) {
+        if (Raven.debugger) {
+            ItemStack stack = mc.thePlayer.inventory.armorInventory[3];
+            Utils.sendMessage(String.valueOf(((ItemArmor) stack.getItem()).getColor(stack)));
+        }
+    }
+
+    @SubscribeEvent
     public void onRotation(RotationEvent event) {
         if (!(perfect.isToggled() && mc.thePlayer.experience % 1 != 0) && !(notWhileKillAura.isToggled() && KillAura.target != null)) {
             final Vec3 eyePos = Utils.getEyePos();
@@ -132,6 +144,9 @@ public class RageBot extends IAutoClicker {
                                         return false;
                                 }
                             }
+                            AxisAlignedBB box = entity.getCollisionBoundingBox();
+                            if (box == null || box.maxY - box.minY < 1)
+                                return false;
                             return !AntiBot.isBot(entity);
                         } else return targetEntities.isToggled();
                     })
@@ -165,7 +180,6 @@ public class RageBot extends IAutoClicker {
                     onRotation(event);
                 }
                 targeted = false;
-                pos = null;
             }
         }
     }
@@ -258,7 +272,6 @@ public class RageBot extends IAutoClicker {
         noSpread.enable();
         targeted = false;
         predTicks = 0;
-        pos = null;
     }
 
     @Override
