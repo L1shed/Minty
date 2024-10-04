@@ -32,6 +32,7 @@ public class LegitNoSpread extends IRageBotFeature {
             shouldSwitch = false;
         } else if (fire) {
             shouldSwitch = true;
+            fire = false;
         }
     }
 }

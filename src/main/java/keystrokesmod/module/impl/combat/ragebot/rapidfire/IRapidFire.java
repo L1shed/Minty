@@ -14,8 +14,11 @@ public class IRapidFire extends IRageBotFeature {
     }
 
     public int getBestArm() {
+        return getBestArm(Collections.emptySet());
+    }
+
+    public int getBestArm(Set<Integer> ignoreSlots) {
         int arm;
-        Set<Integer> ignoreSlots = Collections.emptySet();
 
         switch ((int) parent.weaponMode.getInput()) {
             default:

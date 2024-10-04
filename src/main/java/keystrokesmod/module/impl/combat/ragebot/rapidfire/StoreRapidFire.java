@@ -38,6 +38,7 @@ public class StoreRapidFire extends LegitRapidFire {
     private final Queue<TimedPacket> packetQueue = new ConcurrentLinkedQueue<>();
     private final List<Packet<?>> skipPackets = new ArrayList<>();
     private boolean fire;
+    private long lastEndStoreTime = 0;
 
     private final Animation animation = new Animation(Easing.EASE_OUT_CIRC, 200);
     private final Progress progress = new Progress("Rapid fire");
@@ -80,8 +81,11 @@ public class StoreRapidFire extends LegitRapidFire {
             storing = true;
             storeTicks = (int) Math.min(storeTicks + 1, ticks.getInput());
             progress.setText("Rapid fire " + storeTicks);
+            lastEndStoreTime = System.currentTimeMillis();
         } else {
             storing = false;
+            if (storeTicks > 0 && System.currentTimeMillis() - lastEndStoreTime > maxStoreTime.getInput())
+                releaseAll();
         }
 
         if (storeTicks > 0 && visual.isToggled()) {
@@ -106,11 +110,6 @@ public class StoreRapidFire extends LegitRapidFire {
                 return;
             }
 
-            if (packetQueue.element().getCold().getCum((long) maxStoreTime.getInput())) {
-                releaseAll();
-                return;
-            }
-
             if (e.isCanceled())
                 return;
 
@@ -119,7 +118,7 @@ public class StoreRapidFire extends LegitRapidFire {
                 return;
             }
 
-            if (!(p instanceof S32PacketConfirmTransaction || p instanceof S00PacketKeepAlive))
+            if (!(p instanceof S32PacketConfirmTransaction || p instanceof S00PacketKeepAlive || p instanceof S12PacketEntityVelocity))
                 return;
 
             packetQueue.add(new TimedPacket(p));
@@ -139,7 +138,7 @@ public class StoreRapidFire extends LegitRapidFire {
                         skipPackets.add(packet);
                         PacketUtils.receivePacket(packet);
                     } else {
-                        break;
+                        return;
                     }
                 } catch (NullPointerException ignored) {
                 }
@@ -152,14 +151,7 @@ public class StoreRapidFire extends LegitRapidFire {
             return false;
         if (!mc.thePlayer.onGround)
             return false;
-        return !RotationHandler.isSet();
-    }
-
-    public static boolean canAntiAim() {
-        if (disableAntiAim.isToggled()) {
-            return !storing;
-        }
-        return true;
+        return parent.target == null && !parent.targeted;
     }
 
     private void releaseAll() {

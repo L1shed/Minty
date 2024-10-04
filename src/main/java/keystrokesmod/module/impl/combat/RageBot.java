@@ -54,9 +54,9 @@ public class RageBot extends IAutoClicker {
     private final ButtonSetting ignoreTeammatesCSGO;
     private final ButtonSetting notWhileKillAura;
 
-    private boolean targeted = false;
+    public boolean targeted = false;
     private boolean armed = false;
-    private Pair<Pair<EntityLivingBase, Vec3>, Triple<Double, Float, Float>> target = null;
+    public Pair<Pair<EntityLivingBase, Vec3>, Triple<Double, Float, Float>> target = null;
     private int predTicks = 0;
     private net.minecraft.util.Vec3 pos = null;
     private final Set<EntityLivingBase> switchedTarget = new HashSet<>();

@@ -8,6 +8,7 @@ import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.module.setting.impl.SubMode;
 import keystrokesmod.utility.MoveUtil;
 import keystrokesmod.utility.Utils;
+import keystrokesmod.utility.movement.Move;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.jetbrains.annotations.NotNull;
@@ -42,7 +43,7 @@ public class SnapAntiAim extends SubMode<AntiAim> {
         if (fastJump.isToggled()) {
             if (lastAim)
                 event.setCanceled(true);
-            disableTicks = Math.max(1, disableTicks);
+            disableTicks = Math.max(2, disableTicks);
         }
     }
 
@@ -54,11 +55,13 @@ public class SnapAntiAim extends SubMode<AntiAim> {
 
         if (disableTicks <= 0) {
             if (MoveUtil.isMoving()) {
+                float moveYaw = mc.thePlayer.rotationYaw + Move.fromMovement(mc.thePlayer.moveForward, mc.thePlayer.moveStrafing).getDeltaYaw();
                 if (yawCycle) {
-                    yaw = mc.thePlayer.rotationYaw - (scheduleCycle ? 135 : 225);
+                    yaw = moveYaw - (scheduleCycle ? 135 : 225);
                 } else {
-                    yaw = mc.thePlayer.rotationYaw;
+                    yaw = moveYaw;
                 }
+                yawCycle = !yawCycle;
             } else {
                 yaw = mc.thePlayer.rotationYaw - (scheduleCycle ? 180 : 135) + (float) Math.random() * 5;
             }
