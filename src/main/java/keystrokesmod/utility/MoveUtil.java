@@ -3,10 +3,14 @@ package keystrokesmod.utility;
 import keystrokesmod.mixins.impl.entity.EntityAccessor;
 import keystrokesmod.module.impl.movement.TargetStrafe;
 import keystrokesmod.module.impl.other.anticheats.utils.world.PlayerMove;
-import keystrokesmod.script.classes.Entity;
+import keystrokesmod.script.classes.Vec3;
 import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.potion.Potion;
+import net.minecraft.util.BlockPos;
 import net.minecraft.util.MathHelper;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 import static keystrokesmod.Raven.mc;
 import static keystrokesmod.module.ModuleManager.scaffold;
@@ -161,6 +165,15 @@ public class MoveUtil {
      * @return allowed horizontal distance in one tick
      */
     public static double getAllowedHorizontalDistance() {
+        return getAllowedHorizontalDistance(true);
+    }
+
+    /**
+     * Basically calculates allowed horizontal distance just like NCP does
+     *
+     * @return allowed horizontal distance in one tick
+     */
+    public static double getAllowedHorizontalDistance(boolean allowSprint) {
         double horizontalDistance;
         boolean useBaseModifiers = false;
 
@@ -183,7 +196,7 @@ public class MoveUtil {
         }
 
         if (useBaseModifiers) {
-            if (canSprint(false)) {
+            if (canSprint(false) && allowSprint) {
                 horizontalDistance *= MOD_SPRINTING;
             }
 
@@ -204,8 +217,19 @@ public class MoveUtil {
      *
      * @return player moving
      */
+    @Contract(pure = true)
     public static boolean isMoving() {
-        return mc.thePlayer.moveForward != 0 || mc.thePlayer.moveStrafing != 0;
+        return isMoving(mc.thePlayer);
+    }
+
+    @Contract(pure = true)
+    public static boolean isMoving(@NotNull EntityLivingBase entity) {
+        return entity.moveForward != 0 || entity.moveStrafing != 0;
+    }
+
+    @Contract(pure = true)
+    public static boolean isRealMoving() {
+        return mc.thePlayer.motionX != 0 || (mc.thePlayer.motionY != 0 && !mc.thePlayer.onGround) || mc.thePlayer.motionZ != 0;
     }
 
     public static void moveFlying(double increase) {
@@ -241,6 +265,9 @@ public class MoveUtil {
      * @return modified motion
      */
     public static double jumpBoostMotion(final double motionY) {
+        if (!Utils.nullCheck())
+            return 0.42f;
+
         if (mc.thePlayer.isPotionActive(Potion.jump)) {
             return motionY + (mc.thePlayer.getActivePotionEffect(Potion.jump).getAmplifier() + 1) * 0.1F;
         }
@@ -255,5 +282,34 @@ public class MoveUtil {
      */
     public static double predictedMotion(final double motion, final int ticks) {
         return PlayerMove.predictedMotion(motion, ticks);
+    }
+
+    /**
+     * Calculates the default player jump motion
+     *
+     * @return player jump motion
+     */
+    public static double jumpMotion() {
+        return jumpBoostMotion(JUMP_HEIGHT);
+    }
+
+    public static double predictedMotionXZ(double motion, int tick, boolean moving) {
+        for (int i = 0; i < tick; i++) {
+            if (!moving) motion /= 0.5;
+            if (motion < 0.005)
+                return 0;
+        }
+        return motion;
+    }
+
+    public static @NotNull Vec3 predictedPos(@NotNull EntityLivingBase entity, Vec3 motion, Vec3 result, int predTicks) {
+        for (int i = 0; i < predTicks; i++) {
+            result = result.add(
+                    MoveUtil.predictedMotionXZ(motion.x(), i, MoveUtil.isMoving(entity)),
+                    entity.onGround || !BlockUtils.replaceable(new BlockPos(result.toVec3())) ? 0 : MoveUtil.predictedMotion(motion.y(), i),
+                    MoveUtil.predictedMotionXZ(motion.z(), i, MoveUtil.isMoving(entity))
+            );
+        }
+        return result;
     }
 }

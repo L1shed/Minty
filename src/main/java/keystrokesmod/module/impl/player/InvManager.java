@@ -7,9 +7,12 @@ import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.module.setting.utils.ModeOnly;
 import keystrokesmod.utility.ContainerUtils;
+import keystrokesmod.utility.MoveUtil;
 import keystrokesmod.utility.PacketUtils;
 import keystrokesmod.utility.Utils;
+import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.IInventory;
@@ -23,7 +26,8 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class InvManager extends Module {
-    private final ModeSetting mode = new ModeSetting("Mode", new String[]{"Basic", "OpenInv"}, 1);
+    private final ModeSetting mode = new ModeSetting("Mode", new String[]{"Basic", "OpenInv", "Hypixel"}, 1);
+    private final ButtonSetting notWhileMoving = new ButtonSetting("Not while moving", false, new ModeOnly(mode, 0));
     private final SliderSetting minStartDelay = new SliderSetting("Min start delay", 100, 0, 500, 10, "ms");
     private final SliderSetting maxStartDelay = new SliderSetting("Max start delay", 200, 0, 500, 10, "ms");
     private final ButtonSetting armor = new ButtonSetting("Armor", false);
@@ -41,6 +45,7 @@ public class InvManager extends Module {
     private final SliderSetting bowSlot = new SliderSetting("Bow slot", 4, 0, 9, 1, sort::isToggled);
     private final SliderSetting foodSlot = new SliderSetting("Food slot", 5, 0, 9, 1, sort::isToggled);
     private final SliderSetting throwableSlot = new SliderSetting("Throwable slot", 6, 0, 9, 1, sort::isToggled);
+    private final SliderSetting rodSlot = new SliderSetting("Rod slot", 7, 0, 9, 1, sort::isToggled);
     private final ButtonSetting shuffle = new ButtonSetting("Shuffle", false, () -> armor.isToggled() || clean.isToggled() || sort.isToggled());
 
     private State state = State.NONE;
@@ -50,10 +55,10 @@ public class InvManager extends Module {
     public InvManager() {
         super("InvManager", category.player);
         this.registerSetting(
-                mode, minStartDelay, maxStartDelay,
+                mode, notWhileMoving, minStartDelay, maxStartDelay,
                 armor, minArmorDelay, maxArmorDelay,
                 clean, minCleanDelay, maxCleanDelay,
-                sort, minSortDelay, maxSortDelay, swordSlot, blockSlot, enderPearlSlot, bowSlot, foodSlot, throwableSlot,
+                sort, minSortDelay, maxSortDelay, swordSlot, blockSlot, enderPearlSlot, bowSlot, foodSlot, throwableSlot, rodSlot,
                 shuffle
         );
     }
@@ -79,10 +84,13 @@ public class InvManager extends Module {
     public void onUpdate() {
         switch ((int) mode.getInput()) {
             case 0:
-                invOpen = true;
+                invOpen = !(notWhileMoving.isToggled() && MoveUtil.isMoving()) && !(mc.currentScreen instanceof GuiChest);
                 break;
             case 1:
                 invOpen = mc.currentScreen instanceof GuiInventory;
+                break;
+            case 2:
+                invOpen = !(mc.currentScreen instanceof GuiChest);
                 break;
         }
 
@@ -109,10 +117,11 @@ public class InvManager extends Module {
     @SubscribeEvent
     public void onPreMotion(PreMotionEvent event) {
         if (state != State.TASKING) return;
+        int antiFreeze = 100;
 
         armor:
-        while (armor.isToggled() && System.currentTimeMillis() >= nextTaskTime) {
-            final IInventory inventory = mc.thePlayer.inventory;
+        while (armor.isToggled() && System.currentTimeMillis() >= nextTaskTime && antiFreeze > 0) {
+            antiFreeze--;
 
             List<Integer> armorTypes = new ArrayList<>(ContainerUtils.ARMOR_TYPES);
 
@@ -128,6 +137,8 @@ public class InvManager extends Module {
                     } else {
                         ContainerUtils.click(bestArmorSlot);
                     }
+                    if (mode.getInput() == 2)
+                        MoveUtil.stop();
                     nextTaskTime = System.currentTimeMillis() + Utils.randomizeInt(minArmorDelay.getInput(), maxArmorDelay.getInput());
                     continue armor;
                 }
@@ -136,7 +147,8 @@ public class InvManager extends Module {
         }
 
         clean:
-        while (clean.isToggled() && System.currentTimeMillis() >= nextTaskTime) {
+        while (clean.isToggled() && System.currentTimeMillis() >= nextTaskTime && antiFreeze > 0) {
+            antiFreeze--;
             final IInventory inventory = mc.thePlayer.inventory;
 
             final List<Pair<Integer, ItemStack>> slots = getDropSlots(inventory);
@@ -144,6 +156,8 @@ public class InvManager extends Module {
             if (!slots.isEmpty()) {
                 for (Pair<Integer, ItemStack> slot : slots) {
                     ContainerUtils.drop(slot.first());
+                    if (mode.getInput() == 2)
+                        MoveUtil.stop();
                     nextTaskTime = System.currentTimeMillis() + Utils.randomizeInt(minCleanDelay.getInput(), maxCleanDelay.getInput());
                     continue clean;
                 }
@@ -153,16 +167,20 @@ public class InvManager extends Module {
 
         // sort
         if (sort.isToggled()) {
+            if (antiFreeze <= 0) return;
             for (Runnable task : getSortTasks()) {
                 task.run();
+                antiFreeze--;
                 if (System.currentTimeMillis() < nextTaskTime) break;
             }
         }
     }
 
     private void sort(int from, int to) {
-        if (to == 0 || from == -1 || to == -1) return;
+        if (to == 0 || from == -1 || to == -1 || from == to) return;
         if (ContainerUtils.sort(from, to)) {
+            if (mode.getInput() == 2)
+                MoveUtil.stop();
             nextTaskTime = System.currentTimeMillis() + Utils.randomizeInt(minSortDelay.getInput(), maxSortDelay.getInput());
         }
     }
@@ -194,6 +212,7 @@ public class InvManager extends Module {
         result.add(() -> sort(ContainerUtils.getBestBow(null), (int) bowSlot.getInput()));
         result.add(() -> sort(ContainerUtils.getBestFood((int) foodSlot.getInput()), (int) foodSlot.getInput()));
         result.add(() -> sort(ContainerUtils.getMostProjectiles((int) throwableSlot.getInput()), (int) throwableSlot.getInput()));
+        result.add(() -> sort(ContainerUtils.getBestRod(null), (int) rodSlot.getInput()));
 
         return result;
     }
@@ -202,5 +221,10 @@ public class InvManager extends Module {
         NONE,
         BEFORE,
         TASKING
+    }
+
+    @Override
+    public String getInfo() {
+        return mode.getOptions()[(int) mode.getInput()];
     }
 }

@@ -3,17 +3,26 @@ package keystrokesmod.module.impl.combat;
 import akka.japi.Pair;
 import keystrokesmod.Raven;
 import keystrokesmod.event.*;
-import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
+import keystrokesmod.module.impl.combat.autoclicker.DragClickAutoClicker;
+import keystrokesmod.module.impl.combat.autoclicker.IAutoClicker;
+import keystrokesmod.module.impl.combat.autoclicker.NormalAutoClicker;
+import keystrokesmod.module.impl.combat.autoclicker.RecordAutoClicker;
+import keystrokesmod.module.impl.other.RecordClick;
 import keystrokesmod.module.impl.other.RotationHandler;
 import keystrokesmod.module.impl.other.SlotHandler;
+import keystrokesmod.module.impl.player.Blink;
+import keystrokesmod.module.impl.player.antivoid.HypixelAntiVoid;
 import keystrokesmod.module.impl.world.AntiBot;
-import keystrokesmod.module.setting.impl.ButtonSetting;
-import keystrokesmod.module.setting.impl.ModeSetting;
-import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.module.setting.impl.*;
 import keystrokesmod.module.setting.utils.ModeOnly;
 import keystrokesmod.script.classes.Vec3;
 import keystrokesmod.utility.*;
+import keystrokesmod.utility.aim.AimSimulator;
+import keystrokesmod.utility.render.Animation;
+import keystrokesmod.utility.render.Easing;
+import keystrokesmod.utility.render.RenderUtils;
+import lombok.Getter;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityArmorStand;
@@ -25,63 +34,81 @@ import net.minecraft.network.play.server.S2FPacketSetSlot;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraftforge.client.event.MouseEvent;
+import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.lwjgl.input.Mouse;
 
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static net.minecraft.util.EnumFacing.DOWN;
 
-public class KillAura extends Module {
+public class KillAura extends IAutoClicker {
     public static EntityLivingBase target;
-    private final SliderSetting aps;
+    private final ModeValue clickMode;
     public ModeSetting autoBlockMode;
     private final SliderSetting fov;
-    private final SliderSetting attackRange;
+    private final ModeSetting attackMode;
+    public final SliderSetting attackRange;
     private final SliderSetting swingRange;
     private final SliderSetting blockRange;
+    private final SliderSetting preAimRange;
+
     private final ModeSetting rotationMode;
-    private final ModeSetting rotationTarget;
-    private final ModeSetting rotationSimulator;
+    private final ModeSetting moveFixMode;
+    private final ModeSetting rayCastMode;
+    private final ButtonSetting nearest;
+    private final SliderSetting nearestAccuracy;
+    private final ButtonSetting lazy;
+    private final SliderSetting lazyAccuracy;
+    private final ButtonSetting constant;
+    private final ButtonSetting constantOnlyIfNotMoving;
+    private final ButtonSetting noise;
+    private final SliderSetting noiseHorizontal;
+    private final SliderSetting noiseVertical;
+    private final SliderSetting noiseAimSpeed;
+    private final SliderSetting noiseDelay;
+    private final ButtonSetting delayAim;
+    private final SliderSetting delayAimAmount;
     private final SliderSetting rotationSpeed;
+
     private final ModeSetting sortMode;
     private final SliderSetting switchDelay;
     private final SliderSetting targets;
     private final ButtonSetting targetInvisible;
     private final ButtonSetting targetPlayer;
     private final ButtonSetting targetEntity;
+
     private final ButtonSetting disableInInventory;
     private final ButtonSetting disableWhileBlocking;
     private final ButtonSetting disableWhileMining;
     private final ButtonSetting fixSlotReset;
     private final ButtonSetting fixNoSlowFlag;
+    private final SliderSetting postDelay;
     private final ButtonSetting hitThroughBlocks;
     private final ButtonSetting ignoreTeammates;
     public ButtonSetting manualBlock;
     private final ButtonSetting requireMouseDown;
     private final ButtonSetting silentSwing;
     private final ButtonSetting weaponOnly;
+
+    private final ButtonSetting dot;
+    private final SliderSetting dotSize;
+
     private final String[] rotationModes = new String[]{"None", "Silent", "Lock view"};
     private final List<EntityLivingBase> availableTargets = new ArrayList<>();
     public AtomicBoolean block = new AtomicBoolean();
     private long lastSwitched = System.currentTimeMillis();
     private boolean switchTargets;
     private byte entityIndex;
-    public boolean swing;
-    // autoclicker vars
-    private long i;
-    private long j;
-    private long k;
-    private long l;
-    private double m;
-    private boolean n;
-    private Random rand;
-    // autoclicker vars end
+    private boolean swing;
+    @Getter
     private boolean attack;
     private boolean blocking;
     public boolean blinking;
@@ -92,85 +119,105 @@ public class KillAura extends Module {
     private final ConcurrentLinkedQueue<Packet<?>> blinkedPackets = new ConcurrentLinkedQueue<>();
 
     private int blockingTime = 0;
-
+    private final AimSimulator aimSimulator = new AimSimulator();
+    private @Nullable Animation animationX;
+    private @Nullable Animation animationY;
+    private @Nullable Animation animationZ;
 
     public KillAura() {
         super("KillAura", category.combat);
-        this.registerSetting(aps = new SliderSetting("APS", 16.0, 1.0, 20.0, 0.5));
-        String[] autoBlockModes = new String[]{"Manual", "Vanilla", "Post", "Swap", "Interact A", "Interact B", "Fake", "Partial", "Watchdog 1.12.2"};
+        this.registerSetting(clickMode = new ModeValue("Click mode", this)
+                .add(new NormalAutoClicker("Normal", this, true, true))
+                .add(new DragClickAutoClicker("Drag Click", this, true, true))
+                .add(new RecordAutoClicker("Record", this, true, true))
+                .setDefaultValue("Normal")
+        );
+        String[] autoBlockModes = new String[]{"Manual", "Vanilla", "Post", "Swap", "Interact A", "Interact B", "Fake", "Partial", "QuickMacro"};
         this.registerSetting(autoBlockMode = new ModeSetting("Autoblock", autoBlockModes, 0));
-        this.registerSetting(fov = new SliderSetting("FOV", 360.0, 30.0, 360.0, 4.0));
-        this.registerSetting(attackRange = new SliderSetting("Attack range", 3.2, 3.0, 6.0, 0.1));
-        this.registerSetting(swingRange = new SliderSetting("Swing range", 3.2, 3.0, 8.0, 0.1));
+        this.registerSetting(attackMode = new ModeSetting("Attack mode", new String[]{"Legit", "Packet"}, 1));
+        this.registerSetting(new DescriptionSetting("Range"));
+        this.registerSetting(attackRange = new SliderSetting("Attack range", 3.0, 3.0, 6.0, 0.1));
+        this.registerSetting(swingRange = new SliderSetting("Swing range", 3.0, 3.0, 8.0, 0.1));
         this.registerSetting(blockRange = new SliderSetting("Block range", 6.0, 3.0, 12.0, 0.1));
-        this.registerSetting(rotationMode = new ModeSetting("Rotation mode", rotationModes, 0));
+        this.registerSetting(preAimRange = new SliderSetting("PreAim range", 6.0, 3.0, 12.0, 0.1));
+        this.registerSetting(fov = new SliderSetting("FOV", 360.0, 30.0, 360.0, 4.0));
+        this.registerSetting(new DescriptionSetting("Rotation"));
+        this.registerSetting(rotationMode = new ModeSetting("Rotation", rotationModes, 1));
         final ModeOnly doRotation = new ModeOnly(rotationMode, 1, 2);
-        String[] rotationTargets = new String[]{"Head", "Nearest", "Constant"};
-        this.registerSetting(rotationTarget = new ModeSetting("Rotation target", rotationTargets, 0, doRotation));
-        String[] rotationSimulators = new String[]{"None", "Lazy", "Noise"};
-        this.registerSetting(rotationSimulator = new ModeSetting("Rotation simulator", rotationSimulators, 0, doRotation));
-        this.registerSetting(rotationSpeed = new SliderSetting("Rotation speed", 5, 0, 5, 0.05, doRotation));
+        this.registerSetting(rotationSpeed = new SliderSetting("Rotation speed", 10, 0, 10, 0.05, doRotation));
+        this.registerSetting(moveFixMode = new ModeSetting("Move fix", RotationHandler.MoveFix.MODES, 0, new ModeOnly(rotationMode, 1)));
+        this.registerSetting(rayCastMode = new ModeSetting("Ray cast", new String[]{"None", "Normal", "Strict"}, 1, doRotation));
+        this.registerSetting(nearest = new ButtonSetting("Nearest", false, doRotation));
+        this.registerSetting(nearestAccuracy = new SliderSetting("Nearest accuracy", 1, 0.8, 1, 0.01, doRotation.extend(nearest::isToggled)));
+        this.registerSetting(lazy = new ButtonSetting("Lazy", false, doRotation));
+        this.registerSetting(lazyAccuracy = new SliderSetting("Lazy accuracy", 0.95, 0.6, 1, 0.01, doRotation.extend(lazy::isToggled)));
+        this.registerSetting(constant = new ButtonSetting("Constant", false, doRotation));
+        this.registerSetting(constantOnlyIfNotMoving = new ButtonSetting("Constant only if not moving", false, doRotation.extend(constant::isToggled)));
+        this.registerSetting(noise = new ButtonSetting("Noise", false, doRotation));
+        this.registerSetting(noiseHorizontal = new SliderSetting("Noise horizontal", 0.35, 0.01, 1, 0.01, doRotation.extend(noise::isToggled)));
+        this.registerSetting(noiseVertical = new SliderSetting("Noise vertical", 0.5, 0.01, 1, 0.01, doRotation.extend(noise::isToggled)));
+        this.registerSetting(noiseAimSpeed = new SliderSetting("Noise aim speed", 0.35, 0.01, 1, 0.01, doRotation.extend(noise::isToggled)));
+        this.registerSetting(noiseDelay = new SliderSetting("Noise delay", 100, 50, 500, 10, doRotation.extend(noise::isToggled)));
+        this.registerSetting(delayAim = new ButtonSetting("Delay aim", false, doRotation));
+        this.registerSetting(delayAimAmount = new SliderSetting("Delay aim amount", 5, 5, 100, 1, doRotation.extend(delayAim::isToggled)));
+        this.registerSetting(new DescriptionSetting("Targets"));
         String[] sortModes = new String[]{"Health", "HurtTime", "Distance", "Yaw"};
         this.registerSetting(sortMode = new ModeSetting("Sort mode", sortModes, 0));
-        this.registerSetting(targets = new SliderSetting("Targets", 3.0, 1.0, 10.0, 1.0));
+        this.registerSetting(targets = new SliderSetting("Targets", 1.0, 1.0, 10.0, 1.0));
         this.registerSetting(switchDelay = new SliderSetting("Switch delay", 200.0, 50.0, 1000.0, 25.0, "ms", () -> targets.getInput() > 1));
         this.registerSetting(targetInvisible = new ButtonSetting("Target invisible", true));
         this.registerSetting(targetPlayer = new ButtonSetting("Target player", true));
         this.registerSetting(targetEntity = new ButtonSetting("Target entity", false));
+        this.registerSetting(new DescriptionSetting("Miscellaneous"));
         this.registerSetting(disableInInventory = new ButtonSetting("Disable in inventory", true));
         this.registerSetting(disableWhileBlocking = new ButtonSetting("Disable while blocking", false));
         this.registerSetting(disableWhileMining = new ButtonSetting("Disable while mining", false));
         this.registerSetting(fixSlotReset = new ButtonSetting("Fix slot reset", false));
-        this.registerSetting(fixNoSlowFlag = new ButtonSetting("Fix NoSlow flag", true));
+        this.registerSetting(fixNoSlowFlag = new ButtonSetting("Fix NoSlow flag", false));
+        this.registerSetting(postDelay = new SliderSetting("Post delay", 10, 1, 20, 1, fixNoSlowFlag::isToggled));
         this.registerSetting(hitThroughBlocks = new ButtonSetting("Hit through blocks", true));
         this.registerSetting(ignoreTeammates = new ButtonSetting("Ignore teammates", true));
         this.registerSetting(manualBlock = new ButtonSetting("Manual block", false));
         this.registerSetting(requireMouseDown = new ButtonSetting("Require mouse down", false));
         this.registerSetting(silentSwing = new ButtonSetting("Silent swing while blocking", false));
         this.registerSetting(weaponOnly = new ButtonSetting("Weapon only", false));
+        this.registerSetting(new DescriptionSetting("Visual"));
+        this.registerSetting(dot = new ButtonSetting("Dot", false));
+        this.registerSetting(dotSize = new SliderSetting("Dot size", 0.1, 0.05, 0.2, 0.05, dot::isToggled));
     }
 
     public void onEnable() {
+        clickMode.enable();
         this.rotations = new float[]{mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch};
-        this.rand = new Random();
     }
 
     @Override
     public void guiUpdate() {
         Utils.correctValue(attackRange, swingRange);
+        Utils.correctValue(swingRange, preAimRange);
     }
 
     public void onDisable() {
+        clickMode.disable();
         resetVariables();
         if (Utils.nullCheck()) mc.thePlayer.stopUsingItem();
     }
 
     private float[] getRotations() {
-        boolean nearest = false, lazy = false, noise = false;
+        aimSimulator.setNearest(nearest.isToggled(), nearestAccuracy.getInput());
+        aimSimulator.setLazy(lazy.isToggled(), lazyAccuracy.getInput());
+        aimSimulator.setNoise(noise.isToggled(),
+                new Pair<>((float) noiseHorizontal.getInput(), (float) noiseVertical.getInput()),
+                noiseAimSpeed.getInput(), (long) noiseDelay.getInput());
+        aimSimulator.setDelay(delayAim.isToggled(), (int) delayAimAmount.getInput());
 
-        switch ((int) rotationTarget.getInput()) {
-            case 1:
-                nearest = true;
-                break;
-            case 2:
-                nearest = true;
-                if (RotationUtils.rayCastIgnoreWall(rotations[0], rotations[1], target))
-                    return rotations;
-                break;
-        }
+        if (constant.isToggled() && !noAimToEntity() && !(constantOnlyIfNotMoving.isToggled() && (MoveUtil.isMoving() || MoveUtil.isMoving(target))))
+            return rotations;
 
-        switch ((int) rotationSimulator.getInput()) {
-            case 1:
-                lazy = true;
-                break;
-            case 2:
-                lazy = true;
-                noise = true;
-                break;
-        }
+        Pair<Float, Float> result = aimSimulator.getRotation(target);
 
-        Pair<Float, Float> result = AimSimulator.getLegitAim(target, mc.thePlayer, nearest, lazy, noise, new Pair<>(0.5F, 0.75F), (long) (80 + Math.random() * 100));
-        if (rotationSpeed.getInput() == 5) return new float[]{result.first(), result.second()};
+        if (rotationSpeed.getInput() == 10)
+            return new float[]{result.first(), result.second()};
 
         return new float[]{
                 AimSimulator.rotMove(result.first(), rotations[0], (float) rotationSpeed.getInput()),
@@ -186,15 +233,36 @@ public class KillAura extends Module {
         if (ev.phase != TickEvent.Phase.START) {
             return;
         }
-        if (canAttack()) {
-            attack = true;
-        }
         if (target != null) {
             rotations = getRotations();
             if (rotationMode.getInput() == 2) {
                 mc.thePlayer.rotationYaw = rotations[0];
                 mc.thePlayer.rotationPitch = rotations[1];
             }
+        }
+    }
+
+    @SubscribeEvent
+    public void onRenderWorldLast(RenderWorldLastEvent event) {
+        Vec3 hitPos = aimSimulator.getHitPos();
+        if (target != null) {
+            if (rotations != null && dot.isToggled() && hitPos != null) {
+                if (animationX == null || animationY == null || animationZ == null) {
+                    animationX = new Animation(Easing.EASE_OUT_CIRC, 50);
+                    animationY = new Animation(Easing.EASE_OUT_CIRC, 50);
+                    animationZ = new Animation(Easing.EASE_OUT_CIRC, 50);
+
+                    animationX.setValue(hitPos.x);
+                    animationY.setValue(hitPos.y);
+                    animationZ.setValue(hitPos.z);
+                }
+                animationX.run(hitPos.x);
+                animationY.run(hitPos.y);
+                animationZ.run(hitPos.z);
+                RenderUtils.drawDot(new Vec3(animationX.getValue(), animationY.getValue(), animationZ.getValue()), dotSize.getInput(), 0xFF0670BE);
+            }
+        } else {
+            animationX = animationY = animationZ = null;
         }
     }
 
@@ -211,6 +279,11 @@ public class KillAura extends Module {
             resetBlinkState(true);
             return;
         }
+        if (ModuleManager.autoGapple != null && ModuleManager.autoGapple.disableKillAura.isToggled() && ModuleManager.autoGapple.working) {
+            resetBlinkState(true);
+            return;
+        }
+
         if ((mc.thePlayer.isBlocking() || block.get()) && disableWhileBlocking.isToggled()) {
             resetBlinkState(true);
             return;
@@ -219,13 +292,14 @@ public class KillAura extends Module {
         if (swing && attack && HitSelect.canSwing()) {
             if (swingWhileBlocking) {
                 mc.thePlayer.swingItem();
-            }
-            else {
+                RecordClick.click();
+            } else {
                 mc.thePlayer.sendQueue.addToSendQueue(new C0APacketAnimation());
+                RecordClick.click();
             }
         }
         int input = (int) autoBlockMode.getInput();
-        if (block.get() && (input == 3 || input == 4 || input == 5 || input == 9) && Utils.holdingSword()) {
+        if (block.get() && (input == 3 || input == 4 || input == 5 || input == 8 || input == 9) && Utils.holdingSword()) {
             setBlockState(block.get(), false, false);
             if (ModuleManager.bedAura.stopAutoblock) {
                 resetBlinkState(false);
@@ -237,19 +311,17 @@ public class KillAura extends Module {
                     if (lag) {
                         blinking = true;
                         if (Raven.badPacketsHandler.playerSlot != mc.thePlayer.inventory.currentItem % 8 + 1) {
-                            mc.thePlayer.sendQueue.addToSendQueue(new C09PacketHeldItemChange(Raven.badPacketsHandler.playerSlot = mc.thePlayer.inventory.currentItem % 8 + 1));
+                            mc.thePlayer.sendQueue.addToSendQueue(new C09PacketHeldItemChange( mc.thePlayer.inventory.currentItem % 8 + 1));
+                            Raven.badPacketsHandler.playerSlot = mc.thePlayer.inventory.currentItem % 8 + 1;
                             swapped = true;
                         }
                         lag = false;
                     } else {
-                        if (Raven.badPacketsHandler.delayAttack) {
-                            return;
-                        }
-                        if (Raven.badPacketsHandler.playerSlot != mc.thePlayer.inventory.currentItem) {
-                            mc.thePlayer.sendQueue.addToSendQueue(new C09PacketHeldItemChange(Raven.badPacketsHandler.playerSlot = mc.thePlayer.inventory.currentItem));
-                            swapped = false;
-                        }
-                        attackAndInteract(target, swingWhileBlocking, false);
+                        // check here for ghost later
+                        mc.thePlayer.sendQueue.addToSendQueue(new C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem));
+                        Raven.badPacketsHandler.playerSlot = mc.thePlayer.inventory.currentItem;  // todo recode this with slot handler
+                        swapped = false;
+                        attackAndInteract(target, true);
                         sendBlock();
                         releasePackets();
                         lag = true;
@@ -263,25 +335,19 @@ public class KillAura extends Module {
                         lag = false;
                     }
                     else {
-                        attackAndInteract(target, swingWhileBlocking, false); // attack while blinked
+                        attackAndInteract(target, autoBlockMode.getInput() == 5); // attack while blinked
                         releasePackets(); // release
                         sendBlock(); // block after releasing unblock
                         lag = true;
                     }
                     break;
-                case 9:
-                    if (lag) {
-                        unBlock();
-                        lag = false;
-                    } else {
-                        if (blocking) {
-                            unBlock();
-                        } else {
-                            attackAndInteract(target, swingWhileBlocking, false);// attack while blinked
-                            sendBlock();
-                            lag = true;
-                        }
-                    }
+                case 8:
+                    lag = false;
+                    releasePackets();
+                    attack(target);
+                    PacketUtils.sendPacket(new C0FPacketConfirmTransaction(Utils.randomizeInt(0, 2147483647), (short) Utils.randomizeInt(0, -32767), true));
+                    PacketUtils.sendPacket(new C0APacketAnimation());
+                    sendBlock();
                     break;
             }
             return;
@@ -299,7 +365,7 @@ public class KillAura extends Module {
                 return;
             }
             switchTargets = true;
-            Utils.attackEntity(target, swingWhileBlocking, !swingWhileBlocking);
+            Utils.attackEntity(target, swingWhileBlocking);
         }
     }
 
@@ -312,6 +378,7 @@ public class KillAura extends Module {
         if (target != null && rotationMode.getInput() == 1) {
             e.setYaw(rotations[0]);
             e.setPitch(rotations[1]);
+            e.setMoveFix(RotationHandler.MoveFix.values()[(int) moveFixMode.getInput()]);
         } else {
             this.rotations = new float[]{mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch};
         }
@@ -367,7 +434,7 @@ public class KillAura extends Module {
         }
         else if (mouseEvent.button == 1) {
             rmbDown = mouseEvent.buttonstate;
-            if (autoBlockMode.getInput() >= 1 && Utils.holdingSword() && block.get()) {
+            if (autoBlockMode.getInput() >= 1 && Utils.holdingSword() && block.get() && autoBlockMode.getInput() != 7) {
                 KeyBinding.setKeyBindState(mc.gameSettings.keyBindUseItem.getKeyCode(), false);
                 if (target == null && mc.objectMouseOver != null) {
                     if (mc.objectMouseOver.entityHit != null && AntiBot.isBot(mc.objectMouseOver.entityHit)) {
@@ -388,11 +455,26 @@ public class KillAura extends Module {
         return rotationModes[(int) rotationMode.getInput()];
     }
 
-    private boolean noAimToEntity() {
-        if ((rotationMode.getInput() == 0)) return false;
-        // TODO i need to recode this..
-        Object[] rayCasted = Reach.getEntity(attackRange.getInput(), -0.05, rotationMode.getInput() == 1 ? rotations : null);
-        return rayCasted == null || rayCasted[0] != target;
+    public boolean noAimToEntity() {
+        if (target == null) return true;
+        if (rotationMode.getInput() == 0) return false;
+
+        boolean noAim = false;
+        switch ((int) rayCastMode.getInput()) {
+            default:
+            case 2:
+                MovingObjectPosition hitResult = RotationUtils.rayCastStrict(RotationHandler.getRotationYaw(), RotationHandler.getRotationPitch(), attackRange.getInput());
+                noAim = hitResult.typeOfHit != MovingObjectPosition.MovingObjectType.ENTITY || hitResult.entityHit != target;
+            case 1:
+                if (noAim) break;
+                Object[] rayCasted = Reach.getEntity(attackRange.getInput(), -0.05, rotationMode.getInput() == 1 ? rotations : null);
+                noAim = rayCasted == null || Arrays.stream(rayCasted).noneMatch(o -> o == target);
+                break;
+            case 0:
+                return false;
+        }
+
+        return noAim;
     }
 
     private void resetVariables() {
@@ -403,8 +485,6 @@ public class KillAura extends Module {
         swing = false;
         rmbDown = false;
         attack = false;
-        this.i = 0L;
-        this.j = 0L;
         block();
         resetBlinkState(true);
         swapped = false;
@@ -425,6 +505,7 @@ public class KillAura extends Module {
             case 0:  // manual
                 setBlockState(false, false, true);
                 break;
+            case 8:
             case 1: // vanilla
                 setBlockState(block.get(), true, true);
                 break;
@@ -444,18 +525,6 @@ public class KillAura extends Module {
                 KeyBinding.setKeyBindState(mc.gameSettings.keyBindUseItem.getKeyCode(), down);
                 Reflection.setButton(1, down);
                 blocking = down;
-                break;
-            case 8: // watchdog 1.12.2
-                setBlockState(block.get(), true, true);
-                PacketUtils.sendPacketNoEvent(new C0APacketAnimation());
-                /*
-                code from Acrimony 1.0.5.
-                I think it means: "send a swing packet" xd
-                    PacketWrapper useItem = PacketWrapper.create(29, (ByteBuf)null, (UserConnection)Via.getManager().getConnectionManager().getConnections().iterator().next());
-                    useItem.write(Type.VAR_INT, 1);
-                    com.viaversion.viarewind.utils.PacketUtil.sendToServer(useItem, Protocol1_8To1_9.class, true, true);
-                 */
-                blocking = true;
                 break;
         }
         if (block.get()) {
@@ -513,7 +582,7 @@ public class KillAura extends Module {
                     if (pair.second() <= swingRange.getInput()) {
                         swing = true;
                     }
-                    if (pair.second() <= attackRange.getInput() || pair.second() <= swingRange.getInput()) {
+                    if (pair.second() <= preAimRange.getInput()) {
                         availableTargets.add(pair.first());
                     }
                 });
@@ -560,7 +629,8 @@ public class KillAura extends Module {
         if (ModuleManager.bedAura.isEnabled() && !ModuleManager.bedAura.allowAura.isToggled() && ModuleManager.bedAura.currentBlock != null) {
             return true;
         }
-        if (ModuleManager.blink.isEnabled()) return true;
+        if (Blink.isBlinking()) return true;
+        if (HypixelAntiVoid.getInstance() != null && HypixelAntiVoid.getInstance().blink.isEnabled()) return true;
         return mc.thePlayer.isDead;
     }
 
@@ -571,82 +641,51 @@ public class KillAura extends Module {
             return true;
         } else if (isMining() && disableWhileMining.isToggled()) {
             return true;
-        } else if (fixNoSlowFlag.isToggled() && blockingTime > 10) {
+        } else if (fixNoSlowFlag.isToggled() && blockingTime > (int) postDelay.getInput()) {
             unBlock();
             blockingTime = 0;
+        } else if (ModuleManager.scaffold.isEnabled()) {
+            return true;
         }
         return mc.currentScreen != null && disableInInventory.isToggled();
     }
 
-    private void attackAndInteract(EntityLivingBase target, boolean swingWhileBlocking, boolean predict) {
+    private void attackAndInteract(EntityLivingBase target, boolean sendInteractAt) {
         if (target != null && attack) {
-            attack = false;
-            if (noAimToEntity()) {
-                return;
+            if (!attack(target)) return;
+            if (sendInteractAt) {
+                Vec3 hitVec = aimSimulator.getHitPos();
+                if (hitVec != null) {
+                    hitVec = new Vec3(hitVec.x - target.posX, hitVec.y - target.posY, hitVec.z - target.posZ);
+                    mc.thePlayer.sendQueue.addToSendQueue(new C02PacketUseEntity(target, hitVec.toVec3()));
+                }
             }
-            if (predict && target.hurtResistantTime > 16) {
-                return;
-            }
-            switchTargets = true;
-            Utils.attackEntity(target, !swing && swingWhileBlocking, !swingWhileBlocking);
             mc.thePlayer.sendQueue.addToSendQueue(new C02PacketUseEntity(target, C02PacketUseEntity.Action.INTERACT));
-        }
-        else if (ModuleManager.antiFireball != null && ModuleManager.antiFireball.isEnabled() && ModuleManager.antiFireball.fireball != null && ModuleManager.antiFireball.attack) {
-            Utils.attackEntity(ModuleManager.antiFireball.fireball, !ModuleManager.antiFireball.silentSwing.isToggled(), ModuleManager.antiFireball.silentSwing.isToggled());
+        } else if (ModuleManager.antiFireball != null && ModuleManager.antiFireball.isEnabled() && ModuleManager.antiFireball.fireball != null && ModuleManager.antiFireball.attack) {
+            Utils.attackEntity(ModuleManager.antiFireball.fireball, !ModuleManager.antiFireball.silentSwing.isToggled());
             mc.thePlayer.sendQueue.addToSendQueue(new C02PacketUseEntity(ModuleManager.antiFireball.fireball, C02PacketUseEntity.Action.INTERACT));
         }
     }
 
+    private boolean attack(EntityLivingBase target) {
+        attack = false;
+        if (noAimToEntity()) {
+            return false;
+        }
+        if (ModuleManager.bedAura.rotate) {
+            return false;
+        }
+        switchTargets = true;
+        Utils.attackEntity(target, !silentSwing.isToggled());
+        return true;
+    }
+
     private void sendBlock() {
-        mc.getNetHandler().addToSendQueue(new C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()));
+        mc.getNetHandler().addToSendQueue(new C08PacketPlayerBlockPlacement(SlotHandler.getHeldItem()));
     }
 
     private boolean isMining() {
         return Mouse.isButtonDown(0) && mc.objectMouseOver != null && mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK;
-    }
-
-    private boolean canAttack() {
-        if (this.j > 0L && this.i > 0L) {
-            if (System.currentTimeMillis() > this.j) {
-                this.gd();
-                return true;
-            } else if (System.currentTimeMillis() > this.i) {
-                return false;
-            }
-        } else {
-            this.gd();
-        }
-        return false;
-    }
-
-    public void gd() {
-        double c = aps.getInput() + 0.4D * this.rand.nextDouble();
-        long d = (int) Math.round(1000.0D / c);
-        if (System.currentTimeMillis() > this.k) {
-            if (!this.n && this.rand.nextInt(100) >= 85) {
-                this.n = true;
-                this.m = 1.1D + this.rand.nextDouble() * 0.15D;
-            } else {
-                this.n = false;
-            }
-
-            this.k = System.currentTimeMillis() + 500L + (long) this.rand.nextInt(1500);
-        }
-
-        if (this.n) {
-            d = (long) ((double) d * this.m);
-        }
-
-        if (System.currentTimeMillis() > this.l) {
-            if (this.rand.nextInt(100) >= 80) {
-                d += 50L + (long) this.rand.nextInt(100);
-            }
-
-            this.l = System.currentTimeMillis() + 500L + (long) this.rand.nextInt(1500);
-        }
-
-        this.j = System.currentTimeMillis() + d;
-        this.i = System.currentTimeMillis() + d / 2L - (long) this.rand.nextInt(10);
     }
 
     private void unBlock() {
@@ -694,12 +733,30 @@ public class KillAura extends Module {
         try {
             Vec3 eyePos = Utils.getEyePos();
             MovingObjectPosition hitResult = RotationUtils.rayCast(
-                    RotationUtils.getNearestPoint(target.getEntityBoundingBox(), eyePos).distanceTo(eyePos) + 0.05,
+                    RotationUtils.getNearestPoint(target.getEntityBoundingBox(), eyePos).distanceTo(eyePos) - 0.01,
                     RotationHandler.getRotationYaw(), RotationHandler.getRotationPitch()
             );
             return hitResult != null;
         } catch (NullPointerException ignored) {
         }
         return false;
+    }
+
+    @Override
+    public boolean click() {
+        switch ((int) attackMode.getInput()) {
+            case 0:
+                if (target != null && mc.thePlayer.getDistanceToEntity(target) <= swingRange.getInput()) {
+                    Utils.sendClick(0, true);
+                    Utils.sendClick(0, false);
+                    return true;
+                }
+                return false;
+            default:
+            case 1:
+                if (swing)
+                    attack = true;
+                return swing;
+        }
     }
 }

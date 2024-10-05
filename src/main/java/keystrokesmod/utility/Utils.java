@@ -3,13 +3,22 @@ package keystrokesmod.utility;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.mojang.realmsclient.gui.ChatFormatting;
+import keystrokesmod.Raven;
+import keystrokesmod.event.ClickEvent;
+import keystrokesmod.mixins.impl.client.GuiScreenAccessor;
+import keystrokesmod.mixins.impl.client.KeyBindingAccessor;
+import keystrokesmod.module.impl.other.NameHider;
 import keystrokesmod.module.impl.other.SlotHandler;
+import keystrokesmod.module.impl.render.AntiShuffle;
+import keystrokesmod.utility.i18n.I18nManager;
+import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.entity.boss.EntityWither;
 import net.minecraftforge.client.event.MouseEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
-import keystrokesmod.module.impl.client.NyaProxy;
 import keystrokesmod.module.impl.client.Settings;
-import keystrokesmod.module.impl.combat.AutoClicker;
 import keystrokesmod.module.impl.combat.HitSelect;
 import keystrokesmod.module.impl.minigames.DuelsStats;
 import keystrokesmod.module.setting.impl.SliderSetting;
@@ -31,7 +40,6 @@ import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.ContainerPlayer;
 import net.minecraft.item.*;
-import net.minecraft.network.play.client.C03PacketPlayer.C05PacketPlayerLook;
 import net.minecraft.network.play.client.C0APacketAnimation;
 import net.minecraft.potion.Potion;
 import net.minecraft.scoreboard.*;
@@ -41,6 +49,8 @@ import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Range;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
@@ -48,11 +58,14 @@ import java.awt.*;
 import java.util.List;
 import java.util.*;
 import java.nio.ByteBuffer;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
 public class Utils {
     private static final Random rand = new Random();
     public static final Minecraft mc = Minecraft.getMinecraft();
+    public static final ChatComponentText PREFIX = new ChatComponentText("&7[&dR&7]&r ");
     public static HashSet<String> friends = new HashSet<>();
     public static HashSet<String> enemies = new HashSet<>();
     public static final Logger log = LogManager.getLogger();
@@ -131,43 +144,94 @@ public class Utils {
     }
 
     public static int randomizeInt(double min, double max) {
-        final int iMin = (int) min;
-        final int iMax = (int) max;
-
-        if (iMin == iMax) return iMin;
-        return rand.nextInt(iMax - iMin + 1) + iMin;
+        return (int) randomizeDouble(min, max);
     }
 
     public static double randomizeDouble(double min, double max) {
-        return org.apache.commons.lang3.RandomUtils.nextDouble(min, max);
+        return Math.random() * (max - min) + min;
     }
 
-    public static boolean inFov(float fov, BlockPos blockPos) {
+    public static boolean inFov(float fov, @NotNull BlockPos blockPos) {
         return inFov(fov, blockPos.getX(), blockPos.getZ());
     }
 
-    public static boolean inFov(float fov, Entity entity) {
+    public static boolean inFov(float fov, @NotNull Entity entity) {
         return inFov(fov, entity.posX, entity.posZ);
     }
 
-    public static boolean inFov(float fov, final double n2, final double n3) {
-        fov *= 0.5;
-        final double wrapAngleTo180_double = MathHelper.wrapAngleTo180_double((mc.thePlayer.rotationYaw - RotationUtils.angle(n2, n3)) % 360.0f);
-        if (wrapAngleTo180_double > 0.0) {
-            if (wrapAngleTo180_double < fov) {
-                return true;
-            }
-        } else if (wrapAngleTo180_double > -fov) {
-            return true;
-        }
-        return false;
+    public static boolean inFov(float fov, @NotNull Entity self, @NotNull Entity target) {
+        return inFov(self.rotationYaw, fov, target.posX, target.posZ);
     }
+
+    public static boolean inFov(float fov, final double n2, final double n3) {
+        fov *= 0.5F;
+        final double fovToPoint = getFov(n2, n3);
+        if (fovToPoint > 0.0) {
+            return fovToPoint < fov;
+        } else return fovToPoint > -fov;
+    }
+
+    public static boolean inFov(float yaw, float fov, final double n2, final double n3) {
+        fov *= 0.5F;
+        final double fovToPoint = getFov(yaw, n2, n3);
+        if (fovToPoint > 0.0) {
+            return fovToPoint < fov;
+        } else return fovToPoint > -fov;
+    }
+
+    public static @Range(from = -180, to = 180) double getFov(final double posX, final double posZ) {
+        return getFov(mc.thePlayer.rotationYaw, posX, posZ);
+    }
+
+    public static @Range(from = -180, to = 180) double getFov(final float yaw, final double posX, final double posZ) {
+        return MathHelper.wrapAngleTo180_double((yaw - RotationUtils.angle(posX, posZ)) % 360.0f);
+    }
+
+    private static final Queue<String> delayedMessage = new ConcurrentLinkedQueue<>();
 
     public static void sendMessage(String txt) {
         if (nullCheck()) {
-            String m = formatColor("&7[&dR&7]&r " + txt);
+            String m = formatColor("&7[&dR&7]&r " + replace(txt));
             mc.thePlayer.addChatMessage(new ChatComponentText(m));
         }
+    }
+
+    public static @Nullable String replace(String string) {
+        if (string == null)
+            return null;
+        if (ModuleManager.nameHider != null && ModuleManager.nameHider.isEnabled()) {
+            string = NameHider.getFakeName(string);
+        }
+        if (ModuleManager.antiShuffle != null && ModuleManager.antiShuffle.isEnabled()) {
+            string = AntiShuffle.removeObfuscation(string);
+        }
+        if (ModuleManager.language != null && ModuleManager.language.isEnabled()) {
+            List<Map<String, String>> replaceMap = I18nManager.REPLACE_MAP;
+            int index = (int) ModuleManager.language.mode.getInput();
+            if (replaceMap.size() > index)
+                string = replaceMap.get(index).getOrDefault(string, string);
+        }
+
+        return string;
+    }
+
+    public static void sendMessageAnyWay(String txt) {
+        if (nullCheck()) {
+            sendMessage(txt);
+        } else {
+            delayedMessage.add(txt);
+        }
+    }
+
+    static {
+        Raven.getExecutor().scheduleWithFixedDelay(() -> {
+            if (Utils.nullCheck() && !delayedMessage.isEmpty()) {
+                for (String s : delayedMessage) {
+                    sendMessage(s);
+                }
+                delayedMessage.clear();
+            }
+        }, 1000, 1000, TimeUnit.MILLISECONDS);
     }
 
     public static void sendDebugMessage(String message) {
@@ -176,15 +240,20 @@ public class Utils {
         }
     }
 
-    public static void attackEntity(Entity e, boolean clientSwing, boolean silentSwing) {
-        boolean attack = HitSelect.canAttack(e);
+    public static void attackEntity(Entity e, boolean clientSwing) {
+        boolean attack = HitSelect.canAttack();
         if (clientSwing) {
             if (attack || HitSelect.canSwing()) mc.thePlayer.swingItem();
-        }
-        else {
+        } else {
             if (attack || HitSelect.canSwing()) mc.thePlayer.sendQueue.addToSendQueue(new C0APacketAnimation());
         }
-        if (attack) mc.playerController.attackEntity(mc.thePlayer, e);
+        if (attack) {
+            mc.playerController.attackEntity(mc.thePlayer, e);
+        }
+    }
+
+    public static void attackEntityNoSwing(Entity e) {
+        if (HitSelect.canAttack()) mc.playerController.attackEntity(mc.thePlayer, e);
     }
 
     public static void sendRawMessage(String txt) {
@@ -194,16 +263,13 @@ public class Utils {
     }
 
     public static float getCompleteHealth(EntityLivingBase entity) {
+        if (entity == null) return 0;
         return entity.getHealth() + entity.getAbsorptionAmount();
     }
 
     public static String getHealthStr(EntityLivingBase entity) {
         float completeHealth = getCompleteHealth(entity);
         return getColorForHealth(entity.getHealth() / entity.getMaxHealth(), completeHealth);
-    }
-
-    public static int limit(int current, int min, int max) {
-        return Math.min(Math.max(current, min), max);
     }
 
     public static int getTool(Block block) {
@@ -221,26 +287,27 @@ public class Utils {
         }
         return n2;
     }
+
     public static int getWeapon() {
         int weaponIndex = -1;
         double highestPriority = 0.0;
-    
+
         for (int i = 0; i < InventoryPlayer.getHotbarSize(); ++i) {
             ItemStack item = mc.thePlayer.inventory.getStackInSlot(i);
             if (item == null) continue;
-    
+
             double priority = 0.0;
             double typePriority = 0.0;
-    
+
             if (Settings.weaponSword.isToggled() && item.getItem() instanceof ItemSword) {
                 priority = getDamage(item);
-                typePriority = 0.4; 
+                typePriority = 0.4;
             } else if (Settings.weaponAxe.isToggled() && item.getItem() instanceof ItemAxe) {
                 priority = getDamage(item);
                 typePriority = 0.3;
             } else if (Settings.weaponStick.isToggled() && item.getItem() == Items.stick) {
                 priority = getDamage(item);
-                typePriority = 0.2; 
+                typePriority = 0.2;
             } else if (Settings.weaponRod.isToggled() && item.getItem() == Items.fishing_rod) {
                 priority = getDamage(item);
                 typePriority = 0.1;
@@ -250,15 +317,16 @@ public class Utils {
             // sword > axe > stick > rod) is selected. This helps in making a more informed
             // choice when weapons have identical damage values.
             priority += typePriority;
-    
+
             if (priority > highestPriority) {
                 highestPriority = priority;
                 weaponIndex = i;
             }
         }
-    
+
         return weaponIndex;
     }
+
     public static float getEfficiency(final ItemStack itemStack, final Block block) {
         float getStrVsBlock = itemStack.getStrVsBlock(block);
         if (getStrVsBlock > 1.0f) {
@@ -280,7 +348,7 @@ public class Utils {
 
     public static String getColorForHealth(double n, double n2) {
         double health = rnd(n2, 1);
-        return ((n < 0.3) ? "§c" : ((n < 0.5) ? "§6" : ((n < 0.7) ? "§e" : "§a"))) + (isWholeNumber(health) ? (int) health + "": health);
+        return ((n < 0.3) ? "§c" : ((n < 0.5) ? "§6" : ((n < 0.7) ? "§e" : "§a"))) + (isWholeNumber(health) ? (int) health + "" : health);
     }
 
     public static int getColorForHealth(double health) {
@@ -291,7 +359,7 @@ public class Utils {
         return txt.replaceAll("&", "§");
     }
 
-    public static void correctValue(SliderSetting c, SliderSetting d) {
+    public static void correctValue(@NotNull SliderSetting c, @NotNull SliderSetting d) {
         if (c.getInput() > d.getInput()) {
             double p = c.getInput();
             c.setValue(d.getInput());
@@ -324,20 +392,20 @@ public class Utils {
 
     public static boolean isHypixel() {
         return !mc.isSingleplayer() && mc.getCurrentServerData() != null
-                && (mc.getCurrentServerData().serverIP.contains("hypixel.net")
-                || NyaProxy.isNyaProxy(mc.getCurrentServerData().serverIP).isPresent());
-    }
+                && mc.getCurrentServerData().serverIP.contains("hypixel.net");
+    } // I'm not sure how to handle it, such as Proxy IP.
+
     public static boolean isCraftiGames() {
         return !mc.isSingleplayer() && mc.getCurrentServerData() != null
-                && ((mc.getCurrentServerData().serverIP.contains("pika-network.net") || mc.getCurrentServerData().serverIP.contains("pikasys.net") || mc.getCurrentServerData().serverIP.contains("pika.host") || mc.getCurrentServerData().serverIP.contains("jartexsys.net") || mc.getCurrentServerData().serverIP.contains("jartexnetwork.com"))
-                || NyaProxy.isNyaProxy(mc.getCurrentServerData().serverIP).isPresent());
+                && (mc.getCurrentServerData().serverIP.contains("pika-network.net") || mc.getCurrentServerData().serverIP.contains("pikasys.net") || mc.getCurrentServerData().serverIP.contains("pika.host") || mc.getCurrentServerData().serverIP.contains("jartexsys.net") || mc.getCurrentServerData().serverIP.contains("jartexnetwork.com"));
     }
+
     public static net.minecraft.util.Timer getTimer() {
         return ObfuscationReflectionHelper.getPrivateValue(Minecraft.class, Minecraft.getMinecraft(), "timer", "field_71428_T");
     }
 
     public static String getHitsToKill(final EntityPlayer entityPlayer, final ItemStack itemStack) {
-        final int n = (int)Math.ceil(ap(entityPlayer, itemStack));
+        final int n = (int) Math.ceil(ap(entityPlayer, itemStack));
         return "§" + ((n <= 1) ? "c" : ((n <= 3) ? "6" : ((n <= 5) ? "e" : "a"))) + n;
     }
 
@@ -352,7 +420,7 @@ public class Utils {
             final ItemStack armorItemInSlot = entityPlayer.inventory.armorItemInSlot(i);
             if (armorItemInSlot != null) {
                 if (armorItemInSlot.getItem() instanceof ItemArmor) {
-                    n2 += ((ItemArmor)armorItemInSlot.getItem()).damageReduceAmount * 0.04;
+                    n2 += ((ItemArmor) armorItemInSlot.getItem()).damageReduceAmount * 0.04;
                     final int getEnchantmentLevel = EnchantmentHelper.getEnchantmentLevel(Enchantment.protection.effectId, armorItemInSlot);
                     if (getEnchantmentLevel != 0) {
                         n3 += Math.floor(0.75 * (6 + getEnchantmentLevel * getEnchantmentLevel) / 3.0);
@@ -360,7 +428,7 @@ public class Utils {
                 }
             }
         }
-        return rnd((double)getCompleteHealth(entityPlayer) / (n * (1.0 - (n2 + 0.04 * Math.min(Math.ceil(Math.min(n3, 25.0) * 0.75), 20.0) * (1.0 - n2)))), 1);
+        return rnd((double) getCompleteHealth(entityPlayer) / (n * (1.0 - (n2 + 0.04 * Math.min(Math.ceil(Math.min(n3, 25.0) * 0.75), 20.0) * (1.0 - n2)))), 1);
     }
 
     public static float n() {
@@ -471,7 +539,7 @@ public class Utils {
         return validated.toString();
     }
 
-public static List<String> getSidebarLines() {
+    public static List<String> getSidebarLines() {
         final List<String> lines = new ArrayList<>();
         if (mc.theWorld == null) {
             return lines;
@@ -507,6 +575,7 @@ public static List<String> getSidebarLines() {
         }
         return lines;
     }
+
     public static Random getRandom() {
         return rand;
     }
@@ -516,28 +585,20 @@ public static List<String> getSidebarLines() {
         return mc.thePlayer.moveForward != 0.0F || mc.thePlayer.moveStrafing != 0.0F;
     }
 
-    /**
-     * it's UNFAIR if pc == true!
-     * TODO we need a rotation system.
-     */
-    public static void aim(Entity en, float ps, boolean pc) {
+    public static void aim(Entity en, float ps) {
         if (en != null) {
-            float[] t = gr(en);
+            float[] t = getRotation(en);
             if (t != null) {
                 float y = t[0];
                 float p = t[1] + 4.0F + ps;
-                if (pc) {
-                    mc.getNetHandler().addToSendQueue(new C05PacketPlayerLook(y, p, mc.thePlayer.onGround));
-                } else {
-                    mc.thePlayer.rotationYaw = y;
-                    mc.thePlayer.rotationPitch = p;
-                }
+                mc.thePlayer.rotationYaw = y;
+                mc.thePlayer.rotationPitch = p;
             }
 
         }
     }
 
-    public static float[] gr(Entity q) {
+    public static float[] getRotation(Entity q) {
         if (q == null) {
             return null;
         } else {
@@ -581,7 +642,15 @@ public static List<String> getSidebarLines() {
     }
 
     public static boolean jumpDown() {
-        return Keyboard.isKeyDown(mc.gameSettings.keyBindJump.getKeyCode());
+        try {
+            return Keyboard.isKeyDown(mc.gameSettings.keyBindJump.getKeyCode());
+        } catch (Throwable e) {
+            try {
+                return mc.gameSettings.keyBindJump.isKeyDown();
+            } catch (Throwable e2) {
+                return false;
+            }
+        }
     }
 
     public static float gd() {
@@ -654,14 +723,16 @@ public static List<String> getSidebarLines() {
         return str.replace("§k", "").replace("§l", "").replace("§m", "").replace("§n", "").replace("§o", "").replace("§r", "");
     }
 
-    public static boolean ilc() {
+    public static boolean isLeftClicking() {
         if (ModuleManager.autoClicker.isEnabled()) {
-            return AutoClicker.leftClick.isToggled() && Mouse.isButtonDown(0);
+            return Mouse.isButtonDown(0);
         } else return CPSCalculator.f() > 1 && System.currentTimeMillis() - CPSCalculator.LL < 300L;
     }
+
     public static boolean tryingToCombo() {
         return Mouse.isButtonDown(0) && Mouse.isButtonDown(1);
     }
+
     public static void setMouseButtonState(int mouseButton, boolean held) {
         MouseEvent m = new MouseEvent();
 
@@ -670,10 +741,11 @@ public static List<String> getSidebarLines() {
         MinecraftForge.EVENT_BUS.post(m);
 
         ByteBuffer buttons = ObfuscationReflectionHelper.getPrivateValue(Mouse.class, null, "buttons");
-        buttons.put(mouseButton, (byte)(held ? 1 : 0));
+        buttons.put(mouseButton, (byte) (held ? 1 : 0));
         ObfuscationReflectionHelper.setPrivateValue(Mouse.class, null, buttons, "buttons");
 
     }
+
     public static long getDifference(long n, long n2) {
         return Math.abs(n2 - n);
     }
@@ -684,23 +756,23 @@ public static List<String> getSidebarLines() {
 
     public static EntityLivingBase raytrace(final int n) {
         Entity entity = null;
-        MovingObjectPosition rayTrace = mc.thePlayer.rayTrace((double)n, 1.0f);
+        MovingObjectPosition rayTrace = mc.thePlayer.rayTrace((double) n, 1.0f);
         final Vec3 getPositionEyes = mc.thePlayer.getPositionEyes(1.0f);
         final float rotationYaw = mc.thePlayer.rotationYaw;
         final float rotationPitch = mc.thePlayer.rotationPitch;
         final float cos = MathHelper.cos(-rotationYaw * 0.017453292f - 3.1415927f);
         final float sin = MathHelper.sin(-rotationYaw * 0.017453292f - 3.1415927f);
         final float n2 = -MathHelper.cos(-rotationPitch * 0.017453292f);
-        final Vec3 vec3 = new Vec3((double)(sin * n2), (double)MathHelper.sin(-rotationPitch * 0.017453292f), (double)(cos * n2));
-        final Vec3 addVector = getPositionEyes.addVector(vec3.xCoord * (double)n, vec3.yCoord * (double)n, vec3.zCoord * (double)n);
+        final Vec3 vec3 = new Vec3((double) (sin * n2), (double) MathHelper.sin(-rotationPitch * 0.017453292f), (double) (cos * n2));
+        final Vec3 addVector = getPositionEyes.addVector(vec3.xCoord * (double) n, vec3.yCoord * (double) n, vec3.zCoord * (double) n);
         Vec3 vec4 = null;
-        final List getEntitiesWithinAABBExcludingEntity = mc.theWorld.getEntitiesWithinAABBExcludingEntity(mc.getRenderViewEntity(), mc.getRenderViewEntity().getEntityBoundingBox().addCoord(vec3.xCoord * (double)n, vec3.yCoord * (double)n, vec3.zCoord * (double)n).expand(1.0, 1.0, 1.0));
-        double n3 = (double)n;
+        final List getEntitiesWithinAABBExcludingEntity = mc.theWorld.getEntitiesWithinAABBExcludingEntity(mc.getRenderViewEntity(), mc.getRenderViewEntity().getEntityBoundingBox().addCoord(vec3.xCoord * (double) n, vec3.yCoord * (double) n, vec3.zCoord * (double) n).expand(1.0, 1.0, 1.0));
+        double n3 = (double) n;
         for (int i = 0; i < getEntitiesWithinAABBExcludingEntity.size(); ++i) {
-            final Entity entity2 = (Entity)getEntitiesWithinAABBExcludingEntity.get(i);
+            final Entity entity2 = (Entity) getEntitiesWithinAABBExcludingEntity.get(i);
             if (entity2.canBeCollidedWith()) {
                 final float getCollisionBorderSize = entity2.getCollisionBorderSize();
-                final AxisAlignedBB expand = entity2.getEntityBoundingBox().expand((double)getCollisionBorderSize, (double)getCollisionBorderSize, (double)getCollisionBorderSize);
+                final AxisAlignedBB expand = entity2.getEntityBoundingBox().expand((double) getCollisionBorderSize, (double) getCollisionBorderSize, (double) getCollisionBorderSize);
                 final MovingObjectPosition calculateIntercept = expand.calculateIntercept(getPositionEyes, addVector);
                 if (expand.isVecInside(getPositionEyes)) {
                     if (0.0 < n3 || n3 == 0.0) {
@@ -708,8 +780,7 @@ public static List<String> getSidebarLines() {
                         vec4 = ((calculateIntercept == null) ? getPositionEyes : calculateIntercept.hitVec);
                         n3 = 0.0;
                     }
-                }
-                else if (calculateIntercept != null) {
+                } else if (calculateIntercept != null) {
                     final double distanceTo = getPositionEyes.distanceTo(calculateIntercept.hitVec);
                     if (distanceTo < n3 || n3 == 0.0) {
                         if (entity2 == mc.getRenderViewEntity().ridingEntity && !entity2.canRiderInteract()) {
@@ -717,8 +788,7 @@ public static List<String> getSidebarLines() {
                                 entity = entity2;
                                 vec4 = calculateIntercept.hitVec;
                             }
-                        }
-                        else {
+                        } else {
                             entity = entity2;
                             vec4 = calculateIntercept.hitVec;
                             n3 = distanceTo;
@@ -731,7 +801,7 @@ public static List<String> getSidebarLines() {
             rayTrace = new MovingObjectPosition(entity, vec4);
         }
         if (rayTrace != null && rayTrace.typeOfHit == MovingObjectPosition.MovingObjectType.ENTITY && rayTrace.entityHit instanceof EntityLivingBase) {
-            return (EntityLivingBase)rayTrace.entityHit;
+            return (EntityLivingBase) rayTrace.entityHit;
         }
         return null;
     }
@@ -749,7 +819,29 @@ public static List<String> getSidebarLines() {
             return (double) Math.round(n * p) / p;
         }
     }
+    public static double PitchFromEntity(EntityPlayer en, float f) {
+        return (double) (mc.thePlayer.rotationPitch - pitchToEntity(en, f));
+    }
+    public static double fovFromEntity(EntityPlayer en) {
+        return ((((double) (mc.thePlayer.rotationYaw - fovToEntity(en)) % 360.0D) + 540.0D) % 360.0D) - 180.0D;
+    }
 
+    public static float fovFromEntityf(EntityPlayer en) {
+        return (float) (((((float) (mc.thePlayer.rotationYaw - fovToEntity(en)) % 360.0D) + 540.0D) % 360.0D) - 180.0D);
+    }
+
+    public static float fovToEntity(EntityPlayer ent) {
+        double x = ent.posX - mc.thePlayer.posX;
+        double z = ent.posZ - mc.thePlayer.posZ;
+        double yaw = Math.atan2(x, z) * 57.2957795D;
+        return (float) (yaw * -1.0D);
+    }
+    public static float pitchToEntity(EntityPlayer ent, float f) {
+        double x = mc.thePlayer.getDistanceToEntity(ent);
+        double y = mc.thePlayer.posY - (ent.posY + f);
+        double pitch = (((Math.atan2(x, y) * 180.0D) / 3.141592653589793D));
+        return (float) (90 - pitch);
+    }
     public static String stripColor(final String s) {
         if (s.isEmpty()) {
             return s;
@@ -809,7 +901,7 @@ public static List<String> getSidebarLines() {
         }
     }
 
-    public static void rsa() {
+    public static void playerSwing() {
         EntityPlayerSP p = mc.thePlayer;
         int armSwingEnd = p.isPotionActive(Potion.digSpeed) ? 6 - (1 + p.getActivePotionEffect(Potion.digSpeed).getAmplifier()) : (p.isPotionActive(Potion.digSlowdown) ? 6 + (1 + p.getActivePotionEffect(Potion.digSlowdown).getAmplifier()) * 2 : 6);
         if (!p.isSwingInProgress || p.swingProgressInt >= armSwingEnd / 2 || p.swingProgressInt < 0) {
@@ -834,11 +926,12 @@ public static List<String> getSidebarLines() {
     }
 
     public static boolean holdingWeapon() {
-        if (mc.thePlayer.getHeldItem() == null) {
+        ItemStack item = SlotHandler.getHeldItem();
+        if (item == null) {
             return false;
         }
-        Item getItem = mc.thePlayer.getHeldItem().getItem();
-        return (Settings.weaponSword.isToggled() || getItem instanceof ItemSword) || (Settings.weaponAxe.isToggled() && getItem instanceof ItemAxe) || (Settings.weaponRod.isToggled() && getItem instanceof ItemFishingRod) || (Settings.weaponStick.isToggled() && getItem == Items.stick);
+        Item getItem = item.getItem();
+        return (!Settings.weaponSword.isToggled() || getItem instanceof ItemSword) || (Settings.weaponAxe.isToggled() && getItem instanceof ItemAxe) || (Settings.weaponRod.isToggled() && getItem instanceof ItemFishingRod) || (Settings.weaponStick.isToggled() && getItem == Items.stick);
     }
 
     public static boolean holdingSword() {
@@ -895,9 +988,14 @@ public static List<String> getSidebarLines() {
     }
 
     public static boolean isTargetNearby() {
+        return isTargetNearby(6);
+    }
+
+    public static boolean isTargetNearby(double dist) {
         return mc.theWorld.playerEntities.stream()
                 .filter(target -> target != mc.thePlayer)
-                .anyMatch(target -> new keystrokesmod.script.classes.Vec3(target).distanceTo(mc.thePlayer) < 6);
+                .filter(target -> target instanceof EntityPlayer)
+                .anyMatch(target -> new keystrokesmod.script.classes.Vec3(target).distanceTo(mc.thePlayer) < dist);
     }
 
     /**
@@ -910,16 +1008,103 @@ public static List<String> getSidebarLines() {
     }
 
     public static boolean isLobby() {
-        if (Utils.isHypixel()) {
-            List<String> sidebarLines = Utils.getSidebarLines();
-            if (!sidebarLines.isEmpty()) {
-                try {
-                    String[] parts = Utils.stripColor(sidebarLines.get(1)).split(" {2}");
-                    return parts.length > 1 && parts[1].charAt(0) == 'L';
-                } catch (IndexOutOfBoundsException ignored) {
+        if (mc.theWorld == null) {
+            return true;
+        }
+
+        List<Entity> entities = mc.theWorld.getLoadedEntityList();
+        for (Entity entity : entities) {
+            if (entity != null && entity.getName().equals("§e§lCLICK TO PLAY")) {
+                return true;
+            }
+        }
+
+        boolean hasNetherStar = false;
+        boolean hasCompass = false;
+        for (ItemStack stack : mc.thePlayer.inventory.mainInventory) {
+            if (stack != null) {
+                if (stack.getItem() == Items.nether_star) {
+                    hasNetherStar = true;
+                }
+                if (stack.getItem() == Items.compass) {
+                    hasCompass = true;
+                }
+                if (hasNetherStar && hasCompass) {
+                    return true;
                 }
             }
         }
         return false;
+    }
+
+    public static String getKeyName(int keyCode) {
+        if (keyCode >= 1000)
+            return "M" + (keyCode - 1000);
+        try {
+            return Keyboard.getKeyName(keyCode);
+        } catch (Exception e) {
+            return "Unknown";
+        }
+    }
+
+    public static int getKeyCode(@NotNull String keyName) {
+        try {
+            if (keyName.startsWith("M") && keyName.length() > 1) {
+                final String number = keyName.substring(1);
+                if (number.chars().allMatch(Character::isDigit)) {
+                    return Integer.parseInt(number) + 1000;
+                }
+            }
+
+            return Keyboard.getKeyIndex(keyName);
+        } catch (Exception e) {
+            return Keyboard.KEY_NONE;
+        }
+    }
+
+    public static boolean isInRange(double value, double target, double range) {
+        return value - range <= target && value + range >= target;
+
+    }
+
+    /**
+     * Sends a click to Minecraft legitimately
+     */
+    public static void sendClick(final int button, final boolean state) {
+        final int keyBind = button == 0 ? mc.gameSettings.keyBindAttack.getKeyCode() : mc.gameSettings.keyBindUseItem.getKeyCode();
+
+        KeyBinding.setKeyBindState(keyBind, state);
+
+        if (state) {
+            KeyBinding.onTick(keyBind);
+        }
+    }
+
+    public static void inventoryClick(@NotNull GuiScreen s) {
+        int x = Mouse.getX() / mc.displayWidth * s.width;
+        int y = s.height - Mouse.getY() / mc.displayHeight * s.height;
+
+        ClickEvent event = new ClickEvent();
+        MinecraftForge.EVENT_BUS.post(event);
+        if (event.isCanceled())
+            return;
+
+        ((GuiScreenAccessor) s).mouseClicked(x, y, 0);
+    }
+
+    public static int limit(int value, int min, int max) {
+        return Math.max(Math.min(value, max), min);
+    }
+
+    public static long limit(long value, long min, long max) {
+        return Math.max(Math.min(value, max), min);
+    }
+
+    public static float limit(float value, float min, float max) {
+        return Math.max(Math.min(value, max), min);
+    }
+
+    public static double limit(double value, double min, double max) {
+        return Math.max(Math.min(value, max), min);
     }
 }

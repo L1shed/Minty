@@ -1,129 +1,57 @@
 package keystrokesmod.module.impl.movement;
 
-import keystrokesmod.event.BlockAABBEvent;
-import keystrokesmod.event.PreMotionEvent;
+import keystrokesmod.event.PushOutOfBlockEvent;
 import keystrokesmod.event.ReceivePacketEvent;
-import keystrokesmod.mixins.impl.client.PlayerControllerMPAccessor;
 import keystrokesmod.module.Module;
-import keystrokesmod.module.setting.impl.ButtonSetting;
-import keystrokesmod.module.setting.impl.DescriptionSetting;
-import keystrokesmod.module.setting.impl.ModeSetting;
-import keystrokesmod.module.setting.impl.SliderSetting;
-import net.minecraft.network.play.server.S02PacketChat;
+import keystrokesmod.module.impl.movement.phase.*;
+import keystrokesmod.module.setting.impl.*;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
-import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.jetbrains.annotations.NotNull;
 
-import static keystrokesmod.module.ModuleManager.blink;
-
 public class Phase extends Module {
-    private final ModeSetting mode;
-    private final ButtonSetting autoBlink;
+    private final ModeValue mode;
     private final ButtonSetting cancelS08;
-    private final ButtonSetting waitingBreakBlock;
-    private final SliderSetting autoDisable;
-
-    private int phaseTime;
-
-    // watchdog auto phase
-    private boolean phase;
-
-    private boolean currentHittingBlock;
-    private boolean lastHittingBlock;
+    private final ButtonSetting cancelPush;
 
     public Phase() {
         super("Phase", category.movement);
         this.registerSetting(new DescriptionSetting("Lets you go through solid blocks."));
-        this.registerSetting(mode = new ModeSetting("Mode", new String[]{"Normal", "Watchdog Auto Phase"}, 0));
-        this.registerSetting(autoBlink = new ButtonSetting("Blink", true));
-        this.registerSetting(cancelS08 = new ButtonSetting("Cancel S06", false));
-        this.registerSetting(waitingBreakBlock = new ButtonSetting("waiting break block", false));
-        this.registerSetting(autoDisable = new SliderSetting("Auto disable", 6, 1, 20, 1, "ticks"));
+        this.registerSetting(mode = new ModeValue("Mode", this)
+                .add(new VanillaPhase("Vanilla", this))
+                .add(new WatchdogPhase("Watchdog", this))
+                .add(new WatchdogAutoPhase("Watchdog Auto", this))
+                .add(new VulcanPhase("Vulcan", this))
+                .add(new GrimACPhase("GrimAC", this))
+        );
+        this.registerSetting(cancelS08 = new ButtonSetting("Cancel S08", false));
+        this.registerSetting(cancelPush = new ButtonSetting("Cancel push", true));
     }
 
     @Override
     public void onEnable() {
-        phaseTime = 0;
-        phase = false;
-        currentHittingBlock = lastHittingBlock = false;
+        mode.enable();
     }
 
     @Override
     public void onDisable() {
-        if (autoBlink.isToggled())
-            blink.disable();
-
-        phaseTime = 0;
-        phase = false;
-    }
-
-    @Override
-    public void onUpdate() {
-        currentHittingBlock = ((PlayerControllerMPAccessor) mc.playerController).isHittingBlock();
-        lastHittingBlock = currentHittingBlock;
-    }
-
-    @SubscribeEvent
-    public void onPreMotion(PreMotionEvent event) {
-        if (this.phase) {
-            this.phaseTime++;
-        } else {
-            this.phaseTime = 0;
-        }
-
-        if (phaseTime > autoDisable.getInput()) {
-            disable();
-            return;
-        }
-
-        if (waitingBreakBlock.isToggled() && !(lastHittingBlock && !currentHittingBlock)) {
-            return;
-        }
-
-        switch ((int) mode.getInput()) {
-            case 0:
-                if (autoBlink.isToggled()) blink.enable();
-                phase = true;
-                break;
-            case 1:
-                if (this.phase && autoBlink.isToggled()) blink.enable();
-                break;
-        }
-    }
-
-    @SubscribeEvent
-    public void onBlockAABB(BlockAABBEvent event) {
-        if (this.phase)
-            event.setBoundingBox(null);
-    }
-
-    @SubscribeEvent
-    public void onWorldChange(@NotNull WorldEvent.Load event) {
-        this.phase = false;
-        this.phaseTime = 0;
+        mode.disable();
     }
 
     @SubscribeEvent
     public void onReceivePacket(@NotNull ReceivePacketEvent event) {
-        if (cancelS08.isToggled()) {
-            if (event.getPacket() instanceof S08PacketPlayerPosLook) {
-                event.setCanceled(true);
-            }
-        }
+        if (event.getPacket() instanceof S08PacketPlayerPosLook && cancelS08.isToggled())
+            event.setCanceled(true);
+    }
 
-        if ((int) mode.getInput() == 1) {
-            if (event.getPacket() instanceof S02PacketChat) {
-                S02PacketChat packet = (S02PacketChat) event.getPacket();
-                String chat = packet.getChatComponent().getUnformattedText();
+    @SubscribeEvent
+    public void onPushOutOfBlock(PushOutOfBlockEvent event) {
+        if (cancelPush.isToggled())
+            event.setCanceled(true);
+    }
 
-                if (chat.contains(" 2 ") && chat.contains("game")) {
-                    this.phase = true;
-                } else if (chat.contains("FIGHT") && chat.contains("Cages")) {
-                    this.phase = false;
-                    disable();
-                }
-            }
-        }
+    @Override
+    public String getInfo() {
+        return mode.getSubModeValues().get((int) mode.getInput()).getPrettyName();
     }
 }

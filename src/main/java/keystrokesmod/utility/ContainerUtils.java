@@ -30,7 +30,7 @@ public class ContainerUtils {
         if (block == null) {
             return false;
         }
-        return !BlockUtils.isInteractable(block) && !(block instanceof BlockTNT) && !(block instanceof BlockLever) && !(block instanceof BlockButton) && !(block instanceof BlockSkull) && !(block instanceof BlockLiquid) && !(block instanceof BlockCactus) && !(block instanceof BlockCarpet) && !(block instanceof BlockTripWire) && !(block instanceof BlockTripWireHook) && !(block instanceof BlockTallGrass) && !(block instanceof BlockFlower) && !(block instanceof BlockFlowerPot) && !(block instanceof BlockSign) && !(block instanceof BlockLadder) && !(block instanceof BlockTorch) && !(block instanceof BlockRedstoneTorch) && !(block instanceof BlockFence) && !(block instanceof BlockPane) && !(block instanceof BlockStainedGlassPane) && !(block instanceof BlockGravel) && !(block instanceof BlockClay) && !(block instanceof BlockSand) && !(block instanceof BlockSoulSand);
+        return !BlockUtils.isInteractable(block) && !(block instanceof BlockTNT) && !(block instanceof BlockSlab) && !(block instanceof BlockWeb) && !(block instanceof BlockLever) && !(block instanceof BlockButton) && !(block instanceof BlockSkull) && !(block instanceof BlockLiquid) && !(block instanceof BlockCactus) && !(block instanceof BlockCarpet) && !(block instanceof BlockTripWire) && !(block instanceof BlockTripWireHook) && !(block instanceof BlockTallGrass) && !(block instanceof BlockFlower) && !(block instanceof BlockFlowerPot) && !(block instanceof BlockSign) && !(block instanceof BlockLadder) && !(block instanceof BlockTorch) && !(block instanceof BlockRedstoneTorch) && !(block instanceof BlockFence) && !(block instanceof BlockPane) && !(block instanceof BlockStainedGlassPane) && !(block instanceof BlockGravel) && !(block instanceof BlockClay) && !(block instanceof BlockSand) && !(block instanceof BlockSoulSand);
     }
 
     public static <T extends Item> int getSlot(Class<T> item, Predicate<T> predicate) {
@@ -366,12 +366,13 @@ public class ContainerUtils {
             final ItemStack stack = getItemStack(i);
             if (stack != null && stack.getItem() instanceof ItemFood) {
                 float thisFoodLevel = ((ItemFood) stack.getItem()).getSaturationModifier(stack);
-                if (thisFoodLevel > foodLevel + 1) {
+                if (thisFoodLevel > foodLevel) {
                     foodLevel = thisFoodLevel;
                     slot = i;
                 }
             }
         }
+
         return slot;
     }
 
@@ -472,6 +473,10 @@ public class ContainerUtils {
             }
         }
 
+        if (count == 64) {
+            return desiredSlot;
+        }
+
         for (int i = 9; i < 45; i++) {
             ItemStack item = getItemStack(i);
             if (item != null && item.getItem() instanceof ItemBlock && item.stackSize > count && canBePlaced((ItemBlock) item.getItem())) {
@@ -489,7 +494,7 @@ public class ContainerUtils {
         int stackInSlot = 0;
         if (desiredSlot != -1) {
             ItemStack itemStackInSlot = getItemStack(desiredSlot + 35);
-            if (itemStackInSlot != null && (itemStackInSlot.getItem() instanceof ItemEgg || itemStackInSlot.getItem() instanceof ItemSnowball)) {
+            if (isProjectiles(itemStackInSlot)) {
                 stackInSlot = itemStackInSlot.stackSize;
             }
         }
@@ -506,5 +511,9 @@ public class ContainerUtils {
             biggestSlot = biggestSnowballSlot;
         }
         return biggestSlot;
+    }
+
+    public static boolean isProjectiles(ItemStack itemStackInSlot) {
+        return itemStackInSlot != null && (itemStackInSlot.getItem() instanceof ItemEgg || itemStackInSlot.getItem() instanceof ItemSnowball);
     }
 }

@@ -3,6 +3,7 @@ package keystrokesmod.module.impl.world;
 import keystrokesmod.event.PreUpdateEvent;
 import keystrokesmod.event.RotationEvent;
 import keystrokesmod.module.Module;
+import keystrokesmod.module.impl.other.RotationHandler;
 import keystrokesmod.module.impl.other.SlotHandler;
 import keystrokesmod.module.impl.other.anticheats.utils.phys.Vec2;
 import keystrokesmod.module.impl.other.anticheats.utils.world.PlayerRotation;
@@ -13,13 +14,13 @@ import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.module.setting.utils.ModeOnly;
 import keystrokesmod.script.classes.Vec3;
 import keystrokesmod.utility.*;
+import keystrokesmod.utility.aim.AimSimulator;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.network.play.client.C0APacketAnimation;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.apache.commons.lang3.tuple.Triple;
 import org.jetbrains.annotations.NotNull;
 
@@ -82,12 +83,12 @@ public class BlockIn extends Module {
         }
 
         try {
-            if (!(mc.thePlayer.getHeldItem().getItem() instanceof ItemBlock)) {
+            if (!(Objects.requireNonNull(SlotHandler.getHeldItem()).getItem() instanceof ItemBlock)) {
                 Utils.sendMessage("No blocks found.");
                 disable();
                 return;
             }
-        } catch (Exception e) {
+        } catch (NullPointerException e) {
             Utils.sendMessage("No blocks found.");
             disable();
             return;
@@ -97,7 +98,6 @@ public class BlockIn extends Module {
         if (currentTime - lastPlace < placeDelay.getInput()) return;
 
         int placed = 0;
-        boolean rotating = false;
         for (BlockPos blockPos : getBlockInBlocks()) {
             if (currentTime - lastPlace < placeDelay.getInput()) return;
             if (!BlockUtils.replaceable(blockPos)) continue;
@@ -118,30 +118,25 @@ public class BlockIn extends Module {
             }
 
             if (currentRot == null) {
-                currentRot = new Vec2(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
+                currentRot = new Vec2(RotationHandler.getRotationYaw(), RotationHandler.getRotationPitch());
             }
-            if (rotationMode.getInput() != 0 && !currentRot.equals(rotation)) {
-                if (aimSpeed.getInput() == 10) {
-                    currentRot = rotation;
-                } else {
-                    currentRot = new Vec2(
-                            AimSimulator.rotMove(rotation.x, currentRot.x, (float) aimSpeed.getInput()),
-                            AimSimulator.rotMove(rotation.y, currentRot.y, (float) aimSpeed.getInput())
-                    );
-                    rotating = true;
-                }
+            if (rotationMode.getInput() != 0 && !AimSimulator.equals(currentRot, rotation)) {
+                currentRot = new Vec2(
+                        AimSimulator.rotMove(rotation.x, currentRot.x, (float) aimSpeed.getInput() * 5),
+                        AimSimulator.rotMove(rotation.y, currentRot.y, (float) aimSpeed.getInput() * 5)
+                );
 
                 if (lookView.isToggled()) {
                     mc.thePlayer.rotationYaw = currentRot.x;
                     mc.thePlayer.rotationPitch = currentRot.y;
                 }
-                if (rotating) return;
+                return;
             }
 
-            if (rotationMode.getInput() == 0 || currentRot.equals(rotation)) {
+            if (rotationMode.getInput() == 0 || AimSimulator.equals(currentRot, rotation)) {
                 if (mc.playerController.onPlayerRightClick(
                         mc.thePlayer, mc.theWorld,
-                        mc.thePlayer.getHeldItem(),
+                        SlotHandler.getHeldItem(),
                         placeSideBlock.getLeft(), placeSideBlock.getMiddle(),
                         hitPos.toVec3()
                 )) {

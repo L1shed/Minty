@@ -1,22 +1,19 @@
 package keystrokesmod.module.impl.render;
 
-import keystrokesmod.Raven;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.player.ChestStealer;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.ModeSetting;
-import keystrokesmod.utility.font.Font;
+import keystrokesmod.module.setting.impl.SubMode;
 import keystrokesmod.utility.font.FontManager;
+import keystrokesmod.utility.font.IFont;
 import keystrokesmod.utility.render.RenderUtils;
 import keystrokesmod.utility.Theme;
 import keystrokesmod.utility.Utils;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.*;
 import net.minecraft.client.gui.inventory.GuiChest;
-import net.minecraft.client.renderer.texture.DynamicTexture;
-import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.client.config.GuiButtonExt;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -25,31 +22,35 @@ import net.minecraftforge.fml.common.gameevent.TickEvent.RenderTickEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.imageio.ImageIO;
 import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.*;
 import java.util.List;
 
 public class HUD extends Module {
-    public static final String VERSION = "1.13.0";
-    public static final HashMap<String, ResourceLocation> WATERMARK = new HashMap<>();
     public static ModeSetting theme;
-//    public static SliderSetting font;
-//    public static SliderSetting fontSize;
+    public static ModeSetting font;
     public static ButtonSetting dropShadow;
     private final ButtonSetting background;
+    private final ButtonSetting sidebar;
     public static ButtonSetting alphabeticalSort;
     private static ButtonSetting alignRight;
-    private static ButtonSetting lowercase;
+    public static ButtonSetting lowercase;
     public static ButtonSetting showInfo;
-    public static ButtonSetting showWatermark;
-    public static ModeSetting watermarkMode;
+    private static final ButtonSetting combat = new ButtonSetting("Combat", true);
+    private static final ButtonSetting movement = new ButtonSetting("Movement", true);
+    private static final ButtonSetting player = new ButtonSetting("Player", true);
+    private static final ButtonSetting world = new ButtonSetting("World", true);
+    private static final ButtonSetting render = new ButtonSetting("Render", true);
+    private static final ButtonSetting minigames = new ButtonSetting("Minigames", true);
+    private static final ButtonSetting fun = new ButtonSetting("Fun", true);
+    private static final ButtonSetting other = new ButtonSetting("Other", true);
+    private static final ButtonSetting client = new ButtonSetting("Client", true);
+    private static final ButtonSetting scripts = new ButtonSetting("Scripts", true);
+    private static final ButtonSetting exploit = new ButtonSetting("Exploit", true);
+    private static final ButtonSetting experimental = new ButtonSetting("Experimental", true);
     public static int hudX = 5;
     public static int hudY = 70;
-    public static String bName = "s";
     private boolean isAlphabeticalSort;
     private boolean canShowInfo;
 
@@ -57,8 +58,7 @@ public class HUD extends Module {
         super("HUD", Module.category.render);
         this.registerSetting(new DescriptionSetting("Right click bind to hide modules."));
         this.registerSetting(theme = new ModeSetting("Theme", Theme.themes, 0));
-//        this.registerSetting(font = new SliderSetting("Font", new String[]{"Minecraft", "Product Sans"}, 0));
-//        this.registerSetting(fontSize = new SliderSetting("Font", 1.0, 0.5, 2.0, 0.25, "x"));
+        this.registerSetting(font = new ModeSetting("Font", new String[]{"Minecraft", "Product Sans", "Regular", "Tenacity"}, 0));
         this.registerSetting(new ButtonSetting("Edit position", () -> {
             final EditScreen screen = new EditScreen();
             FMLCommonHandler.instance().bus().register(screen);
@@ -68,18 +68,12 @@ public class HUD extends Module {
         this.registerSetting(alphabeticalSort = new ButtonSetting("Alphabetical sort", false));
         this.registerSetting(dropShadow = new ButtonSetting("Drop shadow", true));
         this.registerSetting(background = new ButtonSetting("Background", false));
+        this.registerSetting(sidebar = new ButtonSetting("Sidebar", false));
         this.registerSetting(lowercase = new ButtonSetting("Lowercase", false));
         this.registerSetting(showInfo = new ButtonSetting("Show module info", true));
-        this.registerSetting(showWatermark = new ButtonSetting("Show Watermark", true));
-        this.registerSetting(watermarkMode = new ModeSetting("Watermark mode", new String[]{"Text", "Augustus", "Enders", "Augustus 2"}, 0, showWatermark::isToggled));
 
-        for (String s : Arrays.asList("enders", "augustus")) {
-            try (InputStream stream = Objects.requireNonNull(Raven.class.getResourceAsStream("/assets/keystrokesmod/textures/watermarks/" + s + ".png"))) {
-                BufferedImage image = ImageIO.read(stream);
-                WATERMARK.put(s, Minecraft.getMinecraft().renderEngine.getDynamicTextureLocation(s, new DynamicTexture(image)));
-            } catch (NullPointerException | IOException ignored) {
-            }
-        }
+        this.registerSetting(new DescriptionSetting("Categories"));
+        this.registerSetting(combat, movement, player, world, render, minigames, fun, other, client, scripts, exploit, experimental);
     }
 
     public void onEnable() {
@@ -111,20 +105,6 @@ public class HUD extends Module {
         int n = hudY;
         double n2 = 0.0;
         try {
-            if (showWatermark.isToggled()) {
-                int input = (int) watermarkMode.getInput();
-                switch (input) {
-                    case 2:
-                        RenderUtils.drawImage(WATERMARK.get("enders"), hudX, (float) n, 150, 45, new Color(255, 255, 255));
-                        n += 45;
-                        break;
-                    case 3:
-                        RenderUtils.drawImage(WATERMARK.get("augustus"), hudX, (float) n, 50, 50, new Color(255, 255, 255));
-                        n += 50;
-                        break;
-                }
-            }
-
             List<String> texts = getDrawTexts();
 
             for (String text : texts) {
@@ -134,13 +114,16 @@ public class HUD extends Module {
                 } else {
                     n2 -= 12;
                 }
-                int n3 = hudX;
-                int width = getFontRenderer().getStringWidth(text);
+                double n3 = hudX;
+                double width = getFontRenderer().width(text);
                 if (alignRight.isToggled()) {
                     n3 -= width;
                 }
                 if (background.isToggled()) {
                     RenderUtils.drawRect(n3 - 1, n - 1, n3 + width, n + Math.round(getFontRenderer().height() + 1), new Color(0, 0, 0, 100).getRGB());
+                }
+                if (sidebar.isToggled()) {
+                    RenderUtils.drawRect(alignRight.isToggled() ? n3 + width : n3 - 2, n - 1, alignRight.isToggled() ? n3 + width + 1 : n3 - 1, n + Math.round(getFontRenderer().height() + 1), e);
                 }
                 getFontRenderer().drawString(text, n3, n, e, dropShadow.isToggled());
                 n += Math.round(getFontRenderer().height() + 2);
@@ -158,32 +141,12 @@ public class HUD extends Module {
         List<Module> modules = ModuleManager.organizedModules;
         List<String> texts = new ArrayList<>(modules.size());
 
-        if (showWatermark.isToggled()) {
-            String text = "";
-            switch ((int) watermarkMode.getInput()) {
-                case 0:
-                    text = "§r§f§lRaven §bX§9D §7" + VERSION;
-                    break;
-                case 1:
-                    text = "§f§lAugustus " + VERSION;
-                    break;
-            }
-
-            if (!text.isEmpty()) {
-                if (lowercase.isToggled())
-                    text = text.toLowerCase();
-                texts.add(text);
-            }
-        }
-
         for (Module module : modules) {
-            if (!module.isEnabled() || module == this) continue;
-            if (module.isHidden()) continue;
-            if (module == ModuleManager.commandLine) continue;
+            if (isIgnored(module)) continue;
 
             String text = module.getPrettyName();
-            if (showInfo.isToggled() && !module.getInfo().isEmpty()) {
-                text += " §7" + module.getInfo();
+            if (showInfo.isToggled() && !module.getPrettyInfo().isEmpty()) {
+                text += " §7" + module.getPrettyInfo();
             }
             if (lowercase.isToggled()) {
                 text = text.toLowerCase();
@@ -193,8 +156,8 @@ public class HUD extends Module {
         return texts;
     }
 
-    public static int getLongestModule(Font fr) {
-        int length = 0;
+    public static double getLongestModule(IFont fr) {
+        double length = 0;
 
         for (Module module : ModuleManager.organizedModules) {
             if (module.isEnabled()) {
@@ -205,8 +168,8 @@ public class HUD extends Module {
                 if (lowercase.isToggled()) {
                     moduleName = moduleName.toLowerCase();
                 }
-                if (fr.getStringWidth(moduleName) > length) {
-                    length = fr.getStringWidth(moduleName);
+                if (fr.width(moduleName) > length) {
+                    length = fr.width(moduleName);
                 }
             }
         }
@@ -218,27 +181,24 @@ public class HUD extends Module {
         GuiButtonExt resetPosition;
         boolean hoverHUD = false;
         boolean hoverTargetHUD = false;
+        boolean hoverWatermark = false;
         int miX = 0;
         int miY = 0;
-        int maX = 0;
-        int maY = 0;
+        double maX = 0;
+        double maY = 0;
         int curHudX = 5;
         int curHudY = 70;
-        int lastTargetHUDX = 70;
-        int lastTargetHUDY = 30;
         int laX = 0;
         int laY = 0;
         int lmX = 0;
         int lmY = 0;
-        int clickMinX = 0;
+        double clickMinX = 0;
 
         public void initGui() {
             super.initGui();
             this.buttonList.add(this.resetPosition = new GuiButtonExt(1, this.width - 90, 5, 85, 20, "Reset position"));
             this.curHudX = HUD.hudX;
             this.curHudY = HUD.hudY;
-            this.lastTargetHUDX = TargetHUD.posX;
-            this.lastTargetHUDY = TargetHUD.posY;
         }
 
         @Override
@@ -252,7 +212,7 @@ public class HUD extends Module {
             int miY = this.curHudY;
             int maX = miX + 50;
             int maY = miY + 32;
-            int[] clickPos = this.d(getFontRenderer(), this.example);
+            double[] clickPos = this.d(getFontRenderer(), this.example);
             this.miX = miX;
             this.miY = miY;
             if (clickPos == null) {
@@ -282,58 +242,53 @@ public class HUD extends Module {
 
         @SubscribeEvent
         public void onRenderTick(RenderTickEvent event) {
-            TargetHUD.drawTargetHUD(null, mc.thePlayer.getName(), mc.thePlayer.getHealth());
+            TargetHUD.renderExample();
+            ModuleManager.watermark.render();
         }
 
-        private int @Nullable [] d(Font fr, String t) {
+        private double @Nullable [] d(IFont fr, String t) {
             if (empty()) {
-                int x = this.miX;
-                int y = this.miY;
+                double x = this.miX;
+                double y = this.miY;
                 String[] var5 = t.split("-");
 
                 for (String s : var5) {
                     if (HUD.alignRight.isToggled()) {
-                        x += getFontRenderer().getStringWidth(var5[0]) - getFontRenderer().getStringWidth(s);
+                        x += getFontRenderer().width(var5[0]) - getFontRenderer().width(s);
                     }
                     fr.drawString(s, (float) x, (float) y, Color.white.getRGB(), HUD.dropShadow.isToggled());
                     y += Math.round(fr.height() + 2);
                 }
             }
             else {
-                int longestModule = getLongestModule(getFontRenderer());
-                int n = this.miY;
+                double longestModule = getLongestModule(getFontRenderer());
+                double n = this.miY;
                 double n2 = 0.0;
                 for (Module module : ModuleManager.organizedModules) {
-                    if (module.isEnabled() && !module.getName().equals("HUD")) {
-                        if (module.isHidden()) {
-                            continue;
-                        }
-                        if (module == ModuleManager.commandLine) {
-                            continue;
-                        }
-                        String moduleName = module.getPrettyName();
-                        if (showInfo.isToggled() && !module.getInfo().isEmpty()) {
-                            moduleName += " §7" + module.getInfo();
-                        }
-                        if (lowercase.isToggled()) {
-                            moduleName = moduleName.toLowerCase();
-                        }
-                        int e = Theme.getGradient((int) theme.getInput(), n2);
-                        if (theme.getInput() == 0) {
-                            n2 -= 120;
-                        }
-                        else {
-                            n2 -= 12;
-                        }
-                        int n3 = this.miX;
-                        if (alignRight.isToggled()) {
-                            n3 -= getFontRenderer().getStringWidth(moduleName);
-                        }
-                        getFontRenderer().drawString(moduleName, n3, (float) n, e, dropShadow.isToggled());
-                        n += Math.round(getFontRenderer().height() + 2);
+                    if (isIgnored(module)) continue;
+
+                    String moduleName = module.getPrettyName();
+                    if (showInfo.isToggled() && !module.getInfo().isEmpty()) {
+                        moduleName += " §7" + module.getInfo();
                     }
+                    if (lowercase.isToggled()) {
+                        moduleName = moduleName.toLowerCase();
+                    }
+                    int e = Theme.getGradient((int) theme.getInput(), n2);
+                    if (theme.getInput() == 0) {
+                        n2 -= 120;
+                    }
+                    else {
+                        n2 -= 12;
+                    }
+                    double n3 = this.miX;
+                    if (alignRight.isToggled()) {
+                        n3 -= getFontRenderer().width(moduleName);
+                    }
+                    getFontRenderer().drawString(moduleName, n3, (float) n, e, dropShadow.isToggled());
+                    n += Math.round(getFontRenderer().height() + 2);
                 }
-                return new int[]{this.miX + longestModule, n, this.miX - longestModule};
+                return new double[]{this.miX + longestModule, n, this.miX - longestModule};
             }
             return null;
         }
@@ -347,6 +302,9 @@ public class HUD extends Module {
                 } else if (this.hoverTargetHUD) {
                     TargetHUD.posX = this.laX + (mX - this.lmX);
                     TargetHUD.posY = this.laY + (mY - this.lmY);
+                } else if (this.hoverWatermark) {
+                    Watermark.posX = this.laX + (mX - this.lmX);
+                    Watermark.posY = this.laY + (mY - this.lmY);
                 } else if (mX > this.clickMinX && mX < this.maX && mY > this.miY && mY < this.maY) {
                     this.hoverHUD = true;
                     this.lmX = mX;
@@ -359,6 +317,12 @@ public class HUD extends Module {
                     this.lmY = mY;
                     this.laX = TargetHUD.posX;
                     this.laY = TargetHUD.posY;
+                } else if (mX > Watermark.current$minX && mX < Watermark.current$maxX && mY > Watermark.current$minY && mY < Watermark.current$maxY) {
+                    this.hoverWatermark = true;
+                    this.lmX = mX;
+                    this.lmY = mY;
+                    this.laX = Watermark.posX;
+                    this.laY = Watermark.posY;
                 }
 
             }
@@ -369,6 +333,7 @@ public class HUD extends Module {
             if (s == 0) {
                 this.hoverHUD = false;
                 this.hoverTargetHUD = false;
+                this.hoverWatermark = false;
             }
 
         }
@@ -377,8 +342,10 @@ public class HUD extends Module {
             if (b == this.resetPosition) {
                 this.curHudX = HUD.hudX = 5;
                 this.curHudY = HUD.hudY = 70;
-                this.lastTargetHUDX = TargetHUD.posX = 70;
-                this.lastTargetHUDY = TargetHUD.posY = 30;
+                TargetHUD.posX = 70;
+                TargetHUD.posY = 30;
+                Watermark.posX = 5;
+                Watermark.posY = 5;
             }
 
         }
@@ -403,7 +370,42 @@ public class HUD extends Module {
         }
     }
 
-    private static Font getFontRenderer() {
-        return FontManager.getMinecraft();
+    private static boolean isIgnored(@NotNull Module module) {
+        if (!module.isEnabled() || module.getName().equals("HUD"))
+            return true;
+        if (module instanceof SubMode)
+            return true;
+
+        if (module.moduleCategory() == category.combat && !combat.isToggled()) return true;
+        if (module.moduleCategory() == category.movement && !movement.isToggled()) return true;
+        if (module.moduleCategory() == category.player && !player.isToggled()) return true;
+        if (module.moduleCategory() == category.world && !world.isToggled()) return true;
+        if (module.moduleCategory() == category.render && !render.isToggled()) return true;
+        if (module.moduleCategory() == category.minigames && !minigames.isToggled()) return true;
+        if (module.moduleCategory() == category.fun && !fun.isToggled()) return true;
+        if (module.moduleCategory() == category.other && !other.isToggled()) return true;
+        if (module.moduleCategory() == category.client && !client.isToggled()) return true;
+        if (module.moduleCategory() == category.scripts && !scripts.isToggled()) return true;
+        if (module.moduleCategory() == category.exploit && !exploit.isToggled()) return true;
+        if (module.moduleCategory() == category.experimental && !experimental.isToggled()) return true;
+
+        if (module.isHidden()) {
+            return true;
+        }
+        return module == ModuleManager.commandLine;
+    }
+
+    public static IFont getFontRenderer() {
+        switch ((int) font.getInput()) {
+            default:
+            case 0:
+                return FontManager.getMinecraft();
+            case 1:
+                return FontManager.productSans20;
+            case 2:
+                return FontManager.regular22;
+            case 3:
+                return FontManager.tenacity20;
+        }
     }
 }

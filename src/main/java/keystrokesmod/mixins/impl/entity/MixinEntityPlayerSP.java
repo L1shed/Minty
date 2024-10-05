@@ -1,15 +1,14 @@
 package keystrokesmod.mixins.impl.entity;
 
 import com.mojang.authlib.GameProfile;
-import keystrokesmod.event.PostMotionEvent;
-import keystrokesmod.event.PostUpdateEvent;
-import keystrokesmod.event.PreMotionEvent;
-import keystrokesmod.event.PreUpdateEvent;
+import keystrokesmod.event.*;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.movement.NoSlow;
 import keystrokesmod.module.impl.movement.Sprint;
+import keystrokesmod.module.impl.movement.fly.FakeFly;
 import keystrokesmod.module.impl.other.RotationHandler;
 import keystrokesmod.utility.RotationUtils;
+import keystrokesmod.utility.movement.Direction;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.entity.AbstractClientPlayer;
@@ -23,10 +22,13 @@ import net.minecraft.util.BlockPos;
 import net.minecraft.util.MovementInput;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
-import org.spongepowered.asm.mixin.Shadow;
+import net.minecraftforge.common.MinecraftForge;
+import org.spongepowered.asm.mixin.*;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import static keystrokesmod.utility.movement.Direction.*;
 
 @Mixin(value = EntityPlayerSP.class, priority = 999)
 public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
@@ -95,6 +97,19 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
     @Shadow
     private int positionUpdateTicks;
 
+    @Unique
+    private boolean raven_bS$isHeadspaceFree(BlockPos p_isHeadspaceFree_1_, int p_isHeadspaceFree_2_) {
+        for(int y = 0; y < p_isHeadspaceFree_2_; ++y) {
+            if (!this.isOpenBlockSpace(p_isHeadspaceFree_1_.add(0, y, 0))) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    @Shadow protected abstract boolean isOpenBlockSpace(BlockPos p_isOpenBlockSpace_1_);
+
     /**
      * @author strangerrrs
      * @reason mixin on update
@@ -131,14 +146,16 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
                 this.posX,
                 this.getEntityBoundingBox().minY,
                 this.posZ,
-                RotationHandler.getRotationYaw(),
-                RotationHandler.getRotationPitch(),
+                RotationHandler.getRotationYaw(rotationYaw),
+                RotationHandler.getRotationPitch(rotationPitch),
                 this.onGround,
                 this.isSprinting(),
                 this.isSneaking()
         );
 
         net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(preMotionEvent);
+        if (preMotionEvent.isCanceled())
+            return;
 
         boolean flag = preMotionEvent.isSprinting();
         if (flag != this.serverSprintState) {
@@ -168,8 +185,13 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
                 preMotionEvent.setRenderYaw(false);
             }
 
-            RotationUtils.renderPitch = preMotionEvent.getPitch();
-            RotationUtils.renderYaw = preMotionEvent.getYaw();
+            if (FakeFly.hideRotation()) {
+                RotationUtils.renderPitch = rotationPitch;
+                RotationUtils.renderYaw = rotationYaw;
+            } else {
+                RotationUtils.renderPitch = preMotionEvent.getPitch();
+                RotationUtils.renderYaw = preMotionEvent.getYaw();
+            }
 
             double d0 = preMotionEvent.getPosX() - this.lastReportedPosX;
             double d1 = preMotionEvent.getPosY() - this.lastReportedPosY;
@@ -269,13 +291,17 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
         boolean flag2 = this.movementInput.moveForward >= f;
         this.movementInput.updatePlayerMoveState();
         boolean usingItemModified = this.isUsingItem() || (ModuleManager.killAura != null && ModuleManager.killAura.isEnabled() && ModuleManager.killAura.block.get() && ((Object) this) == Minecraft.getMinecraft().thePlayer && ModuleManager.killAura.rmbDown && ModuleManager.killAura.manualBlock.isToggled());
-        boolean stopSprint = this.isUsingItem() && ModuleManager.noSlow != null && ModuleManager.noSlow.isEnabled() && NoSlow.slowed.getInput() == 80;
+        boolean stopSprint = (this.isUsingItem() && ModuleManager.noSlow != null && ModuleManager.noSlow.isEnabled() && NoSlow.getForwardSlowed() == 0.8);
+
+        if (!stopSprint) {
+            stopSprint = Sprint.stopSprint();
+        }
+
         if (usingItemModified && !this.isRiding()) {
             MovementInput var10000 = this.movementInput;
-            float slowed = NoSlow.getSlowed();
-            var10000.moveStrafe *= slowed;
+            var10000.moveStrafe *= NoSlow.getStrafeSlowed();
             var10000 = this.movementInput;
-            var10000.moveForward *= slowed;
+            var10000.moveForward *= NoSlow.getForwardSlowed();
             if (stopSprint) {
                 this.sprintToggleTimer = 0;
             }
@@ -361,5 +387,67 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
             this.sendPlayerAbilities();
         }
 
+    }
+
+    /**
+     * @author xia__mc
+     * @reason for vulcan phase
+     */
+    @Inject(method = "pushOutOfBlocks", at = @At("HEAD"), cancellable = true)
+    protected void pushOutOfBlocks(double p_pushOutOfBlocks_1_, double p_pushOutOfBlocks_3_, double p_pushOutOfBlocks_5_, CallbackInfoReturnable<Boolean> cir) {
+        if (!this.noClip) {
+            BlockPos blockpos = new BlockPos(p_pushOutOfBlocks_1_, p_pushOutOfBlocks_3_, p_pushOutOfBlocks_5_);
+            double d0 = p_pushOutOfBlocks_1_ - (double) blockpos.getX();
+            double d1 = p_pushOutOfBlocks_5_ - (double) blockpos.getZ();
+            int entHeight = Math.max((int) Math.ceil(this.height), 1);
+            if (!this.raven_bS$isHeadspaceFree(blockpos, entHeight)) {
+                Direction direction = null;
+                double d2 = 9999.0;
+                if (this.raven_bS$isHeadspaceFree(blockpos.west(), entHeight) && d0 < d2) {
+                    d2 = d0;
+                    direction = NEGATIVE_X;
+                }
+
+                if (this.raven_bS$isHeadspaceFree(blockpos.east(), entHeight) && 1.0 - d0 < d2) {
+                    d2 = 1.0 - d0;
+                    direction = POSITIVE_X;
+                }
+
+                if (this.raven_bS$isHeadspaceFree(blockpos.north(), entHeight) && d1 < d2) {
+                    d2 = d1;
+                    direction = NEGATIVE_Z;
+                }
+
+                if (this.raven_bS$isHeadspaceFree(blockpos.south(), entHeight) && 1.0 - d1 < d2) {
+                    direction = POSITIVE_Z;
+                }
+
+                if (direction != null) {
+                    PushOutOfBlockEvent event = new PushOutOfBlockEvent(direction, 0.1F);
+                    MinecraftForge.EVENT_BUS.post(event);
+                    if (event.isCanceled())
+                        cir.setReturnValue(false);
+                    direction = event.getDirection();
+                    final float pushMotion = event.getPushMotion();
+
+                    switch (direction) {
+                        case POSITIVE_X:
+                            this.motionX = pushMotion;
+                            break;
+                        case NEGATIVE_X:
+                            this.motionX = -pushMotion;
+                            break;
+                        case POSITIVE_Z:
+                            this.motionZ = pushMotion;
+                            break;
+                        case NEGATIVE_Z:
+                            this.motionZ = -pushMotion;
+                            break;
+                    }
+                }
+            }
+
+        }
+        cir.setReturnValue(false);
     }
 }

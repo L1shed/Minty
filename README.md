@@ -1,12 +1,10 @@
-
 <div align="center">
   
 # Minty, based on Raven XD
 <p align="center">
-    <a href="https://github.com/xia-mc/Raven-bS/issues">
-      <img src="https://img.shields.io/github/issues/xia-mc/Raven-bS?style=flat" alt="issues" />
-    </a>
+    <img src="https://img.shields.io/github/issues/xia-mc/Raven-bS?style=flat" alt="issues">
     <img src="https://img.shields.io/badge/license-GPLV3-green" alt="License">
+    <img src="https://tokei.rs/b1/github/xia-mc/Raven-XD?category=code&style=flat" alt="Lines of code">
 </p>
 
 [![Github Release Downloads](https://img.shields.io/github/downloads/xia-mc/Raven-bS/total?label=Github%20Release%20Downloads&style=flat-square)](https://github.com/xia-mc/Raven-bS/releases)
@@ -19,46 +17,29 @@ Raven B4, but for those who can't afford it.
 
 Raven B4, but not only for Hypixel.
 
-![2024-07-10_14 13 51](https://github.com/xia-mc/Raven-XD/assets/108219418/15470b4f-b29d-49a5-8396-1c1d4bd315a1)
+<a href="https://dsc.gg/ravenxd"><img src="https://invidget.switchblade.xyz/zSgDKArSH4" alt="https://dsc.gg/ravenxd"/></a><br>
+[QQ Group (645021103)](https://qm.qq.com/q/vv0xPdfc6A)
 
-### ***More functionality while staying in sync with upstream branches.***
-
-<a href="https://discord.gg/zSgDKArSH4"><img src="https://invidget.switchblade.xyz/zSgDKArSH4" alt="https://discord.gg/zSgDKArSH4"/></a><br>
+![2024-08-13_10 14 36](https://github.com/user-attachments/assets/36e8920e-336e-4b62-ae3f-6b9962920812)
+![Screenshot 2024-08-13 084510](https://github.com/user-attachments/assets/85637f18-9d6b-47d9-9dc2-cb8594aff585)
 </div>
 
-## Additional Modules
- 1. Hypixel
-    - Up Sprint Scaffold
-    - Fireball LongJump
-    - NoFall
-    - AntiVoid
- 2. BlocksMC
-    - NoSlow
-    - AntiVoid
-    - Tower
- 3. Intave
-    - KillAura
-    - Scaffold
-    - NoSlow
- 4. GrimAC
-    - KillAura
-    - Scaffold
-    - NoSlow
-    - Velocity
-    - Fly
- 5. Polar
-    - NoSlow
- 6. Undetectable
-    - AimAssist
-    - AutoClicker
-    - HitSelect
-    - MoreKB
-    - Block-In
-    - Legit Scaffold
- 7. Common
-    - Client-side AntiCheat
-    - TimerRange
-    - Backtrack
+## How do I install this client?
+
+### Steps:
+
+1. **Download the latest .jar file from the releases**:
+   - Download from [https://github.com/xia-mc/Raven-XD/releases](https://github.com/xia-mc/Raven-XD/releases)
+   - This client requires Forge 1.8.9.
+
+2. **Put in mods folder of your .minecraft directory**:
+   - If you don't already have this, please install Forge 1.8.9 by clicking installer, and clicking skip after 5 seconds (https://files.minecraftforge.net/net/minecraftforge/forge/index_1.8.9.html).
+   - Once you've done that, open file explorer, and in the search bar type %Appdata%. Once you're there navigate to .minecraft, then finally the folder called "mods".
+   - After you're there, all you have to do is drag the file that you just downloaded there.
+
+3. **Launch Minecraft**:
+   - Once your on this step, you are pretty much done. When it's done loading, if you have done it properly, it should have a background with a train and the string "Raven XD" in big white letters.
+   - For more help, join the discord server and ask in #public-support.
 
 ## How do I build this client?
 
@@ -81,7 +62,7 @@ Raven B4, but not only for Hypixel.
    - Run the following commands in the terminal or command prompt:
      ```bash
      git clone --recursive https://github.com/xia-mc/Raven-XD.git
-     cd Raven-bS
+     cd Raven-XD
      ```
 
 5. **Set Up the Project**:
@@ -89,7 +70,6 @@ Raven B4, but not only for Hypixel.
      ```bash
      gradlew.bat
      gradle wrapper
-     gradlew setupDecompWorkspace && gradlew idea
      gradlew build
      ```
 
@@ -102,4 +82,12 @@ Feel free to raise an issue or submit a pull request.
 
 If you want to co-develop this project with me, please contact me.
 
+You can also support us on [Patreon](https://www.patreon.com/xia__mc)!
+
+<div align="center">
+
+[!![-preview](https://github.com/user-attachments/assets/ac50e6e5-3227-4ee9-9881-2e7b8ba47861)](https://www.patreon.com/xia__mc)
+
 <img src="https://github.com/SAWARATSUKI/KawaiiLogos/blob/main/IntelliJ IDEA/IntelliJ IDEA.png" alt="Java" width="500" />
+
+</div>

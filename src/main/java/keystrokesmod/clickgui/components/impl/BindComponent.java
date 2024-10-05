@@ -5,6 +5,7 @@ import keystrokesmod.clickgui.components.Component;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.impl.client.Gui;
 import keystrokesmod.utility.Theme;
+import keystrokesmod.utility.Utils;
 import keystrokesmod.utility.profile.ProfileModule;
 import net.minecraft.client.Minecraft;
 import org.lwjgl.input.Keyboard;
@@ -30,7 +31,7 @@ public class BindComponent extends Component {
     public void render() {
         GL11.glPushMatrix();
         GL11.glScaled(0.5D, 0.5D, 0.5D);
-        this.drawString(!this.parent.mod.canBeEnabled() && this.parent.mod.script == null ? "Module cannot be bound." : this.isBinding ? "Press a key..." : "Current bind: '§e" + (this.parent.mod.getKeycode() >= 1000 ? "M" + (this.parent.mod.getKeycode() - 1000) : Keyboard.getKeyName(this.parent.mod.getKeycode())) + "§r'");
+        this.drawString(!this.parent.mod.canBeEnabled() && this.parent.mod.script == null ? "Module cannot be bound." : this.isBinding ? "Press a key..." : "Current bind: '§e" + Utils.getKeyName(this.parent.mod.getKeycode()) + "§r'");
         GL11.glPopMatrix();
     }
 
@@ -40,6 +41,8 @@ public class BindComponent extends Component {
     }
 
     public void onClick(int x, int y, int b) {
+        if (this.getSetting() != null && !this.getSetting().isVisible()) return;
+
         if (this.i(x, y) && this.parent.po && this.parent.mod.canBeEnabled()) {
             if (b == 0) {
                 this.isBinding = !this.isBinding;
@@ -93,7 +96,7 @@ public class BindComponent extends Component {
     }
 
     private void drawString(String s) {
-        Minecraft.getMinecraft().fontRendererObj.drawStringWithShadow(s, (float) ((this.parent.categoryComponent.getX() + 4) * 2), (float) ((this.parent.categoryComponent.getY() + this.bind + 3) * 2), !this.parent.mod.hidden ? Theme.getGradient(10, 0) : Theme.getGradient(11, 0));
+        getFont().drawStringWithShadow(s, (float) ((this.parent.categoryComponent.getX() + 4) * 2), (float) ((this.parent.categoryComponent.getY() + this.bind + 3) * 2), !this.parent.mod.hidden ? Theme.getGradient(10, 0) : Theme.getGradient(11, 0));
     }
 
     public void onGuiClosed() {

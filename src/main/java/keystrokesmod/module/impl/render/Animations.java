@@ -1,31 +1,35 @@
 package keystrokesmod.module.impl.render;
 
-import keystrokesmod.event.PreMotionEvent;
-import keystrokesmod.event.RenderItemEvent;
-import keystrokesmod.event.SwingAnimationEvent;
+import keystrokesmod.event.*;
 import keystrokesmod.mixins.impl.render.ItemRendererAccessor;
 import keystrokesmod.module.Module;
+import keystrokesmod.module.impl.combat.KillAura;
+import keystrokesmod.module.impl.other.SlotHandler;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.utility.PacketUtils;
 import keystrokesmod.utility.Utils;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.item.EnumAction;
 import net.minecraft.item.ItemMap;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.play.client.C0APacketAnimation;
+import net.minecraft.network.play.server.S09PacketHeldItemChange;
+import net.minecraft.network.play.server.S0BPacketAnimation;
 import net.minecraft.util.MathHelper;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.opengl.GL11;
 
-import static net.minecraft.util.MovingObjectPosition.MovingObjectType.BLOCK;
-
 public class Animations extends Module {
     private final ModeSetting blockAnimation = new ModeSetting("Block animation", new String[]{"None", "1.7", "Smooth", "Exhibition", "Stab", "Spin", "Sigma", "Wood", "Swong", "Chill", "Komorebi", "Rhys", "Allah"}, 1);
     private final ModeSetting swingAnimation = new ModeSetting("Swing animation", new String[]{"None", "1.9+", "Smooth", "Punch", "Shove"}, 0);
     private final ModeSetting otherAnimation = new ModeSetting("Other animation", new String[]{"None", "1.7"}, 1);
-    private final ButtonSetting blockAndSwing = new ButtonSetting("Block and swing", false);
+    public static final ButtonSetting swingWhileDigging = new ButtonSetting("Swing while digging", true);
+    public static final ButtonSetting clientSide = new ButtonSetting("Client side (visual 1.7)", true, swingWhileDigging::isToggled);
+    private final ButtonSetting fakeSlotReset = new ButtonSetting("Fake slot reset", false);
     private final SliderSetting x = new SliderSetting("X", 0, -1, 1, 0.05);
     private final SliderSetting y = new SliderSetting("Y", 0, -1, 1, 0.05);
     private final SliderSetting z = new SliderSetting("Z", 0, -1, 1, 0.05);
@@ -35,9 +39,37 @@ public class Animations extends Module {
 
     public Animations() {
         super("Animations", category.render);
-        this.registerSetting(blockAnimation, swingAnimation, otherAnimation, blockAndSwing, x, y, z, swingSpeed);
+        this.registerSetting(blockAnimation, swingAnimation, otherAnimation, swingWhileDigging, clientSide, fakeSlotReset, x, y, z, swingSpeed);
     }
 
+    @SubscribeEvent
+    public void onSendPacket(SendPacketEvent event) {
+        if (Utils.nullCheck()
+                && swingWhileDigging.isToggled()
+                && clientSide.isToggled()
+                && event.getPacket() instanceof C0APacketAnimation
+                && mc.thePlayer.isUsingItem()
+        )
+            event.setCanceled(true);
+    }
+
+    @SubscribeEvent
+    public void onReceivePacket(ReceivePacketEvent event) {
+        if (Utils.nullCheck()
+                && fakeSlotReset.isToggled()
+                && event.getPacket() instanceof S0BPacketAnimation
+                && SlotHandler.getHeldItem() != null
+                && SlotHandler.getCurrentSlot() == mc.thePlayer.inventory.currentItem
+                && KillAura.target != null
+        ) {
+            final S0BPacketAnimation packet = (S0BPacketAnimation) event.getPacket();
+            if (packet.getAnimationType() == 1 && packet.getEntityID() == KillAura.target.getEntityId()) {
+                mc.getItemRenderer().resetEquippedProgress();
+            }
+        }
+    }
+
+    @SuppressWarnings("IntegerDivisionInFloatingPointContext")
     @SubscribeEvent
     public void onRenderItem(@NotNull RenderItemEvent event) {
         try {
@@ -243,11 +275,6 @@ public class Animations extends Module {
                 swing = 9;
             } else {
                 swing = Math.max(0, swing - 1);
-            }
-
-            if (blockAndSwing.isToggled() && mc.objectMouseOver.typeOfHit == BLOCK
-                    && mc.gameSettings.keyBindAttack.isKeyDown()) {
-                mc.thePlayer.swingItem();
             }
         } catch (Exception ignore) {
         }

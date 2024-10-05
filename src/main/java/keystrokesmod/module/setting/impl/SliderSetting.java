@@ -4,17 +4,25 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import keystrokesmod.module.setting.Setting;
 import keystrokesmod.module.setting.interfaces.InputSetting;
+import keystrokesmod.utility.i18n.I18nModule;
+import keystrokesmod.utility.i18n.settings.I18nSetting;
+import keystrokesmod.utility.i18n.settings.I18nSliderSetting;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Map;
 import java.util.function.Supplier;
 
 public class SliderSetting extends Setting implements InputSetting {
     private final String settingName;
+    @Getter
     private String[] options = null;
     private double defaultValue;
+    @Getter
     private double max;
+    @Getter
     private final double min;
     private final double intervals;
     public boolean isString;
@@ -35,7 +43,7 @@ public class SliderSetting extends Setting implements InputSetting {
 
     public SliderSetting(String settingName, double defaultValue, double min, double max, double intervals, String settingInfo,
                          Supplier<Boolean> visibleCheck) {
-        super(settingName, visibleCheck);
+        super(settingName, visibleCheck, null);
         this.settingName = settingName;
         this.defaultValue = defaultValue;
         this.min = min;
@@ -52,7 +60,7 @@ public class SliderSetting extends Setting implements InputSetting {
 
     @Deprecated
     public SliderSetting(String settingName, String @NotNull [] options, double defaultValue, Supplier<Boolean> visibleCheck) {
-        super(settingName, visibleCheck);
+        super(settingName, visibleCheck, null);
         this.settingName = settingName;
         this.options = options;
         this.defaultValue = defaultValue;
@@ -62,12 +70,21 @@ public class SliderSetting extends Setting implements InputSetting {
         this.isString = true;
     }
 
-    public String getInfo() {
-        return " " + this.settingInfo;
+    public String getPrettyInfo() {
+        if (parent != null) {
+            I18nModule i18nObject = parent.getI18nObject();
+            if (i18nObject != null) {
+                Map<Setting, I18nSetting> settings = i18nObject.getSettings();
+                if (settings.containsKey(this)) {
+                    return ((I18nSliderSetting) settings.get(this)).getSettingInfo();
+                }
+            }
+        }
+        return getInfo();
     }
 
-    public String[] getOptions() {
-        return options;
+    public String getInfo() {
+        return this.settingInfo;
     }
 
     public void setOptions(String @NotNull [] options) {
@@ -85,14 +102,7 @@ public class SliderSetting extends Setting implements InputSetting {
         return roundToInterval(this.defaultValue, 2);
     }
 
-    public double getMin() {
-        return this.min;
-    }
-
-    public double getMax() {
-        return this.max;
-    }
-
+    @Override
     public void setValue(double n) {
         n = correctValue(n, this.min, this.max);
         n = (double) Math.round(n * (1.0D / this.intervals)) / (1.0D / this.intervals);

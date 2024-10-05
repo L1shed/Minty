@@ -2,6 +2,7 @@ package keystrokesmod.module.impl.render;
 
 import keystrokesmod.event.*;
 import keystrokesmod.module.Module;
+import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.utility.RotationUtils;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
@@ -14,7 +15,7 @@ import javax.annotation.Nullable;
 public class FreeLook extends Module {
     private final ButtonSetting onlyIfPressed = new ButtonSetting("Only if pressed", true);
 
-    private @Nullable ViewData viewData = null;
+    public static @Nullable ViewData viewData = null;
 
     public FreeLook() {
         super("FreeLook", category.render);
@@ -31,15 +32,28 @@ public class FreeLook extends Module {
         viewData = null;
     }
 
+    public static void call() {
+        if (ModuleManager.freeLook.isEnabled() && FreeLook.viewData != null) {
+            mc.objectMouseOver = RotationUtils.rayCast(
+                    mc.playerController.getBlockReachDistance(),
+                    FreeLook.viewData.rotationYaw,
+                    FreeLook.viewData.rotationPitch
+            );
+        }
+    }
+
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onPreMotion(RotationEvent event) {
-        if (onlyIfPressed.isToggled() && !Keyboard.isKeyDown(this.getKeycode())) {
-            disable();
-            return;
+        try {
+            if (onlyIfPressed.isToggled() && !Keyboard.isKeyDown(this.getKeycode())) {
+                disable();
+                return;
+            }
+        } catch (IndexOutOfBoundsException ignored) {
         }
 
         if (viewData != null){
-            mc.objectMouseOver = RotationUtils.rayCast(mc.playerController.getBlockReachDistance(), viewData.rotationYaw, viewData.rotationPitch);
+            call();
             if (!event.isSet()) {
                 event.setYaw(viewData.rotationYaw);
                 event.setPitch(viewData.rotationPitch);
@@ -68,10 +82,10 @@ public class FreeLook extends Module {
         }
     }
 
-    private static class ViewData {
-        private final int thirdPersonView;
-        private final float rotationYaw;
-        private final float rotationPitch;
+    public static class ViewData {
+        public final int thirdPersonView;
+        public final float rotationYaw;
+        public final float rotationPitch;
 
         public ViewData(int thirdPersonView, float rotationYaw, float rotationPitch) {
             this.thirdPersonView = thirdPersonView;

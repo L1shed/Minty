@@ -6,6 +6,8 @@ import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.AbstractClientPlayer;
+import net.minecraft.client.entity.EntityPlayerSP;
+import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.init.Blocks;
@@ -204,18 +206,20 @@ public class BlockUtils {
 
 
     public static @NotNull Set<BlockPos> getSurroundBlocks(@NotNull AbstractClientPlayer target) {
-        AxisAlignedBB playerBox = target.getEntityBoundingBox();
+        return getSurroundBlocks(target.getEntityBoundingBox());
+    }
 
-        int minX = MathHelper.floor_double(playerBox.minX) - 1;
-        int minY = MathHelper.floor_double(playerBox.minY) - 1;
-        int minZ = MathHelper.floor_double(playerBox.minZ) - 1;
-        int maxX = MathHelper.floor_double(playerBox.maxX) + 1;
-        int maxY = MathHelper.floor_double(playerBox.maxY) + 1;
-        int maxZ = MathHelper.floor_double(playerBox.maxZ) + 1;
+    public static @NotNull Set<BlockPos> getSurroundBlocks(@NotNull AxisAlignedBB box) {
+        int minX = MathHelper.floor_double(box.minX) - 1;
+        int minY = MathHelper.floor_double(box.minY) - 1;
+        int minZ = MathHelper.floor_double(box.minZ) - 1;
+        int maxX = MathHelper.floor_double(box.maxX) + 1;
+        int maxY = MathHelper.floor_double(box.maxY) + 1;
+        int maxZ = MathHelper.floor_double(box.maxZ) + 1;
 
         return getAllInBox(new BlockPos(minX, minY, minZ), new BlockPos(maxX, maxY, maxZ))
                 .stream()
-                .filter(blockPos -> !playerBox.intersectsWith(new AxisAlignedBB(
+                .filter(blockPos -> !box.intersectsWith(new AxisAlignedBB(
                         blockPos.getX(), blockPos.getY(), blockPos.getZ(),
                         blockPos.getX() + 1, blockPos.getY() + 1, blockPos.getZ() + 1
                 )))
@@ -224,5 +228,38 @@ public class BlockUtils {
 //                .filter(blockPos -> !((blockPos.getY() == minY || blockPos.getY() == maxY)
 //                        && (blockPos.getX() == minX || blockPos.getX() == maxX || blockPos.getZ() == minZ || blockPos.getZ() == maxZ)))
                 .collect(Collectors.toSet());
+    }
+
+    public static boolean insideBlock() {
+        if (mc.thePlayer.ticksExisted < 5) {
+            return false;
+        }
+
+        return insideBlock(mc.thePlayer.getEntityBoundingBox());
+    }
+
+    public static boolean insideBlock(@NotNull final AxisAlignedBB bb) {
+        final WorldClient world = mc.theWorld;
+        for (int x = MathHelper.floor_double(bb.minX); x < MathHelper.floor_double(bb.maxX) + 1; ++x) {
+            for (int y = MathHelper.floor_double(bb.minY); y < MathHelper.floor_double(bb.maxY) + 1; ++y) {
+                for (int z = MathHelper.floor_double(bb.minZ); z < MathHelper.floor_double(bb.maxZ) + 1; ++z) {
+                    final Block block = world.getBlockState(new BlockPos(x, y, z)).getBlock();
+                    final AxisAlignedBB boundingBox;
+                    if (block != null && !(block instanceof BlockAir) && (boundingBox = block.getCollisionBoundingBox(world, new BlockPos(x, y, z), world.getBlockState(new BlockPos(x, y, z)))) != null && bb.intersectsWith(boundingBox)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    public static Block blockRelativeToPlayer(final double offsetX, final double offsetY, final double offsetZ) {
+        return mc.theWorld.getBlockState(new BlockPos(mc.thePlayer).add(offsetX, offsetY, offsetZ)).getBlock();
+    }
+
+    public static boolean isBlockOver(double height, boolean boundingBox) {
+        AxisAlignedBB bb = mc.thePlayer.getEntityBoundingBox().offset(0.0, height / 2.0, 0.0).expand(0.0, height - (double) mc.thePlayer.height, 0.0);
+        return !mc.theWorld.getCollidingBoundingBoxes(mc.thePlayer, bb).isEmpty();
     }
 }

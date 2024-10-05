@@ -1,5 +1,6 @@
 package keystrokesmod.module.impl.world;
 
+import keystrokesmod.event.SafeWalkEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.setting.impl.ButtonSetting;
@@ -17,7 +18,7 @@ import org.lwjgl.input.Keyboard;
 public class SafeWalk extends Module {
     private final SliderSetting shiftDelay;
     private final SliderSetting motion;
-    public static ButtonSetting shift, blocksOnly, pitchCheck, disableOnForward;
+    private static ButtonSetting shift, blocksOnly, pitchCheck, disableOnForward;
     public ButtonSetting tower;
     private boolean isSneaking;
     private long b = 0L;
@@ -84,6 +85,12 @@ public class SafeWalk extends Module {
         if (shift.isToggled() && guiOpenEvent.gui == null) {
             this.isSneaking = mc.thePlayer.isSneaking();
         }
+    }
+
+    @SubscribeEvent
+    public void onSafeWalk(@NotNull SafeWalkEvent event) {
+        if (canSafeWalk())
+            event.setSafeWalk(true);
     }
 
     private void setSneakState(boolean down) {

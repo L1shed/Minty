@@ -1,13 +1,15 @@
 package keystrokesmod.module.impl.client;
 
 import keystrokesmod.Raven;
+import keystrokesmod.clickgui.ClickGui;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ButtonSetting;
+import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.utility.Utils;
 
 public class Gui extends Module {
-    public static ButtonSetting removePlayerModel, translucentBackground, removeWatermark, rainBowOutlines;
-//    public static SliderSetting font;
+    public static ButtonSetting removePlayerModel, resetPosition, translucentBackground, removeWatermark, rainBowOutlines, toolTip;
+    public static ModeSetting font;
 
     public Gui() {
         super("Gui", Module.category.client, 54);
@@ -15,7 +17,9 @@ public class Gui extends Module {
         this.registerSetting(removePlayerModel = new ButtonSetting("Remove player model", false));
         this.registerSetting(removeWatermark = new ButtonSetting("Remove watermark", false));
         this.registerSetting(translucentBackground = new ButtonSetting("Translucent background", true));
-//        this.registerSetting(font = new SliderSetting("Font", new String[]{"Minecraft", "Product Sans"}, 0));
+        this.registerSetting(toolTip = new ButtonSetting("Tool tip", true));
+        this.registerSetting(resetPosition = new ButtonSetting("Reset position", ClickGui::resetPosition));
+        this.registerSetting(font = new ModeSetting("Font", new String[]{"Minecraft", "Product Sans", "Tenacity"}, 0));
     }
 
     public void onEnable() {
@@ -23,7 +27,6 @@ public class Gui extends Module {
             mc.displayGuiScreen(Raven.clickGui);
             Raven.clickGui.initMain();
         }
-
         this.disable();
     }
 }

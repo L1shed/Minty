@@ -1,8 +1,8 @@
 package keystrokesmod.module.impl.other;
 
-import com.mojang.realmsclient.gui.ChatFormatting;
 import keystrokesmod.Raven;
 import keystrokesmod.module.Module;
+import keystrokesmod.module.impl.client.Settings;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.utility.PacketUtils;
@@ -14,21 +14,24 @@ import java.io.*;
 import java.util.*;
 
 public class StaffDetector extends Module {
-    public static final String[] STAFFLISTS = new String[]{"HypixelDefault", "BlocksMCDefault", "GamsterDefault", "GommeHDDefault", "PikaDefault"};
+    public static final String[] STAFFLISTS = new String[]{
+            "Hypixel", "BlocksMC", "Gamster", "GommeHD", "Pika", "Syuu", "Stardix", "MinemenClub", "MushMC",
+            "Twerion", "BedwarsPractice", "QuickMacro", "Heypixel", "HylexMC", "Jartex", "Mineland"
+    };
     public static final List<Set<String>> STAFFS = new ArrayList<>();
     public static final Set<String> hasFlagged = new HashSet<>();
 
     private final ModeSetting mode = new ModeSetting("Mode", STAFFLISTS, 0);
     private final ButtonSetting autoLobby = new ButtonSetting("Auto lobby", false);
+    private final ButtonSetting alarm = new ButtonSetting("Alarm", false);
 
     public StaffDetector() {
         super("StaffDetector", category.other);
-        this.registerSetting(mode, autoLobby);
+        this.registerSetting(mode, autoLobby, alarm);
 
         for (String s : STAFFLISTS) {
-            try (BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(
-                            Objects.requireNonNull(Raven.class.getResourceAsStream("/assets/keystrokesmod/stafflists/" + s + ".txt"))))) {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(
+                    Objects.requireNonNull(Raven.class.getResourceAsStream("/assets/keystrokesmod/stafflists/" + s + ".txt"))))) {
                 Set<String> lines = new HashSet<>();
                 String line;
                 while ((line = reader.readLine()) != null) {
@@ -54,6 +57,9 @@ public class StaffDetector extends Module {
                 if (autoLobby.isToggled()) {
                     PacketUtils.sendPacket(new C01PacketChatMessage("/lobby"));
                     Utils.sendMessage("Return to lobby...");
+                }
+                if (alarm.isToggled()) {
+                    mc.thePlayer.playSound("keystrokesmod:alarm", 1, 1);
                 }
             }
         }

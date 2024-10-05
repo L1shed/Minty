@@ -4,9 +4,9 @@ import keystrokesmod.Raven;
 import keystrokesmod.script.classes.Vec3;
 import net.minecraft.client.network.NetHandlerPlayClient;
 import net.minecraft.network.Packet;
+import net.minecraft.network.play.INetHandlerPlayClient;
 import net.minecraft.network.play.client.C03PacketPlayer;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +17,7 @@ public class PacketUtils {
     public static List<Packet<?>> skipReceiveEvent = new ArrayList<>();
 
     public static void sendPacketNoEvent(Packet<?> packet) {
-        if (packet == null || packet.getClass().getSimpleName().startsWith("S")) {
+        if (packet == null) {
             return;
         }
         skipSendEvent.add(packet);
@@ -25,13 +25,13 @@ public class PacketUtils {
     }
 
     public static void sendPacket(Packet<?> packet) {
-        if (packet == null || packet.getClass().getSimpleName().startsWith("S")) {
+        if (packet == null) {
             return;
         }
         Raven.mc.thePlayer.sendQueue.addToSendQueue(packet);
     }
 
-    public static void receivePacketNoEvent(Packet<NetHandlerPlayClient> packet) {
+    public static void receivePacketNoEvent(Packet<INetHandlerPlayClient> packet) {
         try {
             skipReceiveEvent.add(packet);
             packet.processPacket(Raven.mc.getNetHandler());
@@ -41,7 +41,7 @@ public class PacketUtils {
         }
     }
 
-    public static void receivePacket(Packet<NetHandlerPlayClient> packet) {
+    public static void receivePacket(Packet<INetHandlerPlayClient> packet) {
         try {
             packet.processPacket(Raven.mc.getNetHandler());
         }

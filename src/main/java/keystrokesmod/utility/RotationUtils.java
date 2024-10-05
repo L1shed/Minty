@@ -7,15 +7,12 @@ import keystrokesmod.module.impl.other.anticheats.utils.world.PlayerRotation;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.item.EntityItemFrame;
 import net.minecraft.util.*;
 import org.apache.commons.lang3.tuple.Triple;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class RotationUtils {
     public static final Minecraft mc = Minecraft.getMinecraft();
@@ -147,16 +144,21 @@ public class RotationUtils {
         return (float) (Math.atan2(n - mc.thePlayer.posX, n2 - mc.thePlayer.posZ) * 57.295780181884766 * -1.0);
     }
 
-    public static MovingObjectPosition rayCast(final double distance, final float yaw, final float pitch) {
-        final Vec3 getPositionEyes = mc.thePlayer.getPositionEyes(1.0f);
+    public static MovingObjectPosition rayCast(final Vec3 from, final double distance, final float yaw, final float pitch) {
         final float n4 = -yaw * 0.017453292f;
         final float n5 = -pitch * 0.017453292f;
         final float cos = MathHelper.cos(n4 - 3.1415927f);
         final float sin = MathHelper.sin(n4 - 3.1415927f);
         final float n6 = -MathHelper.cos(n5);
         final Vec3 vec3 = new Vec3(sin * n6, MathHelper.sin(n5), cos * n6);
-        return mc.theWorld.rayTraceBlocks(getPositionEyes, getPositionEyes.addVector(vec3.xCoord * distance, vec3.yCoord * distance, vec3.zCoord * distance), false, false, false);
+        return mc.theWorld.rayTraceBlocks(from, from.addVector(vec3.xCoord * distance, vec3.yCoord * distance, vec3.zCoord * distance), false, false, false);
     }
+
+    public static MovingObjectPosition rayCast(final double distance, final float yaw, final float pitch) {
+        final Vec3 getPositionEyes = mc.thePlayer.getPositionEyes(1.0f);
+        return rayCast(getPositionEyes, distance, yaw, pitch);
+    }
+
     public static MovingObjectPosition rayTraceCustom(double blockReachDistance, float yaw, float pitch) {
         final Vec3 vec3 = mc.thePlayer.getPositionEyes(1.0F);
         final Vec3 vec31 = getVectorForRotation(pitch, yaw);
@@ -223,6 +225,23 @@ public class RotationUtils {
         return new keystrokesmod.script.classes.Vec3(pointX, pointY, pointZ);
     }
 
+    public static EnumFacing getEnumFacing(keystrokesmod.script.classes.@NotNull Vec3 hitPos, @NotNull AxisAlignedBB box) {
+        if (hitPos.y() == box.maxY) {
+            return EnumFacing.UP;
+        } else if (hitPos.y() == box.minY) {
+            return EnumFacing.DOWN;
+        } else if (hitPos.x() == box.minX) {
+            return EnumFacing.WEST;
+        } else if (hitPos.x() == box.maxX) {
+            return EnumFacing.EAST;
+        } else if (hitPos.z() == box.minZ) {
+            return EnumFacing.NORTH;
+        } else if (hitPos.z() == box.maxZ) {
+            return EnumFacing.SOUTH;
+        }
+        return mc.thePlayer.getHorizontalFacing();
+    }
+
     @Contract("_, _ -> new")
     public static @NotNull keystrokesmod.script.classes.Vec3 getFarthestPoint(@NotNull AxisAlignedBB from, @NotNull keystrokesmod.script.classes.Vec3 to) {
         double pointX, pointY, pointZ;
@@ -240,20 +259,30 @@ public class RotationUtils {
     }
 
     public static float normalize(float yaw) {
-        while (yaw > 360) {
-            yaw -= 360;
+        return normalize(yaw, -180, 180);
+    }
+
+    /**
+     * normalize the yaw from min to max.
+     * @return min <= yaw < max
+     */
+    public static float normalize(float yaw, float min, float max) {
+        yaw %= 360.0F;
+        if (yaw >= max) {
+            yaw -= 360.0F;
         }
-        while (yaw < 0) {
-            yaw += 360;
+        if (yaw < min) {
+            yaw += 360.0F;
         }
+
         return yaw;
     }
 
-    public static boolean isMouseOver(final float yaw, final float pitch, final Entity target, final float range) {
+    @Contract("_, _, _ -> new")
+    public static @NotNull MovingObjectPosition rayCastStrict(final float yaw, final float pitch, final double range) {
         final float partialTicks = Utils.getTimer().renderPartialTicks;
-        final Entity entity = mc.getRenderViewEntity();
+        final Entity entity = mc.thePlayer;
         MovingObjectPosition objectMouseOver;
-        Entity mcPointedEntity = null;
 
         if (entity != null && mc.theWorld != null) {
 
@@ -262,7 +291,7 @@ public class RotationUtils {
             objectMouseOver = entity.rayTrace(d0, partialTicks);
             double d1 = d0;
             final Vec3 vec3 = entity.getPositionEyes(partialTicks);
-            final boolean flag = d0 > (double) range;
+            final boolean flag = d0 > range;
 
             if (objectMouseOver != null) {
                 d1 = objectMouseOver.hitVec.distanceTo(vec3);
@@ -298,33 +327,40 @@ public class RotationUtils {
                 }
             }
 
-            if (pointedEntity != null && flag && vec3.distanceTo(vec33) > (double) range) {
-                pointedEntity = null;
-                objectMouseOver = new MovingObjectPosition(MovingObjectPosition.MovingObjectType.MISS, vec33, null, new BlockPos(vec33));
+            if (pointedEntity != null && flag && vec3.distanceTo(vec33) > range) {
+                return new MovingObjectPosition(MovingObjectPosition.MovingObjectType.MISS, vec33, null, new BlockPos(vec33));
             }
 
             if (pointedEntity != null && (d2 < d1 || objectMouseOver == null)) {
-                if (pointedEntity instanceof EntityLivingBase || pointedEntity instanceof EntityItemFrame) {
-                    mcPointedEntity = pointedEntity;
-                }
+                return new MovingObjectPosition(pointedEntity, vec33);
+            }
+
+            if (vec33 != null) {
+                return new MovingObjectPosition(MovingObjectPosition.MovingObjectType.MISS, vec33, null, new BlockPos(vec33));
             }
 
             mc.mcProfiler.endSection();
-
-            return mcPointedEntity == target;
         }
 
-        return false;
+        return new MovingObjectPosition(MovingObjectPosition.MovingObjectType.MISS, keystrokesmod.script.classes.Vec3.ZERO.toVec3(), null, BlockPos.ORIGIN);
     }
 
+    private static final Set<EnumFacing> FACINGS = new HashSet<>(Arrays.asList(EnumFacing.VALUES));
+
+    @Contract(pure = true)
     public static @NotNull Optional<Triple<BlockPos, EnumFacing, keystrokesmod.script.classes.Vec3>> getPlaceSide(@NotNull BlockPos blockPos) {
+        return getPlaceSide(blockPos, FACINGS);
+    }
+
+    @Contract(pure = true)
+    public static @NotNull Optional<Triple<BlockPos, EnumFacing, keystrokesmod.script.classes.Vec3>> getPlaceSide(@NotNull BlockPos blockPos, Set<EnumFacing> limitFacing) {
         final List<BlockPos> possible = Arrays.asList(
                 blockPos.down(), blockPos.east(), blockPos.west(),
                 blockPos.north(), blockPos.south(), blockPos.up()
         );
 
         for (BlockPos pos : possible) {
-            if (BlockUtils.getBlockState(pos).getBlock().isFullBlock()) {
+            if (!BlockUtils.replaceable(pos)) {
                 EnumFacing facing;
                 keystrokesmod.script.classes.Vec3 hitPos;
                 if (pos.getY() < blockPos.getY()) {
@@ -347,9 +383,22 @@ public class RotationUtils {
                     hitPos = new keystrokesmod.script.classes.Vec3(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
                 }
 
+                if (!limitFacing.contains(facing)) continue;
+
                 return Optional.of(Triple.of(pos, facing, hitPos));
             }
         }
         return Optional.empty();
+    }
+
+    public static BlockPos getExtendedPos(@NotNull BlockPos startPos, float yaw, double distance) {
+        // Convert yaw to radians
+        double radians = Math.toRadians(yaw);
+
+        // Calculate the offset
+        int xOffset = -(int) (distance * Math.sin(radians));
+        int zOffset = (int) (distance * Math.cos(radians));
+
+        return startPos.add(xOffset, 0, zOffset);
     }
 }

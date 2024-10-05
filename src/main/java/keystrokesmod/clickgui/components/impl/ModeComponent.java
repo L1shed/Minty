@@ -27,9 +27,9 @@ public class ModeComponent extends Component {
         GL11.glPushMatrix();
         GL11.glScaled(0.5D, 0.5D, 0.5D);
 
-        String value = this.ModeSetting.getOptions()[(int) this.ModeSetting.getInput()];
-        Raven.mc.fontRendererObj.drawString(
-                this.ModeSetting.getName() + ": " + value,
+        String value = this.ModeSetting.getPrettyOptions()[(int) this.ModeSetting.getInput()];
+        getFont().drawString(
+                this.ModeSetting.getPrettyName() + ": " + value,
                 (float) ((int) ((float) (this.parent.categoryComponent.getX() + 4) * 2.0F)),
                 (float) ((int) ((float) (this.parent.categoryComponent.getY() + this.o + 3) * 2.0F)),
                 color, true
@@ -48,6 +48,8 @@ public class ModeComponent extends Component {
     }
 
     public void onClick(int x, int y, int b) {
+        if (this.getSetting() != null && !this.getSetting().isVisible()) return;
+
         if (isHover(x, y) && this.parent.po) {
             changeValue(b, Keyboard.isKeyDown(Raven.mc.gameSettings.keyBindSneak.getKeyCode()));
             parent.categoryComponent.render();

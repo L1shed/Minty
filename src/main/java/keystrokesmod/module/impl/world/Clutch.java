@@ -12,6 +12,7 @@ import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.module.setting.utils.ModeOnly;
 import keystrokesmod.script.classes.Vec3;
 import keystrokesmod.utility.*;
+import keystrokesmod.utility.aim.AimSimulator;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.C0APacketAnimation;
@@ -27,7 +28,7 @@ import java.util.Optional;
 
 public class Clutch extends Module {
     private final ModeSetting mode = new ModeSetting("Rotation mode", new String[]{"None", "Block", "Strict"}, 2);
-    private final SliderSetting aimSpeed = new SliderSetting("Aim speed", 20, 10, 30, 0.5, new ModeOnly(mode, 1, 2));
+    private final SliderSetting aimSpeed = new SliderSetting("Aim speed", 20, 10, 50, 0.5, new ModeOnly(mode, 1, 2));
     private final ButtonSetting lookView = new ButtonSetting("Look view", false, new ModeOnly(mode, 1, 2));
     private final SliderSetting placeDelay = new SliderSetting("Place delay", 50, 0, 500, 1, "ms");
     private final ButtonSetting overVoid = new ButtonSetting("Over void", true);
@@ -39,7 +40,7 @@ public class Clutch extends Module {
     private long lastPlace = -1;
 
     public Clutch() {
-        super("Clutch", category.world);
+        super("Clutch", category.experimental);
         this.registerSetting(mode, aimSpeed, lookView, placeDelay, overVoid, fallDistance, minFallDistance, autoSwitch, silentSwing);
     }
 
@@ -66,7 +67,7 @@ public class Clutch extends Module {
         }
 
         final Vec3 eyePos = Utils.getEyePos();
-        final BlockPos position = mc.thePlayer.getPosition();
+        final BlockPos position = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
         final Vec3 groundPos = new Vec3(position.getX() + 0.5, position.getY() - 1, position.getZ() + 0.5);
         final List<BlockPos> blocks = BlockUtils.getAllInBox(position.add(-5, -5, -5), position.add(5, 0, 5));
 
@@ -107,8 +108,13 @@ public class Clutch extends Module {
                 final float yaw = PlayerRotation.getYaw(hitPos);
                 final float pitch = PlayerRotation.getPitch(hitPos);
 
-                rot.x = AimSimulator.rotMove(yaw, rot.x, (float) aimSpeed.getInput());
-                rot.y = AimSimulator.rotMove(pitch, rot.y, (float) aimSpeed.getInput());
+                if (aimSpeed.getInput() == aimSpeed.getMax()) {
+                    rot.x = yaw;
+                    rot.y = pitch;
+                } else {
+                    rot.x = AimSimulator.rotMove(yaw, rot.x, (float) aimSpeed.getInput());
+                    rot.y = AimSimulator.rotMove(pitch, rot.y, (float) aimSpeed.getInput());
+                }
                 if (lookView.isToggled()) {
                     mc.thePlayer.rotationYaw = rot.x;
                     mc.thePlayer.rotationPitch = rot.y;
@@ -150,6 +156,7 @@ public class Clutch extends Module {
     }
 
     private boolean shouldClutch() {
+        if (mc.thePlayer.onGround) return false;
         if (overVoid.isToggled() && Utils.overVoid()) return true;
         return fallDistance.isToggled() && mc.thePlayer.fallDistance >= minFallDistance.getInput();
     }

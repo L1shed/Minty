@@ -1,10 +1,12 @@
 package keystrokesmod.module.impl.other;
 
 import keystrokesmod.event.PreUpdateEvent;
+import keystrokesmod.mixins.impl.client.PlayerControllerMPAccessor;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.module.setting.utils.ModeOnly;
+import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -30,13 +32,19 @@ public final class SlotHandler extends Module {
     }
 
     public static @Nullable ItemStack getHeldItem() {
+        final InventoryPlayer inventory = mc.thePlayer.inventory;
         if (currentSlot != null)
-            return currentSlot < 9 && currentSlot >= 0 ? mc.thePlayer.inventory.mainInventory[currentSlot] : null;
-        return mc.thePlayer.getHeldItem();
+            return currentSlot < 9 && currentSlot >= 0 ? inventory.mainInventory[currentSlot] : null;
+        return getRenderHeldItem();
+    }
+
+    public static @Nullable ItemStack getRenderHeldItem() {
+        final InventoryPlayer inventory = mc.thePlayer.inventory;
+        return inventory.currentItem < 9 && inventory.currentItem >= 0 ? inventory.mainInventory[inventory.currentItem] : null;
     }
 
     public static void setCurrentSlot(int slot) {
-        if (slot != -1) {
+        if (slot > 0 && slot < 9) {
             currentSlot = slot;
             lastSetCurrentSlotTime = System.currentTimeMillis();
         }
@@ -50,7 +58,9 @@ public final class SlotHandler extends Module {
                 currentSlot = null;
                 break;
             case 1:
-                if (currentSlot != null && System.currentTimeMillis() - lastSetCurrentSlotTime > switchBackDelay.getInput())
+                if (currentSlot != null
+                        && !((PlayerControllerMPAccessor) mc.playerController).isHittingBlock()
+                        && System.currentTimeMillis() - lastSetCurrentSlotTime > switchBackDelay.getInput())
                     currentSlot = null;
                 break;
         }

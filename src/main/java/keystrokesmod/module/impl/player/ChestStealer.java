@@ -2,6 +2,7 @@ package keystrokesmod.module.impl.player;
 
 import keystrokesmod.Raven;
 import keystrokesmod.event.PreMotionEvent;
+import keystrokesmod.event.RenderContainerEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.setting.impl.ButtonSetting;
@@ -31,6 +32,8 @@ public class ChestStealer extends Module {
     private static final ButtonSetting customChest = new ButtonSetting("Custom chest", false);
     private final ButtonSetting ignoreTrash = new ButtonSetting("Ignore trash", false);
     private static final ButtonSetting silent = new ButtonSetting("Silent", false);
+    private static final ButtonSetting notMoving = new ButtonSetting("Not Moving", false);
+    public static ButtonSetting allowMouseControl = new ButtonSetting("Allow mouse control", false);
 
     private static State state = State.NONE;
     private long nextStealTime;
@@ -46,7 +49,7 @@ public class ChestStealer extends Module {
         super("ChestStealer", category.player);
         this.registerSetting(minStartDelay, maxStartDelay, minStealDelay, maxStealDelay, shuffle,
                 autoClose, autoCloseIfInvFull, minCloseDelay, maxCloseDelay,
-                customChest, ignoreTrash, silent);
+                customChest, ignoreTrash, silent, notMoving, allowMouseControl);
     }
 
     @Override
@@ -54,6 +57,12 @@ public class ChestStealer extends Module {
         Utils.correctValue(minStartDelay, maxStartDelay);
         Utils.correctValue(minStealDelay, maxStealDelay);
         Utils.correctValue(minCloseDelay, maxCloseDelay);
+    }
+
+    @SubscribeEvent
+    public void onRenderContainer(RenderContainerEvent event) {
+        if (silent.isToggled())
+            event.setCanceled(true);
     }
 
     @Override
@@ -81,6 +90,17 @@ public class ChestStealer extends Module {
 
     @SubscribeEvent
     public void onPreMotion(PreMotionEvent event) {
+        // Stop player movement on X and Z axes if `notMoving` is toggled and a chest is targeted
+        if (notMoving.isToggled() && ContainerUtils.isChest(customChest.isToggled())) {
+            mc.thePlayer.motionX = 0;
+            mc.thePlayer.motionZ = 0;
+        }
+
+        if (allowMouseControl.isToggled() && ContainerUtils.isChest(customChest.isToggled())) {
+            Utils.mc.inGameHasFocus = true;
+            Utils.mc.mouseHelper.grabMouseCursor();
+        }
+
         switch (state) {
             case STEAL:
                 while (nextStealTime <= System.currentTimeMillis()) {

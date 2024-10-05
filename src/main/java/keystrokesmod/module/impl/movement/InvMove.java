@@ -1,10 +1,14 @@
 package keystrokesmod.module.impl.movement;
 
+import keystrokesmod.clickgui.ClickGui;
+import keystrokesmod.event.MoveInputEvent;
+import keystrokesmod.event.PreUpdateEvent;
 import keystrokesmod.event.SendPacketEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.ModeSetting;
+import keystrokesmod.utility.MoveUtil;
 import keystrokesmod.utility.PacketUtils;
 import keystrokesmod.utility.Utils;
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -19,12 +23,14 @@ import org.lwjgl.input.Keyboard;
 import static keystrokesmod.module.ModuleManager.*;
 
 public class InvMove extends Module {
-    public static final String[] MODES = {"Normal", "Blink", "LegitInv"};
+    public static final String[] MODES = {"Normal", "Blink", "LegitInv", "Hypixel", "None"};
     private final ModeSetting mode;
+    private final ButtonSetting noOpenPacket;
     private final ButtonSetting allowSprint;
     private final ButtonSetting allowSneak;
     private final ButtonSetting chestNameCheck;
     private final ButtonSetting targetNearbyCheck;
+    private final ButtonSetting clickGui;
 
     private boolean blinking = false;
 
@@ -34,15 +40,27 @@ public class InvMove extends Module {
         super("InvMove", category.movement);
         this.registerSetting(new DescriptionSetting("Allow you move in inventory."));
         this.registerSetting(mode = new ModeSetting("Mode", MODES, 0));
+        this.registerSetting(noOpenPacket = new ButtonSetting("No open packet", false));
         this.registerSetting(allowSprint = new ButtonSetting("Allow sprint", false));
         this.registerSetting(allowSneak = new ButtonSetting("Allow sneak", false));
         this.registerSetting(chestNameCheck = new ButtonSetting("Chest name check", true));
         this.registerSetting(targetNearbyCheck = new ButtonSetting("Target nearby check", true));
+        this.registerSetting(clickGui = new ButtonSetting("Click gui", true));
     }
 
-    @Override
-    public void onUpdate() {
-        if (mc.currentScreen instanceof GuiContainer && nameCheck() && targetNearbyCheck() && !scaffold.isEnabled()) {
+    @SubscribeEvent
+    public void onMoveInput(MoveInputEvent event) {
+        if (mode.getInput() == 3 && canInvMove() && !(mc.currentScreen instanceof ClickGui))
+            event.setJump(false);
+    }
+
+    @SubscribeEvent
+    public void onPreUpdate(PreUpdateEvent event) {
+        if (canInvMove()) {
+            if (mc.currentScreen instanceof ClickGui && clickGui.isToggled()) {
+                doInvMove();
+                return;
+            }
             switch ((int) mode.getInput()) {
                 case 1:
                     if (!blinking) {
@@ -56,6 +74,11 @@ public class InvMove extends Module {
                         return;
                     }
                     break;
+                case 3:
+                    MoveUtil.stop();
+                    break;
+                case 4:
+                    return;
             }
 
 
@@ -77,8 +100,19 @@ public class InvMove extends Module {
         }
     }
 
+    private boolean canInvMove() {
+        return (mc.currentScreen instanceof GuiContainer || (clickGui.isToggled() && mc.currentScreen instanceof ClickGui))
+                && nameCheck() && targetNearbyCheck() && !scaffold.isEnabled();
+    }
+
     @SubscribeEvent
     public void onSendPacket(SendPacketEvent event) {
+        if (noOpenPacket.isToggled() && event.getPacket() instanceof C0BPacketEntityAction) {
+            if (((C0BPacketEntityAction) event.getPacket()).getAction() == C0BPacketEntityAction.Action.OPEN_INVENTORY) {
+                event.setCanceled(true);
+            }
+        }
+
         if ((int) mode.getInput() != 2) return;
 
         if (event.getPacket() instanceof C0BPacketEntityAction) {
@@ -89,7 +123,7 @@ public class InvMove extends Module {
                 event.setCanceled(true);
             }
         } else if (event.getPacket() instanceof C0EPacketClickWindow) {
-            if (!clicked) {
+            if (!clicked && !noOpenPacket.isToggled()) {
                 PacketUtils.sendPacketNoEvent(new C0BPacketEntityAction(mc.thePlayer, C0BPacketEntityAction.Action.OPEN_INVENTORY));
             }
             clicked = true;
@@ -99,6 +133,11 @@ public class InvMove extends Module {
     private void doInvMove() {
         if (allowSprint.isToggled()) {
             KeyBinding.setKeyBindState(mc.gameSettings.keyBindSprint.getKeyCode(), Keyboard.isKeyDown(mc.gameSettings.keyBindSprint.getKeyCode()));
+
+            // If sprint is enabled, set the sprint key to true
+            if (sprint.isEnabled()) {
+                KeyBinding.setKeyBindState(mc.gameSettings.keyBindSprint.getKeyCode(), true);
+            }
         }
         if (allowSneak.isToggled()) {
             KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), Keyboard.isKeyDown(mc.gameSettings.keyBindSneak.getKeyCode()));

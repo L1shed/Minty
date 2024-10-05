@@ -11,16 +11,28 @@
       "keystrokesmod:toggle/rise/disable"
     ]
   },
-  "toggle.augustus.enable": {
+  "toggle.sigma.enable": {
     "category": "player",
     "sounds": [
-      "keystrokesmod:toggle/augustus/enable"
+      "keystrokesmod:toggle/sigma/enable"
     ]
   },
-  "toggle.augustus.disable": {
+  "toggle.sigma.disable": {
     "category": "player",
     "sounds": [
-      "keystrokesmod:toggle/augustus/disable"
+      "keystrokesmod:toggle/sigma/disable"
+    ]
+  },
+  "toggle.quickmacro.enable": {
+    "category": "player",
+    "sounds": [
+      "keystrokesmod:toggle/quickmacro/enable"
+    ]
+  },
+  "toggle.quickmacro.disable": {
+    "category": "player",
+    "sounds": [
+      "keystrokesmod:toggle/quickmacro/disable"
     ]
   },
   "click.alan": {
@@ -39,6 +51,18 @@
     "category": "player",
     "sounds": [
       "keystrokesmod:click/standard"
+    ]
+  },
+  "alarm": {
+    "category": "player",
+    "sounds": [
+      "keystrokesmod:alarm"
+    ]
+  },
+  "yeet": {
+    "category": "player",
+    "sounds": [
+      "keystrokesmod:yeet"
     ]
   }
 }

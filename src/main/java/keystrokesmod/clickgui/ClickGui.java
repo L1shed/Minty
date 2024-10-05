@@ -7,17 +7,16 @@ import keystrokesmod.clickgui.components.impl.BindComponent;
 import keystrokesmod.clickgui.components.impl.CategoryComponent;
 import keystrokesmod.clickgui.components.impl.ModuleComponent;
 import keystrokesmod.module.Module;
+import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.client.CommandLine;
 import keystrokesmod.module.impl.client.Gui;
 import keystrokesmod.utility.Commands;
 import keystrokesmod.utility.Timer;
 import keystrokesmod.utility.Utils;
-import keystrokesmod.utility.font.Font;
 import keystrokesmod.utility.font.FontManager;
-import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.gui.GuiTextField;
-import net.minecraft.client.gui.ScaledResolution;
+import keystrokesmod.utility.font.IFont;
+import keystrokesmod.utility.render.GradientBlur;
+import net.minecraft.client.gui.*;
 import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraftforge.fml.client.config.GuiButtonExt;
 import org.lwjgl.input.Keyboard;
@@ -40,9 +39,16 @@ public class ClickGui extends GuiScreen {
     private ScaledResolution sr;
     private GuiButtonExt s;
     private GuiTextField c;
-    private final Font fontRendererObj = FontManager.getMinecraft();
     public static Map<Module.category, CategoryComponent> categories;
     public static List<Module.category> clickHistory;
+    private Runnable delayedAction = null;
+
+    private final GradientBlur blur = new GradientBlur(GradientBlur.Type.LR);
+
+    /**
+     * to make smooth mouse scrolled
+     */
+    private int guiYMoveLeft = 0;
 
     public ClickGui() {
         int y = 5;
@@ -61,6 +67,22 @@ public class ClickGui extends GuiScreen {
         }
     }
 
+    public static IFont getFont() {
+        switch ((int) Gui.font.getInput()) {
+            default:
+            case 0:
+                return FontManager.getMinecraft();
+            case 1:
+                return FontManager.productSans20;
+            case 2:
+                return FontManager.tenacity20;
+        }
+    }
+
+    public void run(Runnable task) {
+        delayedAction = task;
+    }
+
     public void initMain() {
         (this.aT = this.aE = this.aR = new Timer(500.0F)).start();
         this.sf = Raven.getExecutor().schedule(() -> (this.aL = new Timer(650.0F)).start(), 650L, TimeUnit.MILLISECONDS);
@@ -75,19 +97,37 @@ public class ClickGui extends GuiScreen {
     }
 
     public void drawScreen(int x, int y, float p) {
-        drawRect(0, 0, this.width, this.height, (int) (this.aR.getValueFloat(0.0F, 0.7F, 2) * 255.0F) << 24);
+        move:
+        if (guiYMoveLeft != 0) {
+            int step = (int) (guiYMoveLeft * 0.15);
+            if (step == 0) {
+                guiYMoveLeft = 0;
+                break move;
+            }
+            for (CategoryComponent category : categories.values()) {
+                category.y(category.getY() + step);
+            }
+            guiYMoveLeft -= step;
+        }
+
+        if (ModuleManager.clientTheme.isEnabled() && ModuleManager.clientTheme.clickGui.isToggled()) {
+            blur.update(0, 0, width, height);
+            blur.render(0, 0, width, height, 1, 0.1f);
+        } else {
+            drawRect(0, 0, this.width, this.height, (int) (this.aR.getValueFloat(0.0F, 0.7F, 2) * 255.0F) << 24);
+        }
         int r;
 
         if (!Gui.removeWatermark.isToggled()) {
             int h = this.height / 4;
             int wd = this.width / 2;
             int w_c = 30 - this.aT.getValueInt(0, 30, 3);
-            this.fontRendererObj.drawCenteredString("r", wd + 1 - w_c, h - 25, Utils.getChroma(2L, 1500L));
-            this.fontRendererObj.drawCenteredString("a", wd - w_c, h - 15, Utils.getChroma(2L, 1200L));
-            this.fontRendererObj.drawCenteredString("v", wd - w_c, h - 5, Utils.getChroma(2L, 900L));
-            this.fontRendererObj.drawCenteredString("e", wd - w_c, h + 5, Utils.getChroma(2L, 600L));
-            this.fontRendererObj.drawCenteredString("n", wd - w_c, h + 15, Utils.getChroma(2L, 300L));
-            this.fontRendererObj.drawCenteredString("XD", wd + 1 + w_c, h + 30, Utils.getChroma(2L, 0L));
+            getFont().drawCenteredString("r", wd + 1 - w_c, h - 25, Utils.getChroma(2L, 1500L));
+            getFont().drawCenteredString("a", wd - w_c, h - 15, Utils.getChroma(2L, 1200L));
+            getFont().drawCenteredString("v", wd - w_c, h - 5, Utils.getChroma(2L, 900L));
+            getFont().drawCenteredString("e", wd - w_c, h + 5, Utils.getChroma(2L, 600L));
+            getFont().drawCenteredString("n", wd - w_c, h + 15, Utils.getChroma(2L, 300L));
+            getFont().drawCenteredString("XD", wd + 1 + w_c, h + 30, Utils.getChroma(2L, 0L));
             this.drawVerticalLine(wd - 10 - w_c, h - 30, h + 43, Color.white.getRGB());
             this.drawVerticalLine(wd + 10 + w_c, h - 30, h + 43, Color.white.getRGB());
             if (this.aL != null) {
@@ -99,7 +139,7 @@ public class ClickGui extends GuiScreen {
 
         for (Module.category category : clickHistory) {
             CategoryComponent c = categories.get(category);
-            c.rf(this.fontRendererObj);
+            c.rf(getFont());
             c.up(x, y);
 
             for (IComponent m : c.getModules()) {
@@ -132,7 +172,7 @@ public class ClickGui extends GuiScreen {
             this.drawHorizontalLine(0, r - 1, this.height - 345, -1);
             this.drawHorizontalLine(0, r - 1, this.height - 115, -1);
             drawRect(r - 1, 0, r, this.height, -1);
-            Commands.rc(this.fontRendererObj, this.height, r, this.sr.getScaleFactor());
+            Commands.rc(getFont(), this.height, r, this.sr.getScaleFactor());
             int x2 = r - 178;
             this.c.xPosition = x2;
             this.s.xPosition = x2;
@@ -142,6 +182,9 @@ public class ClickGui extends GuiScreen {
             CommandLine.b = false;
         }
 
+        if (delayedAction != null)
+            delayedAction.run();
+        delayedAction = null;
     }
 
     @Override
@@ -156,14 +199,10 @@ public class ClickGui extends GuiScreen {
     public void mouseScrolled(int dWheel) {
         if (dWheel > 0) {
             // up
-            for (CategoryComponent category : categories.values()) {
-                category.y(category.getY() + 20);
-            }
+            guiYMoveLeft += 30;
         } else if (dWheel < 0) {
             // down
-            for (CategoryComponent category : categories.values()) {
-                category.y(category.getY() - 20);
-            }
+            guiYMoveLeft -= 30;
         }
     }
 
@@ -194,8 +233,8 @@ public class ClickGui extends GuiScreen {
                     category = var4.next();
                     if (category.v(x, y) && !category.i(x, y) && !category.d(x, y) && m == 0) {
                         category.d(true);
-                        category.xx = x - category.getX();
-                        category.yy = y - category.getY();
+                        category.dragStartX = x - category.getX();
+                        category.dragStartY = y - category.getY();
                     }
 
                     if (category.d(x, y) && m == 0) {
@@ -287,5 +326,21 @@ public class ClickGui extends GuiScreen {
             }
         }
         return false;
+    }
+
+    public static void resetPosition() {
+        int xOffSet = 5;
+        int yOffSet = 5;
+        for(CategoryComponent category : categories.values()) {
+            category.fv(false);
+            category.x(xOffSet);
+            category.y(yOffSet);
+            xOffSet = xOffSet + 100;
+            if (xOffSet > 400) {
+                xOffSet = 5;
+                yOffSet += 120;
+            }
+        }
+
     }
 }

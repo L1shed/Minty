@@ -10,6 +10,7 @@ import keystrokesmod.event.PreUpdateEvent;
 import keystrokesmod.event.ReceivePacketEvent;
 import keystrokesmod.mixins.impl.network.S14PacketEntityAccessor;
 import keystrokesmod.module.Module;
+import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.DescriptionSetting;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.script.classes.Vec3;
@@ -18,9 +19,9 @@ import keystrokesmod.utility.Utils;
 import keystrokesmod.utility.backtrack.TimedPacket;
 import keystrokesmod.utility.render.Animation;
 import keystrokesmod.utility.render.Easing;
-import net.minecraft.client.network.NetHandlerPlayClient;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.network.Packet;
+import net.minecraft.network.play.INetHandlerPlayClient;
 import net.minecraft.network.play.server.*;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
@@ -31,12 +32,13 @@ import org.jetbrains.annotations.Nullable;
 public class Backtrack extends Module {
     public static final Color color = new Color(72, 125, 227);
 
-    private final SliderSetting minLatency = new SliderSetting("Min latency", 50, 1, 1000, 1);
-    private final SliderSetting maxLatency = new SliderSetting("Max latency", 100, 1, 1000, 1);
+    private final SliderSetting minLatency = new SliderSetting("Min latency", 50, 10, 1000, 10);
+    private final SliderSetting maxLatency = new SliderSetting("Max latency", 100, 10, 1000, 10);
     private final SliderSetting minDistance = new SliderSetting("Min distance", 0.0, 0.0, 3.0, 0.1);
     private final SliderSetting maxDistance = new SliderSetting("Max distance", 6.0, 0.0, 10.0, 0.1);
     private final SliderSetting stopOnTargetHurtTime = new SliderSetting("Stop on target HurtTime", -1, -1, 10, 1);
     private final SliderSetting stopOnSelfHurtTime = new SliderSetting("Stop on self HurtTime", -1, -1, 10, 1);
+    private final ButtonSetting drawRealPosition = new ButtonSetting("Draw real position", true);
 
     private final Queue<TimedPacket> packetQueue = new ConcurrentLinkedQueue<>();
     private final List<Packet<?>> skipPackets = new ArrayList<>();
@@ -57,6 +59,7 @@ public class Backtrack extends Module {
         this.registerSetting(maxDistance);
         this.registerSetting(stopOnTargetHurtTime);
         this.registerSetting(stopOnSelfHurtTime);
+        this.registerSetting(drawRealPosition);
     }
 
     @Override
@@ -80,7 +83,6 @@ public class Backtrack extends Module {
 
     @Override
     public void onDisable() {
-        super.onDisable();
         if (mc.thePlayer == null)
             return;
 
@@ -106,7 +108,7 @@ public class Backtrack extends Module {
         while (!packetQueue.isEmpty()) {
             try {
                 if (packetQueue.element().getCold().getCum(currentLatency)) {
-                    Packet<NetHandlerPlayClient> packet = (Packet<NetHandlerPlayClient>) packetQueue.remove().getPacket();
+                    Packet<INetHandlerPlayClient> packet = (Packet<INetHandlerPlayClient>) packetQueue.remove().getPacket();
                     skipPackets.add(packet);
                     PacketUtils.receivePacket(packet);
                 } else {
@@ -123,15 +125,15 @@ public class Backtrack extends Module {
 
     @SubscribeEvent
     public void onRender(RenderWorldLastEvent e) {
-        if (target == null || vec3 == null)
+        if (target == null || vec3 == null || target.isDead)
             return;
 
         final net.minecraft.util.Vec3 pos = currentLatency > 0 ? vec3.toVec3() : target.getPositionVector();
 
         if (animationX == null || animationY == null || animationZ == null) {
-            animationX = new Animation(Easing.EASE_OUT_CIRC, 100);
-            animationY = new Animation(Easing.EASE_OUT_CIRC, 100);
-            animationZ = new Animation(Easing.EASE_OUT_CIRC, 100);
+            animationX = new Animation(Easing.EASE_OUT_CIRC, 300);
+            animationY = new Animation(Easing.EASE_OUT_CIRC, 300);
+            animationZ = new Animation(Easing.EASE_OUT_CIRC, 300);
 
             animationX.setValue(pos.xCoord);
             animationY.setValue(pos.yCoord);
@@ -141,7 +143,9 @@ public class Backtrack extends Module {
         animationX.run(pos.xCoord);
         animationY.run(pos.yCoord);
         animationZ.run(pos.zCoord);
-        Blink.drawBox(new net.minecraft.util.Vec3(animationX.getValue(), animationY.getValue(), animationZ.getValue()));
+        if (drawRealPosition.isToggled()) {
+            Blink.drawBox(new net.minecraft.util.Vec3(animationX.getValue(), animationY.getValue(), animationZ.getValue()));
+        }
     }
 
     @SubscribeEvent
@@ -253,7 +257,7 @@ public class Backtrack extends Module {
     private void releaseAll() {
         if (!packetQueue.isEmpty()) {
             for (TimedPacket timedPacket : packetQueue) {
-                Packet<NetHandlerPlayClient> packet = (Packet<NetHandlerPlayClient>) timedPacket.getPacket();
+                Packet<INetHandlerPlayClient> packet = (Packet<INetHandlerPlayClient>) timedPacket.getPacket();
                 skipPackets.add(packet);
                 PacketUtils.receivePacket(packet);
             }

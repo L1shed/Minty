@@ -73,8 +73,8 @@ public class ButtonComponent extends Component {
     public void render() {
         GL11.glPushMatrix();
         GL11.glScaled(0.5D, 0.5D, 0.5D);
-        Minecraft.getMinecraft().fontRendererObj.drawString(
-                (this.buttonSetting.isMethodButton ? "[=]  " : (this.buttonSetting.isToggled() ? "[+]  " : "[-]  ")) + this.buttonSetting.getName(),
+        getFont().drawString(
+                (this.buttonSetting.isMethodButton ? "[=]  " : (this.buttonSetting.isToggled() ? "[+]  " : "[-]  ")) + this.buttonSetting.getPrettyName(),
                 (float) ((this.parent.categoryComponent.getX() + 4) * 2),
                 (float) ((this.parent.categoryComponent.getY() + this.o + 4) * 2),
                 this.buttonSetting.isToggled() ? toggleColor : color,
@@ -93,13 +93,18 @@ public class ButtonComponent extends Component {
     }
 
     public void onClick(int x, int y, int b) {
+        if (this.getSetting() != null && !this.getSetting().isVisible()) return;
+
         if (this.i(x, y) && b == 0 && this.parent.po) {
             if (this.buttonSetting.isMethodButton) {
                 this.buttonSetting.runMethod();
                 return;
             }
             this.buttonSetting.toggle();
-            this.mod.guiButtonToggled(this.buttonSetting);
+            try {
+                this.mod.guiButtonToggled(this.buttonSetting);
+            } catch (Exception ignored) {
+            }
             if (Raven.currentProfile != null) {
                 ((ProfileModule) Raven.currentProfile.getModule()).saved = false;
             }

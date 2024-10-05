@@ -1,18 +1,23 @@
 package keystrokesmod.utility;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.mojang.realmsclient.gui.ChatFormatting;
 import keystrokesmod.Raven;
+import keystrokesmod.clickgui.ClickGui;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.client.Settings;
-import keystrokesmod.module.impl.combat.Velocity;
+import keystrokesmod.module.impl.fun.NoteBot;
 import keystrokesmod.module.impl.minigames.DuelsStats;
-import keystrokesmod.module.impl.movement.Fly;
 import keystrokesmod.module.impl.other.FakeChat;
+import keystrokesmod.module.impl.other.KillMessage;
 import keystrokesmod.module.impl.other.NameHider;
-import keystrokesmod.module.impl.render.HUD;
-import keystrokesmod.utility.font.Font;
+import keystrokesmod.module.impl.other.SilenceIRC;
+import keystrokesmod.module.impl.render.Watermark;
+import keystrokesmod.utility.font.IFont;
 import keystrokesmod.utility.profile.Profile;
+import keystrokesmod.utility.profile.ProfileManager;
 import keystrokesmod.utility.render.RenderUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiChat;
@@ -20,8 +25,12 @@ import net.minecraft.network.play.client.C01PacketChatMessage;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
+import silencefix.SilenceFixIRC;
 
 import java.awt.*;
+import java.awt.datatransfer.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -43,7 +52,9 @@ public class Commands {
             List<String> args = Arrays.asList(c.split(" "));  // maybe bug
             boolean hasArgs = args.size() > 1;
             String n;
-            if (args.get(0).equals("setkey")) {
+            String firstArg = args.get(0).toLowerCase();
+            
+            if (firstArg.equals("setkey")) {
                 if (!hasArgs) {
                     print(invSyn, 1);
                     return;
@@ -65,7 +76,7 @@ public class Commands {
                     }
 
                 });
-            } else if (args.get(0).equals("nick")) {
+            } else if (firstArg.equals("nick")) {
                 if (!hasArgs) {
                     print(invSyn, 1);
                     return;
@@ -84,7 +95,7 @@ public class Commands {
                 DuelsStats.nick = args.get(1);
                 print("&aNick has been set to:", 1);
                 print("\"" + DuelsStats.nick + "\"", 0);
-            } else if (args.get(0).equals("cname")) {
+            } else if (firstArg.equals("cname")) {
                 if (!hasArgs) {
                     print(invSyn, 1);
                     return;
@@ -99,7 +110,7 @@ public class Commands {
 
                 print("&a" + Utils.uf("name") + "Nick has been set to:".substring(4), 1);
                 print("\"" + NameHider.n + "\"", 0);
-            } else if (args.get(0).equals(FakeChat.command)) {
+            } else if (firstArg.equals(FakeChat.command)) {
                 if (!hasArgs) {
                     print(invSyn, 1);
                     return;
@@ -113,7 +124,7 @@ public class Commands {
 
                 FakeChat.msg = n;
                 print("&aMessage set!", 1);
-            } else if (args.get(0).equals("duels")) {
+            } else if (firstArg.equals("duels")) {
                 if (!hasArgs) {
                     print(invSyn, 1);
                     return;
@@ -151,85 +162,11 @@ public class Commands {
                     }
 
                 });
-            } else if (args.get(0).equals("setspeed")) {
-                if (!hasArgs) {
-                    print(invSyn, 1);
-                    return;
-                }
-
-                if (args.size() != 3) {
-                    print(invSyn, 1);
-                    return;
-                }
-
-                double value;
-
-                try {
-                    value = Double.parseDouble(args.get(2));
-                } catch (Exception e) {
-                    print("&cInvalid value. [0 - 100)", 1);
-                    return;
-                }
-
-                if (value > 100 || value < 0) {
-                    print("&cInvalid value. [0 - 100)", 1);
-                    return;
-                }
-
-                if (args.get(1).equals("fly")) {
-                    Fly.horizontalSpeed.setValueRaw(value);
-                } else {
-                    print(invSyn, 1);
-                    return;
-                }
-                print("&aSet speed to ", 1);
-                print(args.get(2), 0);
-            } else if (args.get(0).equals("setvelocity")) {
-                if (!hasArgs) {
-                    print(invSyn, 1);
-                    return;
-                }
-
-                if (args.size() != 3) {
-                    print(invSyn, 1);
-                    return;
-                }
-
-                double value;
-
-                try {
-                    value = Double.parseDouble(args.get(2));
-                } catch (Exception e) {
-                    print("&cInvalid value. [-100 - 300)", 1);
-                    return;
-                }
-
-                if (value > 300 || value < -100) {
-                    print("&cInvalid value. [-100 - 300)", 1);
-                    return;
-                }
-
-                switch (args.get(1)) {
-                    case "horizontal":
-                    case "h":
-                        Velocity.horizontal.setValueRaw(value);
-                        break;
-                    case "vertical":
-                    case "v":
-                        Velocity.vertical.setValueRaw(value);
-                        break;
-                    default:
-                        print(invSyn, 1);
-                        return;
-                }
-
-                print("&aSet " + args.get(1) + " velocity to ", 1);
-                print(args.get(2), 0);
-            } else if (args.get(0).equals("ping")) {
+            } else if (firstArg.equals("ping")) {
                 Ping.checkPing();
-            } else if (args.get(0).equals("clear")) {
+            } else if (firstArg.equals("clear")) {
                 rs.clear();
-            } else if (args.get(0).equals("hide")) {
+            } else if (firstArg.equals("hide")) {
                 if (!hasArgs) {
                     print(invSyn, 1);
                     return;
@@ -247,7 +184,7 @@ public class Commands {
                         print("&a" + module.getName() + " is now hidden in HUD", 1);
                     }
                 }
-            } else if (args.get(0).equals("show")) {
+            } else if (firstArg.equals("show")) {
                 if (!hasArgs) {
                     print(invSyn, 1);
                     return;
@@ -265,7 +202,7 @@ public class Commands {
                         print("&a" + module.getName() + " is now visible in HUD", 1);
                     }
                 }
-            } else if (args.get(0).equals("panic")) {
+            } else if (firstArg.equals("panic")) {
                 List<Module> modulesToDisable = new ArrayList<>();
                 for (Module m : Raven.getModuleManager().getModules()) {
                     if (m.isEnabled()) {
@@ -276,7 +213,76 @@ public class Commands {
                     m.disable();
 
                 }
-            }else if (args.get(0).equals("rename")) {
+            }else if (firstArg.equals("rename")) {
+                if (!hasArgs) {
+                    print(invSyn, 1);
+                    return;
+                }
+
+                if (args.size() != 3 && args.size() != 4) {
+                    print(invSyn, 1);
+                    return;
+                }
+
+                for (Module module : Raven.getModuleManager().getModules()) {
+                    String name = module.getName().toLowerCase().replace(" ", "");
+                    if (name.equals(args.get(1).toLowerCase())) {
+                        if (args.size() == 3) {
+                            module.setPrettyName(args.get(2));
+                            print("&a" + module.getName() + " is now called " + module.getRawPrettyName(), 1);
+                        } else {
+                            module.setPrettyName(args.get(2));
+                            module.setPrettyInfo(args.get(3));
+                            print("&a'" + module.getName() + " " + module.getInfo() + "' is now called '" + module.getRawPrettyName() + " " + module.getRawPrettyInfo() + "'", 1);
+                        }
+                    }
+                }
+                ModuleManager.sort();
+            } else if (firstArg.equals("resetgui")) {
+                ClickGui.resetPosition();
+                print(ChatFormatting.GREEN + "Reset ClickGUI position!", 1);
+            } else if (firstArg.equals("folder")) {
+                File folder = new File(Raven.mc.mcDataDir, "keystrokes");
+                try {
+                    Desktop.getDesktop().open(folder);
+                } catch (IOException ex) {
+                    folder.mkdirs();
+                    Utils.sendMessage("&cError locating folder, recreated.");
+                }
+            } else if (firstArg.equals("update")) {
+                Raven.getExecutor().execute(AutoUpdate::update);
+            } else if (firstArg.equals("say")) {
+                if (!hasArgs) {
+                    print(invSyn, 1);
+                    return;
+                }
+
+                PacketUtils.sendPacketNoEvent(new C01PacketChatMessage(c.substring(firstArg.length() + 1)));
+            } else if (firstArg.equals("clientname")) {
+                if (!hasArgs) {
+                    print(invSyn, 1);
+                    return;
+                }
+
+                String s = c.substring(11);
+                s = s.replace('&', '§');
+                Watermark.customName = s;
+                print("&aSet client name to " + Watermark.customName, 1);
+            } else if (firstArg.equals("killmessage")) {
+                if (!hasArgs) {
+                    print(invSyn, 1);
+                    return;
+                }
+
+                KillMessage.killMessage = c.substring(12);
+                print("&aSet killmessage to " + KillMessage.killMessage, 1);
+            } else if (firstArg.equals("binds")) {
+                for (Module module : Raven.getModuleManager().getModules()) {
+                    if (module.getKeycode() != 0) {
+                        print(ChatFormatting.AQUA + module.getPrettyName() + ": " + Utils.getKeyName(module.getKeycode()), 1);
+                    }
+                }
+            } else if (firstArg.equals("bind")) {
                 if (!hasArgs) {
                     print(invSyn, 1);
                     return;
@@ -287,21 +293,27 @@ public class Commands {
                     return;
                 }
 
+                Module targetModule = null;
                 for (Module module : Raven.getModuleManager().getModules()) {
-                    String name = module.getName().toLowerCase().replace(" ", "");
-                    if (name.equals(args.get(1).toLowerCase())) {
-                        module.setPrettyName(args.get(2));
-                        print("&a" + module.getName() + " is now called " + module.getRawPrettyName(), 1);
+                    if (Objects.equals(module.getName(), args.get(1))) {
+                        targetModule = module;
+                        break;
                     }
                 }
-            } else if (args.get(0).equals("say")) {
-                if (!hasArgs) {
-                    print(invSyn, 1);
+                if (targetModule == null) {
+                    print(ChatFormatting.RED + "Module '" + ChatFormatting.RESET + args.get(1) + ChatFormatting.RED + "' is not found.", 1);
                     return;
                 }
 
-                PacketUtils.sendPacketNoEvent(new C01PacketChatMessage(c.substring(args.get(0).length() + 1)));
-            } else if (args.get(0).equals("setBName")) {
+                int keyCode = Utils.getKeyCode(args.get(2));
+                if (keyCode == Keyboard.KEY_NONE) {
+                    print(ChatFormatting.RED + "Key '" + ChatFormatting.RESET + args.get(2) + ChatFormatting.RED + "' is invalid.", 1);
+                    return;
+                }
+
+                targetModule.setBind(keyCode);
+                print(ChatFormatting.GREEN + "Bind '" + ChatFormatting.RESET + args.get(2) + ChatFormatting.GREEN + "' to " + targetModule.getPrettyName() + ".", 1);
+            } else if (firstArg.equals("import")) {
                 if (!hasArgs) {
                     print(invSyn, 1);
                     return;
@@ -312,22 +324,9 @@ public class Commands {
                     return;
                 }
 
-                HUD.bName = args.get(1);
-
-                print("&aSet BName to " + HUD.bName, 1);
-            } else if (args.get(0).equals("binds")) {
-                for (Module module : Raven.getModuleManager().getModules()) {
-                    if (module.getKeycode() != 0) {
-                        print(ChatFormatting.AQUA + module.getName() + ": " + Keyboard.getKeyName(module.getKeycode()), 1);
-                    }
-                }
-            } else if (args.get(0).equals("bind")) {
-                if (!hasArgs) {
-                    print(invSyn, 1);
-                    return;
-                }
-
-                if (args.size() != 3) {
+                Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+                Transferable contents = clipboard.getContents(null);
+                if (!contents.isDataFlavorSupported(DataFlavor.stringFlavor)) {
                     print(invSyn, 1);
                     return;
                 }
@@ -344,15 +343,57 @@ public class Commands {
                     return;
                 }
 
-                int keyCode = Keyboard.getKeyIndex(args.get(2));
-                if (keyCode == Keyboard.KEY_NONE) {
-                    print(ChatFormatting.RED + "Key '" + ChatFormatting.RESET + args.get(2) + ChatFormatting.RED + "' is invalid.", 1);
+                try {
+                    JsonObject jsonObject = new Gson().fromJson(((String) contents.getTransferData(DataFlavor.stringFlavor)), JsonObject.class);
+                    ProfileManager.loadFromJsonObject(
+                            jsonObject,
+                            targetModule
+                    );
+                    print("Loaded " + jsonObject.entrySet().size() + " properties from clipboard.", 1);
+                } catch (Exception e) {
+                    print("Fail to import module settings.", 1);
+                }
+            } else if (firstArg.equals("export")) {
+                if (!hasArgs) {
+                    print(invSyn, 1);
                     return;
                 }
 
-                targetModule.setBind(keyCode);
-                print(ChatFormatting.GREEN + "Bind '" + ChatFormatting.RESET + args.get(2) + ChatFormatting.GREEN + "' to " + targetModule.getPrettyName() + ".", 1);
-            } else if (args.get(0).equals("friend") || args.get(0).equals("f")) {
+                if (args.size() != 2) {
+                    print(invSyn, 1);
+                    return;
+                }
+
+                Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+
+                Module targetModule = null;
+                for (Module module : Raven.getModuleManager().getModules()) {
+                    if (Objects.equals(module.getPrettyName(), args.get(1))) {
+                        targetModule = module;
+                        break;
+                    }
+                }
+                if (targetModule == null) {
+                    print(ChatFormatting.RED + "Module '" + ChatFormatting.RESET + args.get(1) + ChatFormatting.RED + "' is not found.", 1);
+                    return;
+                }
+
+                try {
+                    JsonObject jsonObject = ProfileManager.getJsonObject(targetModule);
+                    clipboard.setContents(new StringSelection(jsonObject.toString()), null);
+                    print("Copied " + jsonObject.entrySet().size() + " properties to clipboard.", 1);
+                } catch (Exception e) {
+                    print("Fail to export module settings.", 1);
+                }
+            } else if (firstArg.equals("notebot")) {
+                if (!hasArgs) {
+                    print(invSyn, 1);
+                    return;
+                }
+
+                NoteBot.fileName = c.substring(8);
+                print("&aSet noteBot file to " + NoteBot.fileName, 1);
+            } else if (firstArg.equals("friend") || firstArg.equals("f")) {
                 if (!hasArgs) {
                     print(invSyn, 1);
                     return;
@@ -375,7 +416,7 @@ public class Commands {
                 } else {
                     print("&aRemoved friend: " + args.get(1), 1);
                 }
-            } else if (args.get(0).equals("enemy") || args.get(0).equals("e")) {
+            } else if (firstArg.equals("enemy") || firstArg.equals("e")) {
                 if (!hasArgs) {
                     print(invSyn, 1);
                     return;
@@ -396,10 +437,10 @@ public class Commands {
                 if (!added) {
                     print("&aRemoved enemy: " + args.get(1), 1);
                 }
-            } else if (args.get(0).equals("Debug".toLowerCase())) {
+            } else if (firstArg.equals("Debug".toLowerCase())) {
                 Raven.debugger = !Raven.debugger;
                 print("Debug " + (Raven.debugger ? "enabled" : "disabled") + ".", 1);
-            } else if (args.get(0).equals("profiles") || args.get(0).equals("p")) {
+            } else if (firstArg.equals("profiles") || firstArg.equals("p")) {
                 if (!hasArgs) {
                     print("&aAvailable profiles:", 1);
                     if (Raven.profileManager.profiles.isEmpty()) {
@@ -458,8 +499,21 @@ public class Commands {
                     }
                     print("&cInvalid profile.", 1);
                 }
-            } else if (!args.get(0).equals("help") && !args.get(0).equals("?")) {
-                if (args.get(0).equals("shoutout")) {
+            } else if (firstArg.equals("silenceirc")) {
+                if (!hasArgs) {
+                    print(invSyn, 1);
+                    return;
+                }
+
+                if (args.size() != 2) {
+                    print(invSyn, 1);
+                    return;
+                }
+
+                SilenceIRC.qqId = args.get(1);
+                print("Set qqId to " + SilenceIRC.qqId, 1);
+            } else if (!firstArg.equals("help") && !firstArg.equals("?")) {
+                if (firstArg.equals("shoutout")) {
                     print("&eCelebrities:", 1);
                     print("- hevex", 0);
                     print("- jc", 0);
@@ -476,9 +530,12 @@ public class Commands {
                 print("4 nick [name/reset]", 0);
                 print("5 ping", 0);
                 print("6 hide/show [module]", 0);
-                print("7 rename [module] [name]", 0);
+                print("7 rename [module] [name] <info>", 0);
                 print("8 say [message]", 0);
                 print("9 panic", 0);
+                print("10 resetGUI", 0);
+                print("11 folder", 0);
+                print("12 silenceirc [qqId]", 0);
                 print("&eProfiles:", 0);
                 print("1 profiles", 0);
                 print("2 profiles save [profile]", 0);
@@ -486,19 +543,20 @@ public class Commands {
                 print("4 profiles remove [profile]", 0);
                 print("5 binds", 0);
                 print("6 bind [module] [key]", 0);
+                print("7 import [module]", 0);
+                print("8 export [module]", 0);
                 print("&eModule-specific:", 0);
                 print("1 cname [name]", 0);
                 print("2 " + FakeChat.command + " [msg]", 0);
-                print("3 setspeed [fly] [value]", 0);
-                print("4 setvelocity [h/v] [value]", 0);
-                print("5 setBName [name (default is 's')]", 0);
+                print("4 killmessage [message]", 0);
+                print(String.format("5 clientname [name (current is '%s')]", Watermark.customName), 0);
             }
 
         }
     }
 
     public static void print(String m, int t) {
-        if (ModuleManager.commandChat.isEnabled() && (mc.currentScreen instanceof GuiChat || mc.currentScreen == null)) {
+        if (mc.currentScreen instanceof GuiChat || mc.currentScreen == null) {
             if (t == 1 || t == 2) {
                 Utils.sendRawMessage("");
             }
@@ -517,7 +575,7 @@ public class Commands {
         }
     }
 
-    public static void rc(Font fr, int h, int w, int s) {
+    public static void rc(IFont fr, int h, int w, int s) {
         int x = w - 195;
         int y = h - 130;
         int sY = h - 345;
@@ -530,7 +588,7 @@ public class Commands {
         GL11.glDisable(3089);
     }
 
-    private static void rss(Font fr, List<String> rs, int x, int y) {
+    private static void rss(IFont fr, List<String> rs, int x, int y) {
         if (f) {
             f = false;
             print("Welcome,", 0);
@@ -553,7 +611,7 @@ public class Commands {
                 }
 
                 fr.drawString(s, x, y, c);
-                y -= Math.round(fr.height() + 5);
+                y -= (int) Math.round(fr.height() + 5);
             }
 
         }

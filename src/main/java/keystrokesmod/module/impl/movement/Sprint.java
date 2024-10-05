@@ -1,6 +1,7 @@
 package keystrokesmod.module.impl.movement;
 
 import keystrokesmod.event.PreMotionEvent;
+import keystrokesmod.event.SprintEvent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.setting.impl.ModeSetting;
@@ -14,7 +15,9 @@ import net.minecraftforge.fml.common.gameevent.TickEvent.PlayerTickEvent;
 
 public class Sprint extends Module {
     private final ModeSetting mode = new ModeSetting("Mode", new String[]{"Legit", "Omni"}, 0);
-    private final ModeSetting omniMode = new ModeSetting("Bypass mode", new String[]{"None", "Hypixel", "Legit"}, 1, new ModeOnly(mode, 1));
+    private final ModeSetting omniMode = new ModeSetting("Bypass mode", new String[]{"None", "Legit"}, 1, new ModeOnly(mode, 1));
+    public static boolean omni = false;
+    public static boolean stopSprint = false;
 
     public Sprint() {
         super("Sprint", Module.category.movement, 0);
@@ -22,7 +25,18 @@ public class Sprint extends Module {
     }
 
     public static boolean omni() {
-        return ModuleManager.sprint != null && ModuleManager.sprint.isEnabled() && ModuleManager.sprint.mode.getInput() == 1 && MoveUtil.isMoving();
+        final SprintEvent event = new SprintEvent(
+                MoveUtil.isMoving(),
+                omni || ModuleManager.sprint != null && ModuleManager.sprint.isEnabled() && ModuleManager.sprint.mode.getInput() == 1
+        );
+
+        return event.isSprint() && event.isOmni();
+    }
+
+    public static boolean stopSprint() {
+        final SprintEvent event = new SprintEvent(!stopSprint, false);
+
+        return !event.isSprint();
     }
 
     @SubscribeEvent
@@ -40,12 +54,11 @@ public class Sprint extends Module {
             case 0:
                 break;
             case 1:
-                if (mc.thePlayer.moveForward <= 0)
-                    event.setSprinting(false);
-                break;
-            case 2:
                 event.setYaw(event.getYaw() + Move.fromMovement(mc.thePlayer.moveForward, mc.thePlayer.moveStrafing).getDeltaYaw());
                 break;
         }
+
+        if (MoveUtil.isMoving())
+            mc.thePlayer.setSprinting(true);
     }
 }

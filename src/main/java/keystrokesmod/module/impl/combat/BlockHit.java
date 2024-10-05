@@ -27,8 +27,7 @@ public class BlockHit extends Module {
     private boolean waitingForPostDelay;
 
     public BlockHit() {
-        super("BlockHit", category.combat, 0);
-
+        super("BlockHit", category.combat, "Automatically blockHit");
         this.registerSetting(onlyPlayers = new ButtonSetting("Only combo players", true));
         this.registerSetting(onRightMBHold = new ButtonSetting("When holding down rmb", true));
         this.registerSetting(waitMsMin = new SliderSetting("Action Time Min (MS)", 110, 1, 500, 1));
@@ -113,7 +112,7 @@ public class BlockHit extends Module {
             }
 
             if (mc.thePlayer.getDistanceToEntity(target) <= range.getInput()) {
-                if ((target.hurtResistantTime >= 10 && MODES[(int) eventType.getInput() - 1] == MODES[1]) || (target.hurtResistantTime <= 10 && MODES[(int) eventType.getInput() - 1] == MODES[0])) {
+                if ((target.hurtResistantTime >= 10 && MODES[(int) eventType.getInput()] == MODES[1]) || (target.hurtResistantTime <= 10 && MODES[(int) eventType.getInput()] == MODES[0])) {
 
                     if (onlyPlayers.isToggled()){
                         if (!(target instanceof EntityPlayer)){

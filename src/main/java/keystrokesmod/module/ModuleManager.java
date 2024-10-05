@@ -1,8 +1,8 @@
 package keystrokesmod.module;
 
-import keystrokesmod.module.impl.client.CommandLine;
 import keystrokesmod.module.impl.client.*;
 import keystrokesmod.module.impl.combat.*;
+import keystrokesmod.module.impl.exploit.*;
 import keystrokesmod.module.impl.fun.*;
 import keystrokesmod.module.impl.minigames.*;
 import keystrokesmod.module.impl.movement.*;
@@ -10,8 +10,7 @@ import keystrokesmod.module.impl.other.*;
 import keystrokesmod.module.impl.player.*;
 import keystrokesmod.module.impl.render.*;
 import keystrokesmod.module.impl.world.*;
-import keystrokesmod.utility.Utils;
-import keystrokesmod.utility.profile.Manager;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -20,8 +19,9 @@ import java.util.List;
 public class ModuleManager {
     static List<Module> modules = new ArrayList<>();
     public static List<Module> organizedModules = new ArrayList<>();
+
     public static Module longJump;
-    public static Module blink;
+    public static Blink blink;
     public static Module nameHider;
     public static Module fastPlace;
     public static MurderMystery murderMystery;
@@ -31,7 +31,7 @@ public class ModuleManager {
     public static Module antiShuffle;
     public static Module commandLine;
     public static Module antiBot;
-    public static Module noSlow;
+    public static NoSlow noSlow;
     public static KillAura killAura;
     public static AutoClicker autoClicker;
     public static HitBox hitBox;
@@ -44,7 +44,6 @@ public class ModuleManager {
     public static Potions potions;
     public static NoFall noFall;
     public static PlayerESP playerESP;
-    public static Reduce reduce;
     public static SafeWalk safeWalk;
     public static KeepSprint keepSprint;
     public static Velocity velocity;
@@ -53,8 +52,6 @@ public class ModuleManager {
     public static Speed speed;
     public static InvManager invManager;
     public static Scaffold scaffold;
-    public static MotionSkidder motionSkidder;
-    public static MotionModifier motionModifier;
     public static AntiVoid antiVoid;
     public static Criticals criticals;
     public static TimerRange timerRange;
@@ -92,131 +89,237 @@ public class ModuleManager {
     public static StaffDetector staffDetector;
     public static AutoRespawn autoRespawn;
     public static Clutch clutch;
-    
+    public static Ambience ambience;
+    public static KillAuraV2 killAuraV2;
+    public static DynamicManager dynamicManager;
+    public static Disabler disabler;
+    public static BridgeAssist bridgeAssist;
+    public static Watermark watermark;
+    public static RightClicker rightClicker;
+    public static Notifications notifications;
+    public static WallClimb wallClimb;
+    public static Jesus jesus;
+    public static ExploitFixer exploitFixer;
+    public static AutoRegister autoRegister;
+    public static NoteBot noteBot;
+    public static ViewPackets viewPackets;
+    public static RageBot rageBot;
+    public static HitLog hitLog;
+    public static LagRange lagRange;
+    public static FakePotion fakePotion;
+    public static NoWeb noWeb;
+    public static ProjectileAimBot projectileAimBot;
+    public static AutoWeb autoWeb;
+    public static BlockOut blockOut;
+    public static GhostBlock ghostBlock;
+    public static AirStuck airStuck;
+    public static TargetHUD targetHUD;
+    public static TargetESP targetESP;
+    public static Language language;
+    public static BedDefender bedDefender;
+    public static ChestAura chestAura;
+    public static AutoRod autoRod;
+//    public static AbilitiesBedWars abilitiesBedWars;
+    public static ClientTheme clientTheme;
+    public static AutoChest autoChest;
+    public static SilenceIRC silenceIRC;
+    public static Teleport teleport;
+    public static AntiFalseFlag antiFalseFlag;
+    public static ViaVersionFix viaVersionFix;
+    public static AutoGapple autoGapple;
+    public static RemoteShop remoteShop;
+    public static Regen regen;
+
     public void register() {
-        this.addModule(autoClicker = new AutoClicker());
-        this.addModule(longJump = new LongJump());
+
+        // client
+        this.addModule(commandChat = new CommandChat());
+        this.addModule(commandLine = new CommandLine());
+        this.addModule(dynamicManager = new DynamicManager());
+        this.addModule(new Gui());
+        // this.addModule(new NyaProxy());
+        this.addModule(new Settings());
+        this.addModule(new MiddleClick());
+        this.addModule(notifications = new Notifications());
+        this.addModule(new DiscordRpc());
+        this.addModule(language = new Language());
+
+        // combat
         this.addModule(new AimAssist());
-        this.addModule(blink = new Blink());
+        this.addModule(autoClicker = new AutoClicker());
+        this.addModule(rightClicker = new RightClicker());
+        this.addModule(blockHit = new BlockHit());
         this.addModule(new BurstClicker());
         this.addModule(new ClickAssist());
-        this.addModule(tower = new Tower());
-        this.addModule(new DelayRemover());
+        this.addModule(criticals = new Criticals());
         this.addModule(hitBox = new HitBox());
-        this.addModule(new Radar());
-        this.addModule(new Settings());
+        this.addModule(hitSelect = new HitSelect());
+        this.addModule(killAura = new KillAura());
+        this.addModule(killAuraV2 = new KillAuraV2());
+        this.addModule(rageBot = new RageBot());
+        this.addModule(lagRange = new LagRange());
+        this.addModule(moreKB = new MoreKB());
         this.addModule(reach = new Reach());
         this.addModule(new RodAimbot());
-        this.addModule(speed = new Speed());
-        this.addModule(invManager = new InvManager());
-        this.addModule(scaffold = new Scaffold());
-        this.addModule(new AntiAFK());
-        this.addModule(new AutoTool());
-        this.addModule(fly = new Fly());
-        this.addModule(new InvMove());
-        this.addModule(new Trajectories());
-        this.addModule(potions = new Potions());
-        this.addModule(new AutoSwap());
-        this.addModule(keepSprint = new KeepSprint());
-        this.addModule(bedAura = new BedAura());
-        this.addModule(noSlow = new NoSlow());
-        this.addModule(new Indicators());
-        this.addModule(new LatencyAlerts());
-        this.addModule(sprint = new Sprint());
-        this.addModule(new StopMotion());
-        this.addModule(timer = new Timer());
-        this.addModule(new VClip());
-        this.addModule(new AutoJump());
-        this.addModule(new AutoPlace());
-        this.addModule(fastPlace = new FastPlace());
-        this.addModule(new Freecam());
-        this.addModule(noFall = new NoFall());
-        this.addModule(safeWalk = new SafeWalk());
-        this.addModule(reduce = new Reduce());
+        this.addModule(timerRange = new TimerRange());
         this.addModule(velocity = new Velocity());
-        this.addModule(antiBot = new AntiBot());
-        this.addModule(antiShuffle = new AntiShuffle());
-        this.addModule(new Chams());
-        this.addModule(new ChestESP());
-        this.addModule(new Nametags());
-        this.addModule(playerESP = new PlayerESP());
-        this.addModule(new Tracers());
-        this.addModule(hud = new HUD());
-        this.addModule(new Anticheat());
-        this.addModule(new BreakProgress());
-        this.addModule(moreKB = new MoreKB());
-        this.addModule(new Xray());
-        this.addModule(new BridgeInfo());
-        this.addModule(new TargetHUD());
-        this.addModule(new DuelsStats());
-        this.addModule(antiFireball = new AntiFireball());
-        this.addModule(bedESP = new BedESP());
-        this.addModule(murderMystery = new MurderMystery());
-        this.addModule(new keystrokesmod.script.Manager());
-        this.addModule(new SumoFences());
+        this.addModule(projectileAimBot = new ProjectileAimBot());
+        this.addModule(airStuck = new AirStuck());
+        this.addModule(autoRod = new AutoRod());
+        this.addModule(autoGapple = new AutoGapple());
+
+        // fun
         this.addModule(new ExtraBobbing());
-        this.addModule(killAura = new KillAura());
         this.addModule(new FlameTrail());
         this.addModule(new SlyPort());
-        this.addModule(new ItemESP());
-        this.addModule(new MobESP());
-        this.addModule(new Spin());
-        this.addModule(new NoRotate());
-        this.addModule(new FakeChat());
-        this.addModule(nameHider = new NameHider());
-        this.addModule(new FakeLag());
-        this.addModule(new WaterBucket());
-        this.addModule(commandLine = new CommandLine());
-        this.addModule(bedwars = new BedWars());
-        this.addModule(fastMine = new FastMine());
-        this.addModule(new JumpReset());
-        this.addModule(new Manager());
-        this.addModule(new ViewPackets());
+        this.addModule(new AntiAim());
+        this.addModule(hitLog = new HitLog());
+        this.addModule(noteBot = new NoteBot());
+        this.addModule(blockOut = new BlockOut());
+//        this.addModule(abilitiesBedWars = new AbilitiesBedWars());
+        this.addModule(new Yeet());
+
+        // minigames
         this.addModule(new AutoWho());
-        this.addModule(new Gui());
-        this.addModule(new Shaders());
-        this.addModule(motionSkidder = new MotionSkidder());
-        this.addModule(motionModifier = new MotionModifier());
-        this.addModule(antiVoid = new AntiVoid());
-        this.addModule(criticals = new Criticals());
-        this.addModule(timerRange = new TimerRange());
-        this.addModule(targetStrafe = new TargetStrafe());
-        this.addModule(autoHeal = new AutoHeal());
-        this.addModule(hitSelect = new HitSelect());
-        this.addModule(noHurtCam = new NoHurtCam());
-        this.addModule(noCameraClip = new NoCameraClip());
-        this.addModule(autoPlay = new AutoPlay());
-        this.addModule(customName = new CustomName());
-        this.addModule(commandChat = new CommandChat());
+        this.addModule(bedwars = new BedWars());
+        this.addModule(new BridgeInfo());
+        this.addModule(new DuelsStats());
+        this.addModule(murderMystery = new MurderMystery());
+        this.addModule(new SumoFences());
+
+        // movement
+        this.addModule(fly = new Fly());
+        this.addModule(new InvMove());
+        this.addModule(keepSprint = new KeepSprint());
+        this.addModule(longJump = new LongJump());
+        this.addModule(noSlow = new NoSlow());
         this.addModule(phase = new Phase());
-        this.addModule(pingSpoof = new PingSpoof());
-        this.addModule(noBackground = new NoBackground());
-        this.addModule(blockIn = new BlockIn());
-        this.addModule(backtrack = new Backtrack());
-        this.addModule(particles = new Particles());
-        this.addModule(recordClick = new RecordClick());
-        this.addModule(clickRecorder = new ClickRecorder());
-        this.addModule(infiniteAura = new InfiniteAura());
-        this.addModule(legitScaffold = new LegitScaffold());
-        this.addModule(freeLook = new FreeLook());
+        this.addModule(speed = new Speed());
+        this.addModule(sprint = new Sprint());
         this.addModule(step = new Step());
-        this.addModule(animations = new Animations());
-        this.addModule(chestStealer = new ChestStealer());
-        this.addModule(rotationHandler = new RotationHandler());
-        this.addModule(customCape = new CustomCape());
-        this.addModule(clientSpoofer = new ClientSpoofer());
-        this.addModule(blockHit = new BlockHit());
-        this.addModule(fullBright = new FullBright());
-        this.addModule(new AutoPot());
-        this.addModule(modSpoofer = new ModSpoofer());
+        this.addModule(new StopMotion());
+        this.addModule(targetStrafe = new TargetStrafe());
+        this.addModule(timer = new Timer());
+        this.addModule(new VClip());
+        this.addModule(wallClimb = new WallClimb());
+        this.addModule(jesus = new Jesus());
+        this.addModule(noWeb = new NoWeb());
+        this.addModule(new SaveMoveKeys());
+        this.addModule(teleport = new Teleport());
+
+        // other
+        this.addModule(new Anticheat());
+        this.addModule(autoPlay = new AutoPlay());
+        this.addModule(autoRespawn = new AutoRespawn());
+        this.addModule(clickRecorder = new ClickRecorder());
+        this.addModule(new FakeChat());
+        this.addModule(new LatencyAlerts());
+        this.addModule(nameHider = new NameHider());
         this.addModule(panic = new Panic());
+        this.addModule(recordClick = new RecordClick());
+        this.addModule(rotationHandler = new RotationHandler());
+        this.addModule(new ScreenshotHelper());
         this.addModule(slotHandler = new SlotHandler());
         this.addModule(staffDetector = new StaffDetector());
+        this.addModule(new BedProximityAlert());
+        this.addModule(autoRegister = new AutoRegister());
+        this.addModule(viewPackets = new ViewPackets());
+        this.addModule(new FlagDetector());
+        this.addModule(silenceIRC = new SilenceIRC());
+
+        // player
+        this.addModule(new AntiAFK());
+        this.addModule(antiFireball = new AntiFireball());
+        this.addModule(antiVoid = new AntiVoid());
+        this.addModule(autoHeal = new AutoHeal());
+        this.addModule(new AutoJump());
+        this.addModule(new AutoPot());
+        this.addModule(new AutoSwap());
+        this.addModule(backtrack = new Backtrack());
+        this.addModule(blink = new Blink());
+        this.addModule(chestStealer = new ChestStealer());
+        this.addModule(new DelayRemover());
+        this.addModule(new FakeLag());
+        this.addModule(new Freecam());
+        this.addModule(invManager = new InvManager());
+        this.addModule(noFall = new NoFall());
+        this.addModule(new NoRotate());
+        this.addModule(fakePotion = new FakePotion());
+        this.addModule(autoWeb = new AutoWeb());
+        this.addModule(chestAura = new ChestAura());
+        this.addModule(autoChest = new AutoChest());
+
+        // render
+        this.addModule(ambience = new Ambience());
+        this.addModule(animations = new Animations());
+        this.addModule(antiShuffle = new AntiShuffle());
+        this.addModule(bedESP = new BedESP());
+        this.addModule(new BreakProgress());
+        this.addModule(new Chams());
+        this.addModule(new ChestESP());
+        this.addModule(customCape = new CustomCape());
+        this.addModule(customName = new CustomName());
+        this.addModule(freeLook = new FreeLook());
+        this.addModule(fullBright = new FullBright());
+        this.addModule(hud = new HUD());
+        this.addModule(new Indicators());
+        this.addModule(new ItemESP());
+        this.addModule(new MobESP());
+        this.addModule(new Nametags());
+        this.addModule(noBackground = new NoBackground());
+        this.addModule(noCameraClip = new NoCameraClip());
+        this.addModule(noHurtCam = new NoHurtCam());
+        this.addModule(particles = new Particles());
+        this.addModule(playerESP = new PlayerESP());
+        this.addModule(potions = new Potions());
+        this.addModule(new Radar());
+        this.addModule(new Shaders());
+        this.addModule(targetHUD = new TargetHUD());
+        this.addModule(targetESP = new TargetESP());
+        this.addModule(new Tracers());
+        this.addModule(new Trajectories());
+        this.addModule(new Xray());
+        this.addModule(new BedPlates());
+        this.addModule(watermark = new Watermark());
+        this.addModule(new Explosions());
+        this.addModule(new KillMessage());
+        this.addModule(clientTheme = new ClientTheme());
+
+        // world
+        this.addModule(antiBot = new AntiBot());
+        this.addModule(new AutoPlace());
+        this.addModule(new AutoTool());
         this.addModule(new AutoWeapon());
-        this.addModule(autoRespawn = new AutoRespawn());
+        this.addModule(bedAura = new BedAura());
+        this.addModule(blockIn = new BlockIn());
+        this.addModule(bridgeAssist = new BridgeAssist());
+        this.addModule(clutch = new Clutch());
+        this.addModule(fastMine = new FastMine());
+        this.addModule(fastPlace = new FastPlace());
+        this.addModule(legitScaffold = new LegitScaffold());
+        this.addModule(safeWalk = new SafeWalk());
+        this.addModule(scaffold = new Scaffold());
+        this.addModule(tower = new Tower());
+        this.addModule(bedDefender = new BedDefender());
+
+        // exploit
+        this.addModule(clientSpoofer = new ClientSpoofer());
+        this.addModule(disabler = new Disabler());
+        this.addModule(infiniteAura = new InfiniteAura());
+        this.addModule(modSpoofer = new ModSpoofer());
+        this.addModule(pingSpoof = new PingSpoof());
+        this.addModule(exploitFixer = new ExploitFixer());
+        this.addModule(ghostBlock = new GhostBlock());
+        this.addModule(antiFalseFlag = new AntiFalseFlag());
+        this.addModule(viaVersionFix = new ViaVersionFix());
+        this.addModule(remoteShop = new RemoteShop());
+        this.addModule(regen = new Regen());
+
+        // enable
         antiBot.enable();
         commandChat.enable();
-        modSpoofer.enable();
+        notifications.enable();
+        clientTheme.enable();
         modules.sort(Comparator.comparing(Module::getPrettyName));
     }
 
@@ -249,11 +352,17 @@ public class ModuleManager {
         return null;
     }
 
+    private static double getWidth(@NotNull Module module) {
+        String text = module.getPrettyName()
+                + ((HUD.showInfo.isToggled() && !module.getPrettyInfo().isEmpty()) ? " " + module.getPrettyInfo() : "");
+        return HUD.getFontRenderer().width(HUD.lowercase.isToggled() ? text.toLowerCase() : text);
+    }
+
     public static void sort() {
         if (HUD.alphabeticalSort.isToggled()) {
             organizedModules.sort(Comparator.comparing(Module::getPrettyName));
         } else {
-            organizedModules.sort((o1, o2) -> Utils.mc.fontRendererObj.getStringWidth(o2.getPrettyName() + ((HUD.showInfo.isToggled() && !o2.getInfo().isEmpty()) ? " " + o2.getInfo() : "")) - Utils.mc.fontRendererObj.getStringWidth(o1.getPrettyName() + (HUD.showInfo.isToggled() && !(o1.getInfo().isEmpty()) ? " " + o1.getInfo() : "")));
+            organizedModules.sort((c1, c2) -> Double.compare(getWidth(c2), getWidth(c1)));
         }
     }
 }

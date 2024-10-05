@@ -1,11 +1,12 @@
 package keystrokesmod.clickgui.components;
 
+import keystrokesmod.Raven;
 import keystrokesmod.clickgui.components.impl.*;
+import keystrokesmod.module.ModuleManager;
+import keystrokesmod.module.impl.client.Gui;
 import keystrokesmod.module.setting.Setting;
-import keystrokesmod.module.setting.impl.ButtonSetting;
-import keystrokesmod.module.setting.impl.DescriptionSetting;
-import keystrokesmod.module.setting.impl.ModeSetting;
-import keystrokesmod.module.setting.impl.SliderSetting;
+import keystrokesmod.module.setting.impl.*;
+import keystrokesmod.utility.render.RenderUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -15,8 +16,13 @@ import java.util.NoSuchElementException;
 public abstract class Component implements IComponent {
     public static final int DEFAULT_COLOR = new Color(255, 255, 255).getRGB();
     public static final int HOVER_COLOR = new Color(162, 162, 162).getRGB();
-    private static final int TOGGLE_DEFAULT_COLOR = (new Color(20, 255, 0)).getRGB();
-    private static final int TOGGLE_HOVER_COLOR = (new Color(20, 162, 0)).getRGB();
+    public static final int TOGGLE_DEFAULT_COLOR = (new Color(20, 255, 0)).getRGB();
+    public static final int TOGGLE_HOVER_COLOR = (new Color(20, 162, 0)).getRGB();
+
+    public static final int NEW_DEFAULT_COLOR = new Color(0, 0, 0, 255).getRGB();
+    public static final int NEW_HOVER_COLOR = new Color(96, 96, 96).getRGB();
+    public static final int NEW_TOGGLE_DEFAULT_COLOR = (new Color(8, 136, 231)).getRGB();
+    public static final int NEW_TOGGLE_HOVER_COLOR = (new Color(5, 90, 152)).getRGB();
 
     protected ModuleComponent parent;
     protected int color = DEFAULT_COLOR;
@@ -31,9 +37,18 @@ public abstract class Component implements IComponent {
 
     public final void drawScreen(int x, int y) {
         boolean hover = isHover(x, y);
-        color = hover ? HOVER_COLOR : DEFAULT_COLOR;
-        toggleColor = hover ? TOGGLE_HOVER_COLOR : TOGGLE_DEFAULT_COLOR;
+        if (ModuleManager.clientTheme.test.isToggled()) {
+            color = hover ? NEW_HOVER_COLOR : NEW_DEFAULT_COLOR;
+            toggleColor = hover ? NEW_TOGGLE_HOVER_COLOR : NEW_TOGGLE_DEFAULT_COLOR;
+        } else {
+            color = hover ? HOVER_COLOR : DEFAULT_COLOR;
+            toggleColor = hover ? TOGGLE_HOVER_COLOR : TOGGLE_DEFAULT_COLOR;
+        }
         onDrawScreen(x, y);
+
+        if (getSetting() != null && hover && getSetting().isVisible() && getParent().po && Gui.toolTip.isToggled() && getSetting().getPrettyToolTip() != null) {
+            Raven.clickGui.run(() -> RenderUtils.drawToolTip(getSetting().getPrettyToolTip(), x, y));
+        }
     }
 
     @Override
@@ -58,6 +73,9 @@ public abstract class Component implements IComponent {
         }
         if (setting instanceof ModeSetting) {
             return new ModeComponent((ModeSetting) setting, component, y);
+        }
+        if (setting instanceof ModeValue) {
+            return new ModeValueComponent((ModeValue) setting, component, y);
         }
         throw new NoSuchElementException("no match component for setting '%s', this shouldn't be happen. please content author.");
     }

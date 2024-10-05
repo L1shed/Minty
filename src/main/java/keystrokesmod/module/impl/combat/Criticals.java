@@ -1,62 +1,35 @@
 package keystrokesmod.module.impl.combat;
 
-import keystrokesmod.event.PreMotionEvent;
-import keystrokesmod.event.ReceivePacketEvent;
 import keystrokesmod.module.Module;
-import keystrokesmod.module.setting.impl.DescriptionSetting;
-import keystrokesmod.module.setting.impl.ModeSetting;
-import net.minecraft.network.play.server.S12PacketEntityVelocity;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import org.jetbrains.annotations.NotNull;
+import keystrokesmod.module.impl.combat.criticals.*;
+import keystrokesmod.module.setting.impl.ModeValue;
 
 public class Criticals extends Module {
-    private final ModeSetting mode;
-    public static final String[] MODES = {"Alan34", "NoGround"};
-    public static int ticksSinceVelocity = Integer.MAX_VALUE;
+    private final ModeValue mode;
 
     public Criticals() {
-        super("Criticals", category.combat);
-        this.registerSetting(new DescriptionSetting("Makes you get a critical hit every time you attack."));
-        this.registerSetting(mode = new ModeSetting("Mode", MODES, 0));
+        super("Criticals", category.combat, "Makes you get a critical hit every time you attack.");
+        this.registerSetting(mode = new ModeValue("Mode", this)
+                .add(new NoGroundCriticals("NoGround", this))
+                .add(new TimerCriticals("Timer", this))
+                .add(new JumpCriticals("Jump", this))
+                .add(new LagCriticals("Lag", this))
+                .add(new AirStuckCriticals("AirStuck", this))
+        );
     }
 
     @Override
     public void onEnable() {
-        ticksSinceVelocity = Integer.MAX_VALUE;
+        mode.enable();
     }
 
     @Override
-    public void onUpdate() {
-        if (ticksSinceVelocity < Integer.MAX_VALUE) ticksSinceVelocity++;
-    }
-
-    @SubscribeEvent
-    public void onPacketReceive(@NotNull ReceivePacketEvent event) {
-        if (event.getPacket() instanceof S12PacketEntityVelocity) {
-            if (((S12PacketEntityVelocity) event.getPacket()).getEntityID() == mc.thePlayer.getEntityId()) {
-                ticksSinceVelocity = 0;
-            }
-        }
-    }
-
-    @SubscribeEvent
-    public void onPreMotion(PreMotionEvent event) {
-        switch ((int) mode.getInput()) {
-            case 0: // Alan34
-                if (ticksSinceVelocity <= 18 && mc.thePlayer.fallDistance < 1.3) {
-                    event.setOnGround(false);
-                }
-                break;
-            case 1: // NoGround
-                if (KillAura.target != null) {
-                    event.setOnGround(false);
-                }
-                break;
-        }
+    public void onDisable() {
+        mode.disable();
     }
 
     @Override
     public String getInfo() {
-        return MODES[(int) mode.getInput()];
+        return mode.getSelected().getPrettyInfo();
     }
 }
